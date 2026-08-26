@@ -1,12 +1,15 @@
 import type { JsonObject } from "../../character-model/src/index.js";
 
-export type Dnd5eAbilityId =
-  | "strength"
-  | "dexterity"
-  | "constitution"
-  | "intelligence"
-  | "wisdom"
-  | "charisma";
+export const DND5E_ABILITY_IDS = [
+  "strength",
+  "dexterity",
+  "constitution",
+  "intelligence",
+  "wisdom",
+  "charisma",
+] as const;
+
+export type Dnd5eAbilityId = (typeof DND5E_ABILITY_IDS)[number];
 
 export interface Dnd5eAbilityScores extends JsonObject {
   strength: number;

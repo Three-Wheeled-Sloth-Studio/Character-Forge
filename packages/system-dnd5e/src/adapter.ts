@@ -5,7 +5,11 @@ import type {
   RulesValidationIssue,
   RulesValidationResult,
 } from "../../character-model/src/index.js";
-import { abilityModifier, type Dnd5eAbilityId } from "./nativeCharacter.js";
+import {
+  abilityModifier,
+  DND5E_ABILITY_IDS,
+  type Dnd5eAbilityId,
+} from "./nativeCharacter.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
 function isJsonObject(value: unknown): value is JsonObject {
@@ -61,16 +65,7 @@ function validateAbilityState(payload: JsonObject, issues: RulesValidationIssue[
     return;
   }
 
-  const abilityIds: Dnd5eAbilityId[] = [
-    "strength",
-    "dexterity",
-    "constitution",
-    "intelligence",
-    "wisdom",
-    "charisma",
-  ];
-
-  for (const abilityId of abilityIds) {
+  for (const abilityId of DND5E_ABILITY_IDS) {
     const baseScore = readNumber(base, abilityId);
     const increase = readNumber(increases, abilityId);
     const finalScore = readNumber(final, abilityId);
@@ -125,15 +120,7 @@ function validateStandardArrayAndSoldierBoosts(
   const increases = readObject(abilities, "backgroundIncreases");
   if (!base || !increases) return;
 
-  const abilityIds: Dnd5eAbilityId[] = [
-    "strength",
-    "dexterity",
-    "constitution",
-    "intelligence",
-    "wisdom",
-    "charisma",
-  ];
-  const baseScores = abilityIds
+  const baseScores = DND5E_ABILITY_IDS
     .map((abilityId) => readNumber(base, abilityId))
     .filter((value): value is number => value !== undefined)
     .sort((left, right) => right - left);
@@ -152,30 +139,34 @@ function validateStandardArrayAndSoldierBoosts(
   }
 
   const increaseValues = Object.fromEntries(
-    abilityIds.map((abilityId) => [abilityId, readNumber(increases, abilityId) ?? 0]),
-  );
+    DND5E_ABILITY_IDS.map((abilityId) => [abilityId, readNumber(increases, abilityId) ?? 0]),
+  ) as Record<Dnd5eAbilityId, number>;
   const allowedSoldierAbilities = new Set<Dnd5eAbilityId>([
     "strength",
     "dexterity",
     "constitution",
   ]);
-  const nonZeroIncreases = abilityIds.filter(
+  const nonZeroIncreases = DND5E_ABILITY_IDS.filter(
     (abilityId) => increaseValues[abilityId] !== 0,
   );
   const sortedIncreases = nonZeroIncreases
-    .map((abilityId) => increaseValues[abilityId] ?? 0)
+    .map((abilityId) => increaseValues[abilityId])
     .sort((left, right) => right - left);
+  const isTwoPlusOne =
+    sortedIncreases.length === 2 &&
+    sortedIncreases[0] === 2 &&
+    sortedIncreases[1] === 1;
+  const isThreeOnes =
+    sortedIncreases.length === 3 && sortedIncreases.every((increase) => increase === 1);
 
   if (
     nonZeroIncreases.some((abilityId) => !allowedSoldierAbilities.has(abilityId)) ||
-    sortedIncreases.length !== 2 ||
-    sortedIncreases[0] !== 2 ||
-    sortedIncreases[1] !== 1
+    (!isTwoPlusOne && !isThreeOnes)
   ) {
     pushError(
       issues,
       "dnd5e.soldier.ability-increases",
-      "Soldier ability increases in this slice must apply +2 and +1 to two different Strength, Dexterity, or Constitution scores.",
+      "Soldier ability increases must use +2/+1 on two different Strength, Dexterity, or Constitution scores, or +1 on all three.",
       "abilities.backgroundIncreases",
     );
   }

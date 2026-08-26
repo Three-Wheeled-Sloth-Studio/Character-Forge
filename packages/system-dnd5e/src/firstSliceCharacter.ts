@@ -3,12 +3,59 @@ import {
   type CharacterDocument,
   type NativeSystemState,
 } from "../../character-model/src/index.js";
-import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
+import {
+  createStandardArrayAbilityState,
+  type Dnd5eAbilityIncreasePlan,
+} from "./abilityGeneration.js";
+import {
+  abilityModifier,
+  type Dnd5eAbilityId,
+  type Dnd5eAbilityScores,
+  type Dnd5eNativeCharacter,
+} from "./nativeCharacter.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
 export const FIRST_SLICE_NATIVE_STATE_ID = "native-dnd5e-avery-stone";
 
-export function createFirstSliceNativePayload(): Dnd5eNativeCharacter {
+export const SOLDIER_BACKGROUND_ABILITY_IDS = [
+  "strength",
+  "dexterity",
+  "constitution",
+] as const satisfies readonly Dnd5eAbilityId[];
+
+export interface FirstSliceAbilityChoices {
+  assignment: Dnd5eAbilityScores;
+  backgroundIncreases: Dnd5eAbilityIncreasePlan;
+}
+
+export const DEFAULT_FIRST_SLICE_ABILITY_CHOICES: FirstSliceAbilityChoices = {
+  assignment: {
+    strength: 15,
+    dexterity: 14,
+    constitution: 13,
+    intelligence: 8,
+    wisdom: 10,
+    charisma: 12,
+  },
+  backgroundIncreases: {
+    strength: 2,
+    constitution: 1,
+  },
+};
+
+export function createFirstSliceNativePayload(
+  abilityChoices: FirstSliceAbilityChoices = DEFAULT_FIRST_SLICE_ABILITY_CHOICES,
+): Dnd5eNativeCharacter {
+  const abilities = createStandardArrayAbilityState({
+    assignment: abilityChoices.assignment,
+    backgroundAbilityIds: SOLDIER_BACKGROUND_ABILITY_IDS,
+    backgroundIncreases: abilityChoices.backgroundIncreases,
+  });
+  const constitutionModifier = abilityModifier(abilities.final.constitution);
+  const dexterityModifier = abilityModifier(abilities.final.dexterity);
+  const wisdomModifier = abilityModifier(abilities.final.wisdom);
+  const proficiencyBonus = 2;
+
   return {
     schemaVersion: "dnd5e-character/0.1",
     rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
@@ -30,38 +77,12 @@ export function createFirstSliceNativePayload(): Dnd5eNativeCharacter {
       toolProficiencyId: "gaming-set:dice",
       backgroundEquipmentChoice: "B:50-gp",
     },
-    abilities: {
-      generationMethod: "standard-array",
-      base: {
-        strength: 15,
-        dexterity: 14,
-        constitution: 13,
-        intelligence: 8,
-        wisdom: 10,
-        charisma: 12,
-      },
-      backgroundIncreases: {
-        strength: 2,
-        dexterity: 0,
-        constitution: 1,
-        intelligence: 0,
-        wisdom: 0,
-        charisma: 0,
-      },
-      final: {
-        strength: 17,
-        dexterity: 14,
-        constitution: 14,
-        intelligence: 8,
-        wisdom: 10,
-        charisma: 12,
-      },
-    },
+    abilities,
     class: {
       classId: "fighter",
       level: 1,
       hitDie: 10,
-      proficiencyBonus: 2,
+      proficiencyBonus,
       savingThrowProficiencies: ["strength", "constitution"],
       skillProficiencies: ["acrobatics", "history"],
       fightingStyleFeatId: "defense",
@@ -88,8 +109,8 @@ export function createFirstSliceNativePayload(): Dnd5eNativeCharacter {
     ],
     currencyGp: 54,
     resources: {
-      hitPointsMaximum: 12,
-      hitPointsCurrent: 12,
+      hitPointsMaximum: 10 + constitutionModifier,
+      hitPointsCurrent: 10 + constitutionModifier,
       hitDiceTotal: 1,
       hitDiceSpent: 0,
       secondWindMaximum: 2,
@@ -97,30 +118,35 @@ export function createFirstSliceNativePayload(): Dnd5eNativeCharacter {
     },
     derived: {
       armorClass: 17,
-      initiativeModifier: 4,
-      passivePerception: 12,
+      initiativeModifier: dexterityModifier + proficiencyBonus,
+      passivePerception: 10 + wisdomModifier + proficiencyBonus,
     },
   };
 }
 
-export function createFirstSliceNativeState(): NativeSystemState {
+export function createFirstSliceNativeState(
+  abilityChoices: FirstSliceAbilityChoices = DEFAULT_FIRST_SLICE_ABILITY_CHOICES,
+): NativeSystemState {
   return {
     id: FIRST_SLICE_NATIVE_STATE_ID,
     systemId: "dnd5e",
     editionId: "2024",
     rulesVersion: DND5E_SRD_5_2_1_SOURCE.version,
     schemaVersion: "dnd5e-character/0.1",
-    payload: createFirstSliceNativePayload(),
+    payload: createFirstSliceNativePayload(abilityChoices),
     provenance: {
       origin: "generated",
       sourceId: DND5E_SRD_5_2_1_SOURCE.id,
-      notes: "Fixed legal Level 1 fixture for the first vertical slice.",
+      notes: "Parameterized legal Level 1 fixture for the first vertical slice.",
     },
   };
 }
 
-export function createFirstSliceCharacterDocument(): CharacterDocument {
-  const nativeState = createFirstSliceNativeState();
+export function createFirstSliceCharacterDocument(
+  abilityChoices: FirstSliceAbilityChoices = DEFAULT_FIRST_SLICE_ABILITY_CHOICES,
+): CharacterDocument {
+  const nativeState = createFirstSliceNativeState(abilityChoices);
+  const payload = nativeState.payload as Dnd5eNativeCharacter;
 
   return createCharacterDocument({
     characterId: "character-avery-stone",
@@ -128,9 +154,9 @@ export function createFirstSliceCharacterDocument(): CharacterDocument {
     primaryNativeStateId: nativeState.id,
     nativeStates: [nativeState],
     generation: {
-      methodId: "dnd5e:first-legal-path",
+      methodId: "dnd5e:standard-array",
       mode: "mechanical",
-      recipeVersion: "0.1",
+      recipeVersion: "0.2",
       rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
       recipe: {
         classId: "fighter",
@@ -142,6 +168,11 @@ export function createFirstSliceCharacterDocument(): CharacterDocument {
         { stepId: "class", choiceId: "fighter" },
         { stepId: "background", choiceId: "soldier" },
         { stepId: "species", choiceId: "human" },
+        { stepId: "abilities.standard-array", answer: payload.abilities.base },
+        {
+          stepId: "background.ability-increases",
+          answer: payload.abilities.backgroundIncreases,
+        },
         { stepId: "fighting-style", choiceId: "defense" },
         { stepId: "human-origin-feat", choiceId: "alert" },
       ],
