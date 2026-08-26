@@ -100,41 +100,54 @@ function validateAbilityState(payload: JsonObject, issues: RulesValidationIssue[
   }
 }
 
-function validateStandardArrayAndSoldierBoosts(
+function validateAbilityMethodAndSoldierBoosts(
   payload: JsonObject,
   issues: RulesValidationIssue[],
 ): void {
   const abilities = readObject(payload, "abilities");
   if (!abilities) return;
 
-  if (readString(abilities, "generationMethod") !== "standard-array") {
-    pushError(
-      issues,
-      "dnd5e.slice.ability-method",
-      "The first supported slice uses the Standard Array generation method.",
-      "abilities.generationMethod",
-    );
-  }
-
   const base = readObject(abilities, "base");
   const increases = readObject(abilities, "backgroundIncreases");
   if (!base || !increases) return;
 
-  const baseScores = DND5E_ABILITY_IDS
-    .map((abilityId) => readNumber(base, abilityId))
-    .filter((value): value is number => value !== undefined)
-    .sort((left, right) => right - left);
-  const expectedStandardArray = [15, 14, 13, 12, 10, 8];
+  const generationMethod = readString(abilities, "generationMethod");
+  if (generationMethod === "standard-array") {
+    const baseScores = DND5E_ABILITY_IDS
+      .map((abilityId) => readNumber(base, abilityId))
+      .filter((value): value is number => value !== undefined)
+      .sort((left, right) => right - left);
+    const expectedStandardArray = [15, 14, 13, 12, 10, 8];
 
-  if (
-    baseScores.length !== expectedStandardArray.length ||
-    baseScores.some((score, index) => score !== expectedStandardArray[index])
-  ) {
+    if (
+      baseScores.length !== expectedStandardArray.length ||
+      baseScores.some((score, index) => score !== expectedStandardArray[index])
+    ) {
+      pushError(
+        issues,
+        "dnd5e.standard-array.values",
+        "Standard Array must use 15, 14, 13, 12, 10, and 8 exactly once.",
+        "abilities.base",
+      );
+    }
+  } else if (generationMethod === "manual") {
+    for (const abilityId of DND5E_ABILITY_IDS) {
+      const score = readNumber(base, abilityId);
+      if (score === undefined || !Number.isInteger(score) || score < 3 || score > 18) {
+        pushError(
+          issues,
+          "dnd5e.manual.base-range",
+          `Manual base ${abilityId} must be an integer from 3 through 18 before background increases.`,
+          `abilities.base.${abilityId}`,
+        );
+      }
+    }
+  } else {
     pushError(
       issues,
-      "dnd5e.standard-array.values",
-      "Standard Array must use 15, 14, 13, 12, 10, and 8 exactly once.",
-      "abilities.base",
+      "dnd5e.slice.ability-method",
+      "This slice currently supports Standard Array and Manual ability entry.",
+      "abilities.generationMethod",
     );
   }
 
@@ -226,7 +239,7 @@ function validateFirstSliceRules(payload: JsonObject, issues: RulesValidationIss
 
 export const dnd5eSrd521Adapter: RulesSystemAdapter = {
   adapterId: "character-forge:dnd5e-2024",
-  adapterVersion: "0.1.0",
+  adapterVersion: "0.2.0",
   systemId: "dnd5e",
   editionId: "2024",
   supportedRulesSources: [DND5E_SRD_5_2_1_SOURCE],
@@ -266,7 +279,7 @@ export const dnd5eSrd521Adapter: RulesSystemAdapter = {
     }
 
     validateAbilityState(payload, issues);
-    validateStandardArrayAndSoldierBoosts(payload, issues);
+    validateAbilityMethodAndSoldierBoosts(payload, issues);
     validateFirstSliceRules(payload, issues);
 
     return { valid: !issues.some((issue) => issue.severity === "error"), issues };

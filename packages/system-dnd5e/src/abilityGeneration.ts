@@ -9,8 +9,21 @@ export const DND5E_STANDARD_ARRAY = [15, 14, 13, 12, 10, 8] as const;
 
 export type Dnd5eAbilityIncreasePlan = Partial<Record<Dnd5eAbilityId, 1 | 2>>;
 
+export interface Dnd5eAbilityStateInput {
+  generationMethod: Dnd5eAbilityState["generationMethod"];
+  base: Dnd5eAbilityScores;
+  backgroundAbilityIds: readonly Dnd5eAbilityId[];
+  backgroundIncreases: Dnd5eAbilityIncreasePlan;
+}
+
 export interface Dnd5eStandardArrayInput {
   assignment: Dnd5eAbilityScores;
+  backgroundAbilityIds: readonly Dnd5eAbilityId[];
+  backgroundIncreases: Dnd5eAbilityIncreasePlan;
+}
+
+export interface Dnd5eManualAbilityInput {
+  scores: Dnd5eAbilityScores;
   backgroundAbilityIds: readonly Dnd5eAbilityId[];
   backgroundIncreases: Dnd5eAbilityIncreasePlan;
 }
@@ -31,6 +44,17 @@ function assertStandardArrayAssignment(assignment: Dnd5eAbilityScores): void {
     throw new Error(
       "D&D 5E Standard Array assignment must use 15, 14, 13, 12, 10, and 8 exactly once.",
     );
+  }
+}
+
+function assertManualBaseScores(scores: Dnd5eAbilityScores): void {
+  for (const abilityId of DND5E_ABILITY_IDS) {
+    const score = scores[abilityId];
+    if (!Number.isInteger(score) || score < 3 || score > 18) {
+      throw new Error(
+        `Manual base ${abilityId} must be an integer from 3 through 18 before background increases.`,
+      );
+    }
   }
 }
 
@@ -69,10 +93,8 @@ function assertBackgroundIncreasePlan(
   const pattern = increasedAbilityIds
     .map((abilityId) => increases[abilityId])
     .sort((left, right) => right - left);
-  const isTwoPlusOne =
-    pattern.length === 2 && pattern[0] === 2 && pattern[1] === 1;
-  const isThreeOnes =
-    pattern.length === 3 && pattern.every((increase) => increase === 1);
+  const isTwoPlusOne = pattern.length === 2 && pattern[0] === 2 && pattern[1] === 1;
+  const isThreeOnes = pattern.length === 3 && pattern.every((increase) => increase === 1);
 
   if (!isTwoPlusOne && !isThreeOnes) {
     throw new Error(
@@ -101,17 +123,38 @@ function addAbilityScores(
   return final;
 }
 
-export function createStandardArrayAbilityState(
-  input: Dnd5eStandardArrayInput,
-): Dnd5eAbilityState {
-  assertStandardArrayAssignment(input.assignment);
+export function createAbilityState(input: Dnd5eAbilityStateInput): Dnd5eAbilityState {
   const backgroundIncreases = expandIncreasePlan(input.backgroundIncreases);
   assertBackgroundIncreasePlan(input.backgroundAbilityIds, backgroundIncreases);
 
   return {
-    generationMethod: "standard-array",
-    base: { ...input.assignment },
+    generationMethod: input.generationMethod,
+    base: { ...input.base },
     backgroundIncreases,
-    final: addAbilityScores(input.assignment, backgroundIncreases),
+    final: addAbilityScores(input.base, backgroundIncreases),
   };
+}
+
+export function createStandardArrayAbilityState(
+  input: Dnd5eStandardArrayInput,
+): Dnd5eAbilityState {
+  assertStandardArrayAssignment(input.assignment);
+  return createAbilityState({
+    generationMethod: "standard-array",
+    base: input.assignment,
+    backgroundAbilityIds: input.backgroundAbilityIds,
+    backgroundIncreases: input.backgroundIncreases,
+  });
+}
+
+export function createManualAbilityState(
+  input: Dnd5eManualAbilityInput,
+): Dnd5eAbilityState {
+  assertManualBaseScores(input.scores);
+  return createAbilityState({
+    generationMethod: "manual",
+    base: input.scores,
+    backgroundAbilityIds: input.backgroundAbilityIds,
+    backgroundIncreases: input.backgroundIncreases,
+  });
 }

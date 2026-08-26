@@ -1,6 +1,10 @@
 import {
   createCharacterDocument,
+  createCharacterId,
+  createNativeStateId,
   type CharacterDocument,
+  type GenerationRecord,
+  type NativeStateOrigin,
   type NativeSystemState,
 } from "../../character-model/src/index.js";
 import {
@@ -11,6 +15,7 @@ import {
   abilityModifier,
   type Dnd5eAbilityId,
   type Dnd5eAbilityScores,
+  type Dnd5eAbilityState,
   type Dnd5eNativeCharacter,
 } from "./nativeCharacter.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
@@ -28,6 +33,13 @@ export interface FirstSliceAbilityChoices {
   backgroundIncreases: Dnd5eAbilityIncreasePlan;
 }
 
+export interface FirstSliceCharacterFromAbilityStateInput {
+  displayName: string;
+  abilities: Dnd5eAbilityState;
+  generation: GenerationRecord;
+  nativeOrigin?: NativeStateOrigin;
+}
+
 export const DEFAULT_FIRST_SLICE_ABILITY_CHOICES: FirstSliceAbilityChoices = {
   assignment: {
     strength: 15,
@@ -43,14 +55,10 @@ export const DEFAULT_FIRST_SLICE_ABILITY_CHOICES: FirstSliceAbilityChoices = {
   },
 };
 
-export function createFirstSliceNativePayload(
-  abilityChoices: FirstSliceAbilityChoices = DEFAULT_FIRST_SLICE_ABILITY_CHOICES,
+export function createFirstSliceNativePayloadFromAbilityState(
+  abilities: Dnd5eAbilityState,
+  displayName = "Avery Stone",
 ): Dnd5eNativeCharacter {
-  const abilities = createStandardArrayAbilityState({
-    assignment: abilityChoices.assignment,
-    backgroundAbilityIds: SOLDIER_BACKGROUND_ABILITY_IDS,
-    backgroundIncreases: abilityChoices.backgroundIncreases,
-  });
   const constitutionModifier = abilityModifier(abilities.final.constitution);
   const dexterityModifier = abilityModifier(abilities.final.dexterity);
   const wisdomModifier = abilityModifier(abilities.final.wisdom);
@@ -60,7 +68,7 @@ export function createFirstSliceNativePayload(
     schemaVersion: "dnd5e-character/0.1",
     rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
     identity: {
-      name: "Avery Stone",
+      name: displayName,
       level: 1,
       experiencePoints: 0,
       alignment: "neutral-good",
@@ -124,22 +132,72 @@ export function createFirstSliceNativePayload(
   };
 }
 
-export function createFirstSliceNativeState(
+export function createFirstSliceNativePayload(
   abilityChoices: FirstSliceAbilityChoices = DEFAULT_FIRST_SLICE_ABILITY_CHOICES,
+): Dnd5eNativeCharacter {
+  const abilities = createStandardArrayAbilityState({
+    assignment: abilityChoices.assignment,
+    backgroundAbilityIds: SOLDIER_BACKGROUND_ABILITY_IDS,
+    backgroundIncreases: abilityChoices.backgroundIncreases,
+  });
+  return createFirstSliceNativePayloadFromAbilityState(abilities);
+}
+
+export function createFirstSliceNativeStateFromAbilityState(
+  abilities: Dnd5eAbilityState,
+  displayName: string,
+  origin: NativeStateOrigin,
+  id = createNativeStateId(),
 ): NativeSystemState {
   return {
-    id: FIRST_SLICE_NATIVE_STATE_ID,
+    id,
     systemId: "dnd5e",
     editionId: "2024",
     rulesVersion: DND5E_SRD_5_2_1_SOURCE.version,
     schemaVersion: "dnd5e-character/0.1",
-    payload: createFirstSliceNativePayload(abilityChoices),
+    payload: createFirstSliceNativePayloadFromAbilityState(abilities, displayName),
     provenance: {
-      origin: "generated",
+      origin,
       sourceId: DND5E_SRD_5_2_1_SOURCE.id,
-      notes: "Parameterized legal Level 1 fixture for the first vertical slice.",
+      notes: "Level 1 Human Soldier Fighter state built through the shared D&D ability-state path.",
     },
   };
+}
+
+export function createFirstSliceNativeState(
+  abilityChoices: FirstSliceAbilityChoices = DEFAULT_FIRST_SLICE_ABILITY_CHOICES,
+): NativeSystemState {
+  const abilities = createStandardArrayAbilityState({
+    assignment: abilityChoices.assignment,
+    backgroundAbilityIds: SOLDIER_BACKGROUND_ABILITY_IDS,
+    backgroundIncreases: abilityChoices.backgroundIncreases,
+  });
+  return createFirstSliceNativeStateFromAbilityState(
+    abilities,
+    "Avery Stone",
+    "generated",
+    FIRST_SLICE_NATIVE_STATE_ID,
+  );
+}
+
+export function createFirstSliceCharacterDocumentFromAbilityState(
+  input: FirstSliceCharacterFromAbilityStateInput,
+): CharacterDocument {
+  const displayName = input.displayName.trim();
+  if (!displayName) throw new Error("Character name is required.");
+  const nativeState = createFirstSliceNativeStateFromAbilityState(
+    input.abilities,
+    displayName,
+    input.nativeOrigin ?? "generated",
+  );
+
+  return createCharacterDocument({
+    characterId: createCharacterId(),
+    displayName,
+    primaryNativeStateId: nativeState.id,
+    nativeStates: [nativeState],
+    generation: input.generation,
+  });
 }
 
 export function createFirstSliceCharacterDocument(
