@@ -8,9 +8,10 @@
 2. `refs/project.yaml`
 3. `refs/agents.yaml`
 4. `refs/handoffs/currentHandoff.md`
-5. `refs/architecture/character-architecture.md`
-6. `refs/architecture/translation-bridge-rpg-notes.md`
-7. Relevant planning, product, integration, and testing references
+5. `refs/handoffs/next-dev-prompt.md`
+6. `refs/architecture/character-architecture.md`
+7. `refs/architecture/translation-bridge-rpg-notes.md`
+8. Relevant planning, product, integration, and testing references
 
 ## Maintenance rules
 

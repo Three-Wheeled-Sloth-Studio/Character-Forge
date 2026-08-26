@@ -5,6 +5,7 @@ required_reading:
   - refs/README.md
   - refs/project.yaml
   - refs/handoffs/currentHandoff.md
+  - refs/handoffs/next-dev-prompt.md
   - refs/architecture/character-architecture.md
   - refs/architecture/translation-bridge-rpg-notes.md
 working_rules:

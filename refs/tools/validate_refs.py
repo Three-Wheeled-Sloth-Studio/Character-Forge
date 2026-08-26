@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "refs/architecture/translation-bridge-rpg-notes.md",
     "refs/product/generation-methods.md",
     "refs/handoffs/currentHandoff.md",
+    "refs/handoffs/next-dev-prompt.md",
     "refs/testing/validationCommands.yaml",
 ]
 
@@ -26,6 +27,10 @@ REQUIRED_TEXT = {
         "native system state",
         "dnd5e",
         "call-of-cthulhu",
+    ],
+    "refs/handoffs/next-dev-prompt.md": [
+        "Native system state is mandatory and lossless",
+        "dev -> qa -> main",
     ],
 }
 
