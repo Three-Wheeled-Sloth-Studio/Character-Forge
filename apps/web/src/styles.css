@@ -7,7 +7,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #f8f1e6 0, #e7ddcf 52%, #d9cdbd 100%); }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button { cursor: pointer; }
 
 .forge-shell { max-width: 1120px; margin: 0 auto; padding: 32px; }
@@ -23,9 +23,15 @@ h2 { font-family: Georgia, serif; font-size: 1.8rem; margin-bottom: 8px; }
 .creator-copy p:last-child { color: #65594d; margin-bottom: 0; }
 .quick-form { display: grid; gap: 14px; }
 .quick-form label { display: grid; gap: 6px; font-size: .86rem; font-weight: 700; }
-.quick-form input { width: 100%; padding: 11px 12px; border: 1px solid #b9aa96; border-radius: 10px; background: #fffdf9; }
+.quick-form input, .quick-form select { width: 100%; padding: 11px 12px; border: 1px solid #b9aa96; border-radius: 10px; background: #fffdf9; color: #221d19; }
 .quick-form button { padding: 12px 16px; border: 0; border-radius: 10px; background: #523720; color: white; font-weight: 800; }
 .quick-form button:hover { background: #6b482b; }
+.manual-ability-fieldset { margin: 0; border: 1px solid #d4c8b8; border-radius: 12px; padding: 12px; }
+.manual-ability-fieldset legend { padding: 0 6px; color: #65594d; font-size: .82rem; font-weight: 800; }
+.manual-ability-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.manual-ability-grid label { font-size: .75rem; text-align: center; }
+.manual-ability-grid input { text-align: center; }
+.form-error { min-height: 1.2em; margin: 0; color: #8a2525; font-size: .82rem; }
 .result-panel { padding: 24px; }
 .empty-result { color: #6c6258; text-align: center; padding: 48px 24px; }
 .result-heading { display: flex; justify-content: space-between; gap: 20px; align-items: start; }
@@ -51,6 +57,7 @@ code { overflow-wrap: anywhere; }
   .forge-shell { padding: 16px; }
   .forge-header, .creator-panel, .result-heading { grid-template-columns: 1fr; flex-direction: column; }
   .creator-panel { grid-template-columns: 1fr; }
+  .manual-ability-grid { grid-template-columns: repeat(2, 1fr); }
   .ability-grid { grid-template-columns: repeat(3, 1fr); }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .result-details div { grid-template-columns: 1fr; gap: 2px; }

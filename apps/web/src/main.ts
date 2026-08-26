@@ -1,6 +1,9 @@
 import {
   dnd5eSrd521Adapter,
+  manualGenerateDnd5eFirstSlice,
   quickGenerateDnd5eFirstSlice,
+  type Dnd5eAbilityIncreasePlan,
+  type Dnd5eAbilityScores,
   type Dnd5eNativeCharacter,
 } from "../../../packages/system-dnd5e/src/index.js";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
@@ -34,7 +37,7 @@ app.innerHTML = `
       <div class="creator-copy">
         <p class="eyebrow">D&D 5E 2024 / SRD 5.2.1</p>
         <h2>Quick character</h2>
-        <p>This first playable seam generates a legal Level 1 Human Soldier Fighter using the Character Forge rules engine.</p>
+        <p>Generate a legal Level 1 Human Soldier Fighter with minimal input. The rules engine still records the ability assignment, background increases, and generation seed.</p>
       </div>
       <form id="quick-form" class="quick-form">
         <label>
@@ -49,6 +52,45 @@ app.innerHTML = `
       </form>
     </section>
 
+    <section class="creator-panel">
+      <div class="creator-copy">
+        <p class="eyebrow">Manual ability entry</p>
+        <h2>Enter the scores yourself</h2>
+        <p>Enter pre-background ability scores directly. This slice keeps Human, Soldier, and Fighter fixed, then applies a legal Soldier background increase through the same shared ability-state path used by Standard Array.</p>
+      </div>
+      <form id="manual-form" class="quick-form manual-form">
+        <label>
+          Character name
+          <input id="manual-name" name="manualName" type="text" maxlength="80" required placeholder="Required for manual entry" />
+        </label>
+        <fieldset class="manual-ability-fieldset">
+          <legend>Base ability scores</legend>
+          <div class="manual-ability-grid">
+            ${manualAbilityInput("STR", "strength", 15)}
+            ${manualAbilityInput("DEX", "dexterity", 14)}
+            ${manualAbilityInput("CON", "constitution", 13)}
+            ${manualAbilityInput("INT", "intelligence", 12)}
+            ${manualAbilityInput("WIS", "wisdom", 10)}
+            ${manualAbilityInput("CHA", "charisma", 8)}
+          </div>
+        </fieldset>
+        <label>
+          Soldier ability increases
+          <select id="manual-boost-plan" name="manualBoostPlan">
+            <option value="str2-con1">STR +2, CON +1</option>
+            <option value="str2-dex1">STR +2, DEX +1</option>
+            <option value="dex2-str1">DEX +2, STR +1</option>
+            <option value="dex2-con1">DEX +2, CON +1</option>
+            <option value="con2-str1">CON +2, STR +1</option>
+            <option value="con2-dex1">CON +2, DEX +1</option>
+            <option value="all1">STR +1, DEX +1, CON +1</option>
+          </select>
+        </label>
+        <p id="manual-error" class="form-error" role="alert"></p>
+        <button type="submit">Build manual character</button>
+      </form>
+    </section>
+
     <section id="result" class="result-panel empty-result" aria-live="polite">
       <p>Your generated character will appear here.</p>
     </section>
@@ -58,6 +100,10 @@ app.innerHTML = `
 const form = document.querySelector<HTMLFormElement>("#quick-form");
 const nameInput = document.querySelector<HTMLInputElement>("#character-name");
 const seedInput = document.querySelector<HTMLInputElement>("#character-seed");
+const manualForm = document.querySelector<HTMLFormElement>("#manual-form");
+const manualNameInput = document.querySelector<HTMLInputElement>("#manual-name");
+const manualBoostSelect = document.querySelector<HTMLSelectElement>("#manual-boost-plan");
+const manualError = document.querySelector<HTMLElement>("#manual-error");
 const result = document.querySelector<HTMLElement>("#result");
 
 form?.addEventListener("submit", (event) => {
@@ -68,6 +114,24 @@ form?.addEventListener("submit", (event) => {
   });
   renderCharacter(character);
   postCharacterToHost(character);
+});
+
+manualForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (manualError) manualError.textContent = "";
+  try {
+    const character = manualGenerateDnd5eFirstSlice({
+      name: manualNameInput?.value ?? "",
+      scores: readManualAbilityScores(),
+      backgroundIncreases: readSoldierBoostPlan(manualBoostSelect?.value ?? ""),
+    });
+    renderCharacter(character);
+    postCharacterToHost(character);
+  } catch (error) {
+    if (manualError) {
+      manualError.textContent = error instanceof Error ? error.message : "Manual character generation failed.";
+    }
+  }
 });
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
@@ -106,7 +170,7 @@ function renderCharacter(character: CharacterDocument): void {
 
   const payload = nativeState.payload as Dnd5eNativeCharacter;
   const abilities = payload.abilities.final;
-  const seed = character.generation?.seed ?? "not recorded";
+  const seed = character.generation?.seed;
 
   result.classList.remove("empty-result");
   result.innerHTML = `
@@ -133,11 +197,12 @@ function renderCharacter(character: CharacterDocument): void {
       ${statCard("Passive Perception", String(payload.derived.passivePerception))}
     </div>
     <div class="result-details">
+      <div><strong>Ability method</strong><span>${humanize(payload.abilities.generationMethod)}</span></div>
       <div><strong>Fighting style</strong><span>${humanize(payload.class.fightingStyleFeatId)}</span></div>
       <div><strong>Origin feats</strong><span>${humanize(payload.origin.backgroundOriginFeatId)}, ${humanize(payload.origin.speciesOriginFeatId)}</span></div>
       <div><strong>Weapon mastery</strong><span>${payload.class.weaponMasteryIds.map(humanize).join(", ")}</span></div>
       <div><strong>Equipment</strong><span>${payload.equipment.map((item) => `${item.quantity} x ${humanize(item.itemId)}`).join(", ")}</span></div>
-      <div><strong>Generation seed</strong><code>${escapeHtml(seed)}</code></div>
+      ${seed ? `<div><strong>Generation seed</strong><code>${escapeHtml(seed)}</code></div>` : ""}
     </div>
     <details>
       <summary>Inspect native character document</summary>
@@ -174,6 +239,41 @@ function postCharacterToHost(character: CharacterDocument): void {
       character,
     },
   }, hostOrigin ?? "*");
+}
+
+function readManualAbilityScores(): Dnd5eAbilityScores {
+  return {
+    strength: readManualAbilityInput("strength"),
+    dexterity: readManualAbilityInput("dexterity"),
+    constitution: readManualAbilityInput("constitution"),
+    intelligence: readManualAbilityInput("intelligence"),
+    wisdom: readManualAbilityInput("wisdom"),
+    charisma: readManualAbilityInput("charisma"),
+  };
+}
+
+function readManualAbilityInput(abilityId: string): number {
+  const input = document.querySelector<HTMLInputElement>(`#manual-${abilityId}`);
+  const value = Number(input?.value);
+  if (!Number.isInteger(value)) throw new Error(`${abilityId} must be a whole-number ability score.`);
+  return value;
+}
+
+function readSoldierBoostPlan(value: string): Dnd5eAbilityIncreasePlan {
+  switch (value) {
+    case "str2-con1": return { strength: 2, constitution: 1 };
+    case "str2-dex1": return { strength: 2, dexterity: 1 };
+    case "dex2-str1": return { dexterity: 2, strength: 1 };
+    case "dex2-con1": return { dexterity: 2, constitution: 1 };
+    case "con2-str1": return { constitution: 2, strength: 1 };
+    case "con2-dex1": return { constitution: 2, dexterity: 1 };
+    case "all1": return { strength: 1, dexterity: 1, constitution: 1 };
+    default: throw new Error("Choose a legal Soldier ability-increase plan.");
+  }
+}
+
+function manualAbilityInput(label: string, abilityId: string, value: number): string {
+  return `<label>${label}<input id="manual-${abilityId}" name="manual-${abilityId}" type="number" min="3" max="18" step="1" required value="${value}" /></label>`;
 }
 
 function abilityCard(label: string, score: number): string {
