@@ -2,7 +2,7 @@
 
 Date: 2026-08-26
 Branch: dev
-Phase: D&D 5E 2024 PI 1, manual ability generation implemented, owner QA pending
+Phase: D&D 5E 2024 PI 1, Manual + Point Cost implemented, owner runtime QA intentionally deferred
 
 ## Accepted baseline
 
@@ -12,36 +12,41 @@ Accepted Character Forge checkpoint on `qa` and `main`:
 
 - `8041edb4009abce8a836faafce9a167883e92bda`
 
-Accepted Parchment Worlds checkpoint on `qa` and `main`:
+Accepted Parchment Worlds closeout checkpoint on `qa` and `main`:
 
-- `f5eb7224f71ed64d033aaac038a933fbd8850c48`
+- `ac704a471df1b4235112d7f3c63c3b5ee4b1236c`
 
 Parchment issue #24 is closed as completed. Do not reopen the accepted embed/persistence seam without new evidence.
 
-Two non-blocking QA follow-ups are deliberately backgrounded:
+Two non-blocking QA follow-ups remain deliberately backgrounded:
 
 - Character Forge issue #2: the owner's effective runtime still showed name-derived character/native-state IDs even though current dev code contains opaque UUID helpers. Trace the effective runtime path later rather than blocking generation breadth.
 - Character Forge issue #3: add compact icon-first Copy JSON / Download JSON controls to the CharacterDocument inspector.
 
-## Current implementation checkpoint
+## Current development checkpoint
 
-Manual ability generation and the shared ability-state path are implemented on `dev` at:
+Manual Ability Entry and Point Cost now both exist on `dev`. Neither has been promoted because the owner chose to defer runtime QA and continue generation work first.
 
-- `f48ee8ff92a6fb349a9c74f462121fe0eaa07021`
-- GitHub Actions run `33021611610`
+Current Point Cost code checkpoint:
+
+- `914ffd38504c71e0af1785c2a4e839ca41dffd8c`
+- GitHub Actions run `33022905653`
 - full `npm run verify` green
 - refs validation green
 - strict TypeScript green
-- 6 Vitest files, 29 tests, 0 failures
+- 7 Vitest files, 36 tests, 0 failures
 - web TypeScript build green
 
-Tracked by Character Forge issue #5.
+Manual/shared-ability checkpoint beneath it:
 
-## What changed
+- `f48ee8ff92a6fb349a9c74f462121fe0eaa07021`
+- GitHub Actions run `33021611610`
 
-### Shared ability-state behavior
+Tracked by Character Forge issues #5 and #7.
 
-`packages/system-dnd5e/src/abilityGeneration.ts` now provides one common path for ability state after a generation method chooses base scores.
+## Ability-generation architecture now proven across three methods
+
+`packages/system-dnd5e/src/abilityGeneration.ts` provides the common post-base-score path used by Standard Array, Manual Entry, and Point Cost.
 
 The shared path owns:
 
@@ -52,115 +57,122 @@ The shared path owns:
 - final-score derivation from base score plus background contribution;
 - the Level 1 cap that background increases cannot push a score above 20.
 
-Standard Array and Manual now both converge on this path. Future point-cost and random methods should do the same rather than reimplementing background/final-score behavior.
+Each generation method owns only how its base values are obtained and the provenance needed to explain that choice.
 
-### Manual generation method
+## Manual Ability Entry
 
-`manualGenerateDnd5eFirstSlice` now accepts:
+Manual generation remains implemented and automated-green.
 
-- an explicit character name;
-- six pre-background ability scores;
+It accepts:
+
+- required character name;
+- six explicit pre-background scores from 3 through 18;
 - a legal Soldier background increase plan.
 
-For this first slice, manual base scores must be integers from 3 through 18. Human, Soldier, and Fighter remain intentionally fixed.
+It records:
 
-Manual generation records:
-
-- `generationMethod: manual` in D&D native ability state;
+- `abilities.generationMethod: manual`;
 - `generation.mode: manual`;
 - `generation.methodId: dnd5e:manual-first-slice`;
-- explicit `abilities.manual` and background-increase decisions;
+- explicit manual base-score and background-increase decisions;
 - native provenance origin `manual`;
 - no invented random seed.
 
-The resulting character still goes through the ordinary D&D adapter and the same full CharacterDocument save/handoff boundary as Quick Generate.
+Owner runtime QA for this path is deferred by direction, not failed.
 
-### Adapter behavior
+## Point Cost
 
-The D&D adapter is now version `0.2.0`.
+Point Cost is now implemented as a distinct D&D generation method using the same native-state path.
 
-It validates Standard Array and Manual as distinct supported base-score methods while keeping shared validation for:
+The D&D system package owns the SRD 5.2.1 Point Cost rules:
 
-- complete base/increase/final state;
-- final = base + background increase;
-- final score range;
-- Soldier increase legality;
-- fixed first-slice Human / Soldier / Fighter rules;
-- Level 1 Fighter HP and other existing native constraints.
+- 27-point budget;
+- pre-background scores from 8 through 15;
+- costs 8=0, 9=1, 10=2, 11=3, 12=4, 13=5, 14=7, 15=9;
+- allocations over 27 points are rejected;
+- unspent points remain legal and visible rather than being silently redistributed.
 
-### Browser surface
+`pointCostGenerateDnd5eFirstSlice` records:
 
-The current Character Forge browser now exposes a second creation panel for Manual Ability Entry.
+- `abilities.generationMethod: point-cost`;
+- `generation.mode: mechanical`;
+- `generation.methodId: dnd5e:point-cost-first-slice`;
+- the 27-point budget in the generation recipe;
+- the chosen base scores and spend summary in generation decisions;
+- no random seed.
 
-It provides:
+The D&D adapter is now version `0.3.0` and independently validates Point Cost score range and total budget before accepting retained native state.
+
+## Browser surface
+
+Character Forge now exposes three creation surfaces:
+
+1. Quick Generate;
+2. Manual Ability Entry;
+3. Point Cost.
+
+The Point Cost panel provides:
 
 - required character name;
-- six compact numeric base-score inputs;
-- the legal Soldier increase choices;
+- six compact numeric inputs constrained to 8 through 15;
+- live points-spent / points-remaining feedback;
+- disabled submission while the allocation is invalid or over budget;
+- the same legal Soldier increase choices;
 - inline error reporting;
-- the same character review surface used by Quick Generate;
-- an Ability Method row in review;
-- generation seed display only when the method actually has a seed;
-- the same `character-forge:character-generated` postMessage boundary to Parchment.
+- the same character review and `character-forge:character-generated` handoff used by the other methods.
 
 No Parchment mechanics changes were required.
 
 ## Architecture evidence
 
-This slice strengthens the generator architecture rather than adding a parallel manual-character model.
+The generation-method separation is now concrete across Standard Array, Manual, and Point Cost:
 
-The important separation is now concrete:
+1. method-specific code obtains or validates six base values;
+2. shared D&D rules apply background contributions and derive final abilities;
+3. the ordinary first-slice native builder recomputes dependent state;
+4. the same adapter validates final native state;
+5. every method emits the same CharacterDocument shape and uses the same persistence boundary.
 
-1. a generation method chooses or receives base ability values;
-2. shared D&D rules apply background contributions and derive final ability state;
-3. the ordinary first-slice native character builder derives HP, Initiative, Passive Perception, and other dependent state;
-4. the normal adapter validates the final native state;
-5. every generation method emits the same CharacterDocument shape and uses the same persistence boundary.
+Point-buy budget is therefore construction provenance, not a separate character ontology or a shared universal Character Forge mechanic.
 
-Manual provenance and mechanical state remain separate. Character Forge does not need semantic translation to persist or reopen either Manual or Standard Array characters.
+## Runtime QA state
 
-## Immediate owner QA
+Do not interpret the absence of owner Manual/Point Cost testing as a failure. The owner explicitly deferred that test pass on 2026-08-26 and authorized continuing to the next generation slice.
 
-Pull Character Forge `dev` and use the normal Parchment-hosted Character Forge flow. A focused check is enough:
+When a runtime pass is convenient later, Manual and Point Cost can be checked together against the normal Parchment-hosted flow. Keep issues #5 and #7 open until that acceptance pass or until the owner explicitly accepts them without it.
 
-1. Confirm Quick Generate still works and still saves/reopens through Parchment.
-2. In Manual Ability Entry, enter a name and six scores between 3 and 18.
-3. Choose a Soldier increase plan and build the character.
-4. Confirm the displayed final scores reflect the selected increases.
-5. Confirm HP / Initiative / Passive Perception react to the final ability values where applicable.
-6. Expand the document and confirm:
-   - `abilities.generationMethod` is `manual`;
-   - `generation.mode` is `manual`;
-   - `generation.methodId` is `dnd5e:manual-first-slice`;
-   - the manual base scores and background increases are retained as decisions;
-   - there is no generation seed;
-   - native provenance origin is `manual`.
-7. Save the manual character to Parchment, reload, reopen it, and confirm native validation remains green.
-8. Optionally verify an out-of-range manual score is rejected inline rather than producing an invalid character.
+## Next implementation slice
 
-If this is green, close issue #5 and promote the exact accepted Character Forge SHA through `dev -> qa -> main`.
+Add reusable dice-expression generation, with D&D's SRD 5.2.1 random ability method as the first consumer.
 
-## Next implementation slice after acceptance
+The first D&D expression is four d6, keep the highest three, repeated six times. Do not implement this as a one-off `roll4d6DropLowest()` utility. Build the smallest reusable dice-expression layer that can represent:
 
-Add D&D 5E point cost through the same shared ability-state boundary.
+- die count;
+- die size;
+- keep/drop behavior;
+- deterministic seeded rolling;
+- retained roll detail sufficient for provenance and replay.
 
-Do not build another final-score/background-adjustment implementation. The point-cost method should own only the rules and decisions specific to buying the base scores, then hand those base scores into the shared path already used by Standard Array and Manual.
+Then use that general expression through a D&D-specific random-ability generator that hands its six resulting base scores into the same shared ability-state path already used by Standard Array, Manual, and Point Cost.
 
-After point cost:
+Do not begin broader species/background/class choice work in the same slice.
 
-1. reusable dice-expression generation, including 4d6 drop lowest;
-2. guided choices replacing fixed Human / Soldier / Fighter incrementally;
-3. early guided narrative generation using the same ordinary generation APIs;
-4. broader legally redistributable SRD content;
-5. Foundry D&D 5E integration and later maintenance/advancement.
+## After random ability generation
+
+1. guided choices replacing fixed Human / Soldier / Fighter incrementally;
+2. early guided narrative generation using the same ordinary generation APIs;
+3. broader legally redistributable SRD content;
+4. Foundry D&D 5E integration;
+5. maintenance and advancement after those foundations.
 
 ## Guardrails
 
 - Work directly on `dev`; preserve exact-SHA `dev -> qa -> main` promotion.
+- Do not promote the current Manual/Point Cost stack until owner acceptance unless explicitly directed otherwise.
 - Native system state remains mandatory and lossless.
 - Never reconstruct retained D&D state from semantic projection data.
 - Generation methods must converge on the same native-state validation and save boundary.
-- Keep D&D and Foundry schemas out of shared character contracts and Parchment project contracts.
+- System adapters own system-specific rules behavior; shared character contracts must not become D&D point-buy or d20 shaped.
 - Character Forge remains authoritative for RPG-native interpretation, validation, and generation provenance.
 - Parchment remains authoritative for project ownership, generic asset lifecycle, relationships, persistence, and future sync/share concerns.
 - Keep issues #2 and #3 backgrounded unless new evidence makes either blocking.

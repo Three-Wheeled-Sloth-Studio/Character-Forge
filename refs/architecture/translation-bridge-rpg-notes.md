@@ -152,3 +152,15 @@ Bridge-RPG implication: Future original-RPG character creation can support multi
 Confidence: high within the D&D implementation; medium as a cross-system claim until another RPG confirms it.
 
 Follow-up: Point cost and random dice generation should reuse the same post-base-score pipeline. Watch whether a structurally different second RPG exposes cases where generation method must affect authoritative state more deeply.
+
+### 2026-08-26 - Point budgets are construction provenance, not runtime traits
+
+Observation: D&D Point Cost constrains how six pre-background ability values are purchased, but once those values enter the shared ability-state pipeline the resulting character has the same authoritative base/background/final ability structure as Standard Array or Manual Entry. The 27-point budget and score-cost table explain construction legality; they do not create an additional runtime character statistic.
+
+Translator implication: Character translation should not automatically turn source-system creation currencies or point-buy budgets into persistent target-system traits. Retain them in generation provenance when useful for audit/replay, but translate the resulting capabilities unless the target system has a concrete reason to preserve construction currency.
+
+Bridge-RPG implication: A future original RPG can use creation budgets without forcing those budgets into play-state. Keeping construction economy separate from runtime state makes it easier to support alternate creation modes, respec tools, narrative generation, or imported characters without inventing permanent point resources.
+
+Confidence: high for the current D&D implementation; medium as a general cross-system principle.
+
+Follow-up: Compare this against systems where unspent character points, advancement points, or build currencies remain live after creation. Do not generalize all point-based systems from D&D's one-time Point Cost method.

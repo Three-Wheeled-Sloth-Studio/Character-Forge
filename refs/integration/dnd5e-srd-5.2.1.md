@@ -16,15 +16,20 @@ The upstream SRD contains the controlling legal information and attribution inst
 
 ## First-slice evidence used
 
-The first fixture intentionally uses only a small subset of SRD mechanics:
+The first fixture and generation methods intentionally use only a small subset of SRD mechanics:
 
 - Character creation sequence and Level 1 XP/proficiency rules.
-- Standard Array ability generation and background ability increases.
+- Standard Array ability generation.
+- Point Cost ability generation: 27-point budget, scores 8 through 15, with costs 0/1/2/3/4/5/7/9 for scores 8 through 15 respectively.
+- Random ability generation is the next planned method and will use the SRD four-d6, keep-highest-three procedure through a reusable dice-expression layer.
+- 2024 background ability increases.
 - Human species.
 - Soldier background.
 - Fighter Level 1, including Fighting Style, Second Wind, and Weapon Mastery.
 - Alert and Savage Attacker origin feats plus Defense fighting style.
 - Fighter starting equipment and basic armor values needed for the fixture.
+
+Manual Ability Entry is a Character Forge input path rather than a separate SRD generation rule; its D&D legality is still checked against the same native ability-state and first-slice validation boundary.
 
 Relevant SRD sections are Character Creation, Fighter, Character Origins, Feats, and Equipment. The implementation stores identifiers and mechanical state rather than copying descriptive rules prose.
 

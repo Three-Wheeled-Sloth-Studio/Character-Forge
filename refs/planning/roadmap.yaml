@@ -40,11 +40,15 @@ roadmap:
       - Owner runtime QA green for embedded Quick Generate on 2026-08-26.
       - Manual ability generation engine path with explicit manual provenance and no invented seed.
       - Manual Ability Entry browser surface using the same CharacterDocument and Parchment handoff boundary.
+      - SRD 5.2.1 Point Cost rules with 27-point budget, 8-15 purchase range, and canonical cost table.
+      - Point Cost generation provenance through the same shared ability-state path.
+      - Point Cost browser surface with live spent/remaining budget feedback and over-budget prevention.
+      - D&D adapter validation for Standard Array, Manual, and Point Cost as distinct base-score methods.
     current_gate:
-      - Owner runtime QA for Manual Ability Entry and manual save/reopen through Parchment.
+      - Owner runtime QA for Manual Ability Entry and Point Cost is intentionally deferred while generation breadth continues.
+      - Current Manual + Point Cost stack remains on dev and is not promoted yet.
     remaining_scope:
-      - Point cost through the shared ability-state path.
-      - 4d6 drop lowest through a reusable dice-expression pipeline.
+      - Reusable deterministic dice-expression generation with SRD 4d6 keep-highest-3 random abilities as the first consumer.
       - Guided character creation.
       - Early guided narrative generation path.
       - Incremental broadening beyond fixed Human / Soldier / Fighter choices.

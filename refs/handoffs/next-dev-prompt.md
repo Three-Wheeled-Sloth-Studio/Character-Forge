@@ -1,6 +1,6 @@
 # Next Development Prompt
 
-Continue Character Forge D&D 5E 2024 work from the manual-ability-generation checkpoint.
+Continue Character Forge D&D 5E 2024 work from the automated-green Manual + Point Cost generation stack.
 
 Repository:
 
@@ -16,9 +16,9 @@ Accepted Character Forge `qa` / `main` checkpoint:
 
 - `8041edb4009abce8a836faafce9a167883e92bda`
 
-Accepted Parchment Worlds `qa` / `main` checkpoint:
+Accepted Parchment Worlds `qa` / `main` closeout checkpoint:
 
-- `f5eb7224f71ed64d033aaac038a933fbd8850c48`
+- `ac704a471df1b4235112d7f3c63c3b5ee4b1236c`
 
 Parchment issue #24 is complete.
 
@@ -29,17 +29,25 @@ Background, non-blocking Character Forge issues:
 
 Do not prioritize either ahead of the current generation sequence unless new evidence makes it blocking.
 
-## Current implementation checkpoint
+## Current development checkpoint
 
-Manual ability generation is implemented on `dev` at:
+Manual Ability Entry and Point Cost are implemented together on `dev`.
 
-- `f48ee8ff92a6fb349a9c74f462121fe0eaa07021`
-- GitHub Actions run `33021611610`
+Current code checkpoint:
+
+- `914ffd38504c71e0af1785c2a4e839ca41dffd8c`
+- GitHub Actions run `33022905653`
 - full `npm run verify` green
-- 6 test files / 29 tests green
+- 7 test files / 36 tests green
 - web build green
 
-Tracked by issue #5.
+Manual/shared-ability implementation beneath it:
+
+- `f48ee8ff92a6fb349a9c74f462121fe0eaa07021`
+
+Tracked by issues #5 and #7.
+
+The owner explicitly deferred Manual runtime QA and authorized proceeding. Do not promote the current stack to `qa` / `main` until later owner acceptance unless explicitly directed otherwise.
 
 ## Read first
 
@@ -54,79 +62,128 @@ Tracked by issue #5.
 9. `refs/planning/roadmap.yaml`
 10. `refs/testing/validationCommands.yaml`
 11. GitHub issue #1
-12. GitHub issue #5
+12. GitHub issues #5 and #7
 
-Relevant code seams:
+Relevant current code seams:
 
 - `packages/system-dnd5e/src/abilityGeneration.ts`
 - `packages/system-dnd5e/src/manualGenerate.ts`
+- `packages/system-dnd5e/src/pointCostGenerate.ts`
 - `packages/system-dnd5e/src/firstSliceCharacter.ts`
 - `packages/system-dnd5e/src/adapter.ts`
 - `apps/web/src/main.ts`
 
-## Immediate gate: owner runtime QA for Manual Ability Entry
+## Current generation architecture
 
-Do not begin point cost until the current manual slice is owner-accepted.
+Standard Array, Manual Entry, and Point Cost all converge on the same D&D-native post-base-score behavior.
 
-Use the normal Parchment-hosted Character Forge flow and verify:
+Method-specific code owns only how base scores are obtained or constrained. Shared ability-state code owns background contribution validation and final-score derivation. The ordinary first-slice builder then recalculates dependent D&D state, the same adapter validates it, and every method emits the same CharacterDocument shape and uses the same Parchment handoff.
 
-1. Quick Generate still works.
-2. Manual Ability Entry accepts a required name and six integer base scores from 3 through 18.
-3. A legal Soldier +2/+1 or +1/+1/+1 choice is applied correctly.
-4. Final scores, Fighter HP, Initiative, and Passive Perception recalculate from the resulting final abilities.
-5. The CharacterDocument records:
-   - `abilities.generationMethod: manual`;
-   - `generation.mode: manual`;
-   - `generation.methodId: dnd5e:manual-first-slice`;
-   - manual base scores and background increases as decisions;
-   - no random seed;
-   - native provenance origin `manual`.
-6. Saving the manual character to Parchment, hard reloading, and reopening it preserves the document and native validation.
-7. An invalid manual score is rejected inline rather than creating invalid native state.
+Do not duplicate these downstream rules in the next slice.
 
-If QA finds a defect, fix only the failing manual/shared-ability seam and rerun `npm run verify`.
+## Immediate implementation slice: reusable dice expressions + D&D random abilities
 
-If QA is green:
+Add the SRD 5.2.1 Random Generation ability method using a reusable dice-expression capability rather than a D&D-specific one-off roller.
 
-1. record owner acceptance in the handoff and issue #5;
-2. close issue #5;
-3. promote the exact accepted Character Forge SHA through `dev -> qa -> main`;
-4. begin point cost below.
+The SRD method rolls four d6, records the total of the highest three, and repeats that process until six base scores exist.
 
-## Next implementation slice: point cost
+### WP0 - Smallest reusable dice contract
 
-Add D&D 5E point cost as another base-score generation method that converges on the existing shared ability-state path.
+Create the smallest system-neutral dice-expression representation justified by this first use case. It should support at minimum:
 
-The point-cost slice should:
+- number of dice;
+- die size;
+- keep-highest or equivalent keep/drop instruction;
+- a deterministic random source / seed boundary;
+- roll result detail containing individual dice and retained dice or indexes;
+- total.
 
-- put D&D-specific point costs and legal purchase limits in the D&D system package, not shared character contracts;
-- produce six legal pre-background base scores;
-- record spend, remaining budget if applicable, and important purchase decisions in generation provenance;
-- pass the purchased base scores into the existing shared background-adjustment/final-score behavior;
-- use the existing first-slice native character builder and adapter;
-- expose the method in the browser without turning the page into a full character editor;
-- save/reopen through the unchanged Parchment CharacterDocument boundary.
+Do not build a complete tabletop dice grammar or parser yet. A typed expression object is enough if it cleanly supports future additions.
 
-Do not duplicate background adjustment, final-score derivation, dependent-stat recalculation, or persistence logic.
+The reusable dice layer should not know about D&D ability scores, backgrounds, classes, or CharacterDocument.
+
+### WP1 - Deterministic evaluator
+
+Implement deterministic evaluation from a seed or seeded RNG abstraction.
+
+Requirements:
+
+- the same expression and seed reproduce the same raw dice and totals;
+- different sequential rolls from one seeded stream advance deterministically;
+- provenance can retain enough result detail to audit how each total was produced;
+- invalid expressions fail explicitly.
+
+Prefer a small package or generator-core seam if one already exists; otherwise add the smallest reusable location without polluting `character-model` with dice mechanics.
+
+### WP2 - D&D random ability generator
+
+Add a D&D-specific generation method that:
+
+1. evaluates `4d6 keep highest 3` six times;
+2. assigns the six generated totals to abilities for this first slice using an explicit input assignment or a clearly recorded deterministic assignment decision rather than hiding intent;
+3. passes those six base values into the existing shared D&D ability-state path;
+4. applies the ordinary Soldier background adjustment;
+5. emits the normal first-slice CharacterDocument;
+6. records the seed, expression, six raw roll groups, totals, assignment, and background choice in generation provenance.
+
+The D&D adapter should validate the resulting random base scores to the extent the SRD method permits without attempting to prove a retained score was historically rolled if the raw provenance is absent. CharacterDocument persistence remains lossless; generation provenance should make replay possible when present.
+
+### WP3 - Browser surface
+
+Expose the random method as another compact creation panel.
+
+Keep it small:
+
+- character name;
+- optional seed;
+- Roll / Generate action;
+- visible six generated totals and their assigned abilities, or a compact assignment control if needed for a legal first slice;
+- legal Soldier background increase choice;
+- the existing result review and Parchment handoff.
+
+Do not turn this into the broader guided character-creation wizard yet.
+
+### WP4 - Tests and evidence
+
+Tests should prove:
+
+- deterministic dice evaluation;
+- keep-highest behavior;
+- six independent sequential ability rolls;
+- retained raw roll detail and totals;
+- same seed reproduces mechanics but not durable Character Forge identity;
+- random ability state uses the same shared background/final-score path;
+- native adapter validation remains green;
+- invalid dice expressions fail safely.
+
+Update `refs/architecture/translation-bridge-rpg-notes.md` with any evidence about random provenance, replay, or dice expressions that may matter across systems.
+
+Run full `npm run verify` before declaring the slice complete.
+
+## Deferred runtime QA
+
+Manual and Point Cost runtime QA can be combined with Random Generation later. Do not require a stop now unless implementation exposes new evidence in the already accepted Parchment/embed seam.
+
+When the owner chooses to run the combined pass, check issues #5 and #7 plus the random-generation issue created for this slice, then promote one exact accepted stack through `dev -> qa -> main`.
 
 ## Subsequent order
 
-1. reusable dice-expression generation, with 4d6 drop lowest as the first D&D expression;
-2. guided choices replacing fixed Human / Soldier / Fighter incrementally;
-3. early guided narrative generation that produces inspectable ordinary generation decisions;
-4. broader legally redistributable SRD species/background/class breadth;
-5. Foundry D&D 5E integration;
-6. maintenance and advancement after those foundations.
+1. guided choices replacing fixed Human / Soldier / Fighter incrementally;
+2. early guided narrative generation that produces inspectable ordinary generation decisions;
+3. broader legally redistributable SRD species/background/class breadth;
+4. Foundry D&D 5E integration;
+5. maintenance and advancement after those foundations.
 
 ## Architecture rules
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - All generation methods converge on the same system-native validation and persistence boundary.
+- System adapters own system-specific rules behavior.
+- A reusable dice evaluator must remain system-neutral; D&D owns the `4d6 keep-highest-3 repeated six times` character rule.
 - Character Forge owns RPG-native interpretation, validation, and generation provenance.
 - Parchment owns project membership, generic asset lifecycle, relationships, persistence, and future sync/share behavior.
 - Keep D&D and Foundry schemas out of shared Character Forge and Parchment contracts.
-- Persistence does not require semantic translation.
 - Keep semantic concepts provisional until cross-system evidence supports them.
 - Use only legally redistributable SRD 5.2.1 content in this public repository.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
