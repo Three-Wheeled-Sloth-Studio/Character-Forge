@@ -21,62 +21,69 @@ roadmap:
   - id: dnd5e-1-level-one-generation
     horizon: now
     status: in_progress
-    goal: Deliver the first usable D&D 5E 2024 SRD Level 1 character vertical slice.
-    completed_in_native_path_slice:
+    goal: Deliver a usable D&D 5E 2024 SRD Level 1 character generation path and broaden it incrementally without losing native fidelity.
+    completed:
       - Versioned rules-system adapter contract separated from D&D implementation.
       - SRD 5.2.1 source, version, creator, and CC-BY-4.0 license metadata.
       - Typed D&D-native character schema for the first slice.
       - One legal Human Soldier Fighter Level 1 native path.
       - D&D-native validation for source/version, ability state, first-slice origin/class constraints, Proficiency Bonus, and Level 1 Fighter Hit Points.
       - CharacterDocument generation provenance and exact JSON native-state round trip.
-      - Full user-local gate green with 8 tests on 2026-08-26.
-    completed_in_standard_array_slice:
       - Input-driven Standard Array assignment without prescribing the Fighter recommendation.
       - Validation that 15, 14, 13, 12, 10, and 8 are each used exactly once.
       - Legal 2024 background adjustment handling for +2/+1 or +1/+1/+1.
-      - Soldier adjustment restriction to Strength, Dexterity, and Constitution.
       - Recalculation of affected Fighter HP, Alert Initiative, and Passive Perception.
-      - Generation provenance for ability assignment and background adjustment choices.
-      - Local strict compile and executable smoke green; full user-local gate pending.
+      - Seeded Quick Generate with optional user-supplied name.
+      - Browser character review surface with native validation status and retained document inspection.
+      - Full generated CharacterDocument handoff to Parchment through the embed boundary.
+      - Owner runtime QA green for embedded Quick Generate on 2026-08-26.
     remaining_scope:
       - Manual ability assignment through the same native ability-state boundary.
       - Point cost.
-      - 4d6 drop lowest.
+      - 4d6 drop lowest through a reusable dice-expression pipeline.
       - Guided character creation.
       - Early guided narrative generation path.
-      - Quick generation with recorded decisions.
-      - Basic human-readable character review.
-  - id: parchment-foundry-2-integration
+      - Incremental broadening beyond fixed Human / Soldier / Fighter choices.
+  - id: parchment-2-character-persistence
+    horizon: next
+    status: planned
+    goal: Make generated CharacterDocuments first-class durable Parchment project assets before broadening generation further.
+    target_slice:
+      - Persist the full CharacterDocument losslessly without teaching Parchment D&D mechanics.
+      - Associate the character with a setting project and stable asset identity.
+      - List persisted characters in project context.
+      - Prove browser reload and Parchment -> Character Forge reopen preserve native state and generation provenance exactly.
+  - id: foundry-3-dnd5e-integration
     horizon: near
     status: planned
-    goal: Make characters first-class Parchment assets and prove a Foundry D&D 5E adapter boundary.
-  - id: maintenance-3-advancement
+    goal: Prove a Foundry D&D 5E adapter boundary without making Foundry Actor JSON the canonical Character Forge format.
+  - id: maintenance-4-advancement
     horizon: near
     status: planned
     goal: Support advancement, durable edits, revision history, and system-native maintenance without losing provenance.
-  - id: semantic-4-cross-system-language
+  - id: semantic-5-cross-system-language
     horizon: after-evidence
     status: planned
     goal: Promote observed cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
-  - id: system-5-second-stress-test
-    horizon: after-first-dnd-slices
+  - id: system-6-second-stress-test
+    horizon: after-first-dnd-and-persistence-slices
     status: planned
     goal: Implement a structurally different second RPG to break D&D-shaped assumptions in the semantic layer.
     strongest_candidate: Call of Cthulhu
-    decision_note: Re-evaluate the candidate using evidence collected during D&D and Foundry work rather than locking the choice now.
-  - id: system-6-pathfinder
+    decision_note: Re-evaluate the candidate using evidence collected during D&D, persistence, and Foundry work rather than locking the choice now.
+  - id: system-7-pathfinder
     horizon: later
     status: planned
     goal: Add Pathfinder after the semantic layer has already been stressed by a less D&D-like system.
-  - id: bridge-rpg-7-design-synthesis
+  - id: bridge-rpg-8-design-synthesis
     horizon: later
     status: planned
     goal: Use accumulated cross-system evidence to inform the original non-d20 RPG without making Character Forge depend on that system.
-  - id: identity-8-hosted-maintenance
+  - id: identity-9-hosted-maintenance
     horizon: later
     status: planned
     goal: Add hosted character pages, privacy, sharing, QR access, and synchronization through the Parchment ecosystem.
-  - id: visuals-9-character-assets
+  - id: visuals-10-character-assets
     horizon: later
     status: planned
     goal: Add structured portrait, token, reference-sheet, and eventual 3D model generation pipelines.
