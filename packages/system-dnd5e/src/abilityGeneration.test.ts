@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateDnd5ePointCost,
   createManualAbilityState,
+  createPointCostAbilityState,
   createStandardArrayAbilityState,
+  DND5E_POINT_COST_BUDGET,
+  DND5E_POINT_COSTS,
   DND5E_STANDARD_ARRAY,
 } from "./abilityGeneration.js";
 
@@ -23,6 +27,21 @@ const soldierAbilityIds = [
 describe("D&D 5E ability generation", () => {
   it("exposes the SRD Standard Array without prescribing an assignment", () => {
     expect(DND5E_STANDARD_ARRAY).toEqual([15, 14, 13, 12, 10, 8]);
+  });
+
+  it("exposes the SRD Point Cost budget and score costs", () => {
+    expect(DND5E_POINT_COST_BUDGET).toBe(27);
+    expect(DND5E_POINT_COSTS).toEqual({
+      8: 0,
+      9: 1,
+      10: 2,
+      11: 3,
+      12: 4,
+      13: 5,
+      14: 7,
+      15: 9,
+    });
+    expect(calculateDnd5ePointCost(alternativeAssignment)).toBe(27);
   });
 
   it("builds any permutation of the Standard Array with a legal +2/+1 background plan", () => {
@@ -87,6 +106,19 @@ describe("D&D 5E ability generation", () => {
     });
   });
 
+  it("uses the same background-adjustment path for Point Cost scores", () => {
+    const state = createPointCostAbilityState({
+      scores: alternativeAssignment,
+      backgroundAbilityIds: soldierAbilityIds,
+      backgroundIncreases: { dexterity: 2, constitution: 1 },
+    });
+
+    expect(state.generationMethod).toBe("point-cost");
+    expect(state.base).toEqual(alternativeAssignment);
+    expect(state.final.dexterity).toBe(17);
+    expect(state.final.constitution).toBe(14);
+  });
+
   it("supports the legal +1/+1/+1 background alternative", () => {
     const state = createStandardArrayAbilityState({
       assignment: alternativeAssignment,
@@ -129,6 +161,33 @@ describe("D&D 5E ability generation", () => {
         backgroundIncreases: { dexterity: 2, constitution: 1 },
       }),
     ).toThrow("Manual base charisma must be an integer from 3 through 18");
+  });
+
+  it("rejects Point Cost base scores outside 8 through 15", () => {
+    expect(() =>
+      createPointCostAbilityState({
+        scores: { ...alternativeAssignment, charisma: 16 },
+        backgroundAbilityIds: soldierAbilityIds,
+        backgroundIncreases: { dexterity: 2, constitution: 1 },
+      }),
+    ).toThrow("Point Cost base charisma must be an integer from 8 through 15");
+  });
+
+  it("rejects Point Cost allocations that exceed 27 points", () => {
+    expect(() =>
+      createPointCostAbilityState({
+        scores: {
+          strength: 15,
+          dexterity: 15,
+          constitution: 15,
+          intelligence: 15,
+          wisdom: 8,
+          charisma: 8,
+        },
+        backgroundAbilityIds: soldierAbilityIds,
+        backgroundIncreases: { strength: 2, constitution: 1 },
+      }),
+    ).toThrow("exceeding the 27-point budget");
   });
 
   it("rejects a background increase outside the background's listed abilities for every method", () => {

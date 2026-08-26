@@ -6,6 +6,17 @@ import {
 } from "./nativeCharacter.js";
 
 export const DND5E_STANDARD_ARRAY = [15, 14, 13, 12, 10, 8] as const;
+export const DND5E_POINT_COST_BUDGET = 27;
+export const DND5E_POINT_COSTS: Readonly<Record<number, number>> = Object.freeze({
+  8: 0,
+  9: 1,
+  10: 2,
+  11: 3,
+  12: 4,
+  13: 5,
+  14: 7,
+  15: 9,
+});
 
 export type Dnd5eAbilityIncreasePlan = Partial<Record<Dnd5eAbilityId, 1 | 2>>;
 
@@ -23,6 +34,12 @@ export interface Dnd5eStandardArrayInput {
 }
 
 export interface Dnd5eManualAbilityInput {
+  scores: Dnd5eAbilityScores;
+  backgroundAbilityIds: readonly Dnd5eAbilityId[];
+  backgroundIncreases: Dnd5eAbilityIncreasePlan;
+}
+
+export interface Dnd5ePointCostAbilityInput {
   scores: Dnd5eAbilityScores;
   backgroundAbilityIds: readonly Dnd5eAbilityId[];
   backgroundIncreases: Dnd5eAbilityIncreasePlan;
@@ -56,6 +73,21 @@ function assertManualBaseScores(scores: Dnd5eAbilityScores): void {
       );
     }
   }
+}
+
+export function calculateDnd5ePointCost(scores: Dnd5eAbilityScores): number {
+  let total = 0;
+  for (const abilityId of DND5E_ABILITY_IDS) {
+    const score = scores[abilityId];
+    const cost = DND5E_POINT_COSTS[score];
+    if (!Number.isInteger(score) || cost === undefined) {
+      throw new Error(
+        `Point Cost base ${abilityId} must be an integer from 8 through 15 before background increases.`,
+      );
+    }
+    total += cost;
+  }
+  return total;
 }
 
 function expandIncreasePlan(plan: Dnd5eAbilityIncreasePlan): Dnd5eAbilityScores {
@@ -153,6 +185,23 @@ export function createManualAbilityState(
   assertManualBaseScores(input.scores);
   return createAbilityState({
     generationMethod: "manual",
+    base: input.scores,
+    backgroundAbilityIds: input.backgroundAbilityIds,
+    backgroundIncreases: input.backgroundIncreases,
+  });
+}
+
+export function createPointCostAbilityState(
+  input: Dnd5ePointCostAbilityInput,
+): Dnd5eAbilityState {
+  const pointsSpent = calculateDnd5ePointCost(input.scores);
+  if (pointsSpent > DND5E_POINT_COST_BUDGET) {
+    throw new Error(
+      `Point Cost ability scores spend ${pointsSpent} points, exceeding the ${DND5E_POINT_COST_BUDGET}-point budget.`,
+    );
+  }
+  return createAbilityState({
+    generationMethod: "point-cost",
     base: input.scores,
     backgroundAbilityIds: input.backgroundAbilityIds,
     backgroundIncreases: input.backgroundIncreases,

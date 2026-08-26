@@ -1,6 +1,9 @@
 import {
+  calculateDnd5ePointCost,
+  DND5E_POINT_COST_BUDGET,
   dnd5eSrd521Adapter,
   manualGenerateDnd5eFirstSlice,
+  pointCostGenerateDnd5eFirstSlice,
   quickGenerateDnd5eFirstSlice,
   type Dnd5eAbilityIncreasePlan,
   type Dnd5eAbilityScores,
@@ -66,28 +69,52 @@ app.innerHTML = `
         <fieldset class="manual-ability-fieldset">
           <legend>Base ability scores</legend>
           <div class="manual-ability-grid">
-            ${manualAbilityInput("STR", "strength", 15)}
-            ${manualAbilityInput("DEX", "dexterity", 14)}
-            ${manualAbilityInput("CON", "constitution", 13)}
-            ${manualAbilityInput("INT", "intelligence", 12)}
-            ${manualAbilityInput("WIS", "wisdom", 10)}
-            ${manualAbilityInput("CHA", "charisma", 8)}
+            ${abilityInput("manual", "STR", "strength", 15, 3, 18)}
+            ${abilityInput("manual", "DEX", "dexterity", 14, 3, 18)}
+            ${abilityInput("manual", "CON", "constitution", 13, 3, 18)}
+            ${abilityInput("manual", "INT", "intelligence", 12, 3, 18)}
+            ${abilityInput("manual", "WIS", "wisdom", 10, 3, 18)}
+            ${abilityInput("manual", "CHA", "charisma", 8, 3, 18)}
           </div>
         </fieldset>
         <label>
           Soldier ability increases
-          <select id="manual-boost-plan" name="manualBoostPlan">
-            <option value="str2-con1">STR +2, CON +1</option>
-            <option value="str2-dex1">STR +2, DEX +1</option>
-            <option value="dex2-str1">DEX +2, STR +1</option>
-            <option value="dex2-con1">DEX +2, CON +1</option>
-            <option value="con2-str1">CON +2, STR +1</option>
-            <option value="con2-dex1">CON +2, DEX +1</option>
-            <option value="all1">STR +1, DEX +1, CON +1</option>
-          </select>
+          <select id="manual-boost-plan" name="manualBoostPlan">${soldierBoostOptions()}</select>
         </label>
         <p id="manual-error" class="form-error" role="alert"></p>
         <button type="submit">Build manual character</button>
+      </form>
+    </section>
+
+    <section class="creator-panel">
+      <div class="creator-copy">
+        <p class="eyebrow">Point Cost</p>
+        <h2>Spend a 27-point ability budget</h2>
+        <p>Choose pre-background scores from 8 through 15. Character Forge applies the SRD 5.2.1 point costs, rejects allocations over 27 points, then uses the same Soldier adjustment and final-score pipeline as the other generation methods.</p>
+      </div>
+      <form id="point-form" class="quick-form point-form">
+        <label>
+          Character name
+          <input id="point-name" name="pointName" type="text" maxlength="80" required placeholder="Required for Point Cost" />
+        </label>
+        <fieldset class="manual-ability-fieldset">
+          <legend>Base ability scores</legend>
+          <div class="manual-ability-grid">
+            ${abilityInput("point", "STR", "strength", 15, 8, 15)}
+            ${abilityInput("point", "DEX", "dexterity", 14, 8, 15)}
+            ${abilityInput("point", "CON", "constitution", 13, 8, 15)}
+            ${abilityInput("point", "INT", "intelligence", 12, 8, 15)}
+            ${abilityInput("point", "WIS", "wisdom", 10, 8, 15)}
+            ${abilityInput("point", "CHA", "charisma", 8, 8, 15)}
+          </div>
+        </fieldset>
+        <div id="point-budget" class="point-budget" aria-live="polite"></div>
+        <label>
+          Soldier ability increases
+          <select id="point-boost-plan" name="pointBoostPlan">${soldierBoostOptions()}</select>
+        </label>
+        <p id="point-error" class="form-error" role="alert"></p>
+        <button id="point-submit" type="submit">Build point-cost character</button>
       </form>
     </section>
 
@@ -104,6 +131,12 @@ const manualForm = document.querySelector<HTMLFormElement>("#manual-form");
 const manualNameInput = document.querySelector<HTMLInputElement>("#manual-name");
 const manualBoostSelect = document.querySelector<HTMLSelectElement>("#manual-boost-plan");
 const manualError = document.querySelector<HTMLElement>("#manual-error");
+const pointForm = document.querySelector<HTMLFormElement>("#point-form");
+const pointNameInput = document.querySelector<HTMLInputElement>("#point-name");
+const pointBoostSelect = document.querySelector<HTMLSelectElement>("#point-boost-plan");
+const pointBudget = document.querySelector<HTMLElement>("#point-budget");
+const pointError = document.querySelector<HTMLElement>("#point-error");
+const pointSubmit = document.querySelector<HTMLButtonElement>("#point-submit");
 const result = document.querySelector<HTMLElement>("#result");
 
 form?.addEventListener("submit", (event) => {
@@ -122,7 +155,7 @@ manualForm?.addEventListener("submit", (event) => {
   try {
     const character = manualGenerateDnd5eFirstSlice({
       name: manualNameInput?.value ?? "",
-      scores: readManualAbilityScores(),
+      scores: readAbilityScores("manual"),
       backgroundIncreases: readSoldierBoostPlan(manualBoostSelect?.value ?? ""),
     });
     renderCharacter(character);
@@ -133,6 +166,29 @@ manualForm?.addEventListener("submit", (event) => {
     }
   }
 });
+
+pointForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (pointError) pointError.textContent = "";
+  try {
+    const character = pointCostGenerateDnd5eFirstSlice({
+      name: pointNameInput?.value ?? "",
+      scores: readAbilityScores("point"),
+      backgroundIncreases: readSoldierBoostPlan(pointBoostSelect?.value ?? ""),
+    });
+    renderCharacter(character);
+    postCharacterToHost(character);
+  } catch (error) {
+    if (pointError) {
+      pointError.textContent = error instanceof Error ? error.message : "Point Cost generation failed.";
+    }
+  }
+});
+
+for (const input of document.querySelectorAll<HTMLInputElement>("[id^='point-']")) {
+  if (input.type === "number") input.addEventListener("input", updatePointBudget);
+}
+updatePointBudget();
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (window.parent === window || event.source !== window.parent) return;
@@ -241,22 +297,38 @@ function postCharacterToHost(character: CharacterDocument): void {
   }, hostOrigin ?? "*");
 }
 
-function readManualAbilityScores(): Dnd5eAbilityScores {
+function readAbilityScores(prefix: "manual" | "point"): Dnd5eAbilityScores {
   return {
-    strength: readManualAbilityInput("strength"),
-    dexterity: readManualAbilityInput("dexterity"),
-    constitution: readManualAbilityInput("constitution"),
-    intelligence: readManualAbilityInput("intelligence"),
-    wisdom: readManualAbilityInput("wisdom"),
-    charisma: readManualAbilityInput("charisma"),
+    strength: readAbilityInput(prefix, "strength"),
+    dexterity: readAbilityInput(prefix, "dexterity"),
+    constitution: readAbilityInput(prefix, "constitution"),
+    intelligence: readAbilityInput(prefix, "intelligence"),
+    wisdom: readAbilityInput(prefix, "wisdom"),
+    charisma: readAbilityInput(prefix, "charisma"),
   };
 }
 
-function readManualAbilityInput(abilityId: string): number {
-  const input = document.querySelector<HTMLInputElement>(`#manual-${abilityId}`);
+function readAbilityInput(prefix: string, abilityId: string): number {
+  const input = document.querySelector<HTMLInputElement>(`#${prefix}-${abilityId}`);
   const value = Number(input?.value);
   if (!Number.isInteger(value)) throw new Error(`${abilityId} must be a whole-number ability score.`);
   return value;
+}
+
+function updatePointBudget(): void {
+  if (!pointBudget) return;
+  try {
+    const pointsSpent = calculateDnd5ePointCost(readAbilityScores("point"));
+    const remaining = DND5E_POINT_COST_BUDGET - pointsSpent;
+    const overBudget = remaining < 0;
+    pointBudget.textContent = `${pointsSpent} / ${DND5E_POINT_COST_BUDGET} points spent · ${Math.abs(remaining)} ${overBudget ? "over" : "remaining"}`;
+    pointBudget.classList.toggle("over-budget", overBudget);
+    if (pointSubmit) pointSubmit.disabled = overBudget;
+  } catch {
+    pointBudget.textContent = "Enter scores from 8 through 15 to calculate the point budget.";
+    pointBudget.classList.add("over-budget");
+    if (pointSubmit) pointSubmit.disabled = true;
+  }
 }
 
 function readSoldierBoostPlan(value: string): Dnd5eAbilityIncreasePlan {
@@ -272,8 +344,27 @@ function readSoldierBoostPlan(value: string): Dnd5eAbilityIncreasePlan {
   }
 }
 
-function manualAbilityInput(label: string, abilityId: string, value: number): string {
-  return `<label>${label}<input id="manual-${abilityId}" name="manual-${abilityId}" type="number" min="3" max="18" step="1" required value="${value}" /></label>`;
+function soldierBoostOptions(): string {
+  return `
+    <option value="str2-con1">STR +2, CON +1</option>
+    <option value="str2-dex1">STR +2, DEX +1</option>
+    <option value="dex2-str1">DEX +2, STR +1</option>
+    <option value="dex2-con1">DEX +2, CON +1</option>
+    <option value="con2-str1">CON +2, STR +1</option>
+    <option value="con2-dex1">CON +2, DEX +1</option>
+    <option value="all1">STR +1, DEX +1, CON +1</option>
+  `;
+}
+
+function abilityInput(
+  prefix: string,
+  label: string,
+  abilityId: string,
+  value: number,
+  min: number,
+  max: number,
+): string {
+  return `<label>${label}<input id="${prefix}-${abilityId}" name="${prefix}-${abilityId}" type="number" min="${min}" max="${max}" step="1" required value="${value}" /></label>`;
 }
 
 function abilityCard(label: string, score: number): string {

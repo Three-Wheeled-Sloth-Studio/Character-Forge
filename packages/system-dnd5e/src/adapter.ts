@@ -6,6 +6,10 @@ import type {
   RulesValidationResult,
 } from "../../character-model/src/index.js";
 import {
+  DND5E_POINT_COST_BUDGET,
+  DND5E_POINT_COSTS,
+} from "./abilityGeneration.js";
+import {
   abilityModifier,
   DND5E_ABILITY_IDS,
   type Dnd5eAbilityId,
@@ -100,6 +104,36 @@ function validateAbilityState(payload: JsonObject, issues: RulesValidationIssue[
   }
 }
 
+function validatePointCostBase(base: JsonObject, issues: RulesValidationIssue[]): void {
+  let pointsSpent = 0;
+  let allScoresValid = true;
+
+  for (const abilityId of DND5E_ABILITY_IDS) {
+    const score = readNumber(base, abilityId);
+    const cost = score === undefined ? undefined : DND5E_POINT_COSTS[score];
+    if (score === undefined || !Number.isInteger(score) || cost === undefined) {
+      allScoresValid = false;
+      pushError(
+        issues,
+        "dnd5e.point-cost.base-range",
+        `Point Cost base ${abilityId} must be an integer from 8 through 15 before background increases.`,
+        `abilities.base.${abilityId}`,
+      );
+      continue;
+    }
+    pointsSpent += cost;
+  }
+
+  if (allScoresValid && pointsSpent > DND5E_POINT_COST_BUDGET) {
+    pushError(
+      issues,
+      "dnd5e.point-cost.budget",
+      `Point Cost ability scores spend ${pointsSpent} points, exceeding the ${DND5E_POINT_COST_BUDGET}-point budget.`,
+      "abilities.base",
+    );
+  }
+}
+
 function validateAbilityMethodAndSoldierBoosts(
   payload: JsonObject,
   issues: RulesValidationIssue[],
@@ -142,11 +176,13 @@ function validateAbilityMethodAndSoldierBoosts(
         );
       }
     }
+  } else if (generationMethod === "point-cost") {
+    validatePointCostBase(base, issues);
   } else {
     pushError(
       issues,
       "dnd5e.slice.ability-method",
-      "This slice currently supports Standard Array and Manual ability entry.",
+      "This slice currently supports Standard Array, Manual ability entry, and Point Cost.",
       "abilities.generationMethod",
     );
   }
@@ -239,7 +275,7 @@ function validateFirstSliceRules(payload: JsonObject, issues: RulesValidationIss
 
 export const dnd5eSrd521Adapter: RulesSystemAdapter = {
   adapterId: "character-forge:dnd5e-2024",
-  adapterVersion: "0.2.0",
+  adapterVersion: "0.3.0",
   systemId: "dnd5e",
   editionId: "2024",
   supportedRulesSources: [DND5E_SRD_5_2_1_SOURCE],
