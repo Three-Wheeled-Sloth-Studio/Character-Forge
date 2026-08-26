@@ -147,7 +147,7 @@ export function createFirstSliceNativeStateFromAbilityState(
   abilities: Dnd5eAbilityState,
   displayName: string,
   origin: NativeStateOrigin,
-  id = createNativeStateId(),
+  id: string = createNativeStateId(),
 ): NativeSystemState {
   return {
     id,
