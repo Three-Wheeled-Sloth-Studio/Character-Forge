@@ -130,7 +130,8 @@ export function parseCharacterDocument(input: unknown): CharacterDocument | null
     || !input.nativeStates.every(isNativeSystemState)) {
     return null;
   }
-  if (!input.nativeStates.some((state) => state.id === input.primaryNativeStateId)) {
+  const nativeStates = input.nativeStates as NativeSystemState[];
+  if (!nativeStates.some((state) => state.id === input.primaryNativeStateId)) {
     return null;
   }
   return input as unknown as CharacterDocument;
