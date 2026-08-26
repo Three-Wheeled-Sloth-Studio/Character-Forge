@@ -2,58 +2,82 @@
 
 Date: 2026-08-26
 Branch: dev
-Phase: PI 0 repository foundation accepted locally; PI 1 D&D vertical slice next
-Foundation implementation checkpoint: `4d03f93fbff55d3d833c941dad81d8e19cd2bf72`
+Phase: D&D 5E 2024 PI 1, first native Level 1 path
+Foundation validation: green on user Windows environment 2026-08-26
+Implementation checkpoint: `59ea8edc942619c3f931f6c748ca8c6820d5aef8`
 
 ## Current state
 
-Character Forge began as a public license-only repository. The foundation slice establishes `dev -> qa -> main`, durable project memory, CI verification wiring, a minimal TypeScript workspace, and the first CharacterDocument contract.
+Character Forge now has its first real rules-system adapter boundary and one end-to-end D&D 5E 2024 native character path.
 
-The most important invariant is explicit in both code and guidance: every character retains complete native system state. The semantic projection is optional and provisional so shared abstractions can evolve from evidence without endangering round-trip fidelity.
+The shared `RulesSystemAdapter` contract carries adapter identity/version, supported rules-source metadata, and native-state validation without teaching the shared CharacterDocument about D&D classes, species, backgrounds, or ability scores.
 
-The initial rules target is D&D 5E 2024 using redistributable SRD material. Call of Cthulhu is the strongest current candidate for system two, but the decision remains intentionally open until the D&D slice reveals which assumptions most need a contrasting stress test. Pathfinder is expected later, likely system three or four.
+`packages/system-dnd5e` currently implements a deliberately narrow SRD 5.2.1 slice:
+
+- Machine-readable SRD source, creator, version, and CC-BY-4.0 license metadata.
+- Typed D&D-native character state.
+- One fixed legal Human Soldier Fighter Level 1 character using Standard Array.
+- Human skill and Origin-feat choices, Soldier background grants, Fighter Level 1 features, Fighting Style, Weapon Mastery choices, starting equipment, resources, and derived sheet values.
+- Validation for adapter/system/source/schema version, ability-state consistency, Standard Array legality, Soldier ability increases, Level 1 identity/proficiency, and Fighter HP from Constitution.
+- CharacterDocument generation provenance and exact native JSON round-trip.
+
+The fixture is intentionally not a universal model. It exists to prove the native system path before generation options are generalized.
+
+## Source boundary
+
+Use `refs/integration/dnd5e-srd-5.2.1.md` before adding D&D rules data. The public repository may use SRD 5.2.1 material under CC-BY-4.0, but non-SRD rulebook content must not leak into the adapter.
+
+Rules-source ID: `wotc-srd-5.2.1`.
+
+## Translation and bridge-RPG evidence
+
+The first implementation-derived observations are now recorded in `refs/architecture/translation-bridge-rpg-notes.md`:
+
+- Keep base values and source-aware grants distinct instead of flattening everything into final numbers.
+- Distinguish granted capabilities from the choice slots that selected them.
+- Keep native derived values for fidelity without assuming they are universal semantic facts.
+- Treat D&D Hit Points as D&D-native state, not the universal representation of injury.
+
+No universal translator schema was introduced.
 
 ## Validation state
 
-The full foundation gate was run successfully on Windows on 2026-08-26 from `C:\Apps\PW\Character-Forge`:
+The previous PI 0 gate passed on the user's Windows checkout:
 
-```text
-npm run verify
+- refs validation green
+- strict TypeScript typecheck green
+- 3 foundation tests green
 
-refs validation: passed, 11 required project-memory files
-TypeScript strict typecheck: passed
-Vitest: 1 test file passed, 3 tests passed, 0 failed
-```
+For checkpoint `59ea8edc942619c3f931f6c748ca8c6820d5aef8`, an independent local development smoke was run in the available execution environment:
 
-The passing tests cover:
+- TypeScript static compile green using the available TypeScript compiler.
+- Executable adapter smoke green for the legal fixture.
+- Exact JSON native-state round-trip green.
+- Invalid Level 1 Fighter HP is correctly rejected.
 
-- requiring at least one complete native system state;
-- requiring the primary native-state ID to reference retained native state;
-- preserving the native payload through JSON serialization and reload.
+The full repository `npm run verify` has not yet been run against this checkpoint in the user's normal environment. GitHub reports no CI status for the connector-created commit. Do not promote to `qa` until the user-local full gate is green.
 
-This clears the previously unverified PI 0 local validation gate. GitHub Actions remains configured to run the same verification workflow on pushes to `dev`, `qa`, and `main`.
+Also note: `package-lock.json` is still absent from remote `dev`. If the user's local npm installation generated it, retain and commit it with the next accepted development increment.
 
-`package-lock.json` is still absent from the remote `dev` branch as of this handoff. If the local dependency installation generated it, commit it before or with the first PI 1 implementation increment so subsequent installs are reproducible.
+## Next implementation slice after green verification
 
-## Next implementation slice
+Generalize the fixed D&D path one dimension at a time rather than importing a large rules corpus.
 
-Begin D&D 5E 2024 Level 1 vertical-slice discovery and contracts without importing a giant rules corpus.
+Recommended order:
 
-Priorities:
-
-1. Retain and commit `package-lock.json` if generated locally.
-2. Define the rules-system adapter boundary and rules-source/version provenance.
-3. Identify the minimum SRD 5.2.1 data needed for one legal Level 1 end-to-end character.
-4. Implement one narrow generation path through native D&D state, validation, save, and reload.
-5. Add standard array, point buy, 4d6 drop lowest, manual entry, quick generation, and guided narrative incrementally rather than simultaneously.
-6. Record every reusable semantic observation or bridge-RPG implication in `refs/architecture/translation-bridge-rpg-notes.md`.
-7. Do not build the translator package until real mappings justify its first primitives.
+1. Turn the fixed Standard Array assignment into an input-driven builder while keeping Human + Soldier + Fighter 1 fixed.
+2. Validate arbitrary legal Standard Array placement and legal Soldier +2/+1 assignment choices.
+3. Add manual ability assignment through the same native validation boundary.
+4. Extract generation decisions so both methods produce the same native state shape and provenance.
+5. Only then broaden additional origin/class choices or add point cost and random 4d6-drop-lowest generation.
+6. Introduce guided narrative inputs early enough that they exercise the same decision/provenance contract, but do not let narrative UI logic bypass native validation.
 
 ## Guardrails
 
-- Work directly on dev.
-- Keep native system payloads intact.
-- Do not let Foundry schemas become the canonical model.
-- Do not copy non-redistributable rules content.
-- Keep the semantic layer provisional.
-- Prefer a usable thin character over a comprehensive framework with no end-to-end flow.
+- Work directly on `dev`.
+- Native system state remains mandatory and lossless.
+- Do not reconstruct retained D&D state from semantic traits.
+- Keep D&D and Foundry schemas out of shared character contracts.
+- Do not create a universal trait ontology from this first D&D slice.
+- Update the translator/bridge-RPG evidence ledger as implementation exposes reusable semantics or system-specific assumptions.
+- Preserve the exact-SHA promotion path `dev -> qa -> main`.
