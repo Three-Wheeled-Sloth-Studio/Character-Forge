@@ -1,0 +1,67 @@
+version: 1
+updated: 2026-08-26
+principles:
+  - Ship small vertical slices and revise architecture from evidence.
+  - Keep native system state lossless even while the semantic bridge evolves.
+  - Add universal concepts only when concrete system mappings justify them.
+  - Make guided narrative generation a first-class path early.
+roadmap:
+  - id: foundation-0-repository-baseline
+    horizon: now
+    status: in_progress
+    goal: Establish development workflow, durable guidance, validation, and the minimum character contract.
+    exit_criteria:
+      - dev, qa, and main branches exist with exact-SHA promotion guidance.
+      - CI verifies dev, qa, and main.
+      - CharacterDocument requires retained native system state.
+      - Tests prove native payload survives JSON round trip without requiring semantic projection.
+      - Translator and bridge-RPG evidence ledger exists and is required agent reading.
+  - id: dnd5e-1-level-one-generation
+    horizon: next
+    status: planned
+    goal: Deliver the first usable D&D 5E 2024 SRD Level 1 character vertical slice.
+    initial_scope:
+      - System adapter and versioned rules-source metadata.
+      - Manual ability assignment.
+      - Standard array.
+      - Point buy.
+      - 4d6 drop lowest.
+      - Guided character creation.
+      - Early guided narrative generation path.
+      - Quick generation with recorded decisions.
+      - Save and reload exact native state.
+      - Basic human-readable character review.
+  - id: parchment-foundry-2-integration
+    horizon: near
+    status: planned
+    goal: Make characters first-class Parchment assets and prove a Foundry D&D 5E adapter boundary.
+  - id: maintenance-3-advancement
+    horizon: near
+    status: planned
+    goal: Support advancement, durable edits, revision history, and system-native maintenance without losing provenance.
+  - id: semantic-4-cross-system-language
+    horizon: after-evidence
+    status: planned
+    goal: Promote observed cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
+  - id: system-5-second-stress-test
+    horizon: after-first-dnd-slices
+    status: planned
+    goal: Implement a structurally different second RPG to break D&D-shaped assumptions in the semantic layer.
+    strongest_candidate: Call of Cthulhu
+    decision_note: Re-evaluate the candidate using evidence collected during D&D and Foundry work rather than locking the choice now.
+  - id: system-6-pathfinder
+    horizon: later
+    status: planned
+    goal: Add Pathfinder after the semantic layer has already been stressed by a less D&D-like system.
+  - id: bridge-rpg-7-design-synthesis
+    horizon: later
+    status: planned
+    goal: Use accumulated cross-system evidence to inform the original non-d20 RPG without making Character Forge depend on that system.
+  - id: identity-8-hosted-maintenance
+    horizon: later
+    status: planned
+    goal: Add hosted character pages, privacy, sharing, QR access, and synchronization through the Parchment ecosystem.
+  - id: visuals-9-character-assets
+    horizon: later
+    status: planned
+    goal: Add structured portrait, token, reference-sheet, and eventual 3D model generation pipelines.

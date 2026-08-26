@@ -1,0 +1,25 @@
+version: 1
+updated: 2026-08-26
+required_reading:
+  - AGENTS.md
+  - refs/README.md
+  - refs/project.yaml
+  - refs/handoffs/currentHandoff.md
+  - refs/architecture/character-architecture.md
+  - refs/architecture/translation-bridge-rpg-notes.md
+working_rules:
+  branch_flow: dev -> qa -> main
+  active_development_branch: dev
+  exact_sha_promotion: true
+  routine_feature_branches: false
+  vertical_slices_over_frameworks: true
+  native_system_state_required: true
+  semantic_model_is_provisional: true
+  update_translator_bridge_notes_as_you_learn: true
+validation:
+  required_before_milestone_complete:
+    - npm run verify
+licensing:
+  public_repository: true
+  secrets_allowed: false
+  non_redistributable_rules_content_allowed: false

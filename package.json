@@ -1,0 +1,19 @@
+{
+  "name": "character-forge",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "validate:refs": "python refs/tools/validate_refs.py",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "verify": "npm run validate:refs && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}

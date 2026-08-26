@@ -1,0 +1,28 @@
+# Character Forge Project Memory
+
+`refs/` is durable project memory for humans and coding agents.
+
+## Required reading
+
+1. `AGENTS.md`
+2. `refs/project.yaml`
+3. `refs/agents.yaml`
+4. `refs/handoffs/currentHandoff.md`
+5. `refs/architecture/character-architecture.md`
+6. `refs/architecture/translation-bridge-rpg-notes.md`
+7. Relevant planning, product, integration, and testing references
+
+## Maintenance rules
+
+- Keep durable facts, decisions, architecture, risks, validation commands, and handoff state here.
+- Use YAML for compact structured state and Markdown for explanatory guidance.
+- Update references in the same increment that changes their truth.
+- Record translator and bridge-RPG discoveries in `refs/architecture/translation-bridge-rpg-notes.md` as they are learned.
+- Do not promote an observation into a universal semantic contract simply because D&D needs it.
+- Do not store secrets, credentials, private user data, or non-redistributable rules content in `refs/`.
+
+## Validation
+
+```bash
+python refs/tools/validate_refs.py
+```

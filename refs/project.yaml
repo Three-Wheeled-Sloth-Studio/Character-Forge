@@ -1,0 +1,63 @@
+version: 1
+updated: 2026-08-26
+identity:
+  name: Character Forge
+  repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge
+  visibility: public
+  production_branch: main
+  acceptance_branch: qa
+  development_branch: dev
+  summary: Public modular character generation, maintenance, and cross-system translation engine for Parchment Worlds.
+thesis:
+  core_promise: Create and maintain system-native RPG characters while building an evidence-driven semantic bridge for translation, VTT integration, and future original-system design.
+hard_requirements:
+  - Preserve complete native system state for every character.
+  - Never depend on the universal semantic projection to reconstruct retained native state.
+  - Keep translation loss and approximation observable.
+  - Build semantic abstractions incrementally from real system evidence.
+  - Keep rules-system adapters isolated from shared character contracts.
+  - Keep generation replayable where randomness or guided decision logic is involved.
+  - Keep notes on translator and bridge-RPG implications as implementation teaches us.
+first_system:
+  id: dnd5e
+  edition: "2024"
+  initial_content_target: SRD 5.2.1
+second_system_candidate:
+  id: call-of-cthulhu
+  status: strongest-current-candidate
+  rationale: Provides a useful contrast in percentile skills, sanity and luck resources, advancement assumptions, and horror-oriented character state.
+later_system_candidates:
+  - pathfinder-2e
+  - fate-family
+  - traveller-family
+  - gurps-family
+bridge_rpg_hypotheses:
+  resolution: Non-d20 with a bell-shaped distribution, likely centered on a 2d10 or 2d12 family.
+  harm: Avoid generic hit-point attrition in favor of minor wounds plus occasional meaningful persistent serious wounds.
+  setting_fit: Support broad genres while feeling native to psychic abilities, techno-magic, dark horror, cyberpunk, and steampunk aesthetics.
+stack:
+  confirmed:
+    - TypeScript
+    - Vitest
+    - GitHub Actions
+repository_layout:
+  current_source_roots:
+    - packages/character-model
+  planned_source_roots:
+    - packages/generator-core
+    - packages/system-dnd5e
+    - packages/semantic-model
+    - packages/translator
+    - packages/foundry-adapter
+    - apps/web
+source_of_truth:
+  planning: refs/planning
+  architecture: refs/architecture
+  product: refs/product
+  handoffs: refs/handoffs
+  testing: refs/testing
+known_open_questions:
+  - Which non-D&D system should be the second semantic stress test after the first D&D vertical slices?
+  - What is the minimum semantic vocabulary justified by D&D without overfitting shared contracts to d20 mechanics?
+  - What should the standalone Character Forge web surface own versus the Parchment Worlds host?
+  - Which Foundry integration boundary is safest across Foundry and system schema revisions?

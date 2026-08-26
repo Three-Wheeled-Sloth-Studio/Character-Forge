@@ -1,0 +1,21 @@
+version: 1
+updated: 2026-08-26
+commands:
+  refs:
+    command: python refs/tools/validate_refs.py
+    purpose: Confirm required durable project-memory files exist and contain the foundation guardrails.
+  typecheck:
+    command: npm run typecheck
+    purpose: Type-check all TypeScript packages under strict settings.
+  tests:
+    command: npm test
+    purpose: Run deterministic unit tests, including native-state preservation contracts.
+  full:
+    command: npm run verify
+    purpose: Required milestone gate before a dev commit is considered ready for QA promotion.
+ci:
+  workflow: .github/workflows/verify.yml
+  branches:
+    - dev
+    - qa
+    - main
