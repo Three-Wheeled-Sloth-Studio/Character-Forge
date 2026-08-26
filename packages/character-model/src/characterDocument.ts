@@ -130,14 +130,13 @@ export function parseCharacterDocument(input: unknown): CharacterDocument | null
     || !input.nativeStates.every(isNativeSystemState)) {
     return null;
   }
-  const nativeStates = input.nativeStates.filter(isNativeSystemState);
-  if (!nativeStates.some((state) => state.id === input.primaryNativeStateId)) {
+  if (!input.nativeStates.some((state) => isJsonObject(state) && state.id === input.primaryNativeStateId)) {
     return null;
   }
   return input as unknown as CharacterDocument;
 }
 
-function isNativeSystemState(value: unknown): value is NativeSystemState {
+function isNativeSystemState(value: unknown): boolean {
   if (!isJsonObject(value)) return false;
   if (!isNonEmptyString(value.id)
     || !isNonEmptyString(value.systemId)
