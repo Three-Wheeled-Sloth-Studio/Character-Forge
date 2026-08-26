@@ -1,4 +1,8 @@
-import type { CharacterDocument } from "../../character-model/src/index.js";
+import {
+  createCharacterId,
+  createNativeStateId,
+  type CharacterDocument,
+} from "../../character-model/src/index.js";
 import {
   createFirstSliceCharacterDocument,
   type FirstSliceAbilityChoices,
@@ -44,14 +48,12 @@ export function quickGenerateDnd5eFirstSlice(
   };
   const character = createFirstSliceCharacterDocument(abilityChoices);
   const name = input.name?.trim() || pick(QUICK_NAMES, random);
-  const suffix = hashSeed(seed).toString(16).padStart(8, "0");
-  const slug = slugify(name);
   const nativeState = character.nativeStates[0];
   const payload = nativeState.payload as Dnd5eNativeCharacter;
 
-  character.characterId = `character-${slug}-${suffix}`;
+  character.characterId = createCharacterId();
   character.displayName = name;
-  character.primaryNativeStateId = `native-dnd5e-${slug}-${suffix}`;
+  character.primaryNativeStateId = createNativeStateId();
   nativeState.id = character.primaryNativeStateId;
   payload.identity.name = name;
 
@@ -105,12 +107,4 @@ function createSeededRandom(seed: string): () => number {
     value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
     return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-function slugify(value: string): string {
-  const slug = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug || "unnamed";
 }
