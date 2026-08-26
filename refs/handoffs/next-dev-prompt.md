@@ -6,9 +6,15 @@ Continue implementation in:
 
 Work directly on `dev`.
 
-Start from the Character Forge foundation implementation checkpoint:
+Start from the accepted Character Forge foundation implementation checkpoint:
 
 - `4d03f93fbff55d3d833c941dad81d8e19cd2bf72`
+
+The full local foundation gate passed on Windows on 2026-08-26:
+
+- refs validation: 11 required project-memory files passed;
+- strict TypeScript typecheck: passed;
+- Vitest: 1 file passed, 3 tests passed, 0 failed.
 
 Read these first:
 
@@ -21,8 +27,9 @@ Read these first:
 7. `refs/product/generation-methods.md`
 8. `refs/planning/roadmap.yaml`
 9. `refs/testing/validationCommands.yaml`
+10. GitHub issue `#1`
 
-Before expanding implementation, install dependencies and run `npm run verify`. Retain a generated `package-lock.json` so subsequent CI and local installs are reproducible. Do not promote anything to `qa` until the full gate is green.
+Before expanding implementation, retain and commit `package-lock.json` if the local dependency installation generated it. It is still absent from remote `dev` as of the validation handoff. Continue running `npm run verify` before milestone completion and do not promote to `qa` unless the exact candidate SHA is green.
 
 The immediate product target is the first D&D 5E 2024 SRD Level 1 vertical slice. Keep it intentionally narrow:
 
