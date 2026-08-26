@@ -10,7 +10,9 @@
     "validate:refs": "python refs/tools/validate_refs.py",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "verify": "npm run validate:refs && npm run typecheck && npm test"
+    "build:web": "tsc -p tsconfig.web.json",
+    "dev:web": "npm run build:web && node tools/web-server.mjs",
+    "verify": "npm run validate:refs && npm run typecheck && npm test && npm run build:web"
   },
   "devDependencies": {
     "typescript": "7.0.2",
