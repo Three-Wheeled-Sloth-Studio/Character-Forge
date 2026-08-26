@@ -2,128 +2,123 @@
 
 Date: 2026-08-26
 Branch: dev
-Phase: D&D 5E 2024 PI 1, durable Parchment character persistence implemented, owner QA pending
+Phase: D&D 5E 2024 PI 1, durable Parchment persistence owner-green except narrow QA-fix spot check
 
-Current Character Forge implementation checkpoint: `2a61e1b7a92e35640cb1a38aac3b85df9bad58d5`
-Current Parchment Worlds implementation checkpoint: `145db1065f6483df34c1d5ff3210aafb0bc52389`
-Parchment documentation head after implementation: `043dd09211eb3dce96e1914050ddbfdc2ffe9b89`
-
-Earlier owner-accepted embedded Quick Generate checkpoints:
-
-- Character Forge: `7b7f89049b83da32cbc9898f3736915087c30c4e`
-- Parchment Worlds: `45b5949ef204c3d44b5ca4957b8fb3129ceda34b`
+Current Character Forge QA-fix checkpoint: `306b72026a052a7a92174ae2f77d17d2e8ff55fe`
+Current Parchment Worlds QA-fix checkpoint: `482ed2804f7344a2b907ea97a4b288f2294dd916`
 
 ## Current state
 
-The first durable Character Forge -> Parchment -> Character Forge round-trip is implemented on `dev`.
+The Character Forge -> Parchment -> Character Forge persistence path is implemented and owner runtime QA has confirmed save/load/reopen behavior works.
 
-The previously accepted embed/generation slice remains unchanged:
+Two QA findings were raised after that successful round trip:
 
-- Mandatory, lossless `CharacterDocument.nativeStates`.
-- Versioned `RulesSystemAdapter` boundary keeping D&D mechanics outside shared contracts.
-- SRD 5.2.1 source/version/license provenance.
-- Typed D&D 5E 2024 native character schema.
-- Legal Human Soldier Fighter Level 1 Quick Generate path.
-- Native validation and exact JSON round-trip retention.
-- Seeded Quick Generate with optional user name and deterministic mechanics.
-- Embedded browser surface inside Parchment Worlds.
-- Full generated CharacterDocument posted to Parchment without flattening native state.
+1. Parchment's global project selector navigated to project overview instead of simply selecting active project context.
+2. Character Forge Quick Generate tied durable `characterId` partly to the display name.
 
-The new persistence/reopen seam adds:
+Both findings are fixed on `dev`. Only a narrow owner spot check remains before persistence acceptance and promotion.
 
-- `parseCharacterDocument` for validating a retained CharacterDocument container without rebuilding it.
-- `character-forge:open-character` host-to-Forge messaging.
-- trusted Parchment-origin checking derived from the supplied return URL.
-- retained primary-native-state lookup.
-- D&D adapter validation before rendering a reopened D&D-native state.
-- safe failure for unsupported system/edition or invalid retained native state.
-- no edit/maintenance semantics in this slice.
+## Character Forge identity correction
 
-On the Parchment side, the complete CharacterDocument is now stored as opaque module-owned content inside a generic character asset. Parchment owns project membership, asset identity, lifecycle, revision, provenance, lightweight display metadata, and persistence; it does not copy D&D mechanics into its own schema.
+Newly generated entity identity is now deliberately opaque and independent from mutable display names.
+
+New Quick Generate characters receive:
+
+- `character_<UUIDv4>` as `characterId`;
+- `native_state_<UUIDv4>` as the primary generated native-state ID.
+
+Display name remains ordinary character data and can later be renamed without changing durable character identity.
+
+Seed semantics are intentionally narrower than entity identity. A supplied seed still makes the generated mechanics, choices, and provenance reproducible, but repeating a seed creates a new durable character identity rather than claiming to be the same character object. This prevents accidental identity collision or overwrite when a user generates the same mechanical recipe twice.
+
+Existing retained characters with earlier non-UUID IDs remain supported. No destructive identity migration is required for the persistence slice.
+
+Relevant new seam:
+
+- `packages/character-model/src/identity.ts`
+
+Quick Generate now calls the shared identity helpers instead of deriving IDs from a slugified name.
+
+## Persistence/reopen behavior already owner-green
+
+Owner runtime QA confirmed:
+
+- generated characters can be saved to a Parchment project;
+- saved characters survive durable storage;
+- saved characters reopen through the Parchment -> Character Forge handoff;
+- broader save/load behavior is functioning.
+
+The previously implemented reopen boundary remains unchanged:
+
+- retained CharacterDocument is returned intact;
+- Character Forge validates the retained document/container;
+- primary native state is retained;
+- D&D adapter validates before rendering;
+- Parchment does not reconstruct or interpret D&D-native mechanics.
 
 ## Validation evidence
 
-Character Forge:
+Character Forge QA-fix checkpoint:
 
-- code checkpoint `2a61e1b7a92e35640cb1a38aac3b85df9bad58d5`
-- GitHub Actions run `33015129238`
+- `306b72026a052a7a92174ae2f77d17d2e8ff55fe`
+- GitHub Actions run `33020027212`
 - full `npm run verify` green
 - refs validation green
 - strict TypeScript typecheck green
 - Vitest green
-- web production build green
+- production web build green
 
-Parchment Worlds:
+Parchment Worlds QA-fix checkpoint:
 
-- code checkpoint `145db1065f6483df34c1d5ff3210aafb0bc52389`
-- GitHub Actions run `33015153131`
-- refs validation green
-- source-size validation green
-- TypeScript green
-- 52 Vitest files, 175 tests, 0 failures
+- `482ed2804f7344a2b907ea97a4b288f2294dd916`
+- GitHub Actions run `33020184778`
+- authoritative metadata-safe validation green
+- 53 Vitest files, 177 tests, 0 failures
 - production Vite bundle green
 
-Parchment's focused tests prove IndexedDB close/reopen retains the complete CharacterDocument, `primaryNativeStateId`, and generation record. Character Forge tests prove retained-document parsing and lossless reopen messaging.
-
-## Owner runtime QA still required
-
-The persistence slice is not accepted or promoted yet.
-
-Use the exact current dev SHAs and test through the real Parchment browser flow:
-
-1. open an active Parchment project;
-2. open Character Forge from that project;
-3. generate a character and inspect its CharacterDocument;
-4. explicitly save it to the project;
-5. return to project overview and confirm it appears in Characters;
-6. hard reload and confirm it remains present;
-7. reopen it in Character Forge;
-8. confirm native validation remains green;
-9. compare retained native state, primary ID, source/rules/schema versions, seed, recipe, decisions, and provenance with the pre-save CharacterDocument;
-10. open global Character Forge and confirm durable save requires explicit project selection.
-
-If QA finds a persistence/reopen defect, fix only the failing seam and rerun both repositories' authoritative gates. Do not reopen the previously accepted local launcher/embed behavior without new evidence.
-
-## Architecture boundary proven by this slice
+## Architecture boundary
 
 Character Forge owns:
 
-- D&D rules data and validation;
-- generation methods and deterministic generation;
-- native character state;
+- RPG rules data and native validation;
+- generation methods and deterministic mechanical generation;
+- Character Forge character identity;
+- native-state identity;
 - generation provenance;
-- retained-document interpretation and validation;
-- character review/rendering and future maintenance behavior.
+- retained-document interpretation;
+- detailed character rendering and future maintenance behavior.
 
 Parchment Worlds owns:
 
-- product navigation and module hosting;
-- project ownership and asset membership;
-- generic character asset identity/lifecycle/revision/provenance;
-- durable persistence and future synchronization;
-- generic relationships to setting assets;
-- future hosted sharing/identity.
+- project ownership and active project context;
+- Parchment asset identity;
+- asset membership, lifecycle, revision, and provenance;
+- durable persistence and future sync/share concerns;
+- generic relationships to setting assets.
 
-The host can persist and return a full native CharacterDocument without understanding D&D mechanics. This remains the desired boundary for future system adapters and semantic translation.
+Display names are not identity keys at either boundary.
 
-## Translation and bridge-RPG evidence
+## Immediate owner spot check
 
-No universal translator schema is promoted by this persistence slice.
+Do not require a full persistence QA rerun. Pull both current `dev` branches and check only:
 
-The slice strengthens one existing rule: native state can remain fully authoritative while a system-agnostic host handles identity, persistence, and relationships. Semantic projection is therefore not required for persistence and must never become the reconstruction source for retained native state.
+1. Selecting a project in Parchment's header changes active project context without navigating into project overview/editing.
+2. Global Character Forge defaults its save target to that active project.
+3. A newly generated named character has a `character_<uuid>` ID unrelated to its name and a `native_state_<uuid>` primary native-state ID.
+4. Optionally save/reopen that new character as a smoke test.
+
+If these corrected seams are green, persistence is accepted and the exact SHAs can be promoted through `dev -> qa -> main` according to repository policy.
 
 ## Next action after persistence acceptance
 
-Once owner runtime QA is green and exact SHAs are promoted, return to Character Forge generation breadth.
+Return to generation breadth:
 
-Recommended order:
-
-1. Extract shared D&D ability-state generation behavior so all methods converge on one native ability-state path.
+1. Extract shared D&D ability-state generation behavior so generation methods converge on one native ability-state path.
 2. Add manual ability entry with explicit provenance.
 3. Add point cost.
 4. Add reusable random dice-expression generation, including 4d6 drop lowest.
 5. Incrementally replace fixed Human/Soldier/Fighter choices with guided choices.
-6. Add guided narrative as a decision-producing front end to the same ordinary generation APIs.
+6. Add guided narrative as a decision-producing front end to the same generation APIs.
 7. Broaden classes/backgrounds/species only through legally redistributable SRD 5.2.1 content.
 8. Add Foundry D&D 5E integration and maintenance/advancement after those foundations.
 
@@ -135,7 +130,6 @@ Recommended order:
 - Keep D&D and Foundry schemas out of shared character contracts and Parchment project contracts.
 - Character Forge remains the authority for D&D-native interpretation and validation.
 - Parchment remains the authority for project ownership, asset lifecycle, relationships, persistence, and future sync/share concerns.
+- Character display name must remain independent from durable identity.
 - Keep semantic translation evidence-driven and provisional.
-- Record rules-source versions and generation choices in provenance.
 - Use only legally redistributable SRD 5.2.1 material in this public repository.
-- Continue updating `refs/architecture/translation-bridge-rpg-notes.md` whenever implementation exposes translator or future-RPG evidence.
