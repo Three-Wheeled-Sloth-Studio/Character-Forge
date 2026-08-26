@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createCharacterDocument,
+  parseCharacterDocument,
   type NativeSystemState,
 } from "./characterDocument.js";
 
@@ -59,5 +60,45 @@ describe("CharacterDocument", () => {
 
     expect(reloaded.nativeStates[0].payload).toEqual(dndNativeState.payload);
     expect(reloaded.semanticProjection).toBeUndefined();
+  });
+
+  it("accepts a retained JSON document without reconstructing it", () => {
+    const character = createCharacterDocument({
+      characterId: "character-1",
+      displayName: "Test Character",
+      primaryNativeStateId: dndNativeState.id,
+      nativeStates: [dndNativeState],
+      generation: {
+        methodId: "quick-dnd5e-first-slice",
+        mode: "quick",
+        recipeVersion: "1",
+        seed: "persist-me",
+        rulesSourceIds: ["srd-5.2.1"],
+        recipe: { choices: ["fighter"] },
+        decisions: [{ stepId: "class", choiceId: "fighter" }],
+      },
+    });
+    const retained = JSON.parse(JSON.stringify(character)) as unknown;
+
+    expect(parseCharacterDocument(retained)).toBe(retained);
+    expect(parseCharacterDocument(retained)).toEqual(character);
+  });
+
+  it("rejects unsupported or structurally broken retained documents", () => {
+    expect(parseCharacterDocument({
+      schemaVersion: "character-document/99",
+      characterId: "character-1",
+      displayName: "Test Character",
+      primaryNativeStateId: dndNativeState.id,
+      nativeStates: [dndNativeState],
+    })).toBeNull();
+
+    expect(parseCharacterDocument({
+      schemaVersion: "character-document/0.1",
+      characterId: "character-1",
+      displayName: "Test Character",
+      primaryNativeStateId: "missing",
+      nativeStates: [dndNativeState],
+    })).toBeNull();
   });
 });

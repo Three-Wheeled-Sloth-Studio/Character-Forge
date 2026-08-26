@@ -115,3 +115,58 @@ export function createCharacterDocument(
     ...(input.generation ? { generation: input.generation } : {}),
   };
 }
+
+export function parseCharacterDocument(input: unknown): CharacterDocument | null {
+  if (!isJsonObject(input) || input.schemaVersion !== "character-document/0.1") {
+    return null;
+  }
+  if (!isNonEmptyString(input.characterId)
+    || !isNonEmptyString(input.displayName)
+    || !isNonEmptyString(input.primaryNativeStateId)) {
+    return null;
+  }
+  if (!Array.isArray(input.nativeStates)
+    || input.nativeStates.length === 0
+    || !input.nativeStates.every(isNativeSystemState)) {
+    return null;
+  }
+  if (!input.nativeStates.some((state) => state.id === input.primaryNativeStateId)) {
+    return null;
+  }
+  return input as unknown as CharacterDocument;
+}
+
+function isNativeSystemState(value: unknown): value is NativeSystemState {
+  if (!isJsonObject(value)) return false;
+  if (!isNonEmptyString(value.id)
+    || !isNonEmptyString(value.systemId)
+    || !isNonEmptyString(value.editionId)
+    || !isNonEmptyString(value.rulesVersion)
+    || !isNonEmptyString(value.schemaVersion)) {
+    return false;
+  }
+  if (!isJsonObject(value.provenance)) return false;
+  const origin = value.provenance.origin;
+  if (origin !== "generated" && origin !== "imported" && origin !== "translated" && origin !== "manual") {
+    return false;
+  }
+  if (value.provenance.sourceId !== undefined && typeof value.provenance.sourceId !== "string") return false;
+  if (value.provenance.notes !== undefined && typeof value.provenance.notes !== "string") return false;
+  return true;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isJsonObject(value: unknown): value is JsonObject {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return Object.values(value).every(isJsonValue);
+}
+
+function isJsonValue(value: unknown): value is JsonValue {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return true;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(isJsonValue);
+  return isJsonObject(value);
+}

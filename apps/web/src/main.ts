@@ -4,12 +4,17 @@ import {
   type Dnd5eNativeCharacter,
 } from "../../../packages/system-dnd5e/src/index.js";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
+import {
+  parseCharacterOpenMessage,
+  resolveHostOrigin,
+} from "./characterForgeHostBridge.js";
 
 const CHARACTER_GENERATED_MESSAGE = "character-forge:character-generated";
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get("pwProjectId") ?? "";
 const projectName = params.get("pwProjectName") ?? "";
 const returnUrl = params.get("pwReturnUrl") ?? "";
+const hostOrigin = resolveHostOrigin(returnUrl);
 const app = document.querySelector<HTMLElement>("#app");
 
 if (!app) throw new Error("Character Forge application root was not found.");
@@ -65,10 +70,40 @@ form?.addEventListener("submit", (event) => {
   postCharacterToHost(character);
 });
 
+window.addEventListener("message", (event: MessageEvent<unknown>) => {
+  if (window.parent === window || event.source !== window.parent) return;
+  if (!hostOrigin || event.origin !== hostOrigin) return;
+  const opened = parseCharacterOpenMessage(event.data);
+  if (!opened) return;
+  if (projectId && opened.payload.projectId !== projectId) return;
+  renderCharacter(opened.payload.character);
+});
+
 function renderCharacter(character: CharacterDocument): void {
   if (!result) return;
-  const nativeState = character.nativeStates[0];
+  const nativeState = character.nativeStates.find((state) => state.id === character.primaryNativeStateId);
+  if (!nativeState) {
+    renderCharacterFailure(character, "The primary native state is missing from this character document.");
+    return;
+  }
+  if (nativeState.systemId !== dnd5eSrd521Adapter.systemId
+    || nativeState.editionId !== dnd5eSrd521Adapter.editionId) {
+    renderCharacterFailure(
+      character,
+      `This Character Forge build cannot open ${nativeState.systemId} ${nativeState.editionId}.`,
+    );
+    return;
+  }
+
   const validation = dnd5eSrd521Adapter.validateNativeState(nativeState);
+  if (!validation.valid) {
+    renderCharacterFailure(
+      character,
+      validation.issues.map((issue) => issue.message).join(" ") || "Native state validation failed.",
+    );
+    return;
+  }
+
   const payload = nativeState.payload as Dnd5eNativeCharacter;
   const abilities = payload.abilities.final;
   const seed = character.generation?.seed ?? "not recorded";
@@ -77,13 +112,11 @@ function renderCharacter(character: CharacterDocument): void {
   result.innerHTML = `
     <div class="result-heading">
       <div>
-        <p class="eyebrow">Generated character</p>
+        <p class="eyebrow">Character</p>
         <h2>${escapeHtml(character.displayName)}</h2>
         <p>Level 1 Human Soldier Fighter</p>
       </div>
-      <span class="validation-pill ${validation.valid ? "valid" : "invalid"}">
-        ${validation.valid ? "Native state valid" : "Validation failed"}
-      </span>
+      <span class="validation-pill valid">Native state valid</span>
     </div>
     <div class="ability-grid">
       ${abilityCard("STR", abilities.strength)}
@@ -113,21 +146,34 @@ function renderCharacter(character: CharacterDocument): void {
   `;
 }
 
+function renderCharacterFailure(character: CharacterDocument, message: string): void {
+  if (!result) return;
+  result.classList.remove("empty-result");
+  result.innerHTML = `
+    <div class="result-heading">
+      <div>
+        <p class="eyebrow">Character</p>
+        <h2>${escapeHtml(character.displayName)}</h2>
+      </div>
+      <span class="validation-pill invalid">Validation failed</span>
+    </div>
+    <p>${escapeHtml(message)}</p>
+    <details>
+      <summary>Inspect retained character document</summary>
+      <pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre>
+    </details>
+  `;
+}
+
 function postCharacterToHost(character: CharacterDocument): void {
   if (window.parent === window) return;
-  let targetOrigin = "*";
-  try {
-    if (returnUrl) targetOrigin = new URL(returnUrl).origin;
-  } catch {
-    targetOrigin = "*";
-  }
   window.parent.postMessage({
     type: CHARACTER_GENERATED_MESSAGE,
     payload: {
       projectId,
       character,
     },
-  }, targetOrigin);
+  }, hostOrigin ?? "*");
 }
 
 function abilityCard(label: string, score: number): string {
