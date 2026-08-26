@@ -31,28 +31,38 @@ roadmap:
       - CharacterDocument generation provenance and exact JSON native-state round trip.
       - Input-driven Standard Array assignment without prescribing the Fighter recommendation.
       - Validation that 15, 14, 13, 12, 10, and 8 are each used exactly once.
-      - Legal 2024 background adjustment handling for +2/+1 or +1/+1/+1.
+      - Shared 2024 background adjustment and final-score behavior used across supported ability methods.
+      - Legal background adjustment handling for +2/+1 or +1/+1/+1.
       - Recalculation of affected Fighter HP, Alert Initiative, and Passive Perception.
       - Seeded Quick Generate with optional user-supplied name.
       - Browser character review surface with native validation status and retained document inspection.
       - Full generated CharacterDocument handoff to Parchment through the embed boundary.
       - Owner runtime QA green for embedded Quick Generate on 2026-08-26.
+      - Manual ability generation engine path with explicit manual provenance and no invented seed.
+      - Manual Ability Entry browser surface using the same CharacterDocument and Parchment handoff boundary.
+    current_gate:
+      - Owner runtime QA for Manual Ability Entry and manual save/reopen through Parchment.
     remaining_scope:
-      - Manual ability assignment through the same native ability-state boundary.
-      - Point cost.
+      - Point cost through the shared ability-state path.
       - 4d6 drop lowest through a reusable dice-expression pipeline.
       - Guided character creation.
       - Early guided narrative generation path.
       - Incremental broadening beyond fixed Human / Soldier / Fighter choices.
   - id: parchment-2-character-persistence
-    horizon: next
-    status: planned
+    horizon: completed
+    status: completed
     goal: Make generated CharacterDocuments first-class durable Parchment project assets before broadening generation further.
-    target_slice:
-      - Persist the full CharacterDocument losslessly without teaching Parchment D&D mechanics.
-      - Associate the character with a setting project and stable asset identity.
-      - List persisted characters in project context.
-      - Prove browser reload and Parchment -> Character Forge reopen preserve native state and generation provenance exactly.
+    completed:
+      - Full CharacterDocument persisted losslessly without teaching Parchment D&D mechanics.
+      - Explicit project ownership and stable Parchment character asset identity.
+      - Project-level character inventory.
+      - Browser reload durability.
+      - Parchment -> Character Forge reopen preserving native state and generation provenance.
+      - Owner runtime QA accepted on 2026-08-26.
+      - Accepted checkpoints promoted to qa and main.
+    tracking:
+      parchment_issue: 24
+      status: closed
   - id: foundry-3-dnd5e-integration
     horizon: near
     status: planned

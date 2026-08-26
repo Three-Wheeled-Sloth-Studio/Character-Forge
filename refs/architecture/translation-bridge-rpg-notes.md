@@ -140,3 +140,15 @@ Bridge-RPG implication: For the future system, derived statistics should be chea
 Confidence: high.
 
 Follow-up: Preserve this separation when manual and narrative generation are added.
+
+### 2026-08-26 - Generation method is provenance, not character ontology
+
+Observation: Standard Array and Manual Ability Entry now produce the same D&D-native ability-state shape after their method-specific base-score step. Background contributions, final scores, dependent statistics, adapter validation, CharacterDocument persistence, and reopen behavior are shared. The meaningful difference between the methods is how the base values were obtained and what generation decisions must be retained.
+
+Translator implication: A cross-system character model should not require separate character ontologies for manual, purchased, rolled, quick, or narrative generation. Generation method belongs primarily in provenance and decision history; the resulting authoritative native state can remain method-agnostic except where the source system itself requires method metadata.
+
+Bridge-RPG implication: Future original-RPG character creation can support multiple front ends without multiplying downstream character-state formats. Manual entry, point allocation, random generation, and narrative guidance should ideally converge on one validated character-state pipeline.
+
+Confidence: high within the D&D implementation; medium as a cross-system claim until another RPG confirms it.
+
+Follow-up: Point cost and random dice generation should reuse the same post-base-score pipeline. Watch whether a structurally different second RPG exposes cases where generation method must affect authoritative state more deeply.

@@ -2,134 +2,166 @@
 
 Date: 2026-08-26
 Branch: dev
-Phase: D&D 5E 2024 PI 1, durable Parchment persistence owner-green except narrow QA-fix spot check
+Phase: D&D 5E 2024 PI 1, manual ability generation implemented, owner QA pending
 
-Current Character Forge QA-fix checkpoint: `306b72026a052a7a92174ae2f77d17d2e8ff55fe`
-Current Parchment Worlds QA-fix checkpoint: `482ed2804f7344a2b907ea97a4b288f2294dd916`
+## Accepted baseline
 
-## Current state
+The first embedded Quick Generate plus durable Parchment save/reload/reopen slice is owner-accepted and promoted.
 
-The Character Forge -> Parchment -> Character Forge persistence path is implemented and owner runtime QA has confirmed save/load/reopen behavior works.
+Accepted Character Forge checkpoint on `qa` and `main`:
 
-Two QA findings were raised after that successful round trip:
+- `8041edb4009abce8a836faafce9a167883e92bda`
 
-1. Parchment's global project selector navigated to project overview instead of simply selecting active project context.
-2. Character Forge Quick Generate tied durable `characterId` partly to the display name.
+Accepted Parchment Worlds checkpoint on `qa` and `main`:
 
-Both findings are fixed on `dev`. Only a narrow owner spot check remains before persistence acceptance and promotion.
+- `f5eb7224f71ed64d033aaac038a933fbd8850c48`
 
-## Character Forge identity correction
+Parchment issue #24 is closed as completed. Do not reopen the accepted embed/persistence seam without new evidence.
 
-Newly generated entity identity is now deliberately opaque and independent from mutable display names.
+Two non-blocking QA follow-ups are deliberately backgrounded:
 
-New Quick Generate characters receive:
+- Character Forge issue #2: the owner's effective runtime still showed name-derived character/native-state IDs even though current dev code contains opaque UUID helpers. Trace the effective runtime path later rather than blocking generation breadth.
+- Character Forge issue #3: add compact icon-first Copy JSON / Download JSON controls to the CharacterDocument inspector.
 
-- `character_<UUIDv4>` as `characterId`;
-- `native_state_<UUIDv4>` as the primary generated native-state ID.
+## Current implementation checkpoint
 
-Display name remains ordinary character data and can later be renamed without changing durable character identity.
+Manual ability generation and the shared ability-state path are implemented on `dev` at:
 
-Seed semantics are intentionally narrower than entity identity. A supplied seed still makes the generated mechanics, choices, and provenance reproducible, but repeating a seed creates a new durable character identity rather than claiming to be the same character object. This prevents accidental identity collision or overwrite when a user generates the same mechanical recipe twice.
-
-Existing retained characters with earlier non-UUID IDs remain supported. No destructive identity migration is required for the persistence slice.
-
-Relevant new seam:
-
-- `packages/character-model/src/identity.ts`
-
-Quick Generate now calls the shared identity helpers instead of deriving IDs from a slugified name.
-
-## Persistence/reopen behavior already owner-green
-
-Owner runtime QA confirmed:
-
-- generated characters can be saved to a Parchment project;
-- saved characters survive durable storage;
-- saved characters reopen through the Parchment -> Character Forge handoff;
-- broader save/load behavior is functioning.
-
-The previously implemented reopen boundary remains unchanged:
-
-- retained CharacterDocument is returned intact;
-- Character Forge validates the retained document/container;
-- primary native state is retained;
-- D&D adapter validates before rendering;
-- Parchment does not reconstruct or interpret D&D-native mechanics.
-
-## Validation evidence
-
-Character Forge QA-fix checkpoint:
-
-- `306b72026a052a7a92174ae2f77d17d2e8ff55fe`
-- GitHub Actions run `33020027212`
+- `f48ee8ff92a6fb349a9c74f462121fe0eaa07021`
+- GitHub Actions run `33021611610`
 - full `npm run verify` green
 - refs validation green
-- strict TypeScript typecheck green
-- Vitest green
-- production web build green
+- strict TypeScript green
+- 6 Vitest files, 29 tests, 0 failures
+- web TypeScript build green
 
-Parchment Worlds QA-fix checkpoint:
+Tracked by Character Forge issue #5.
 
-- `482ed2804f7344a2b907ea97a4b288f2294dd916`
-- GitHub Actions run `33020184778`
-- authoritative metadata-safe validation green
-- 53 Vitest files, 177 tests, 0 failures
-- production Vite bundle green
+## What changed
 
-## Architecture boundary
+### Shared ability-state behavior
 
-Character Forge owns:
+`packages/system-dnd5e/src/abilityGeneration.ts` now provides one common path for ability state after a generation method chooses base scores.
 
-- RPG rules data and native validation;
-- generation methods and deterministic mechanical generation;
-- Character Forge character identity;
-- native-state identity;
-- generation provenance;
-- retained-document interpretation;
-- detailed character rendering and future maintenance behavior.
+The shared path owns:
 
-Parchment Worlds owns:
+- expansion of background increases into all six abilities;
+- validation that a 2024 background exposes exactly three eligible abilities;
+- legal +2/+1 or +1/+1/+1 increase patterns;
+- rejection of increases outside the background's eligible abilities;
+- final-score derivation from base score plus background contribution;
+- the Level 1 cap that background increases cannot push a score above 20.
 
-- project ownership and active project context;
-- Parchment asset identity;
-- asset membership, lifecycle, revision, and provenance;
-- durable persistence and future sync/share concerns;
-- generic relationships to setting assets.
+Standard Array and Manual now both converge on this path. Future point-cost and random methods should do the same rather than reimplementing background/final-score behavior.
 
-Display names are not identity keys at either boundary.
+### Manual generation method
 
-## Immediate owner spot check
+`manualGenerateDnd5eFirstSlice` now accepts:
 
-Do not require a full persistence QA rerun. Pull both current `dev` branches and check only:
+- an explicit character name;
+- six pre-background ability scores;
+- a legal Soldier background increase plan.
 
-1. Selecting a project in Parchment's header changes active project context without navigating into project overview/editing.
-2. Global Character Forge defaults its save target to that active project.
-3. A newly generated named character has a `character_<uuid>` ID unrelated to its name and a `native_state_<uuid>` primary native-state ID.
-4. Optionally save/reopen that new character as a smoke test.
+For this first slice, manual base scores must be integers from 3 through 18. Human, Soldier, and Fighter remain intentionally fixed.
 
-If these corrected seams are green, persistence is accepted and the exact SHAs can be promoted through `dev -> qa -> main` according to repository policy.
+Manual generation records:
 
-## Next action after persistence acceptance
+- `generationMethod: manual` in D&D native ability state;
+- `generation.mode: manual`;
+- `generation.methodId: dnd5e:manual-first-slice`;
+- explicit `abilities.manual` and background-increase decisions;
+- native provenance origin `manual`;
+- no invented random seed.
 
-Return to generation breadth:
+The resulting character still goes through the ordinary D&D adapter and the same full CharacterDocument save/handoff boundary as Quick Generate.
 
-1. Extract shared D&D ability-state generation behavior so generation methods converge on one native ability-state path.
-2. Add manual ability entry with explicit provenance.
-3. Add point cost.
-4. Add reusable random dice-expression generation, including 4d6 drop lowest.
-5. Incrementally replace fixed Human/Soldier/Fighter choices with guided choices.
-6. Add guided narrative as a decision-producing front end to the same generation APIs.
-7. Broaden classes/backgrounds/species only through legally redistributable SRD 5.2.1 content.
-8. Add Foundry D&D 5E integration and maintenance/advancement after those foundations.
+### Adapter behavior
+
+The D&D adapter is now version `0.2.0`.
+
+It validates Standard Array and Manual as distinct supported base-score methods while keeping shared validation for:
+
+- complete base/increase/final state;
+- final = base + background increase;
+- final score range;
+- Soldier increase legality;
+- fixed first-slice Human / Soldier / Fighter rules;
+- Level 1 Fighter HP and other existing native constraints.
+
+### Browser surface
+
+The current Character Forge browser now exposes a second creation panel for Manual Ability Entry.
+
+It provides:
+
+- required character name;
+- six compact numeric base-score inputs;
+- the legal Soldier increase choices;
+- inline error reporting;
+- the same character review surface used by Quick Generate;
+- an Ability Method row in review;
+- generation seed display only when the method actually has a seed;
+- the same `character-forge:character-generated` postMessage boundary to Parchment.
+
+No Parchment mechanics changes were required.
+
+## Architecture evidence
+
+This slice strengthens the generator architecture rather than adding a parallel manual-character model.
+
+The important separation is now concrete:
+
+1. a generation method chooses or receives base ability values;
+2. shared D&D rules apply background contributions and derive final ability state;
+3. the ordinary first-slice native character builder derives HP, Initiative, Passive Perception, and other dependent state;
+4. the normal adapter validates the final native state;
+5. every generation method emits the same CharacterDocument shape and uses the same persistence boundary.
+
+Manual provenance and mechanical state remain separate. Character Forge does not need semantic translation to persist or reopen either Manual or Standard Array characters.
+
+## Immediate owner QA
+
+Pull Character Forge `dev` and use the normal Parchment-hosted Character Forge flow. A focused check is enough:
+
+1. Confirm Quick Generate still works and still saves/reopens through Parchment.
+2. In Manual Ability Entry, enter a name and six scores between 3 and 18.
+3. Choose a Soldier increase plan and build the character.
+4. Confirm the displayed final scores reflect the selected increases.
+5. Confirm HP / Initiative / Passive Perception react to the final ability values where applicable.
+6. Expand the document and confirm:
+   - `abilities.generationMethod` is `manual`;
+   - `generation.mode` is `manual`;
+   - `generation.methodId` is `dnd5e:manual-first-slice`;
+   - the manual base scores and background increases are retained as decisions;
+   - there is no generation seed;
+   - native provenance origin is `manual`.
+7. Save the manual character to Parchment, reload, reopen it, and confirm native validation remains green.
+8. Optionally verify an out-of-range manual score is rejected inline rather than producing an invalid character.
+
+If this is green, close issue #5 and promote the exact accepted Character Forge SHA through `dev -> qa -> main`.
+
+## Next implementation slice after acceptance
+
+Add D&D 5E point cost through the same shared ability-state boundary.
+
+Do not build another final-score/background-adjustment implementation. The point-cost method should own only the rules and decisions specific to buying the base scores, then hand those base scores into the shared path already used by Standard Array and Manual.
+
+After point cost:
+
+1. reusable dice-expression generation, including 4d6 drop lowest;
+2. guided choices replacing fixed Human / Soldier / Fighter incrementally;
+3. early guided narrative generation using the same ordinary generation APIs;
+4. broader legally redistributable SRD content;
+5. Foundry D&D 5E integration and later maintenance/advancement.
 
 ## Guardrails
 
 - Work directly on `dev`; preserve exact-SHA `dev -> qa -> main` promotion.
 - Native system state remains mandatory and lossless.
 - Never reconstruct retained D&D state from semantic projection data.
+- Generation methods must converge on the same native-state validation and save boundary.
 - Keep D&D and Foundry schemas out of shared character contracts and Parchment project contracts.
-- Character Forge remains the authority for D&D-native interpretation and validation.
-- Parchment remains the authority for project ownership, asset lifecycle, relationships, persistence, and future sync/share concerns.
-- Character display name must remain independent from durable identity.
-- Keep semantic translation evidence-driven and provisional.
+- Character Forge remains authoritative for RPG-native interpretation, validation, and generation provenance.
+- Parchment remains authoritative for project ownership, generic asset lifecycle, relationships, persistence, and future sync/share concerns.
+- Keep issues #2 and #3 backgrounded unless new evidence makes either blocking.
 - Use only legally redistributable SRD 5.2.1 material in this public repository.
