@@ -40,10 +40,11 @@ Parchment Worlds:
 2. `refs/README.md`
 3. `refs/project.yaml`
 4. `refs/handoffs/currentHandoff.md`
-5. the project-model Asset / Relationship / revision / provenance contracts
-6. the Character Forge embed files under `apps/web/src/modules/character-forge/`
-7. the project persistence/storage seams already used by other Parchment assets
-8. the next Character Forge persistence GitHub issue
+5. `refs/handoffs/character-persistence-next-slice.md`
+6. the project-model Asset / Relationship / revision / provenance contracts
+7. the Character Forge embed files under `apps/web/src/modules/character-forge/`
+8. the project persistence/storage seams already used by other Parchment assets
+9. GitHub issue `#24`
 
 ## Immediate next vertical slice: durable character assets
 
