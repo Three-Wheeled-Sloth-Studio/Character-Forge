@@ -26,14 +26,21 @@ roadmap:
       - Versioned rules-system adapter contract separated from D&D implementation.
       - SRD 5.2.1 source, version, creator, and CC-BY-4.0 license metadata.
       - Typed D&D-native character schema for the first slice.
-      - One fixed legal Human Soldier Fighter Level 1 path using Standard Array.
+      - One legal Human Soldier Fighter Level 1 native path.
       - D&D-native validation for source/version, ability state, first-slice origin/class constraints, Proficiency Bonus, and Level 1 Fighter Hit Points.
       - CharacterDocument generation provenance and exact JSON native-state round trip.
-      - Translator and bridge-RPG evidence captured from implementation.
+      - Full user-local gate green with 8 tests on 2026-08-26.
+    completed_in_standard_array_slice:
+      - Input-driven Standard Array assignment without prescribing the Fighter recommendation.
+      - Validation that 15, 14, 13, 12, 10, and 8 are each used exactly once.
+      - Legal 2024 background adjustment handling for +2/+1 or +1/+1/+1.
+      - Soldier adjustment restriction to Strength, Dexterity, and Constitution.
+      - Recalculation of affected Fighter HP, Alert Initiative, and Passive Perception.
+      - Generation provenance for ability assignment and background adjustment choices.
+      - Local strict compile and executable smoke green; full user-local gate pending.
     remaining_scope:
-      - Broaden the fixed path into editable/manual choices without weakening native validation.
-      - Standard array assignment workflow.
-      - Point buy.
+      - Manual ability assignment through the same native ability-state boundary.
+      - Point cost.
       - 4d6 drop lowest.
       - Guided character creation.
       - Early guided narrative generation path.

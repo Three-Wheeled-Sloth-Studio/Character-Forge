@@ -6,9 +6,9 @@ Continue implementation in:
 
 Work directly on `dev`.
 
-Start from the first D&D 5E 2024 native-path checkpoint:
+Start from the parameterized D&D Standard Array candidate:
 
-- `59ea8edc942619c3f931f6c748ca8c6820d5aef8`
+- `0b69c308bea52085abc279aa155f9c3d8e066611`
 
 Read these first:
 
@@ -24,50 +24,57 @@ Read these first:
 10. `refs/testing/validationCommands.yaml`
 11. GitHub issue `#1`
 
-Before expanding implementation, run `npm run verify` on the checkpoint. Do not promote anything to `qa` unless the full gate is green. If a local `package-lock.json` exists from dependency installation, retain and commit it so installs are reproducible.
+Before expanding implementation, pull `dev` and run `npm run verify`. The previous native-path checkpoint passed 8 tests on the user's Windows checkout, but the current Standard Array candidate still requires the full local gate. Do not promote to `qa` unless the exact candidate is green.
+
+A local `package-lock.json` exists but is still untracked. Retain and commit it after pulling the remote changes so dependency installs become reproducible.
 
 ## Current implementation
 
-The repository now contains:
+The repository now has:
 
-- A shared versioned `RulesSystemAdapter` contract.
-- D&D SRD 5.2.1 source and CC-BY-4.0 provenance metadata.
+- Mandatory, lossless native system state in `CharacterDocument`.
+- A shared versioned `RulesSystemAdapter` boundary.
+- SRD 5.2.1 source and CC-BY-4.0 provenance metadata.
 - A typed D&D-native character schema.
-- One fixed legal Human Soldier Fighter Level 1 Standard Array character.
-- Native validation for source/version/schema, ability consistency, Standard Array legality, Soldier ability increases, Level 1 proficiency, and Fighter HP.
-- Exact native JSON round-trip tests and generation provenance.
+- One Human Soldier Fighter Level 1 character path.
+- A parameterized Standard Array builder that accepts any legal assignment of 15, 14, 13, 12, 10, and 8.
+- Legal 2024 background ability adjustments in either +2/+1 or +1/+1/+1 form.
+- Recalculation of affected D&D-native derived values.
+- Generation provenance for the actual ability assignment and background adjustments.
+- Adapter validation and negative tests around Standard Array legality and Soldier adjustment rules.
 
-The fixed character is a proving fixture, not the desired generator API.
+Class, background, species, equipment, and feat choices remain deliberately fixed in this slice.
 
 ## Immediate next slice
 
-Generalize only the ability-generation seam while keeping Human + Soldier + Fighter 1 fixed.
+Add manual ability entry through the same D&D-owned ability-state and native validation path.
 
-1. Replace the fixed Standard Array placement with an input-driven Standard Array assignment builder.
-2. Accept any permutation of 15, 14, 13, 12, 10, and 8 across the six abilities.
-3. Accept either legal Soldier background increase pattern: +2 to one listed ability and +1 to another, or the SRD-supported alternative if/when that path is deliberately implemented and tested. Do not silently assume more than the current source data supports.
-4. Recompute final ability scores and affected derived D&D values through D&D-owned code.
-5. Record assignments and background adjustments as generation decisions.
-6. Add manual ability assignment only after the Standard Array builder uses the same native-state creation/validation boundary.
+1. Extract shared background adjustment/final-score logic from the Standard Array builder rather than copying it.
+2. Add a manual ability builder whose output is the same `Dnd5eAbilityState` shape with `generationMethod: "manual"`.
+3. Define and test the supported legal pre-background score domain from SRD 5.2.1 before accepting manual values.
+4. Recompute all affected D&D-native values from the resulting final abilities.
+5. Record manual inputs and background adjustments in generation provenance.
+6. Prove both Standard Array and manual methods serialize, reload, and validate through the same native state boundary.
 
-Do not broaden classes, backgrounds, species, equipment packages, or feats in the same increment unless a concrete dependency forces it. Prefer one usable parameterized path over a partial rules database.
+Do not broaden classes, backgrounds, species, equipment packages, feats, or Foundry integration in this increment unless a concrete dependency forces it.
 
 ## Guided narrative preparation
 
-Keep guided narrative generation visible in the design while generalizing the builder:
+Keep guided narrative generation visible while generalizing the ability seam:
 
-- The eventual narrative path should emit ordinary inspectable generation decisions.
-- Narrative answers belong in generation provenance.
-- Narrative generation must converge on the same native D&D validation and save boundary as manual and mechanical generation.
-- Do not build narrative UI yet unless it is the smallest way to test the decision contract.
+- Narrative answers should become inspectable generation decisions.
+- Narrative generation should call ordinary system generation APIs rather than bypassing them.
+- Narrative answers and resulting choices must be retained as provenance.
+- Do not build a separate narrative-only native schema or validation path.
 
 ## Hard requirements
 
 - Native system state is mandatory and lossless. Full stop.
-- Do not reconstruct retained D&D state from semantic traits.
-- Do not let D&D or Foundry schemas leak into the shared character model.
-- Do not create a large universal trait ontology from D&D alone.
-- Keep rules-source versions and generation choices in provenance.
+- Never reconstruct retained D&D state from semantic projection data.
+- Keep D&D and Foundry schemas out of shared character contracts.
+- Keep the semantic model evidence-driven and provisional.
+- Record rules-source versions and generation choices in provenance.
 - Use only legally redistributable SRD 5.2.1 material in this public repository.
-- Update `refs/architecture/translation-bridge-rpg-notes.md` whenever implementation teaches us something about cross-system semantics or the future original RPG.
-- Preserve the normal promotion path: `dev -> qa -> main` using the exact accepted SHA.
+- Update `refs/architecture/translation-bridge-rpg-notes.md` whenever implementation teaches us something about translation or the future original RPG.
+- Treat the future original RPG as non-d20, with current hypotheses around bell-shaped 2d10/2d12 resolution, persistent wound consequences, and strong support for psychic, techno-magic, dark-horror, cyberpunk, and steampunk play. These remain design hypotheses, not Character Forge mechanics.
+- Preserve the exact-SHA promotion path `dev -> qa -> main`.

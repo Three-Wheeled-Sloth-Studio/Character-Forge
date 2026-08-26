@@ -116,3 +116,27 @@ Bridge-RPG implication: This reinforces the existing direction toward minor woun
 Confidence: high.
 
 Follow-up: Call of Cthulhu or another second system should be used to pressure-test health, injury, and recovery semantics before any shared harm schema is promoted.
+
+### 2026-08-26 - Ability values need causal layers
+
+Observation: Parameterizing Standard Array exposed three distinct pieces of state that can lead to the same final ability score: the generated/assigned base value, the background-sourced adjustment, and the final score used by play. The generator must also retain the user's actual assignment and adjustment choices for replay.
+
+Translator implication: A final scalar value is insufficient when translating a character. The bridge may need to understand both the resulting value and one or more source-aware contributions because a target system might encode training, origin, augmentation, age, injury, or supernatural modification as separate concepts.
+
+Bridge-RPG implication: The original system should consider whether character attributes benefit from explicit contribution layers rather than destructive overwriting. That could make cybernetic augmentation, psychic alteration, lasting wounds, training, and corruption easier to represent consistently. This is a design hypothesis, not a shared Character Forge requirement.
+
+Confidence: medium-high.
+
+Follow-up: Watch manual, point-cost, random, and later non-D&D systems for whether base/contribution/final layering remains useful. Do not promote a universal modifier schema until a second system provides confirming evidence.
+
+### 2026-08-26 - Generation intent must survive derived recomputation
+
+Observation: Reassigning Standard Array values correctly changes Fighter HP, Alert-modified Initiative, and Passive Perception. Those derived values are recomputed from native choices, while the generation record separately keeps the assignment that caused them.
+
+Translator implication: Provenance and derived state solve different problems. Translation and regeneration should not infer player intent from a derived total when the original choice can be retained directly.
+
+Bridge-RPG implication: For the future system, derived statistics should be cheap to recompute and should not erase the underlying decisions, traits, wounds, equipment, or effects that produced them.
+
+Confidence: high.
+
+Follow-up: Preserve this separation when manual and narrative generation are added.
