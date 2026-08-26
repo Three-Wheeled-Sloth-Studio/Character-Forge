@@ -1,0 +1,95 @@
+import type { JsonObject } from "../../character-model/src/index.js";
+
+export type Dnd5eAbilityId =
+  | "strength"
+  | "dexterity"
+  | "constitution"
+  | "intelligence"
+  | "wisdom"
+  | "charisma";
+
+export interface Dnd5eAbilityScores extends JsonObject {
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+}
+
+export interface Dnd5eAbilityState extends JsonObject {
+  generationMethod: "standard-array" | "manual" | "point-cost" | "random";
+  base: Dnd5eAbilityScores;
+  backgroundIncreases: Dnd5eAbilityScores;
+  final: Dnd5eAbilityScores;
+}
+
+export interface Dnd5eIdentityState extends JsonObject {
+  name: string;
+  level: number;
+  experiencePoints: number;
+  alignment: string;
+}
+
+export interface Dnd5eOriginState extends JsonObject {
+  backgroundId: string;
+  speciesId: string;
+  size: "small" | "medium";
+  speedFeet: number;
+  languages: string[];
+  backgroundOriginFeatId: string;
+  speciesOriginFeatId: string;
+  speciesSkillId: string;
+  toolProficiencyId: string;
+  backgroundEquipmentChoice: string;
+}
+
+export interface Dnd5eClassState extends JsonObject {
+  classId: string;
+  level: number;
+  hitDie: number;
+  proficiencyBonus: number;
+  savingThrowProficiencies: string[];
+  skillProficiencies: string[];
+  fightingStyleFeatId: string;
+  weaponMasteryIds: string[];
+  classEquipmentChoice: string;
+}
+
+export interface Dnd5eEquipmentEntry extends JsonObject {
+  itemId: string;
+  quantity: number;
+}
+
+export interface Dnd5eResourcesState extends JsonObject {
+  hitPointsMaximum: number;
+  hitPointsCurrent: number;
+  hitDiceTotal: number;
+  hitDiceSpent: number;
+  secondWindMaximum: number;
+  secondWindCurrent: number;
+}
+
+export interface Dnd5eDerivedState extends JsonObject {
+  armorClass: number;
+  initiativeModifier: number;
+  passivePerception: number;
+}
+
+export interface Dnd5eNativeCharacter extends JsonObject {
+  schemaVersion: "dnd5e-character/0.1";
+  rulesSourceIds: string[];
+  identity: Dnd5eIdentityState;
+  origin: Dnd5eOriginState;
+  abilities: Dnd5eAbilityState;
+  class: Dnd5eClassState;
+  featureIds: string[];
+  equipment: Dnd5eEquipmentEntry[];
+  currencyGp: number;
+  resources: Dnd5eResourcesState;
+  derived: Dnd5eDerivedState;
+}
+
+export function abilityModifier(score: number): number {
+  return Math.floor((score - 10) / 2);
+}

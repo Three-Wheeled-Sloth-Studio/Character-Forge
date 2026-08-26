@@ -7,8 +7,8 @@ principles:
   - Make guided narrative generation a first-class path early.
 roadmap:
   - id: foundation-0-repository-baseline
-    horizon: now
-    status: in_progress
+    horizon: completed
+    status: completed
     goal: Establish development workflow, durable guidance, validation, and the minimum character contract.
     exit_criteria:
       - dev, qa, and main branches exist with exact-SHA promotion guidance.
@@ -16,20 +16,28 @@ roadmap:
       - CharacterDocument requires retained native system state.
       - Tests prove native payload survives JSON round trip without requiring semantic projection.
       - Translator and bridge-RPG evidence ledger exists and is required agent reading.
+    validation:
+      local_windows_gate: green 2026-08-26
   - id: dnd5e-1-level-one-generation
-    horizon: next
-    status: planned
+    horizon: now
+    status: in_progress
     goal: Deliver the first usable D&D 5E 2024 SRD Level 1 character vertical slice.
-    initial_scope:
-      - System adapter and versioned rules-source metadata.
-      - Manual ability assignment.
-      - Standard array.
+    completed_in_native_path_slice:
+      - Versioned rules-system adapter contract separated from D&D implementation.
+      - SRD 5.2.1 source, version, creator, and CC-BY-4.0 license metadata.
+      - Typed D&D-native character schema for the first slice.
+      - One fixed legal Human Soldier Fighter Level 1 path using Standard Array.
+      - D&D-native validation for source/version, ability state, first-slice origin/class constraints, Proficiency Bonus, and Level 1 Fighter Hit Points.
+      - CharacterDocument generation provenance and exact JSON native-state round trip.
+      - Translator and bridge-RPG evidence captured from implementation.
+    remaining_scope:
+      - Broaden the fixed path into editable/manual choices without weakening native validation.
+      - Standard array assignment workflow.
       - Point buy.
       - 4d6 drop lowest.
       - Guided character creation.
       - Early guided narrative generation path.
       - Quick generation with recorded decisions.
-      - Save and reload exact native state.
       - Basic human-readable character review.
   - id: parchment-foundry-2-integration
     horizon: near

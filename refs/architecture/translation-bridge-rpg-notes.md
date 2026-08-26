@@ -69,4 +69,50 @@ Current direction: Likely system three or four rather than system two. It is str
 
 ## Evidence log
 
-No implementation-derived semantic entries yet. The first entries should come from the D&D 5E 2024 Level 1 vertical slice rather than from speculative taxonomy work.
+### 2026-08-26 - D&D 5E 2024 first Level 1 native slice
+
+Observation: In the 2024 rules represented by SRD 5.2.1, background choice is a source of ability-score increases while species is a separate origin component. A Human Soldier Fighter therefore carries meaningful mechanical contributions from class, background, and species that must remain distinguishable even when they affect the same final character sheet.
+
+Translator implication: Do not flatten every numeric value into an unexplained final score. Translation will need source-aware grants or contributions so it can distinguish base values, origin adjustments, class grants, and derived values when the target system organizes those concepts differently.
+
+Bridge-RPG implication: Treat character origin, biology/species, culture/background, and professional training as separable design axes unless later evidence argues otherwise. This supports settings where upbringing or augmentation matters more than ancestry.
+
+Confidence: high.
+
+Follow-up: Preserve source attribution for grants when the semantic projection begins; do not yet define a universal `ability_score_bonus` trait from D&D alone.
+
+### 2026-08-26 - Choice slots and granted capabilities
+
+Observation: The first character receives capabilities through several different choice shapes: a fixed background feat, a species-granted open Origin-feat choice, class skill choices, a Fighting Style choice, and three Weapon Mastery choices.
+
+Translator implication: A reusable bridge will likely need to distinguish a granted capability from a choice slot that selected that capability. The provenance of a choice matters for validation, regeneration, and translating to systems with different character-building budgets.
+
+Bridge-RPG implication: Choice-slot provenance may be more flexible for the original RPG than hard-coded class packages, but that remains a hypothesis rather than a shared mechanic.
+
+Confidence: medium-high.
+
+Follow-up: Keep generation decisions separate from native state while retaining both. Revisit after guided narrative generation maps fictional answers into mechanical choices.
+
+### 2026-08-26 - Derived state versus authoritative native state
+
+Observation: Armor Class, Initiative, passive Perception, and Level 1 Hit Points can be recomputed from underlying D&D choices, but the native fixture retains their current values as well as the inputs that produced them.
+
+Translator implication: Derived values should not automatically become universal facts. Some target systems may have no corresponding derived statistic. Native round-trip fidelity and semantic translation therefore need different data-retention rules.
+
+Bridge-RPG implication: Avoid importing D&D-derived sheet conveniences into the original RPG merely because they are easy to compute.
+
+Confidence: high.
+
+Follow-up: When maintenance begins, define when derived native fields are recalculated and how stale derived values are detected without erasing imported source state.
+
+### 2026-08-26 - Hit points are system state, not universal harm semantics
+
+Observation: The first Fighter has a numeric Hit Point resource because D&D requires it, including a class-derived Level 1 maximum and Second Wind healing resource.
+
+Translator implication: Preserve D&D Hit Points exactly in native state, but do not make `hitPoints` the universal representation of injury or survivability. The future bridge must be able to map a numeric attrition pool to wound, consequence, stress, or injury-state models with explicit approximation or loss.
+
+Bridge-RPG implication: This reinforces the existing direction toward minor wounds and rarer persistent serious wounds rather than generic hit-point attrition.
+
+Confidence: high.
+
+Follow-up: Call of Cthulhu or another second system should be used to pressure-test health, injury, and recovery semantics before any shared harm schema is promoted.

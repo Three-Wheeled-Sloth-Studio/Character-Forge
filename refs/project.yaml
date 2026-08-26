@@ -22,6 +22,7 @@ first_system:
   id: dnd5e
   edition: "2024"
   initial_content_target: SRD 5.2.1
+  current_slice: Human Soldier Fighter Level 1 native path
 second_system_candidate:
   id: call-of-cthulhu
   status: strongest-current-candidate
@@ -43,9 +44,9 @@ stack:
 repository_layout:
   current_source_roots:
     - packages/character-model
+    - packages/system-dnd5e
   planned_source_roots:
     - packages/generator-core
-    - packages/system-dnd5e
     - packages/semantic-model
     - packages/translator
     - packages/foundry-adapter
@@ -54,6 +55,7 @@ source_of_truth:
   planning: refs/planning
   architecture: refs/architecture
   product: refs/product
+  integration: refs/integration
   handoffs: refs/handoffs
   testing: refs/testing
 known_open_questions:
@@ -61,3 +63,4 @@ known_open_questions:
   - What is the minimum semantic vocabulary justified by D&D without overfitting shared contracts to d20 mechanics?
   - What should the standalone Character Forge web surface own versus the Parchment Worlds host?
   - Which Foundry integration boundary is safest across Foundry and system schema revisions?
+  - How should imported native derived values be marked stale and recalculated during maintenance without losing the imported source state?
