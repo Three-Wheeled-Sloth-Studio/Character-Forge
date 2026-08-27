@@ -6,6 +6,7 @@ import {
   type GenerationRecord,
   type NativeSystemState,
 } from "../../character-model/src/index.js";
+import { createLevelOneClericSpellcasting } from "./classSpellcasting.js";
 import {
   DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
   DND5E_SKILL_OPTIONS,
@@ -15,11 +16,13 @@ import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
 import {
   abilityModifier,
   type Dnd5eAbilityState,
+  type Dnd5eClassSpellcastingState,
   type Dnd5eClassState,
   type Dnd5eEquipmentEntry,
   type Dnd5eNativeCharacter,
   type Dnd5eOriginState,
   type Dnd5eResourcesState,
+  type Dnd5eSpellGrantState,
   type Dnd5eSpellState,
 } from "./nativeCharacter.js";
 import {
@@ -46,6 +49,13 @@ const CLASS_PROFILES: Record<GuidedDnd5eClassId, GuidedClassProfile> = {
     savingThrowProficiencies: ["strength", "constitution"],
     featureIds: ["barbarian:rage", "barbarian:unarmored-defense", "barbarian:weapon-mastery"],
     resources: () => ({ rageMaximum: 2, rageCurrent: 2, rageDamageBonus: 2 }),
+  },
+  cleric: {
+    hitDie: 8,
+    primaryAbilityIds: ["wisdom"],
+    savingThrowProficiencies: ["wisdom", "charisma"],
+    featureIds: ["cleric:spellcasting", "cleric:divine-order"],
+    resources: () => ({}),
   },
   fighter: {
     hitDie: 10,
@@ -215,6 +225,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const speciesProfile = SPECIES_PROFILES[input.speciesId];
   const proficiencyBonus = 2;
   const human = input.speciesId === "human" ? input.coreChoices.human : undefined;
+  const cleric = input.classId === "cleric" ? input.coreChoices.cleric : undefined;
   const dragonbornAncestryId = input.speciesId === "dragonborn" ? input.coreChoices.dragonbornAncestryId : undefined;
   const dragonbornAncestry = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === dragonbornAncestryId);
   const goliathAncestryId = input.speciesId === "goliath" ? input.coreChoices.goliathAncestryId : undefined;
@@ -269,6 +280,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...(toolProficiencyIds.length ? { toolProficiencyIds } : {}),
     ...(input.coreChoices.rogueBonusLanguageId ? { bonusLanguageIds: ["thieves-cant", input.coreChoices.rogueBonusLanguageId] } : {}),
     ...(input.coreChoices.fightingStyleFeatId ? { fightingStyleFeatId: input.coreChoices.fightingStyleFeatId } : {}),
+    ...(cleric ? clericClassState( cleric.divineOrderId, input.abilities.final.wisdom) : {}),
     weaponMasteryIds: [...input.coreChoices.weaponMasteryIds],
     classEquipmentChoice: input.coreChoices.classEquipmentChoice,
   };
@@ -278,7 +290,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...classProfile.resources(proficiencyBonus), ...speciesProfile.resources(proficiencyBonus),
   };
 
-  const spellState = spellStateFor(input.backgroundId, input.coreChoices);
+  const spellState = spellStateFor(input.classId, input.backgroundId, input.coreChoices);
   const backgroundEquipment = input.backgroundEquipmentChoice === "A"
     ? backgroundProfile.packageEquipment.map((entry) => ({ ...entry })) : [];
   const backgroundGold = input.backgroundEquipmentChoice === "A" ? backgroundProfile.packageGold : 50;
@@ -299,6 +311,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
       `feat:${backgroundProfile.originFeatId}`,
       ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []),
       ...classProfile.featureIds,
+      ...(cleric ? [`cleric:divine-order:${cleric.divineOrderId}`] : []),
       ...(input.coreChoices.fightingStyleFeatId ? [`fighting-style:${input.coreChoices.fightingStyleFeatId}`] : []),
     ],
     equipment: [...classEquipment.equipment, ...backgroundEquipment],
@@ -308,12 +321,30 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   };
 }
 
-function spellStateFor(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): Dnd5eSpellState | undefined {
-  if (backgroundId !== "acolyte" && backgroundId !== "sage") return undefined;
-  const selection = choices.magicInitiate;
-  if (!selection) throw new Error(`${backgroundId} requires Magic Initiate choices.`);
+function clericClassState(divineOrderId: "protector" | "thaumaturge", wisdomScore: number): Pick<Dnd5eClassState, "divineOrderId" | "weaponProficiencyIds" | "armorTrainingIds" | "spellcastingFocusIds" | "thaumaturgeKnowledgeBonus"> {
+  if (divineOrderId === "protector") {
+    return {
+      divineOrderId,
+      weaponProficiencyIds: ["simple", "martial"],
+      armorTrainingIds: ["light", "medium", "heavy", "shield"],
+      spellcastingFocusIds: ["holy-symbol"],
+    };
+  }
   return {
-    grants: [{
+    divineOrderId,
+    weaponProficiencyIds: ["simple"],
+    armorTrainingIds: ["light", "medium", "shield"],
+    spellcastingFocusIds: ["holy-symbol"],
+    thaumaturgeKnowledgeBonus: Math.max(1, abilityModifier(wisdomScore)),
+  };
+}
+
+function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): Dnd5eSpellState | undefined {
+  const grants: Dnd5eSpellGrantState[] = [];
+  if (backgroundId === "acolyte" || backgroundId === "sage") {
+    const selection = choices.magicInitiate;
+    if (!selection) throw new Error(`${backgroundId} requires Magic Initiate choices.`);
+    grants.push({
       grantId: `origin:magic-initiate:${selection.spellListId}`,
       sourceId: "feat:magic-initiate",
       spellListId: selection.spellListId,
@@ -325,7 +356,17 @@ function spellStateFor(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd
       freeCastMaximum: 1,
       freeCastCurrent: 1,
       freeCastRecharge: "long-rest",
-    }],
+    });
+  }
+  const classCasting: Dnd5eClassSpellcastingState[] = [];
+  if (classId === "cleric") {
+    if (!choices.cleric) throw new Error("Cleric requires class spellcasting choices.");
+    classCasting.push(createLevelOneClericSpellcasting(choices.cleric));
+  }
+  if (!grants.length && !classCasting.length) return undefined;
+  return {
+    grants,
+    ...(classCasting.length ? { classCasting } : {}),
   };
 }
 
@@ -348,6 +389,14 @@ function classEquipmentFor(
     return choice === "A"
       ? { equipment: [{ itemId: "greataxe", quantity: 1 }, { itemId: "handaxe", quantity: 4 }, { itemId: "explorers-pack", quantity: 1 }], gold: 15 }
       : { equipment: [], gold: 75 };
+  }
+  if (classId === "cleric") {
+    return choice === "A"
+      ? { equipment: [
+        { itemId: "chain-shirt", quantity: 1 }, { itemId: "shield", quantity: 1 }, { itemId: "mace", quantity: 1 },
+        { itemId: "holy-symbol", quantity: 1 }, { itemId: "priests-pack", quantity: 1 },
+      ], gold: 7 }
+      : { equipment: [], gold: 110 };
   }
   if (classId === "fighter") {
     if (choice === "A") return { equipment: [
@@ -387,6 +436,7 @@ function armorClassFor(
 ): number {
   const dexterity = abilityModifier(abilities.final.dexterity);
   if (classId === "barbarian") return 10 + dexterity + abilityModifier(abilities.final.constitution);
+  if (classId === "cleric") return equipmentChoice === "A" ? 15 + Math.min(2, dexterity) : 10 + dexterity;
   if (classId === "monk") return 10 + dexterity + abilityModifier(abilities.final.wisdom);
   if (classId === "rogue") return (equipmentChoice === "A" ? 11 : 10) + dexterity;
   const armored = equipmentChoice === "A" || equipmentChoice === "B";
