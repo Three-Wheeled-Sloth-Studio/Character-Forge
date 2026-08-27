@@ -29,7 +29,7 @@ export type Dnd5eSrdSpeciesId =
 
 export type GuidedDnd5eClassId = "barbarian" | "fighter" | "monk" | "rogue";
 export type GuidedDnd5eBackgroundId = "criminal" | "soldier";
-export type GuidedDnd5eSpeciesId = "dwarf" | "halfling" | "human" | "orc";
+export type GuidedDnd5eSpeciesId = "dragonborn" | "dwarf" | "goliath" | "halfling" | "human" | "orc";
 
 export interface Dnd5eSrdClassOption {
   id: Dnd5eSrdClassId;
@@ -114,11 +114,11 @@ export const DND5E_SRD_521_BACKGROUND_OPTIONS: readonly Dnd5eSrdBackgroundOption
 ] as const;
 
 export const DND5E_SRD_521_SPECIES_OPTIONS: readonly Dnd5eSrdSpeciesOption[] = [
-  { id: "dragonborn", label: "Dragonborn", guidedSupported: false, blockedReason: "Draconic Ancestry choice is not implemented yet." },
+  { id: "dragonborn", label: "Dragonborn", guidedSupported: true },
   { id: "dwarf", label: "Dwarf", guidedSupported: true },
   { id: "elf", label: "Elf", guidedSupported: false, blockedReason: "Elven Lineage and lineage spell choices are not implemented yet." },
   { id: "gnome", label: "Gnome", guidedSupported: false, blockedReason: "Gnomish Lineage and spellcasting-ability choices are not implemented yet." },
-  { id: "goliath", label: "Goliath", guidedSupported: false, blockedReason: "Giant Ancestry choice is not implemented yet." },
+  { id: "goliath", label: "Goliath", guidedSupported: true },
   { id: "halfling", label: "Halfling", guidedSupported: true },
   { id: "human", label: "Human", guidedSupported: true },
   { id: "orc", label: "Orc", guidedSupported: true },
