@@ -167,10 +167,18 @@ function validateAbilityMethodAndSoldierBoosts(payload: JsonObject, issues: Rule
   }
 }
 
+interface LevelOneSliceParts {
+  origin: JsonObject | undefined;
+  classState: JsonObject | undefined;
+  resources: JsonObject | undefined;
+  finalAbilities: JsonObject | undefined;
+  derived: JsonObject | undefined;
+}
+
 function validateLevelOneIdentityAndSoldier(
   payload: JsonObject,
   issues: RulesValidationIssue[],
-): { origin?: JsonObject; classState?: JsonObject; resources?: JsonObject; finalAbilities?: JsonObject; derived?: JsonObject } {
+): LevelOneSliceParts {
   const identity = readObject(payload, "identity");
   const origin = readObject(payload, "origin");
   const classState = readObject(payload, "class");
