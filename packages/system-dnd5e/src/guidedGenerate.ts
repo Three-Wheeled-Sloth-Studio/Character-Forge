@@ -77,11 +77,7 @@ export function guidedGenerateDnd5eFirstSlice(input: GuidedGenerateDnd5eInput): 
     ...(input.coreChoiceProvenance ?? []),
     ...methodResult.decisions,
     { stepId: "background.ability-increases", answer: methodResult.abilities.backgroundIncreases },
-    {
-      stepId: "identity.name",
-      answer: displayName,
-      rationale: nameRationale(input),
-    },
+    { stepId: "identity.name", answer: displayName, rationale: nameRationale(input) },
   ];
 
   return createGuidedDnd5eFirstSliceCharacter({
@@ -126,6 +122,13 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
     { stepId: "class.equipment", choiceId: choices.classEquipmentChoice },
     { stepId: "class.weapon-mastery", answer: choices.weaponMasteryIds },
   ];
+  if (choices.cleric) {
+    decisions.push(
+      { stepId: "class.cleric.divine-order", choiceId: choices.cleric.divineOrderId },
+      { stepId: "class.cleric.cantrips", answer: choices.cleric.cantripIds },
+      { stepId: "class.cleric.prepared-spells", answer: choices.cleric.preparedSpellIds },
+    );
+  }
   if (choices.fightingStyleFeatId) decisions.push({ stepId: "class.fighting-style", choiceId: choices.fightingStyleFeatId });
   if (choices.monkToolProficiencyId) decisions.push({ stepId: "class.tool", choiceId: choices.monkToolProficiencyId });
   if (choices.expertiseSkillIds?.length) decisions.push({ stepId: "class.expertise", answer: choices.expertiseSkillIds });
@@ -146,9 +149,7 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
       { stepId: "species.human.skillful", choiceId: choices.human.skillId },
       { stepId: "species.human.versatile", choiceId: choices.human.originFeatId },
     );
-    if (choices.human.skilledProficiencyIds?.length) {
-      decisions.push({ stepId: "species.human.skilled", answer: choices.human.skilledProficiencyIds });
-    }
+    if (choices.human.skilledProficiencyIds?.length) decisions.push({ stepId: "species.human.skilled", answer: choices.human.skilledProficiencyIds });
   }
   return decisions;
 }
@@ -205,11 +206,7 @@ function choiceDecision<TId extends string>(label: string, choice: GuidedChoiceP
   };
 }
 
-function assertChoice<TId extends string>(
-  choice: GuidedChoiceProvenance<TId>,
-  isSupported: (value: string) => value is TId,
-  label: string,
-): void {
+function assertChoice<TId extends string>(choice: GuidedChoiceProvenance<TId>, isSupported: (value: string) => value is TId, label: string): void {
   if (!isSupported(choice.selectedId)) throw new Error(`Selected ${label} is not supported by the current guided D&D slice.`);
   const acceptable = new Set(choice.acceptableIds);
   if (acceptable.size === 0) throw new Error(`Choose at least one acceptable ${label}.`);
