@@ -42,9 +42,13 @@ app.innerHTML = `
   </section>
 `;
 
-const creatorRoot = document.querySelector<HTMLElement>("#creator-root");
-const result = document.querySelector<HTMLElement>("#result");
-if (!creatorRoot || !result) throw new Error("Character Forge workspace failed to initialize.");
+const creatorRootCandidate = document.querySelector<HTMLElement>("#creator-root");
+const resultCandidate = document.querySelector<HTMLElement>("#result");
+if (!creatorRootCandidate || !resultCandidate) {
+  throw new Error("Character Forge workspace failed to initialize.");
+}
+const creatorRoot: HTMLElement = creatorRootCandidate;
+const resultElement: HTMLElement = resultCandidate;
 
 mountGuidedCreationPanel(creatorRoot, publishCharacter);
 
@@ -88,8 +92,8 @@ function renderCharacter(character: CharacterDocument): void {
   const originFeats = [payload.origin.backgroundOriginFeatId, payload.origin.speciesOriginFeatId]
     .filter((value): value is string => Boolean(value));
 
-  result.classList.remove("empty-result");
-  result.innerHTML = `
+  resultElement.classList.remove("empty-result");
+  resultElement.innerHTML = `
     <div class="result-heading">
       <div>
         <p class="eyebrow">Character details</p>
@@ -128,8 +132,8 @@ function renderCharacter(character: CharacterDocument): void {
 }
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
-  result.classList.remove("empty-result");
-  result.innerHTML = `
+  resultElement.classList.remove("empty-result");
+  resultElement.innerHTML = `
     <div class="result-heading">
       <div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2></div>
       <span class="validation-pill invalid">Validation failed</span>
