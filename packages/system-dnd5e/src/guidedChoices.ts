@@ -7,6 +7,12 @@ export interface Dnd5eChoiceOption {
   blockedReason?: string;
 }
 
+export type Dnd5eDragonbornAncestryId =
+  | "black" | "blue" | "brass" | "bronze" | "copper"
+  | "gold" | "green" | "red" | "silver" | "white";
+
+export type Dnd5eGoliathAncestryId = "cloud" | "fire" | "frost" | "hill" | "stone" | "storm";
+
 export interface GuidedDnd5eHumanChoices {
   size: "small" | "medium";
   skillId: string;
@@ -24,6 +30,8 @@ export interface GuidedDnd5eCoreChoices {
   monkToolProficiencyId?: string;
   expertiseSkillIds?: string[];
   rogueBonusLanguageId?: string;
+  dragonbornAncestryId?: Dnd5eDragonbornAncestryId;
+  goliathAncestryId?: Dnd5eGoliathAncestryId;
   human?: GuidedDnd5eHumanChoices;
 }
 
@@ -62,6 +70,28 @@ export const DND5E_HUMAN_ORIGIN_FEAT_OPTIONS = [
   { id: "skilled", label: "Skilled", supported: true },
   { id: "magic-initiate", label: "Magic Initiate", supported: false, blockedReason: "Spell choices are not modeled yet." },
 ] as const;
+
+export const DND5E_DRAGONBORN_ANCESTRY_OPTIONS = [
+  { id: "black", label: "Black · Acid", damageType: "acid" },
+  { id: "blue", label: "Blue · Lightning", damageType: "lightning" },
+  { id: "brass", label: "Brass · Fire", damageType: "fire" },
+  { id: "bronze", label: "Bronze · Lightning", damageType: "lightning" },
+  { id: "copper", label: "Copper · Acid", damageType: "acid" },
+  { id: "gold", label: "Gold · Fire", damageType: "fire" },
+  { id: "green", label: "Green · Poison", damageType: "poison" },
+  { id: "red", label: "Red · Fire", damageType: "fire" },
+  { id: "silver", label: "Silver · Cold", damageType: "cold" },
+  { id: "white", label: "White · Cold", damageType: "cold" },
+] as const satisfies readonly (Dnd5eChoiceOption & { id: Dnd5eDragonbornAncestryId; damageType: string })[];
+
+export const DND5E_GOLIATH_ANCESTRY_OPTIONS = [
+  { id: "cloud", label: "Cloud · Cloud's Jaunt" },
+  { id: "fire", label: "Fire · Fire's Burn" },
+  { id: "frost", label: "Frost · Frost's Chill" },
+  { id: "hill", label: "Hill · Hill's Tumble" },
+  { id: "stone", label: "Stone · Stone's Endurance" },
+  { id: "storm", label: "Storm · Storm's Thunder" },
+] as const satisfies readonly (Dnd5eChoiceOption & { id: Dnd5eGoliathAncestryId })[];
 
 const ARTISAN_TOOL_IDS = [
   "alchemists-supplies", "brewers-supplies", "calligraphers-supplies", "carpenters-tools",
@@ -134,7 +164,7 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "fighter" | "
     skillCount: 2,
     weaponMasteryIds: ALL_WEAPONS,
     weaponMasteryCount: 2,
-    equipmentChoices: [{ id: "A", label: "Equipment package + 15 GP" }, { id: "B", label: "75 GP" }],
+    equipmentChoices: [{ id: "A", label: "Greataxe, 4 Handaxes, Explorer's Pack + 15 GP" }, { id: "B", label: "75 GP" }],
   },
   fighter: {
     skillIds: ["acrobatics", "animal-handling", "athletics", "history", "insight", "intimidation", "persuasion", "perception", "survival"],
@@ -142,8 +172,8 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "fighter" | "
     weaponMasteryIds: ALL_WEAPONS,
     weaponMasteryCount: 3,
     equipmentChoices: [
-      { id: "A", label: "Heavy-armor package + 4 GP" },
-      { id: "B", label: "Light-armor/ranged package + 11 GP" },
+      { id: "A", label: "Chain Mail, Greatsword, Flail, 8 Javelins, Dungeoneer's Pack + 4 GP" },
+      { id: "B", label: "Studded Leather, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack + 11 GP" },
       { id: "C", label: "155 GP" },
     ],
     fightingStyleIds: DND5E_FIGHTING_STYLE_OPTIONS.map((option) => option.id),
@@ -153,7 +183,7 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "fighter" | "
     skillCount: 2,
     weaponMasteryIds: [],
     weaponMasteryCount: 0,
-    equipmentChoices: [{ id: "A", label: "Equipment package + 11 GP" }, { id: "B", label: "50 GP" }],
+    equipmentChoices: [{ id: "A", label: "Spear, 5 Daggers, chosen tool/instrument, Explorer's Pack + 11 GP" }, { id: "B", label: "50 GP" }],
     monkToolIds: DND5E_MONK_TOOL_OPTIONS.map((option) => option.id),
   },
   rogue: {
@@ -161,7 +191,7 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "fighter" | "
     skillCount: 4,
     weaponMasteryIds: ROGUE_WEAPONS,
     weaponMasteryCount: 2,
-    equipmentChoices: [{ id: "A", label: "Equipment package + 8 GP" }, { id: "B", label: "100 GP" }],
+    equipmentChoices: [{ id: "A", label: "Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack + 8 GP" }, { id: "B", label: "100 GP" }],
     expertiseCount: 2,
     bonusLanguageCount: 1,
   },
