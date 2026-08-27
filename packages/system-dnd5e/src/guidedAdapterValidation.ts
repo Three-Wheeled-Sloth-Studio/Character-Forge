@@ -1,7 +1,10 @@
 import type { JsonObject, NativeSystemState, RulesValidationIssue, RulesValidationResult } from "../../character-model/src/index.js";
 import { DND5E_POINT_COST_BUDGET, DND5E_POINT_COSTS } from "./abilityGeneration.js";
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
-import type { GuidedDnd5eCoreChoices } from "./guidedChoices.js";
+import {
+  DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
+  type GuidedDnd5eCoreChoices,
+} from "./guidedChoices.js";
 import { abilityModifier, DND5E_ABILITY_IDS, type Dnd5eAbilityId } from "./nativeCharacter.js";
 import {
   DND5E_SRD_521_BACKGROUND_OPTIONS,
@@ -165,6 +168,18 @@ function reconstructCoreChoices(
     const bonusLanguages = readStrings(classState, "bonusLanguageIds");
     const bonus = bonusLanguages.find((id) => id !== "thieves-cant"); if (bonus) choices.rogueBonusLanguageId = bonus;
   }
+  if (speciesId === "dragonborn") {
+    const ancestry = readString(origin, "speciesAncestryId");
+    if (ancestry && DND5E_DRAGONBORN_ANCESTRY_OPTIONS.some((option) => option.id === ancestry)) {
+      choices.dragonbornAncestryId = ancestry as GuidedDnd5eCoreChoices["dragonbornAncestryId"];
+    }
+  }
+  if (speciesId === "goliath") {
+    const ancestry = readString(origin, "speciesAncestryId");
+    if (ancestry === "cloud" || ancestry === "fire" || ancestry === "frost" || ancestry === "hill" || ancestry === "stone" || ancestry === "storm") {
+      choices.goliathAncestryId = ancestry;
+    }
+  }
   if (speciesId === "human") {
     const size = readString(origin, "size"); const skillId = readString(origin, "speciesSkillId"); const feat = readString(origin, "speciesOriginFeatId");
     if ((size === "small" || size === "medium") && skillId && (feat === "alert" || feat === "savage-attacker" || feat === "skilled")) {
@@ -208,7 +223,18 @@ function validateDerivedAndResources(
   if (readNumber(derived, "passivePerception") !== passive) error(issues, "dnd5e.guided.passive-perception", "Passive Perception mismatch.", "derived.passivePerception");
   if (classId === "fighter" && (readNumber(resources, "secondWindMaximum") !== 2 || readNumber(resources, "secondWindCurrent") !== 2)) error(issues, "dnd5e.fighter.second-wind", "Fighter requires two Second Wind uses.", "resources");
   if (classId === "barbarian" && (readNumber(resources, "rageMaximum") !== 2 || readNumber(resources, "rageCurrent") !== 2 || readNumber(resources, "rageDamageBonus") !== 2)) error(issues, "dnd5e.barbarian.rage", "Barbarian Rage resources mismatch.", "resources");
+  if (speciesId === "dragonborn") {
+    const ancestry = readString(origin, "speciesAncestryId");
+    const expected = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === ancestry);
+    if (!expected || readString(origin, "speciesDamageType") !== expected.damageType) error(issues, "dnd5e.dragonborn.ancestry", "Dragonborn ancestry and damage type must agree.", "origin.speciesAncestryId");
+    if (readString(origin, "size") !== "medium" || readNumber(origin, "speedFeet") !== 30) error(issues, "dnd5e.dragonborn.physical", "Dragonborn must be Medium with 30-foot Speed.", "origin");
+    if (readNumber(resources, "breathWeaponMaximum") !== 2 || readNumber(resources, "breathWeaponCurrent") !== 2) error(issues, "dnd5e.dragonborn.breath-weapon", "Dragonborn Breath Weapon uses must equal Proficiency Bonus.", "resources");
+  }
   if (speciesId === "dwarf" && (readNumber(resources, "stonecunningMaximum") !== 2 || readNumber(resources, "stonecunningCurrent") !== 2)) error(issues, "dnd5e.dwarf.stonecunning", "Dwarf Stonecunning resources mismatch.", "resources");
+  if (speciesId === "goliath") {
+    if (readString(origin, "size") !== "medium" || readNumber(origin, "speedFeet") !== 35) error(issues, "dnd5e.goliath.physical", "Goliath must be Medium with 35-foot Speed.", "origin");
+    if (readNumber(resources, "giantAncestryMaximum") !== 2 || readNumber(resources, "giantAncestryCurrent") !== 2) error(issues, "dnd5e.goliath.giant-ancestry", "Goliath Giant Ancestry uses must equal Proficiency Bonus.", "resources");
+  }
   if (speciesId === "orc" && (readNumber(resources, "adrenalineRushMaximum") !== 2 || readNumber(resources, "relentlessEnduranceMaximum") !== 1)) error(issues, "dnd5e.orc.resources", "Orc resources mismatch.", "resources");
 }
 
