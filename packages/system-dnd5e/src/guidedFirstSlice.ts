@@ -6,7 +6,11 @@ import {
   type GenerationRecord,
   type NativeSystemState,
 } from "../../character-model/src/index.js";
-import { DND5E_SKILL_OPTIONS, type GuidedDnd5eCoreChoices } from "./guidedChoices.js";
+import {
+  DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
+  DND5E_SKILL_OPTIONS,
+  type GuidedDnd5eCoreChoices,
+} from "./guidedChoices.js";
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
 import {
   abilityModifier,
@@ -109,11 +113,23 @@ interface GuidedSpeciesProfile {
 }
 
 const SPECIES_PROFILES: Record<GuidedDnd5eSpeciesId, GuidedSpeciesProfile> = {
+  dragonborn: {
+    size: "medium", speedFeet: 30,
+    featureIds: ["dragonborn:breath-weapon", "dragonborn:damage-resistance", "dragonborn:darkvision-60", "dragonborn:draconic-flight:level-5"],
+    hitPointBonus: 0,
+    resources: (proficiencyBonus) => ({ breathWeaponMaximum: proficiencyBonus, breathWeaponCurrent: proficiencyBonus }),
+  },
   dwarf: {
     size: "medium", speedFeet: 30,
     featureIds: ["dwarf:darkvision-120", "dwarf:dwarven-resilience", "dwarf:dwarven-toughness", "dwarf:stonecunning"],
     hitPointBonus: 1,
     resources: (proficiencyBonus) => ({ stonecunningMaximum: proficiencyBonus, stonecunningCurrent: proficiencyBonus }),
+  },
+  goliath: {
+    size: "medium", speedFeet: 35,
+    featureIds: ["goliath:giant-ancestry", "goliath:large-form:level-5", "goliath:powerful-build"],
+    hitPointBonus: 0,
+    resources: (proficiencyBonus) => ({ giantAncestryMaximum: proficiencyBonus, giantAncestryCurrent: proficiencyBonus }),
   },
   halfling: {
     size: "small", speedFeet: 30,
@@ -176,6 +192,9 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const speciesProfile = SPECIES_PROFILES[input.speciesId];
   const proficiencyBonus = 2;
   const human = input.speciesId === "human" ? input.coreChoices.human : undefined;
+  const dragonbornAncestryId = input.speciesId === "dragonborn" ? input.coreChoices.dragonbornAncestryId : undefined;
+  const dragonbornAncestry = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === dragonbornAncestryId);
+  const goliathAncestryId = input.speciesId === "goliath" ? input.coreChoices.goliathAncestryId : undefined;
   const speciesSkillId = human?.skillId;
   const speciesOriginFeatId = human?.originFeatId;
   const skilledProficiencies = human?.originFeatId === "skilled" ? (human.skilledProficiencyIds ?? []) : [];
@@ -204,6 +223,9 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...(speciesOriginFeatId ? { speciesOriginFeatId } : {}),
     ...(skilledProficiencies.length ? { speciesOriginFeatProficiencyIds: [...skilledProficiencies] } : {}),
     ...(speciesSkillId ? { speciesSkillId } : {}),
+    ...(dragonbornAncestryId ? { speciesAncestryId: dragonbornAncestryId } : {}),
+    ...(dragonbornAncestry ? { speciesDamageType: dragonbornAncestry.damageType } : {}),
+    ...(goliathAncestryId ? { speciesAncestryId: goliathAncestryId } : {}),
     toolProficiencyId: backgroundProfile.toolProficiencyId,
     backgroundEquipmentChoice: input.backgroundEquipmentChoice,
   };
@@ -246,6 +268,9 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     class: classState,
     featureIds: [
       ...speciesProfile.featureIds,
+      ...(dragonbornAncestryId ? [`dragonborn:draconic-ancestry:${dragonbornAncestryId}`] : []),
+      ...(dragonbornAncestry ? [`dragonborn:damage-type:${dragonbornAncestry.damageType}`] : []),
+      ...(goliathAncestryId ? [`goliath:giant-ancestry:${goliathAncestryId}`] : []),
       `feat:${backgroundProfile.originFeatId}`,
       ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []),
       ...classProfile.featureIds,
