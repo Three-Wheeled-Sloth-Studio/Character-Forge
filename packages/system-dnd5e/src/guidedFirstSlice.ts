@@ -16,13 +16,12 @@ import {
   type Dnd5eResourcesState,
 } from "./nativeCharacter.js";
 import {
+  DND5E_SRD_521_BACKGROUND_OPTIONS,
+  type GuidedDnd5eBackgroundId,
   type GuidedDnd5eClassId,
   type GuidedDnd5eSpeciesId,
 } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
-
-const SOLDIER_SKILL_PROFICIENCIES = ["athletics", "intimidation"] as const;
-const SOLDIER_BACKGROUND_ORIGIN_FEAT_ID = "savage-attacker";
 
 interface GuidedClassProfile {
   hitDie: number;
@@ -124,6 +123,45 @@ const CLASS_PROFILES: Record<GuidedDnd5eClassId, GuidedClassProfile> = {
   },
 };
 
+interface GuidedBackgroundProfile {
+  originFeatId: string;
+  skillProficiencies: string[];
+  toolProficiencyId: string;
+  packageEquipment: Dnd5eEquipmentEntry[];
+  packageGold: number;
+}
+
+const BACKGROUND_PROFILES: Record<GuidedDnd5eBackgroundId, GuidedBackgroundProfile> = {
+  criminal: {
+    originFeatId: "alert",
+    skillProficiencies: ["sleight-of-hand", "stealth"],
+    toolProficiencyId: "thieves-tools",
+    packageEquipment: [
+      { itemId: "dagger", quantity: 2 },
+      { itemId: "thieves-tools", quantity: 1 },
+      { itemId: "crowbar", quantity: 1 },
+      { itemId: "pouch", quantity: 2 },
+      { itemId: "travelers-clothes", quantity: 1 },
+    ],
+    packageGold: 16,
+  },
+  soldier: {
+    originFeatId: "savage-attacker",
+    skillProficiencies: ["athletics", "intimidation"],
+    toolProficiencyId: "gaming-set:dice",
+    packageEquipment: [
+      { itemId: "spear", quantity: 1 },
+      { itemId: "shortbow", quantity: 1 },
+      { itemId: "arrow", quantity: 20 },
+      { itemId: "gaming-set:dice", quantity: 1 },
+      { itemId: "healers-kit", quantity: 1 },
+      { itemId: "quiver", quantity: 1 },
+      { itemId: "travelers-clothes", quantity: 1 },
+    ],
+    packageGold: 14,
+  },
+};
+
 interface GuidedSpeciesProfile {
   size: "small" | "medium";
   speedFeet: number;
@@ -150,7 +188,7 @@ const SPECIES_PROFILES: Record<GuidedDnd5eSpeciesId, GuidedSpeciesProfile> = {
   human: {
     size: "medium",
     speedFeet: 30,
-    featureIds: ["human:resourceful", "human:skillful", "human:versatile", "feat:alert"],
+    featureIds: ["human:resourceful", "human:skillful", "human:versatile"],
     hitPointBonus: 0,
     resources: () => ({}),
   },
@@ -171,7 +209,9 @@ const SPECIES_PROFILES: Record<GuidedDnd5eSpeciesId, GuidedSpeciesProfile> = {
 export interface GuidedDnd5eFirstSliceInput {
   displayName: string;
   classId: GuidedDnd5eClassId;
+  backgroundId: GuidedDnd5eBackgroundId;
   speciesId: GuidedDnd5eSpeciesId;
+  backgroundEquipmentChoice: "A" | "B:50-gp";
   abilities: Dnd5eAbilityState;
   generation: GenerationRecord;
 }
@@ -206,7 +246,7 @@ export function createGuidedDnd5eFirstSliceNativeState(
     provenance: {
       origin: "generated",
       sourceId: DND5E_SRD_5_2_1_SOURCE.id,
-      notes: `Level 1 ${label(input.speciesId)} Soldier ${label(input.classId)} built through guided SRD creation.`,
+      notes: `Level 1 ${label(input.speciesId)} ${label(input.backgroundId)} ${label(input.classId)} built through guided SRD creation.`,
     },
   };
 }
@@ -215,35 +255,41 @@ export function createGuidedDnd5eFirstSlicePayload(
   input: GuidedDnd5eFirstSliceInput,
 ): Dnd5eNativeCharacter {
   const classProfile = CLASS_PROFILES[input.classId];
+  const backgroundProfile = BACKGROUND_PROFILES[input.backgroundId];
   const speciesProfile = SPECIES_PROFILES[input.speciesId];
   const proficiencyBonus = 2;
+  const classSkills = classSkillsForBackground(input.classId, input.backgroundId, classProfile.skillProficiencies);
   const speciesSkillId = input.speciesId === "human"
-    ? humanSkillForClass(input.classId, classProfile.skillProficiencies)
+    ? humanSkill([...classSkills, ...backgroundProfile.skillProficiencies])
     : undefined;
-  const speciesOriginFeatId = input.speciesId === "human" ? "alert" : undefined;
-  const hasPerception = classProfile.skillProficiencies.includes("perception")
+  const speciesOriginFeatId = input.speciesId === "human"
+    ? humanOriginFeat(backgroundProfile.originFeatId)
+    : undefined;
+  const hasPerception = classSkills.includes("perception")
+    || backgroundProfile.skillProficiencies.includes("perception")
     || speciesSkillId === "perception";
   const hitPoints = classProfile.hitDie
     + abilityModifier(input.abilities.final.constitution)
     + speciesProfile.hitPointBonus;
+  const hasAlert = backgroundProfile.originFeatId === "alert" || speciesOriginFeatId === "alert";
   const initiativeModifier = abilityModifier(input.abilities.final.dexterity)
-    + (speciesOriginFeatId === "alert" ? proficiencyBonus : 0);
+    + (hasAlert ? proficiencyBonus : 0);
   const passivePerception = 10
     + abilityModifier(input.abilities.final.wisdom)
     + (hasPerception ? proficiencyBonus : 0);
 
   const origin: Dnd5eOriginState = {
-    backgroundId: "soldier",
+    backgroundId: input.backgroundId,
     speciesId: input.speciesId,
     size: speciesProfile.size,
     speedFeet: speciesProfile.speedFeet,
     languages: ["common", "dwarvish", "elvish"],
-    backgroundOriginFeatId: SOLDIER_BACKGROUND_ORIGIN_FEAT_ID,
-    backgroundSkillProficiencies: [...SOLDIER_SKILL_PROFICIENCIES],
+    backgroundOriginFeatId: backgroundProfile.originFeatId,
+    backgroundSkillProficiencies: [...backgroundProfile.skillProficiencies],
     ...(speciesOriginFeatId ? { speciesOriginFeatId } : {}),
     ...(speciesSkillId ? { speciesSkillId } : {}),
-    toolProficiencyId: "gaming-set:dice",
-    backgroundEquipmentChoice: "B:50-gp",
+    toolProficiencyId: backgroundProfile.toolProficiencyId,
+    backgroundEquipmentChoice: input.backgroundEquipmentChoice,
   };
 
   const classState: Dnd5eClassState = {
@@ -253,7 +299,7 @@ export function createGuidedDnd5eFirstSlicePayload(
     proficiencyBonus,
     ...(classProfile.primaryAbilityIds ? { primaryAbilityIds: [...classProfile.primaryAbilityIds] } : {}),
     savingThrowProficiencies: [...classProfile.savingThrowProficiencies],
-    skillProficiencies: [...classProfile.skillProficiencies],
+    skillProficiencies: classSkills,
     ...(classProfile.expertiseSkillIds ? { expertiseSkillIds: [...classProfile.expertiseSkillIds] } : {}),
     ...(classProfile.toolProficiencyIds ? { toolProficiencyIds: [...classProfile.toolProficiencyIds] } : {}),
     ...(classProfile.fightingStyleFeatId ? { fightingStyleFeatId: classProfile.fightingStyleFeatId } : {}),
@@ -270,6 +316,13 @@ export function createGuidedDnd5eFirstSlicePayload(
     ...speciesProfile.resources(proficiencyBonus),
   };
 
+  const backgroundEquipment = input.backgroundEquipmentChoice === "A"
+    ? backgroundProfile.packageEquipment.map((entry) => ({ ...entry }))
+    : [];
+  const backgroundGold = input.backgroundEquipmentChoice === "A"
+    ? backgroundProfile.packageGold
+    : 50;
+
   return {
     schemaVersion: "dnd5e-character/0.2",
     rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
@@ -284,11 +337,15 @@ export function createGuidedDnd5eFirstSlicePayload(
     class: classState,
     featureIds: [
       ...speciesProfile.featureIds,
-      "feat:savage-attacker",
+      `feat:${backgroundProfile.originFeatId}`,
+      ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []),
       ...classProfile.featureIds,
     ],
-    equipment: classProfile.equipment.map((entry) => ({ ...entry })),
-    currencyGp: 50 + classProfile.classGold,
+    equipment: [
+      ...classProfile.equipment.map((entry) => ({ ...entry })),
+      ...backgroundEquipment,
+    ],
+    currencyGp: classProfile.classGold + backgroundGold,
     resources,
     derived: {
       armorClass: classProfile.armorClass(input.abilities),
@@ -298,12 +355,37 @@ export function createGuidedDnd5eFirstSlicePayload(
   };
 }
 
-function humanSkillForClass(
+export function guidedBackgroundAbilityIds(
+  backgroundId: GuidedDnd5eBackgroundId,
+): readonly [
+  "strength" | "dexterity" | "constitution" | "intelligence" | "wisdom" | "charisma",
+  "strength" | "dexterity" | "constitution" | "intelligence" | "wisdom" | "charisma",
+  "strength" | "dexterity" | "constitution" | "intelligence" | "wisdom" | "charisma",
+] {
+  const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((option) => option.id === backgroundId);
+  if (!background) throw new Error(`Unknown guided background ${backgroundId}.`);
+  return background.abilityScoreIds;
+}
+
+function classSkillsForBackground(
   classId: GuidedDnd5eClassId,
-  classSkills: readonly string[],
-): string {
-  if (!classSkills.includes("perception")) return "perception";
-  return classId === "rogue" ? "persuasion" : "animal-handling";
+  backgroundId: GuidedDnd5eBackgroundId,
+  baseSkills: readonly string[],
+): string[] {
+  if (classId === "rogue" && backgroundId === "criminal") {
+    return ["acrobatics", "investigation", "perception", "persuasion"];
+  }
+  return [...baseSkills];
+}
+
+function humanSkill(takenSkills: readonly string[]): string {
+  const taken = new Set(takenSkills);
+  const candidates = ["perception", "persuasion", "animal-handling", "deception", "medicine", "nature"];
+  return candidates.find((skill) => !taken.has(skill)) ?? "performance";
+}
+
+function humanOriginFeat(backgroundOriginFeatId: string): string {
+  return backgroundOriginFeatId === "alert" ? "savage-attacker" : "alert";
 }
 
 function label(value: string): string {
