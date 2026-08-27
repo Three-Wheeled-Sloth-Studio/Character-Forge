@@ -52,6 +52,9 @@ const BACKGROUND_STORAGE_KEY = "character-forge.dnd5e.guided.background-pool.v1"
 const SPECIES_STORAGE_KEY = "character-forge.dnd5e.guided.species-pool.v1";
 const CORE_STORAGE_PREFIX = "character-forge.dnd5e.guided.core.v2";
 
+type BackgroundCatalogEntry = (typeof DND5E_SRD_521_BACKGROUND_OPTIONS)[number];
+type CoreSingleField = { id: string; stepId: string; allowed: (background: BackgroundCatalogEntry) => string[] };
+
 export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (character: CharacterDocument) => void): void {
   let classState = loadStickyChoicePool(localStorage, CLASS_STORAGE_KEY, GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_CLASS_IDS, "fighter");
   let backgroundState = loadStickyChoicePool(localStorage, BACKGROUND_STORAGE_KEY, GUIDED_DND5E_BACKGROUND_IDS, GUIDED_DND5E_BACKGROUND_IDS, "soldier");
@@ -340,9 +343,9 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
   return { choices, provenance };
 }
 
-function coreSingleFields(classId: GuidedDnd5eClassId, speciesId: GuidedDnd5eSpeciesId): Array<{ id: string; stepId: string; allowed: (background: (typeof DND5E_SRD_521_BACKGROUND_OPTIONS)[number]) => string[] }> {
+function coreSingleFields(classId: GuidedDnd5eClassId, speciesId: GuidedDnd5eSpeciesId): CoreSingleField[] {
   const rules = classChoiceRules(classId)!;
-  const fields = [
+  const fields: CoreSingleField[] = [
     { id: "alignment", stepId: "alignment", allowed: () => DND5E_ALIGNMENT_OPTIONS.map((o) => o.id) },
     { id: "language-1", stepId: "origin.language-1", allowed: () => DND5E_STANDARD_LANGUAGE_OPTIONS.map((o) => o.id) },
     { id: "language-2", stepId: "origin.language-2", allowed: () => DND5E_STANDARD_LANGUAGE_OPTIONS.map((o) => o.id) },
@@ -351,7 +354,11 @@ function coreSingleFields(classId: GuidedDnd5eClassId, speciesId: GuidedDnd5eSpe
   if (classId === "fighter") fields.push({ id: "fighting-style", stepId: "class.fighting-style", allowed: () => DND5E_FIGHTING_STYLE_OPTIONS.map((o) => o.id) });
   if (classId === "monk") fields.push({ id: "monk-tool", stepId: "class.tool", allowed: () => DND5E_MONK_TOOL_OPTIONS.map((o) => o.id) });
   if (classId === "rogue") fields.push({ id: "rogue-language", stepId: "class.bonus-language", allowed: () => DND5E_BONUS_LANGUAGE_OPTIONS.map((o) => o.id) });
-  if (speciesId === "human") { fields.push({ id: "human-size", stepId: "species.human.size", allowed: () => ["small", "medium"] }); fields.push({ id: "human-skill", stepId: "species.human.skillful", allowed: (background) => DND5E_SKILL_OPTIONS.map((o) => o.id).filter((id) => !(background.skillProficiencies as readonly string[]).includes(id)) }); fields.push({ id: "human-feat", stepId: "species.human.versatile", allowed: (background) => DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported && o.id !== background.originFeatId).map((o) => o.id) }); }
+  if (speciesId === "human") {
+    fields.push({ id: "human-size", stepId: "species.human.size", allowed: () => ["small", "medium"] });
+    fields.push({ id: "human-skill", stepId: "species.human.skillful", allowed: (background) => DND5E_SKILL_OPTIONS.map((o) => o.id).filter((id) => !(background.skillProficiencies as readonly string[]).includes(id)) });
+    fields.push({ id: "human-feat", stepId: "species.human.versatile", allowed: (background) => DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported && o.id !== background.originFeatId).map((o) => o.id) });
+  }
   return fields;
 }
 
