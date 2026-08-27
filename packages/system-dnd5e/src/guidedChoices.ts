@@ -1,4 +1,5 @@
 import type { Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
+import type { Dnd5eClericDivineOrderId } from "./clericCatalog.js";
 import type { Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import type { Dnd5eSrdClassId } from "./srdCatalog.js";
 
@@ -22,6 +23,12 @@ export interface GuidedDnd5eMagicInitiateChoices {
   levelOneSpellId: string;
 }
 
+export interface GuidedDnd5eClericChoices {
+  divineOrderId: Dnd5eClericDivineOrderId;
+  cantripIds: string[];
+  preparedSpellIds: string[];
+}
+
 export interface GuidedDnd5eHumanChoices {
   size: "small" | "medium";
   skillId: string;
@@ -35,6 +42,7 @@ export interface GuidedDnd5eCoreChoices {
   classSkillIds: string[];
   classEquipmentChoice: string;
   weaponMasteryIds: string[];
+  cleric?: GuidedDnd5eClericChoices;
   fightingStyleFeatId?: string;
   monkToolProficiencyId?: string;
   expertiseSkillIds?: string[];
@@ -174,13 +182,23 @@ const ROGUE_WEAPONS = DND5E_WEAPON_OPTIONS
   .filter((option) => option.category === "simple" || option.finesse || option.light)
   .map((option) => option.id);
 
-export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "fighter" | "monk" | "rogue", GuidedDnd5eClassChoiceRules> = {
+export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "cleric" | "fighter" | "monk" | "rogue", GuidedDnd5eClassChoiceRules> = {
   barbarian: {
     skillIds: ["animal-handling", "athletics", "intimidation", "nature", "perception", "survival"],
     skillCount: 2,
     weaponMasteryIds: ALL_WEAPONS,
     weaponMasteryCount: 2,
     equipmentChoices: [{ id: "A", label: "Greataxe, 4 Handaxes, Explorer's Pack + 15 GP" }, { id: "B", label: "75 GP" }],
+  },
+  cleric: {
+    skillIds: ["history", "insight", "medicine", "persuasion", "religion"],
+    skillCount: 2,
+    weaponMasteryIds: [],
+    weaponMasteryCount: 0,
+    equipmentChoices: [
+      { id: "A", label: "Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack + 7 GP" },
+      { id: "B", label: "110 GP" },
+    ],
   },
   fighter: {
     skillIds: ["acrobatics", "animal-handling", "athletics", "history", "insight", "intimidation", "persuasion", "perception", "survival"],
@@ -214,7 +232,7 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "fighter" | "
 };
 
 export function classChoiceRules(classId: Dnd5eSrdClassId): GuidedDnd5eClassChoiceRules | undefined {
-  if (classId === "barbarian" || classId === "fighter" || classId === "monk" || classId === "rogue") {
+  if (classId === "barbarian" || classId === "cleric" || classId === "fighter" || classId === "monk" || classId === "rogue") {
     return DND5E_GUIDED_CLASS_CHOICE_RULES[classId];
   }
   return undefined;
