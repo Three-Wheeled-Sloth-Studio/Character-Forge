@@ -15,8 +15,11 @@ import {
   type Dnd5eAbilityId,
 } from "./nativeCharacter.js";
 import {
+  DND5E_SRD_521_BACKGROUND_OPTIONS,
+  isGuidedDnd5eBackgroundId,
   isGuidedDnd5eClassId,
   isGuidedDnd5eSpeciesId,
+  type GuidedDnd5eBackgroundId,
   type GuidedDnd5eClassId,
   type GuidedDnd5eSpeciesId,
 } from "./srdCatalog.js";
@@ -44,6 +47,10 @@ function readObject(object: JsonObject, key: string): JsonObject | undefined {
 function readStringArray(object: JsonObject, key: string): string[] {
   const value = object[key];
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : [];
+}
+
+function sameStringSet(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((value) => right.includes(value));
 }
 
 function pushError(
@@ -79,7 +86,6 @@ function validateAbilityState(payload: JsonObject, issues: RulesValidationIssue[
     const baseScore = readNumber(base, abilityId);
     const increase = readNumber(increases, abilityId);
     const finalScore = readNumber(final, abilityId);
-
     if (baseScore === undefined || increase === undefined || finalScore === undefined) {
       pushError(issues, "dnd5e.abilities.value-missing", `Ability ${abilityId} requires base, increase, and final values.`, `abilities.${abilityId}`);
       continue;
@@ -127,7 +133,7 @@ function validatePointCostBase(base: JsonObject, issues: RulesValidationIssue[])
   }
 }
 
-function validateAbilityMethodAndSoldierBoosts(payload: JsonObject, issues: RulesValidationIssue[]): void {
+function validateAbilityMethodAndBackgroundBoosts(payload: JsonObject, issues: RulesValidationIssue[]): void {
   const abilities = readObject(payload, "abilities");
   if (!abilities) return;
   const base = readObject(abilities, "base");
@@ -154,16 +160,29 @@ function validateAbilityMethodAndSoldierBoosts(payload: JsonObject, issues: Rule
     pushError(issues, "dnd5e.slice.ability-method", "This slice supports Standard Array, Manual ability entry, Point Cost, and Random Generation.", "abilities.generationMethod");
   }
 
+  const origin = readObject(payload, "origin");
+  const backgroundId = origin ? readString(origin, "backgroundId") : undefined;
+  const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((option) => option.id === backgroundId);
+  if (!background) {
+    pushError(issues, "dnd5e.background.unknown", "Ability increases require a recognized SRD background.", "origin.backgroundId");
+    return;
+  }
+
   const increaseValues = Object.fromEntries(
     DND5E_ABILITY_IDS.map((abilityId) => [abilityId, readNumber(increases, abilityId) ?? 0]),
   ) as Record<Dnd5eAbilityId, number>;
-  const allowedSoldierAbilities = new Set<Dnd5eAbilityId>(["strength", "dexterity", "constitution"]);
+  const allowedAbilities = new Set<Dnd5eAbilityId>(background.abilityScoreIds);
   const nonZeroIncreases = DND5E_ABILITY_IDS.filter((abilityId) => increaseValues[abilityId] !== 0);
   const sortedIncreases = nonZeroIncreases.map((abilityId) => increaseValues[abilityId]).sort((left, right) => right - left);
   const isTwoPlusOne = sortedIncreases.length === 2 && sortedIncreases[0] === 2 && sortedIncreases[1] === 1;
   const isThreeOnes = sortedIncreases.length === 3 && sortedIncreases.every((increase) => increase === 1);
-  if (nonZeroIncreases.some((abilityId) => !allowedSoldierAbilities.has(abilityId)) || (!isTwoPlusOne && !isThreeOnes)) {
-    pushError(issues, "dnd5e.soldier.ability-increases", "Soldier ability increases must use +2/+1 on two different Strength, Dexterity, or Constitution scores, or +1 on all three.", "abilities.backgroundIncreases");
+  if (nonZeroIncreases.some((abilityId) => !allowedAbilities.has(abilityId)) || (!isTwoPlusOne && !isThreeOnes)) {
+    pushError(
+      issues,
+      "dnd5e.background.ability-increases",
+      `${background.label} ability increases must use +2/+1 on two different listed abilities, or +1 on all three listed abilities.`,
+      "abilities.backgroundIncreases",
+    );
   }
 }
 
@@ -175,10 +194,7 @@ interface LevelOneSliceParts {
   derived: JsonObject | undefined;
 }
 
-function validateLevelOneIdentityAndSoldier(
-  payload: JsonObject,
-  issues: RulesValidationIssue[],
-): LevelOneSliceParts {
+function validateLevelOneIdentity(payload: JsonObject, issues: RulesValidationIssue[]): LevelOneSliceParts {
   const identity = readObject(payload, "identity");
   const origin = readObject(payload, "origin");
   const classState = readObject(payload, "class");
@@ -190,9 +206,6 @@ function validateLevelOneIdentityAndSoldier(
   if (identity && (readNumber(identity, "level") !== 1 || readNumber(identity, "experiencePoints") !== 0)) {
     pushError(issues, "dnd5e.level-one.identity", "The current D&D generation slice requires a Level 1 character with 0 XP.", "identity");
   }
-  if (origin && readString(origin, "backgroundId") !== "soldier") {
-    pushError(issues, "dnd5e.slice.background", "The current guided slice still uses the Soldier background.", "origin.backgroundId");
-  }
   if (classState && readNumber(classState, "proficiencyBonus") !== 2) {
     pushError(issues, "dnd5e.proficiency.level-one", "A Level 1 character must have a +2 Proficiency Bonus.", "class.proficiencyBonus");
   }
@@ -200,9 +213,12 @@ function validateLevelOneIdentityAndSoldier(
 }
 
 function validateLegacyFirstSliceRules(payload: JsonObject, issues: RulesValidationIssue[]): void {
-  const { origin, classState, resources, finalAbilities } = validateLevelOneIdentityAndSoldier(payload, issues);
+  const { origin, classState, resources, finalAbilities } = validateLevelOneIdentity(payload, issues);
   if (!origin || !classState || !resources || !finalAbilities) return;
 
+  if (readString(origin, "backgroundId") !== "soldier") {
+    pushError(issues, "dnd5e.slice.background", "The legacy first slice uses the Soldier background.", "origin.backgroundId");
+  }
   if (readString(origin, "speciesId") !== "human") {
     pushError(issues, "dnd5e.slice.species", "The legacy first slice uses the Human species.", "origin.speciesId");
   }
@@ -233,20 +249,58 @@ const GUIDED_SPECIES_SIZE: Record<GuidedDnd5eSpeciesId, "small" | "medium"> = {
   orc: "medium",
 };
 
+const GUIDED_BACKGROUND_EXPECTED: Record<GuidedDnd5eBackgroundId, {
+  featId: string;
+  skills: readonly string[];
+  toolId: string;
+}> = {
+  criminal: {
+    featId: "alert",
+    skills: ["sleight-of-hand", "stealth"],
+    toolId: "thieves-tools",
+  },
+  soldier: {
+    featId: "savage-attacker",
+    skills: ["athletics", "intimidation"],
+    toolId: "gaming-set:dice",
+  },
+};
+
 function validateGuidedFirstSliceRules(payload: JsonObject, issues: RulesValidationIssue[]): void {
-  const { origin, classState, resources, finalAbilities, derived } = validateLevelOneIdentityAndSoldier(payload, issues);
+  const { origin, classState, resources, finalAbilities, derived } = validateLevelOneIdentity(payload, issues);
   if (!origin || !classState || !resources || !finalAbilities || !derived) return;
 
   const classId = readString(classState, "classId");
+  const backgroundId = readString(origin, "backgroundId");
   const speciesId = readString(origin, "speciesId");
   if (!classId || !isGuidedDnd5eClassId(classId)) {
     pushError(issues, "dnd5e.guided.class", "Guided generation currently supports Barbarian, Fighter, Monk, and Rogue.", "class.classId");
+    return;
+  }
+  if (!backgroundId || !isGuidedDnd5eBackgroundId(backgroundId)) {
+    pushError(issues, "dnd5e.guided.background", "Guided generation currently supports Criminal and Soldier backgrounds.", "origin.backgroundId");
     return;
   }
   if (!speciesId || !isGuidedDnd5eSpeciesId(speciesId)) {
     pushError(issues, "dnd5e.guided.species", "Guided generation currently supports Dwarf, Halfling, Human, and Orc.", "origin.speciesId");
     return;
   }
+
+  const backgroundExpected = GUIDED_BACKGROUND_EXPECTED[backgroundId];
+  if (readString(origin, "backgroundOriginFeatId") !== backgroundExpected.featId) {
+    pushError(issues, "dnd5e.guided.background-feat", `${backgroundId} must retain its SRD Origin feat.`, "origin.backgroundOriginFeatId");
+  }
+  if (!sameStringSet(readStringArray(origin, "backgroundSkillProficiencies"), backgroundExpected.skills)) {
+    pushError(issues, "dnd5e.guided.background-skills", `${backgroundId} must retain its two SRD skill proficiencies.`, "origin.backgroundSkillProficiencies");
+  }
+  if (readString(origin, "toolProficiencyId") !== backgroundExpected.toolId) {
+    pushError(issues, "dnd5e.guided.background-tool", `${backgroundId} must retain its SRD tool proficiency.`, "origin.toolProficiencyId");
+  }
+  const backgroundEquipmentChoice = readString(origin, "backgroundEquipmentChoice");
+  if (backgroundEquipmentChoice !== "A" && backgroundEquipmentChoice !== "B:50-gp") {
+    pushError(issues, "dnd5e.guided.background-equipment", "Guided background equipment must use package A or the 50 GP option.", "origin.backgroundEquipmentChoice");
+  }
+
   if (readNumber(classState, "level") !== 1 || readNumber(classState, "hitDie") !== GUIDED_CLASS_HIT_DIE[classId]) {
     pushError(issues, "dnd5e.guided.class-core", `Level 1 ${classId} must retain its SRD Hit Die and level.`, "class");
   }
@@ -276,15 +330,16 @@ function validateGuidedFirstSliceRules(payload: JsonObject, issues: RulesValidat
     pushError(issues, "dnd5e.guided.armor-class", `Generated ${classId} Armor Class must be ${expectedArmorClass}.`, "derived.armorClass");
   }
 
-  const hasAlert = speciesId === "human" && readString(origin, "speciesOriginFeatId") === "alert";
+  const hasAlert = backgroundExpected.featId === "alert" || readString(origin, "speciesOriginFeatId") === "alert";
   const expectedInitiative = abilityModifier(dexterity) + (hasAlert ? 2 : 0);
   if (readNumber(derived, "initiativeModifier") !== expectedInitiative) {
     pushError(issues, "dnd5e.guided.initiative", `Generated Initiative must be ${expectedInitiative}.`, "derived.initiativeModifier");
   }
 
   const classSkills = readStringArray(classState, "skillProficiencies");
+  const backgroundSkills = readStringArray(origin, "backgroundSkillProficiencies");
   const speciesSkill = readString(origin, "speciesSkillId");
-  const perceptionProficient = classSkills.includes("perception") || speciesSkill === "perception";
+  const perceptionProficient = classSkills.includes("perception") || backgroundSkills.includes("perception") || speciesSkill === "perception";
   const expectedPassive = 10 + abilityModifier(wisdom) + (perceptionProficient ? 2 : 0);
   if (readNumber(derived, "passivePerception") !== expectedPassive) {
     pushError(issues, "dnd5e.guided.passive-perception", `Generated Passive Perception must be ${expectedPassive}.`, "derived.passivePerception");
@@ -306,7 +361,7 @@ function validateGuidedFirstSliceRules(payload: JsonObject, issues: RulesValidat
 
 export const dnd5eSrd521Adapter: RulesSystemAdapter = {
   adapterId: "character-forge:dnd5e-2024",
-  adapterVersion: "0.5.0",
+  adapterVersion: "0.6.0",
   systemId: "dnd5e",
   editionId: "2024",
   supportedRulesSources: [DND5E_SRD_5_2_1_SOURCE],
@@ -331,7 +386,7 @@ export const dnd5eSrd521Adapter: RulesSystemAdapter = {
     }
 
     validateAbilityState(payload, issues);
-    validateAbilityMethodAndSoldierBoosts(payload, issues);
+    validateAbilityMethodAndBackgroundBoosts(payload, issues);
     if (state.schemaVersion === "dnd5e-character/0.2") validateGuidedFirstSliceRules(payload, issues);
     else validateLegacyFirstSliceRules(payload, issues);
 
