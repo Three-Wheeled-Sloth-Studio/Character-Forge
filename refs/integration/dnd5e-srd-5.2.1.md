@@ -1,6 +1,6 @@
 # D&D 5E 2024 SRD 5.2.1 Source Boundary
 
-Status: Active source contract for the first D&D vertical slice.
+Status: Active source contract for D&D 5E 2024 implementation.
 
 ## Source
 
@@ -14,27 +14,107 @@ Status: Active source contract for the first D&D vertical slice.
 
 The upstream SRD contains the controlling legal information and attribution instructions. Character Forge records creator, work title, source URL, version, and license in machine-readable adapter metadata. Do not add non-SRD rulebook content merely because it is compatible with the adapter.
 
-## First-slice evidence used
+## Character creation sequence
 
-The first fixture and generation methods intentionally use only a small subset of SRD mechanics:
+The default guided D&D 2024 path follows the SRD sequence rather than a Character Forge-wide assumption:
 
-- Character creation sequence and Level 1 XP/proficiency rules.
-- Standard Array ability generation using 15, 14, 13, 12, 10, and 8 assigned once each.
-- Point Cost ability generation using a 27-point budget, scores 8 through 15, and costs 0/1/2/3/4/5/7/9 for scores 8 through 15 respectively.
-- Random ability generation using four d6, retaining the highest three dice for a score, repeating that procedure six times, then assigning the six generated scores to abilities.
-- 2024 background ability increases.
-- Human species.
-- Soldier background.
-- Fighter Level 1, including Fighting Style, Second Wind, and Weapon Mastery.
-- Alert and Savage Attacker origin feats plus Defense fighting style.
-- Fighter starting equipment and basic armor values needed for the fixture.
+1. choose a class;
+2. determine origin;
+3. determine ability scores;
+4. continue remaining character details.
 
-Manual Ability Entry is a Character Forge input path rather than a separate SRD score-generation rule; its D&D legality is checked against the same native ability-state and first-slice validation boundary.
+Character Forge may later support common table variations, but should identify them as alternate generation workflows rather than silently changing the adapter's default sequence.
 
-The system-neutral dice engine represents the SRD random procedure as `4d6kh3`, but that notation and reusable execution mechanism are Character Forge implementation details. The D&D system package remains responsible for selecting that dice expression, repeating it six times, and requiring later assignment of all six generated roll slots.
+## Ability generation evidence used
 
-Relevant SRD sections are Character Creation, Fighter, Character Origins, Feats, and Equipment. The implementation stores identifiers and mechanical state rather than copying descriptive rules prose.
+The current implementation supports:
+
+- Standard Array: 15, 14, 13, 12, 10, and 8 exactly once.
+- Point Cost: 27-point budget, scores 8 through 15, costs 0/1/2/3/4/5/7/9 respectively.
+- Random Generation: roll 4d6, keep the highest 3, six times, then assign the six results.
+- 2024 background ability increases using +2/+1 on two listed abilities or +1/+1/+1 on all three listed abilities.
+
+Manual Ability Entry is a Character Forge input/validation path rather than a separate SRD generation rule.
+
+## SRD class catalog
+
+The SRD 5.2.1 class catalog represented by Character Forge contains:
+
+- Barbarian
+- Bard
+- Cleric
+- Druid
+- Fighter
+- Monk
+- Paladin
+- Ranger
+- Rogue
+- Sorcerer
+- Warlock
+- Wizard
+
+Cataloging an SRD class does not mean the current generator can faithfully produce it.
+
+The first guided-enabled class subset is:
+
+- Barbarian
+- Fighter
+- Monk
+- Rogue
+
+These classes can currently be represented at Level 1 without a spell-state implementation. The remaining classes stay disabled until Character Forge has enough native spell/choice state to generate them faithfully.
+
+## SRD species catalog
+
+The SRD 5.2.1 species catalog represented by Character Forge contains:
+
+- Dragonborn
+- Dwarf
+- Elf
+- Gnome
+- Goliath
+- Halfling
+- Human
+- Orc
+- Tiefling
+
+The first guided-enabled species subset is:
+
+- Dwarf
+- Halfling
+- Human
+- Orc
+
+Dragonborn, Elf, Gnome, Goliath, and Tiefling remain disabled until their required ancestry/lineage/legacy decisions are modeled explicitly. Do not silently choose those nested options merely to broaden the support list.
+
+## SRD backgrounds
+
+The SRD 5.2.1 background set targeted by the next guided slice is:
+
+- Acolyte
+- Criminal
+- Sage
+- Soldier
+
+Background selection must preserve the background's real mechanical contributions: eligible ability scores, Origin feat, skill/tool proficiencies, and equipment/gold choices used by generated native state.
+
+## First guided native slice
+
+The current guided builder uses a deliberately small subset of SRD mechanics while opening real class/species variance:
+
+- Level 1 XP and Proficiency Bonus.
+- Barbarian Level 1 including Rage, Unarmored Defense, Weapon Mastery, and starting equipment/profile choices used by the generated fixture.
+- Fighter Level 1 including Fighting Style, Second Wind, Weapon Mastery, and starting equipment/profile choices used by the generated fixture.
+- Monk Level 1 including Martial Arts, Unarmored Defense, and starting equipment/profile choices used by the generated fixture.
+- Rogue Level 1 including Expertise, Sneak Attack, Thieves' Cant, Weapon Mastery, and starting equipment/profile choices used by the generated fixture.
+- Dwarf, Halfling, Human, and Orc Level 1 species traits needed by generated state.
+- Soldier remains the only enabled background until the next slice.
+- Alert and Savage Attacker remain the fixed first-slice Human/Soldier Origin-feat choices where applicable.
+
+Implementation stores identifiers and mechanical state rather than copying descriptive rules prose.
 
 ## Public-repository rule
 
-Before adding a broader extracted SRD dataset, review the attribution surface and confirm that every included field is actually present in the SRD version named by its rules-source metadata. Keep source/version provenance attached to generated native state so later translations can be tested against the exact originating rules corpus.
+Before adding broader extracted SRD datasets, confirm that every included field is present in the named SRD version and that attribution remains correct. Keep source/version provenance attached to generated native state so later translations can be tested against the exact originating rules corpus.
+
+Prefer catalog metadata, identifiers, numeric mechanics, and implementation-specific choice structures over copying descriptive SRD prose. When an option requires a nested rule choice, model that choice explicitly before declaring the option fully supported.

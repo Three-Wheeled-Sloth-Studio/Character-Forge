@@ -143,7 +143,7 @@ Follow-up: Preserve this separation when manual and narrative generation are add
 
 ### 2026-08-26 - Generation method is provenance, not character ontology
 
-Observation: Standard Array and Manual Ability Entry now produce the same D&D-native ability-state shape after their method-specific base-score step. Background contributions, final scores, dependent statistics, adapter validation, CharacterDocument persistence, and reopen behavior are shared. The meaningful difference between the methods is how the base values were obtained and what generation decisions must be retained.
+Observation: Standard Array and Manual Ability Entry produce the same D&D-native ability-state shape after their method-specific base-score step. Background contributions, final scores, dependent statistics, adapter validation, CharacterDocument persistence, and reopen behavior are shared. Point Cost and Random Generation later confirmed the same convergence.
 
 Translator implication: A cross-system character model should not require separate character ontologies for manual, purchased, rolled, quick, or narrative generation. Generation method belongs primarily in provenance and decision history; the resulting authoritative native state can remain method-agnostic except where the source system itself requires method metadata.
 
@@ -151,7 +151,7 @@ Bridge-RPG implication: Future original-RPG character creation can support multi
 
 Confidence: high within the D&D implementation; medium as a cross-system claim until another RPG confirms it.
 
-Follow-up: Point cost and random dice generation should reuse the same post-base-score pipeline. Watch whether a structurally different second RPG exposes cases where generation method must affect authoritative state more deeply.
+Follow-up: Watch whether a structurally different second RPG exposes cases where generation method must affect authoritative state more deeply.
 
 ### 2026-08-26 - Point budgets are construction provenance, not runtime traits
 
@@ -165,14 +165,26 @@ Confidence: high for the current D&D implementation; medium as a general cross-s
 
 Follow-up: Compare this against systems where unspent character points, advancement points, or build currencies remain live after creation. Do not generalize all point-based systems from D&D's one-time Point Cost method.
 
-### 2026-08-26 - Generated option identity must survive duplicate values
+### 2026-08-26 - Acceptable-option pools are user intent, not character capability
 
-Observation: D&D Random Generation produces six score rolls before those scores are assigned to abilities. Two or more roll slots can legitimately have the same numeric total, so retaining only the six values would lose which generated option the user assigned. The implementation therefore preserves each roll slot's identity, all raw dice, kept dice, total, and the later roll-slot-to-ability assignment as separate generation evidence.
+Observation: Guided D&D class/species creation now distinguishes three related facts: the set of options a user is generally happy to receive, whether the current character's result was chosen directly or randomly from that set, and the single class/species actually possessed by the resulting character. The acceptable pool is sticky user preference; the selected result is native character state; the pool and selection mode used for that character are generation provenance.
 
-Translator implication: Generated choices can have identity independent from their displayed value. Translation, regeneration, and audit tooling should avoid collapsing repeated generated results into an unlabeled multiset when later choices refer to specific generated options.
+Translator implication: Translation should operate on the selected character state, not on the user's broader acceptable-option preferences. Preference data can help future generation or recommendation but does not describe capabilities the character possesses.
 
-Bridge-RPG implication: Random tables and dice-driven creation in the future original RPG should preserve source rolls/options separately from the decisions made with them. That supports transparent rerolls, reassignment, partial regeneration, and explanation of how a final character state was reached.
+Bridge-RPG implication: The original RPG can safely support Nethack-style random-from-acceptable menus without polluting runtime character state. This pattern also allows a player to maintain stable taste/preferences while each generated character retains an auditable individual decision history.
 
-Confidence: high for generator architecture; medium as a cross-system semantic claim until more systems provide similar evidence.
+Confidence: high for the separation of preference, provenance, and state; medium on how broadly sticky pools should be reused until more menu types are implemented.
 
-Follow-up: Guided creation should reuse this distinction between option generation and option selection where useful. If partial regeneration is added later, rerolling a slot and reassigning an existing slot should remain different explicit operations.
+Follow-up: Reuse the pattern for backgrounds and other single-choice menus. Watch for cases where acceptable options are conditional on earlier choices or campaign restrictions and make sure sticky preferences are sanitized rather than treated as authoritative legality.
+
+### 2026-08-26 - Nested source choices must not be erased by convenient defaults
+
+Observation: The SRD class/species catalog is broader than the first guided-supported set. Several species require ancestry, lineage, or legacy choices, while spellcasting classes require substantial spell/native state. Character Forge can name those catalog options under the SRD license, but marking them fully supported by silently selecting nested choices would lose real player intent and make the native document falsely look complete.
+
+Translator implication: A source option that contains meaningful nested decisions cannot always be translated or generated faithfully as one flat identifier. The bridge may need to preserve a decision tree or explicitly report missing/substituted nested choices.
+
+Bridge-RPG implication: Prefer explicit composable option trees over large packages whose internal choices are destructively defaulted. Defaults can still be useful UX, but they should remain visible decisions when they materially shape the character.
+
+Confidence: high.
+
+Follow-up: Model Dragonborn ancestry, Elf/Gnome lineages, Goliath Giant Ancestry, Tiefling legacy, and spell-state choices explicitly before enabling those catalog entries in guided generation. Use the same discipline for future systems.

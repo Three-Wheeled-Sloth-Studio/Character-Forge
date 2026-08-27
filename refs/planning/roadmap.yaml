@@ -5,6 +5,7 @@ principles:
   - Keep native system state lossless even while the semantic bridge evolves.
   - Add universal concepts only when concrete system mappings justify them.
   - Make guided narrative generation a first-class path early.
+  - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
 roadmap:
   - id: foundation-0-repository-baseline
     horizon: completed
@@ -26,33 +27,33 @@ roadmap:
       - Versioned rules-system adapter contract separated from D&D implementation.
       - SRD 5.2.1 source, version, creator, and CC-BY-4.0 license metadata.
       - Typed D&D-native character schema for the first slice.
-      - One legal Human Soldier Fighter Level 1 native path.
-      - D&D-native validation for source/version, ability state, first-slice origin/class constraints, Proficiency Bonus, and Level 1 Fighter Hit Points.
-      - CharacterDocument generation provenance and exact JSON native-state round trip.
-      - Shared 2024 background adjustment and final-score behavior used across supported ability methods.
-      - Legal background adjustment handling for +2/+1 or +1/+1/+1.
-      - Recalculation of affected Fighter HP, Alert Initiative, and Passive Perception.
-      - Seeded Quick Generate with optional user-supplied name.
-      - Browser character review surface with native validation status and retained document inspection.
-      - Full generated CharacterDocument handoff to Parchment through the embed boundary.
-      - Owner runtime QA green for embedded Quick Generate on 2026-08-26.
-      - Explicit Standard Array API/browser path with exact-use validation for 15, 14, 13, 12, 10, and 8.
-      - Manual ability generation with explicit manual provenance and no invented seed.
-      - Manual Ability Entry browser surface using the same CharacterDocument and Parchment handoff boundary.
-      - SRD 5.2.1 Point Cost rules with 27-point budget, 8-15 purchase range, canonical cost table, and live browser budget feedback.
-      - Reusable system-neutral generator-core seeded randomness and dice-expression engine.
-      - SRD Random Generation using six deterministic 4d6 keep-highest-3 roll slots.
-      - Random Generation provenance retaining seed, raw dice, kept dice, roll totals, roll-slot assignment, final base scores, and background increases.
-      - Browser Random Generation surface with inspectable rolls and one-use roll-slot assignment.
-      - D&D adapter 0.4.0 validation for Standard Array, Manual, Point Cost, and Random as distinct base-score methods.
+      - Owner-accepted Human Soldier Fighter Quick Generate plus Parchment save/reopen seam.
+      - Shared 2024 background adjustment and final-score behavior.
+      - Standard Array, Manual Ability Entry, SRD Point Cost, and SRD Random Generation.
+      - Reusable deterministic system-neutral seeded-random and dice-expression generator core.
+      - Random 4d6 keep-highest-3 generation retaining raw dice, kept dice, roll slots, seed, and assignment provenance.
+      - Browser review surface and complete CharacterDocument handoff to Parchment.
+      - All twelve SRD 5.2.1 classes cataloged with primary-ability/support metadata.
+      - All nine SRD 5.2.1 species cataloged with support/blocking metadata.
+      - Reusable sticky acceptable-option choice-pool behavior with direct or random-from-checked selection.
+      - Guided class-first creation surface using sticky class/species pools.
+      - Guided Level 1 native support for Barbarian, Fighter, Monk, and Rogue.
+      - Guided species support for Dwarf, Halfling, Human, and Orc.
+      - Generalized dnd5e-character/0.2 guided native state while preserving dnd5e-character/0.1 validation/reopen.
+      - Adapter 0.5.0 independently validates all 16 initially supported guided class/species combinations.
     current_gate:
-      - Owner runtime QA for the accumulated Standard Array, Manual, Point Cost, and Random stack is intentionally deferred while generation breadth continues.
-      - Current base-method stack remains on dev and is not promoted yet.
-      - Automated checkpoint bfe90583c42a39317f03916f1ca51be7b8ddefb5 is green with 11 test files / 47 tests.
+      - Owner runtime QA for the accumulated generation stack remains intentionally deferred.
+      - Current generation/guided work stays on dev and is not promoted until that combined pass is accepted.
+    current_slice:
+      - Replace fixed Soldier in guided creation with Acolyte, Criminal, Sage, and Soldier.
+      - Reuse sticky acceptable-option pools for background selection.
+      - Derive legal background ability-increase choices from selected background data.
     remaining_scope:
-      - Guided mechanical character creation that incrementally replaces fixed Human / Soldier / Fighter choices.
-      - Early guided narrative generation path using the same ordinary generation decisions and APIs.
-      - Incremental broadening beyond fixed Human / Soldier / Fighter choices through legally redistributable SRD content.
+      - Bring Standard Array, Point Cost, Random, and Manual into the guided flow as interchangeable ability-method choices.
+      - Model nested species ancestry/lineage/legacy choices and then enable the five currently blocked SRD species.
+      - Open additional class-owned choices for the four currently supported martial classes.
+      - Add a faithful spell/native-state seam and enable SRD spellcasting classes incrementally.
+      - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
   - id: parchment-2-character-persistence
     horizon: completed
     status: completed
