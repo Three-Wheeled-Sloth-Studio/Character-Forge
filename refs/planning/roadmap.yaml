@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-08-26
+updated: 2026-08-27
 principles:
   - Ship small vertical slices and revise architecture from evidence.
   - Keep native system state lossless even while the semantic bridge evolves.
@@ -7,6 +7,7 @@ principles:
   - Make guided narrative generation a first-class path early.
   - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
   - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface rather than multiplying full-width method panels.
+  - On desktop, long creator-control and character-review columns should scroll independently.
 roadmap:
   - id: foundation-0-repository-baseline
     horizon: completed
@@ -20,51 +21,69 @@ roadmap:
       - Translator and bridge-RPG evidence ledger exists and is required agent reading.
     validation:
       local_windows_gate: green 2026-08-26
+
   - id: dnd5e-1-level-one-generation
     horizon: now
     status: in_progress
-    goal: Deliver a usable D&D 5E 2024 SRD Level 1 character generation path and broaden it incrementally without losing native fidelity.
+    goal: Deliver a usable D&D 5E 2024 SRD Level 1 character generation path and broaden it to the public SRD catalog without losing native fidelity.
     completed:
       - Versioned rules-system adapter contract separated from D&D implementation.
       - SRD 5.2.1 source, version, creator, and CC-BY-4.0 license metadata.
-      - Typed D&D-native character schema for the first slice.
+      - Typed D&D-native character schemas with legacy reopen support.
       - Owner-accepted Human Soldier Fighter Quick Generate plus Parchment save/reopen seam.
       - Shared 2024 background adjustment and final-score behavior.
       - Standard Array, Manual Ability Entry, SRD Point Cost, and SRD Random Generation.
       - Reusable deterministic system-neutral seeded-random and dice-expression generator core.
       - Random 4d6 keep-highest-3 generation retaining raw dice, kept dice, roll slots, seed, and assignment provenance.
-      - All twelve SRD 5.2.1 classes cataloged with primary-ability/support metadata.
-      - All nine SRD 5.2.1 species cataloged with support/blocking metadata.
-      - All four SRD backgrounds cataloged with ability/feat/skill/tool/support metadata.
+      - All twelve SRD 5.2.1 classes cataloged.
+      - All nine SRD 5.2.1 species cataloged.
+      - All four SRD backgrounds cataloged.
       - Reusable sticky acceptable-option choice-pool behavior with direct or random-from-checked selection.
+      - Reusable sticky count-N acceptable-option behavior for multi-choice decisions.
       - Guided class-first creation using sticky Class, Background, and Species pools.
       - Guided Level 1 native support for Barbarian, Fighter, Monk, and Rogue.
-      - Guided background support for Criminal and Soldier, including real ability eligibility, Origin feat, skills, tool, equipment package or 50 GP, and derived-state effects.
-      - Acolyte and Sage cataloged but blocked until Magic Initiate spell choices/native spell state are explicit.
+      - Guided background support for Criminal and Soldier.
       - Guided species support for Dwarf, Halfling, Human, and Orc.
-      - Generalized dnd5e-character/0.2 guided native state while preserving dnd5e-character/0.1 validation/reopen.
-      - Adapter 0.6.0 validates supported guided class/background/species native state and background-owned ability increases.
       - Standard Array, Point Cost, Random, and Manual routed through one guided native builder.
       - Creator workspace consolidated to generation controls on the left and character details on the right, with one dynamic ability-generation dropdown.
+      - dnd5e-character/0.3 core-choice state while preserving 0.1 and 0.2 reopen/validation.
+      - Adapter 0.7.0 validation for explicit guided core choices.
+      - Explicit class skills, Fighter Fighting Style, class starting equipment, Weapon Mastery, Monk tool/instrument, Rogue Expertise/bonus language, origin languages, alignment, and Human size/Skillful/Versatile/Skilled follow-up choices.
+      - Blank guided name restored through shared D&D system-layer name generation.
+      - Automated-green core-choice checkpoint 5e48aa5a5c7d40bff05d2506942bae1681d8a271, Actions 33098187264, 15 test files / 63 tests.
     current_gate:
-      - Owner runtime QA for the accumulated generation stack remains intentionally deferred.
-      - Current generation/guided work stays on dev and is not promoted until that combined pass is accepted.
+      - Owner runtime QA on 2026-08-27 found the core-choice work broadly functional and directionally good.
+      - QA explicitly rejected treating the current 4 classes / 2 backgrounds / 4 species as sufficient breadth.
+      - Current generation/guided work stays on dev and is not promoted until the accumulated pass is explicitly accepted.
     current_slice:
-      - Open real class-owned choices for the four supported martial classes rather than keeping permanent fixture defaults.
-      - Preserve the consolidated creator workspace and ordinary choice-pool/provenance boundaries.
+      - Broaden guided generation toward the full legally redistributable SRD 5.2.1 Level 1 catalog, tracked by issue #11.
+      - Choose implementation order by dependency unlock and smallest faithful vertical slices rather than catalog order.
+      - Establish the minimum faithful Level 1 spell/native-state seam early enough to unlock Magic Initiate, Acolyte/Sage, and spellcasting classes.
+      - Enable additional non-spell species as their ancestry/lineage/legacy choices become explicitly modeled.
+      - Fold in cheap adjacent workspace QA fixes from issue #12 without letting polish displace catalog breadth.
     remaining_scope:
-      - Open class skill, Fighting Style, Weapon Mastery, Expertise/tool and related martial choices incrementally.
-      - Model nested species ancestry/lineage/legacy choices and then enable additional SRD species.
-      - Add a faithful spell/native-state seam, then enable Acolyte/Sage and SRD spellcasting classes incrementally.
+      - Enable Dragonborn, Elf, Gnome, Goliath, and Tiefling only after required nested species choices are represented faithfully.
+      - Add faithful spell/native state and enable Acolyte/Sage plus SRD spellcasting classes incrementally.
+      - Add compact Name randomize control using system-layer name generation.
+      - Replace source-like Starting Equipment A/B labels with descriptive package/gold choices.
+      - Make creator-controls and character-details scrolling independent on desktop.
+      - Add compact contextual info/help affordances for generation methods and other complex choices; low priority but retained.
+      - Replace the temporary six-name D&D list with a future structured naming architecture informed by culture/species/language consumers rather than a giant flat list.
       - Consolidate Quick Generate into the creator workspace as a top-level creation mode, not an ability method.
       - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
-      - Introduce a system-neutral random-table companion only after concrete class/species/background consumers define its output contract and before guided narrative creates parallel table machinery.
+      - Introduce a system-neutral random-table companion after concrete consumers define its output contract and before guided narrative creates parallel table machinery.
+    tracking:
+      guided_workspace_issue: 9
+      core_choices_issue: 10
+      full_srd_breadth_issue: 11
+      workspace_qa_polish_issue: 12
+
   - id: companion-random-tables
     horizon: watch
     status: discovery_triggered_later
     goal: Provide reusable provenance-bearing random-table evaluation for character flavor and structured suggestions without patching native character state directly.
     trigger:
-      - Backgrounds are open and at least one or two additional class/species choice slices provide concrete consumers.
+      - Backgrounds are open and additional class/species choice slices provide concrete consumers.
       - The table output contract can be derived from real needs such as traits, ideals, bonds, flaws, equipment/trinkets, tags, native IDs, or subtable references.
       - Start before guided narrative grows large enough to invent separate randomization infrastructure.
     guardrails:
@@ -72,6 +91,21 @@ roadmap:
       - D&D datasets and mappings remain D&D-owned.
       - Table results feed ordinary generation decisions or structured suggestions and retain provenance.
       - Do not freeze a universal table schema from D&D flavor tables alone.
+
+  - id: naming-system-watch
+    horizon: watch
+    status: discovery_triggered_later
+    goal: Replace temporary flat generated-name lists with structured, provenance-bearing name generation that can eventually interoperate with Worldbuilding culture and language systems.
+    current_state:
+      - D&D currently chooses from six hardcoded full names using the shared seeded PRNG.
+      - Explicit typed names override generation.
+      - Blank-name generation reuses a generation seed when available or creates a separate name seed.
+    guardrails:
+      - Do not scale by merely adding hundreds of flat full-name strings.
+      - Let concrete culture, species, language, gender/style, and setting needs define the eventual schema.
+      - Retain deterministic/random provenance.
+      - Keep system- or setting-specific datasets separate from a reusable generation mechanism.
+
   - id: parchment-2-character-persistence
     horizon: completed
     status: completed
@@ -87,36 +121,44 @@ roadmap:
     tracking:
       parchment_issue: 24
       status: closed
+
   - id: foundry-3-dnd5e-integration
     horizon: near
     status: planned
     goal: Prove a Foundry D&D 5E adapter boundary without making Foundry Actor JSON the canonical Character Forge format.
+
   - id: maintenance-4-advancement
     horizon: near
     status: planned
     goal: Support advancement, durable edits, revision history, and system-native maintenance without losing provenance.
+
   - id: semantic-5-cross-system-language
     horizon: after-evidence
     status: planned
     goal: Promote observed cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
+
   - id: system-6-second-stress-test
     horizon: after-first-dnd-and-persistence-slices
     status: planned
     goal: Implement a structurally different second RPG to break D&D-shaped assumptions in the semantic layer.
     strongest_candidate: Call of Cthulhu
     decision_note: Re-evaluate the candidate using evidence collected during D&D, persistence, and Foundry work rather than locking the choice now.
+
   - id: system-7-pathfinder
     horizon: later
     status: planned
     goal: Add Pathfinder after the semantic layer has already been stressed by a less D&D-like system.
+
   - id: bridge-rpg-8-design-synthesis
     horizon: later
     status: planned
     goal: Use accumulated cross-system evidence to inform the original non-d20 RPG without making Character Forge depend on that system.
+
   - id: identity-9-hosted-maintenance
     horizon: later
     status: planned
     goal: Add hosted character pages, privacy, sharing, QR access, and synchronization through the Parchment ecosystem.
+
   - id: visuals-10-character-assets
     horizon: later
     status: planned
