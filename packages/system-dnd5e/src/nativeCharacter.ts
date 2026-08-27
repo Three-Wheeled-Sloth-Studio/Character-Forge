@@ -41,8 +41,9 @@ export interface Dnd5eOriginState extends JsonObject {
   speedFeet: number;
   languages: string[];
   backgroundOriginFeatId: string;
-  speciesOriginFeatId: string;
-  speciesSkillId: string;
+  backgroundSkillProficiencies?: string[];
+  speciesOriginFeatId?: string;
+  speciesSkillId?: string;
   toolProficiencyId: string;
   backgroundEquipmentChoice: string;
 }
@@ -52,9 +53,12 @@ export interface Dnd5eClassState extends JsonObject {
   level: number;
   hitDie: number;
   proficiencyBonus: number;
+  primaryAbilityIds?: Dnd5eAbilityId[];
   savingThrowProficiencies: string[];
   skillProficiencies: string[];
-  fightingStyleFeatId: string;
+  expertiseSkillIds?: string[];
+  toolProficiencyIds?: string[];
+  fightingStyleFeatId?: string;
   weaponMasteryIds: string[];
   classEquipmentChoice: string;
 }
@@ -69,8 +73,17 @@ export interface Dnd5eResourcesState extends JsonObject {
   hitPointsCurrent: number;
   hitDiceTotal: number;
   hitDiceSpent: number;
-  secondWindMaximum: number;
-  secondWindCurrent: number;
+  secondWindMaximum?: number;
+  secondWindCurrent?: number;
+  rageMaximum?: number;
+  rageCurrent?: number;
+  rageDamageBonus?: number;
+  stonecunningMaximum?: number;
+  stonecunningCurrent?: number;
+  adrenalineRushMaximum?: number;
+  adrenalineRushCurrent?: number;
+  relentlessEnduranceMaximum?: number;
+  relentlessEnduranceCurrent?: number;
 }
 
 export interface Dnd5eDerivedState extends JsonObject {
@@ -80,7 +93,7 @@ export interface Dnd5eDerivedState extends JsonObject {
 }
 
 export interface Dnd5eNativeCharacter extends JsonObject {
-  schemaVersion: "dnd5e-character/0.1";
+  schemaVersion: "dnd5e-character/0.1" | "dnd5e-character/0.2";
   rulesSourceIds: string[];
   identity: Dnd5eIdentityState;
   origin: Dnd5eOriginState;

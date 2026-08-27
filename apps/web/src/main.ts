@@ -20,6 +20,7 @@ import {
   parseCharacterOpenMessage,
   resolveHostOrigin,
 } from "./characterForgeHostBridge.js";
+import { mountGuidedCreationPanel } from "./guidedCreationPanel.js";
 
 const CHARACTER_GENERATED_MESSAGE = "character-forge:character-generated";
 const params = new URLSearchParams(window.location.search);
@@ -165,6 +166,8 @@ app.innerHTML = `
   </section>
 `;
 
+mountGuidedCreationPanel(app, publishCharacter);
+
 const quickForm = document.querySelector<HTMLFormElement>("#quick-form");
 const nameInput = document.querySelector<HTMLInputElement>("#character-name");
 const seedInput = document.querySelector<HTMLInputElement>("#character-seed");
@@ -301,29 +304,26 @@ function renderCharacter(character: CharacterDocument): void {
     renderCharacterFailure(character, "The primary native state is missing from this character document.");
     return;
   }
-  if (nativeState.systemId !== dnd5eSrd521Adapter.systemId
-    || nativeState.editionId !== dnd5eSrd521Adapter.editionId) {
+  if (nativeState.systemId !== dnd5eSrd521Adapter.systemId || nativeState.editionId !== dnd5eSrd521Adapter.editionId) {
     renderCharacterFailure(character, `This Character Forge build cannot open ${nativeState.systemId} ${nativeState.editionId}.`);
     return;
   }
 
   const validation = dnd5eSrd521Adapter.validateNativeState(nativeState);
   if (!validation.valid) {
-    renderCharacterFailure(
-      character,
-      validation.issues.map((issue) => issue.message).join(" ") || "Native state validation failed.",
-    );
+    renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "Native state validation failed.");
     return;
   }
 
   const payload = nativeState.payload as Dnd5eNativeCharacter;
   const abilities = payload.abilities.final;
   const seed = character.generation?.seed;
+  const originFeats = [payload.origin.backgroundOriginFeatId, payload.origin.speciesOriginFeatId].filter((value): value is string => Boolean(value));
 
   result.classList.remove("empty-result");
   result.innerHTML = `
     <div class="result-heading">
-      <div><p class="eyebrow">Character</p><h2>${escapeHtml(character.displayName)}</h2><p>Level 1 Human Soldier Fighter</p></div>
+      <div><p class="eyebrow">Character</p><h2>${escapeHtml(character.displayName)}</h2><p>Level 1 ${humanize(payload.origin.speciesId)} ${humanize(payload.origin.backgroundId)} ${humanize(payload.class.classId)}</p></div>
       <span class="validation-pill valid">Native state valid</span>
     </div>
     <div class="ability-grid">
@@ -338,9 +338,9 @@ function renderCharacter(character: CharacterDocument): void {
     </div>
     <div class="result-details">
       <div><strong>Ability method</strong><span>${humanize(payload.abilities.generationMethod)}</span></div>
-      <div><strong>Fighting style</strong><span>${humanize(payload.class.fightingStyleFeatId)}</span></div>
-      <div><strong>Origin feats</strong><span>${humanize(payload.origin.backgroundOriginFeatId)}, ${humanize(payload.origin.speciesOriginFeatId)}</span></div>
-      <div><strong>Weapon mastery</strong><span>${payload.class.weaponMasteryIds.map(humanize).join(", ")}</span></div>
+      ${payload.class.fightingStyleFeatId ? `<div><strong>Fighting style</strong><span>${humanize(payload.class.fightingStyleFeatId)}</span></div>` : ""}
+      <div><strong>Origin feats</strong><span>${originFeats.map(humanize).join(", ")}</span></div>
+      <div><strong>Weapon mastery</strong><span>${payload.class.weaponMasteryIds.length ? payload.class.weaponMasteryIds.map(humanize).join(", ") : "None at Level 1"}</span></div>
       <div><strong>Equipment</strong><span>${payload.equipment.map((item) => `${item.quantity} x ${humanize(item.itemId)}`).join(", ")}</span></div>
       ${seed ? `<div><strong>Generation seed</strong><code>${escapeHtml(seed)}</code></div>` : ""}
     </div>
@@ -360,10 +360,7 @@ function renderCharacterFailure(character: CharacterDocument, message: string): 
 
 function postCharacterToHost(character: CharacterDocument): void {
   if (window.parent === window) return;
-  window.parent.postMessage({
-    type: CHARACTER_GENERATED_MESSAGE,
-    payload: { projectId, character },
-  }, hostOrigin ?? "*");
+  window.parent.postMessage({ type: CHARACTER_GENERATED_MESSAGE, payload: { projectId, character } }, hostOrigin ?? "*");
 }
 
 function readStandardArrayScores(): Dnd5eAbilityScores {
@@ -434,9 +431,7 @@ function populateRandomAssignments(rollSet: Dnd5eRandomAbilitySet): void {
   abilityIds.forEach((abilityId, defaultIndex) => {
     const select = document.querySelector<HTMLSelectElement>(`#random-${abilityId}`);
     if (!select) return;
-    select.innerHTML = rollSet.results.map((entry) =>
-      `<option value="${entry.rollIndex}"${entry.rollIndex === defaultIndex ? " selected" : ""}>Roll ${entry.rollIndex + 1}: ${entry.total}</option>`,
-    ).join("");
+    select.innerHTML = rollSet.results.map((entry) => `<option value="${entry.rollIndex}"${entry.rollIndex === defaultIndex ? " selected" : ""}>Roll ${entry.rollIndex + 1}: ${entry.total}</option>`).join("");
     select.disabled = false;
   });
 }
@@ -478,9 +473,7 @@ function soldierBoostOptions(): string {
 }
 
 function standardArraySelect(label: string, abilityId: string, selected: number): string {
-  const options = DND5E_STANDARD_ARRAY.map((value) =>
-    `<option value="${value}"${value === selected ? " selected" : ""}>${value}</option>`,
-  ).join("");
+  const options = DND5E_STANDARD_ARRAY.map((value) => `<option value="${value}"${value === selected ? " selected" : ""}>${value}</option>`).join("");
   return `<label>${label}<select id="standard-${abilityId}">${options}</select></label>`;
 }
 
@@ -488,14 +481,7 @@ function randomAssignmentSelect(label: string, abilityId: string, defaultIndex: 
   return `<label>${label}<select id="random-${abilityId}" disabled><option value="${defaultIndex}">Roll first</option></select></label>`;
 }
 
-function abilityInput(
-  prefix: string,
-  label: string,
-  abilityId: string,
-  value: number,
-  min: number,
-  max: number,
-): string {
+function abilityInput(prefix: string, label: string, abilityId: string, value: number, min: number, max: number): string {
   return `<label>${label}<input id="${prefix}-${abilityId}" type="number" min="${min}" max="${max}" step="1" required value="${value}" /></label>`;
 }
 
