@@ -5,7 +5,9 @@ import {
   defaultGuidedDnd5eCoreChoices,
   DND5E_ALIGNMENT_OPTIONS,
   DND5E_BONUS_LANGUAGE_OPTIONS,
+  DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
   DND5E_FIGHTING_STYLE_OPTIONS,
+  DND5E_GOLIATH_ANCESTRY_OPTIONS,
   DND5E_HUMAN_ORIGIN_FEAT_OPTIONS,
   DND5E_MONK_TOOL_OPTIONS,
   DND5E_POINT_COST_BUDGET,
@@ -21,6 +23,7 @@ import {
   GUIDED_DND5E_CLASS_IDS,
   GUIDED_DND5E_SPECIES_IDS,
   guidedGenerateDnd5eFirstSlice,
+  resolveDnd5eCharacterName,
   rollDnd5eRandomAbilitySet,
   type Dnd5eAbilityId,
   type Dnd5eAbilityIncreasePlan,
@@ -70,10 +73,16 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
   const classSelect = requiredElement(root, "#creator-class-selected", HTMLSelectElement);
   const backgroundSelect = requiredElement(root, "#creator-background-selected", HTMLSelectElement);
   const speciesSelect = requiredElement(root, "#creator-species-selected", HTMLSelectElement);
+  const backgroundEquipmentSelect = requiredElement(root, "#creator-background-equipment", HTMLSelectElement);
   const methodSelect = requiredElement(root, "#creator-generation-method", HTMLSelectElement);
   const methodHost = requiredElement(root, "#generation-method-controls", HTMLElement);
   const coreHost = requiredElement(root, "#core-choice-controls", HTMLElement);
   const boostSelect = requiredElement(root, "#creator-boost-plan", HTMLSelectElement);
+
+  root.querySelector<HTMLButtonElement>("#creator-name-random")?.addEventListener("click", () => {
+    const input = root.querySelector<HTMLInputElement>("#creator-name");
+    if (input) input.value = resolveDnd5eCharacterName();
+  });
 
   const renderCoreControls = (): void => {
     coreHost.innerHTML = coreControlsHtml(classState.selectedId, backgroundState.selectedId, speciesState.selectedId);
@@ -81,6 +90,7 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
   };
   const refreshAfterUniversalChoice = (): void => {
     refreshBackgroundBoosts(boostSelect, backgroundState.selectedId);
+    refreshBackgroundEquipment(backgroundEquipmentSelect, backgroundState.selectedId);
     renderCoreControls();
   };
 
@@ -174,6 +184,12 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
     if (classState.selectedId === "fighter") bindStickySelect("fighting-style", DND5E_FIGHTING_STYLE_OPTIONS.map((o) => o.id), defaults.fightingStyleFeatId ?? "defense", prefix);
     if (classState.selectedId === "monk") bindStickySelect("monk-tool", DND5E_MONK_TOOL_OPTIONS.map((o) => o.id), defaults.monkToolProficiencyId ?? DND5E_MONK_TOOL_OPTIONS[0]!.id, prefix);
 
+    if (speciesState.selectedId === "dragonborn") {
+      bindStickySelect("dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((o) => o.id), defaults.dragonbornAncestryId ?? "red", prefix);
+    }
+    if (speciesState.selectedId === "goliath") {
+      bindStickySelect("goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS.map((o) => o.id), defaults.goliathAncestryId ?? "stone", prefix);
+    }
     if (speciesState.selectedId === "human") {
       bindStickySelect("human-size", ["small", "medium"], defaults.human?.size ?? "medium", prefix);
       const takenSkills = new Set([...readMultiSelected(root, "class-skills", rules.skillCount), ...background.skillProficiencies]);
@@ -273,6 +289,7 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
 
   methodSelect.addEventListener("change", renderMethodControls);
   refreshBackgroundBoosts(boostSelect, backgroundState.selectedId);
+  refreshBackgroundEquipment(backgroundEquipmentSelect, backgroundState.selectedId);
   renderCoreControls();
   renderMethodControls();
 
@@ -303,7 +320,7 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
 }
 
 function creatorHtml(classState: StickyChoicePoolState<GuidedDnd5eClassId>, backgroundState: StickyChoicePoolState<GuidedDnd5eBackgroundId>, speciesState: StickyChoicePoolState<GuidedDnd5eSpeciesId>): string {
-  return `<section class="creator-panel compact-creator"><div class="creator-heading"><p class="eyebrow">D&D 5E 2024 · SRD 5.2.1</p><h2>Create character</h2><p>Official order by default. Leave the name blank to generate one.</p></div><form id="creator-form" class="creator-form"><label>Character name<input id="creator-name" type="text" maxlength="80" placeholder="Optional · generated if blank" /></label>${choiceSectionHtml("Class", "class", DND5E_SRD_521_CLASS_OPTIONS, classState)}${choiceSectionHtml("Background", "background", DND5E_SRD_521_BACKGROUND_OPTIONS, backgroundState)}${choiceSectionHtml("Species", "species", DND5E_SRD_521_SPECIES_OPTIONS, speciesState)}<label>Background equipment<select id="creator-background-equipment"><option value="B:50-gp" selected>50 GP</option><option value="A">Background equipment package</option></select></label><div id="core-choice-controls"></div><div class="section-divider"></div><label>Ability generation<select id="creator-generation-method"><option value="standard-array" selected>Standard Array</option><option value="point-cost">Point Cost</option><option value="random">Random · 4d6 keep highest 3</option><option value="manual">Manual Entry</option></select></label><div id="generation-method-controls" class="method-controls"></div><label>Background ability increases<select id="creator-boost-plan"></select></label><p id="creator-error" class="form-error" role="alert"></p><button type="submit" class="primary-action">Build character</button></form></section>`;
+  return `<section class="creator-panel compact-creator"><div class="creator-heading"><p class="eyebrow">D&D 5E 2024 · SRD 5.2.1</p><h2>Create character</h2><p>Official order by default. Leave the name blank to generate one.</p></div><form id="creator-form" class="creator-form"><div class="choice-pick-row"><label>Character name<input id="creator-name" type="text" maxlength="80" placeholder="Optional · generated if blank" /></label><button id="creator-name-random" type="button" class="icon-button" title="Generate a random character name" aria-label="Generate a random character name">↻</button></div>${choiceSectionHtml("Class", "class", DND5E_SRD_521_CLASS_OPTIONS, classState)}${choiceSectionHtml("Background", "background", DND5E_SRD_521_BACKGROUND_OPTIONS, backgroundState)}${choiceSectionHtml("Species", "species", DND5E_SRD_521_SPECIES_OPTIONS, speciesState)}<label>Background equipment<select id="creator-background-equipment">${backgroundEquipmentOptions(backgroundState.selectedId)}</select></label><div id="core-choice-controls"></div><div class="section-divider"></div><label>Ability generation<select id="creator-generation-method"><option value="standard-array" selected>Standard Array</option><option value="point-cost">Point Cost</option><option value="random">Random · 4d6 keep highest 3</option><option value="manual">Manual Entry</option></select></label><details class="field-help"><summary>ⓘ About ability-generation methods</summary><p><strong>Standard Array:</strong> assign 15, 14, 13, 12, 10, and 8 once each. <strong>Point Cost:</strong> spend up to 27 points on scores from 8–15. <strong>Random:</strong> roll 4d6, keep the highest 3, six times. <strong>Manual:</strong> enter legal base scores directly.</p></details><div id="generation-method-controls" class="method-controls"></div><label>Background ability increases<select id="creator-boost-plan"></select></label><p id="creator-error" class="form-error" role="alert"></p><button type="submit" class="primary-action">Build character</button></form></section>`;
 }
 
 function coreControlsHtml(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId): string {
@@ -319,8 +336,14 @@ function coreControlsHtml(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5e
     ...(classId === "monk" ? [selectPoolRow("Tool or instrument", "monk-tool", DND5E_MONK_TOOL_OPTIONS, defaults.monkToolProficiencyId ?? DND5E_MONK_TOOL_OPTIONS[0]!.id)] : []),
     ...(classId === "rogue" ? ["<div id=\"creator-expertise-host\"></div>", selectPoolRow("Thieves' Cant bonus language", "rogue-language", DND5E_BONUS_LANGUAGE_OPTIONS, defaults.rogueBonusLanguageId ?? "giant")] : []),
   ].join("");
-  const humanDetails = speciesId === "human" ? `${selectPoolRow("Human size", "human-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.human?.size ?? "medium")}${selectPoolRow("Skillful", "human-skill", DND5E_SKILL_OPTIONS, defaults.human?.skillId ?? "perception")}${selectPoolRow("Versatile Origin feat", "human-feat", DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported), defaults.human?.originFeatId ?? "alert")}<div id="creator-human-skilled-host"></div>` : "";
-  return `<details class="choice-pool-details" open><summary>Class details</summary><div class="method-controls">${classDetails}</div></details><details class="choice-pool-details"><summary>Origin details</summary><div class="method-controls">${selectPoolRow("Alignment", "alignment", DND5E_ALIGNMENT_OPTIONS, defaults.alignmentId)}${selectPoolRow("Language 1", "language-1", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[0])}${selectPoolRow("Language 2", "language-2", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[1])}${humanDetails}</div></details>`;
+  const speciesDetails = speciesId === "dragonborn"
+    ? selectPoolRow("Draconic Ancestry", "dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS, defaults.dragonbornAncestryId ?? "red")
+    : speciesId === "goliath"
+      ? selectPoolRow("Giant Ancestry", "goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS, defaults.goliathAncestryId ?? "stone")
+      : speciesId === "human"
+        ? `${selectPoolRow("Human size", "human-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.human?.size ?? "medium")}${selectPoolRow("Skillful", "human-skill", DND5E_SKILL_OPTIONS, defaults.human?.skillId ?? "perception")}${selectPoolRow("Versatile Origin feat", "human-feat", DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported), defaults.human?.originFeatId ?? "alert")}<div id="creator-human-skilled-host"></div>`
+        : "";
+  return `<details class="choice-pool-details" open><summary>Class details</summary><div class="method-controls">${classDetails}</div></details><details class="choice-pool-details"><summary>Origin details</summary><div class="method-controls">${selectPoolRow("Alignment", "alignment", DND5E_ALIGNMENT_OPTIONS, defaults.alignmentId)}${selectPoolRow("Language 1", "language-1", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[0])}${selectPoolRow("Language 2", "language-2", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[1])}${speciesDetails}</div></details>`;
 }
 
 function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId): { choices: GuidedDnd5eCoreChoices; provenance: GenerationDecision[] } {
@@ -331,6 +354,8 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
   if (classId === "fighter") choices.fightingStyleFeatId = readStickySelect(root, "fighting-style");
   if (classId === "monk") choices.monkToolProficiencyId = readStickySelect(root, "monk-tool");
   if (classId === "rogue") { choices.expertiseSkillIds = readMultiSelected(root, "expertise", 2); choices.rogueBonusLanguageId = readStickySelect(root, "rogue-language"); }
+  if (speciesId === "dragonborn") choices.dragonbornAncestryId = readStickySelect(root, "dragonborn-ancestry") as GuidedDnd5eCoreChoices["dragonbornAncestryId"];
+  if (speciesId === "goliath") choices.goliathAncestryId = readStickySelect(root, "goliath-ancestry") as GuidedDnd5eCoreChoices["goliathAncestryId"];
   if (speciesId === "human") { const featId = readStickySelect(root, "human-feat") as "alert" | "savage-attacker" | "skilled"; choices.human = { size: readStickySelect(root, "human-size") as "small" | "medium", skillId: readStickySelect(root, "human-skill"), originFeatId: featId, ...(featId === "skilled" ? { skilledProficiencyIds: readMultiSelected(root, "human-skilled", 3) } : {}) }; }
   const prefix = coreKey(classId, backgroundId, speciesId);
   const provenance: GenerationDecision[] = [];
@@ -354,6 +379,8 @@ function coreSingleFields(classId: GuidedDnd5eClassId, speciesId: GuidedDnd5eSpe
   if (classId === "fighter") fields.push({ id: "fighting-style", stepId: "class.fighting-style", allowed: () => DND5E_FIGHTING_STYLE_OPTIONS.map((o) => o.id) });
   if (classId === "monk") fields.push({ id: "monk-tool", stepId: "class.tool", allowed: () => DND5E_MONK_TOOL_OPTIONS.map((o) => o.id) });
   if (classId === "rogue") fields.push({ id: "rogue-language", stepId: "class.bonus-language", allowed: () => DND5E_BONUS_LANGUAGE_OPTIONS.map((o) => o.id) });
+  if (speciesId === "dragonborn") fields.push({ id: "dragonborn-ancestry", stepId: "species.dragonborn.ancestry", allowed: () => DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((o) => o.id) });
+  if (speciesId === "goliath") fields.push({ id: "goliath-ancestry", stepId: "species.goliath.ancestry", allowed: () => DND5E_GOLIATH_ANCESTRY_OPTIONS.map((o) => o.id) });
   if (speciesId === "human") {
     fields.push({ id: "human-size", stepId: "species.human.size", allowed: () => ["small", "medium"] });
     fields.push({ id: "human-skill", stepId: "species.human.skillful", allowed: (background) => DND5E_SKILL_OPTIONS.map((o) => o.id).filter((id) => !(background.skillProficiencies as readonly string[]).includes(id)) });
@@ -370,6 +397,8 @@ function coreSingleValue(field: string, choices: GuidedDnd5eCoreChoices): string
   if (field === "fighting-style") return choices.fightingStyleFeatId ?? "";
   if (field === "monk-tool") return choices.monkToolProficiencyId ?? "";
   if (field === "rogue-language") return choices.rogueBonusLanguageId ?? "";
+  if (field === "dragonborn-ancestry") return choices.dragonbornAncestryId ?? "";
+  if (field === "goliath-ancestry") return choices.goliathAncestryId ?? "";
   if (field === "human-size") return choices.human?.size ?? "";
   if (field === "human-skill") return choices.human?.skillId ?? "";
   if (field === "human-feat") return choices.human?.originFeatId ?? "";
@@ -383,6 +412,8 @@ function selectPoolRow(label: string, field: string, options: readonly { id: str
 function methodControlsHtml(method: string): string { if (method === "standard-array") return abilityFieldset("Standard Array assignment", [standardArraySelect("STR", "strength", 15), standardArraySelect("DEX", "dexterity", 14), standardArraySelect("CON", "constitution", 13), standardArraySelect("INT", "intelligence", 12), standardArraySelect("WIS", "wisdom", 10), standardArraySelect("CHA", "charisma", 8)]); if (method === "manual") return abilityFieldset("Base ability scores", [abilityInput("creator-manual", "STR", "strength", 15, 3, 18), abilityInput("creator-manual", "DEX", "dexterity", 14, 3, 18), abilityInput("creator-manual", "CON", "constitution", 13, 3, 18), abilityInput("creator-manual", "INT", "intelligence", 12, 3, 18), abilityInput("creator-manual", "WIS", "wisdom", 10, 3, 18), abilityInput("creator-manual", "CHA", "charisma", 8, 3, 18)]); if (method === "point-cost") return `${abilityFieldset("Base ability scores", [abilityInput("creator-point", "STR", "strength", 15, 8, 15, "data-point-score"), abilityInput("creator-point", "DEX", "dexterity", 14, 8, 15, "data-point-score"), abilityInput("creator-point", "CON", "constitution", 13, 8, 15, "data-point-score"), abilityInput("creator-point", "INT", "intelligence", 12, 8, 15, "data-point-score"), abilityInput("creator-point", "WIS", "wisdom", 10, 8, 15, "data-point-score"), abilityInput("creator-point", "CHA", "charisma", 8, 8, 15, "data-point-score")])}<div id="creator-point-budget" class="point-budget" aria-live="polite"></div>`; return `<label>Seed<input id="creator-random-seed" type="text" maxlength="120" placeholder="Optional; generated if blank" /></label><button id="creator-random-roll" type="button" class="secondary-button">Roll six scores</button><div id="creator-random-roll-results" class="random-roll-grid" aria-live="polite"><span class="muted">Roll scores to begin.</span></div>${abilityFieldset("Assign roll slots", [randomAssignmentSelect("STR", "strength", 0), randomAssignmentSelect("DEX", "dexterity", 1), randomAssignmentSelect("CON", "constitution", 2), randomAssignmentSelect("INT", "intelligence", 3), randomAssignmentSelect("WIS", "wisdom", 4), randomAssignmentSelect("CHA", "charisma", 5)])}`; }
 function readAbilityMethod(root: HTMLElement, method: string, rolls: Dnd5eRandomAbilitySet | null): GuidedAbilityMethodInput { if (method === "standard-array") return { method, assignment: readStandardArrayScores(root) }; if (method === "manual") return { method, scores: readAbilityScores(root, "creator-manual") }; if (method === "point-cost") return { method, scores: readAbilityScores(root, "creator-point") }; if (method === "random") { if (!rolls) throw new Error("Roll six ability scores before building the character."); return { method, seed: rolls.seed, assignment: readRandomAssignment(root) }; } throw new Error("Choose a supported ability-generation method."); }
 function refreshBackgroundBoosts(select: HTMLSelectElement, backgroundId: GuidedDnd5eBackgroundId): void { const bg = DND5E_SRD_521_BACKGROUND_OPTIONS.find((o) => o.id === backgroundId); if (bg) select.innerHTML = backgroundBoostOptions(bg.abilityScoreIds); }
+function refreshBackgroundEquipment(select: HTMLSelectElement, backgroundId: GuidedDnd5eBackgroundId): void { select.innerHTML = backgroundEquipmentOptions(backgroundId); }
+function backgroundEquipmentOptions(backgroundId: GuidedDnd5eBackgroundId): string { const packageLabel = backgroundId === "criminal" ? "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes + 16 GP" : "Spear, Shortbow, 20 Arrows, Dice Set, Healer's Kit, Quiver, Traveler's Clothes + 14 GP"; return `<option value="B:50-gp" selected>50 GP</option><option value="A">${packageLabel}</option>`; }
 function backgroundBoostOptions(ids: readonly Dnd5eAbilityId[]): string { const [a, b, c] = ids; if (!a || !b || !c) return ""; const pairs: readonly [Dnd5eAbilityId, Dnd5eAbilityId][] = [[a,b],[a,c],[b,a],[b,c],[c,a],[c,b]]; return `${pairs.map(([two,one]) => `<option value="${two}:2|${one}:1">${abilityLabel(two)} +2, ${abilityLabel(one)} +1</option>`).join("")}<option value="${a}:1|${b}:1|${c}:1">${abilityLabel(a)} +1, ${abilityLabel(b)} +1, ${abilityLabel(c)} +1</option>`; }
 function parseBoostPlan(value: string): Dnd5eAbilityIncreasePlan { const plan: Dnd5eAbilityIncreasePlan = {}; for (const part of value.split("|")) { const [id,text] = part.split(":"); const amount = Number(text); if (!id || (amount !== 1 && amount !== 2)) throw new Error("Choose a legal background ability-increase plan."); (plan as Record<string,1|2>)[id] = amount; } return plan; }
 function readBackgroundEquipmentChoice(root: HTMLElement): "A" | "B:50-gp" { const value = root.querySelector<HTMLSelectElement>("#creator-background-equipment")?.value; if (value !== "A" && value !== "B:50-gp") throw new Error("Choose a background equipment option."); return value; }
@@ -404,7 +435,7 @@ function randomAssignmentSelect(label:string,id:string,index:number): string { r
 function abilityInput(prefix:string,label:string,id:string,value:number,min:number,max:number,extra=""): string { return `<label>${label}<input id="${prefix}-${id}" type="number" min="${min}" max="${max}" step="1" required value="${value}" ${extra} /></label>`; }
 function abilityLabel(id:Dnd5eAbilityId): string { return ({strength:"STR",dexterity:"DEX",constitution:"CON",intelligence:"INT",wisdom:"WIS",charisma:"CHA"} as const)[id]; }
 function coreKey(classId:GuidedDnd5eClassId,backgroundId:GuidedDnd5eBackgroundId,speciesId:GuidedDnd5eSpeciesId): string { return `${CORE_STORAGE_PREFIX}.${classId}.${backgroundId}.${speciesId}`; }
-function labelFor(id:string): string { const weapon = DND5E_WEAPON_OPTIONS.find((o) => o.id === id); const option = [...DND5E_SKILL_OPTIONS,...DND5E_MONK_TOOL_OPTIONS,...DND5E_SKILLED_PROFICIENCY_OPTIONS,...DND5E_STANDARD_LANGUAGE_OPTIONS,...DND5E_BONUS_LANGUAGE_OPTIONS,...DND5E_ALIGNMENT_OPTIONS,...DND5E_FIGHTING_STYLE_OPTIONS].find((o) => o.id === id); return weapon?.label ?? option?.label ?? id.split(":").at(-1)!.split("-").map((p) => p ? p[0]!.toUpperCase()+p.slice(1) : p).join(" "); }
+function labelFor(id:string): string { const weapon = DND5E_WEAPON_OPTIONS.find((o) => o.id === id); const option = [...DND5E_SKILL_OPTIONS,...DND5E_MONK_TOOL_OPTIONS,...DND5E_SKILLED_PROFICIENCY_OPTIONS,...DND5E_STANDARD_LANGUAGE_OPTIONS,...DND5E_BONUS_LANGUAGE_OPTIONS,...DND5E_ALIGNMENT_OPTIONS,...DND5E_FIGHTING_STYLE_OPTIONS,...DND5E_DRAGONBORN_ANCESTRY_OPTIONS,...DND5E_GOLIATH_ANCESTRY_OPTIONS].find((o) => o.id === id); return weapon?.label ?? option?.label ?? id.split(":").at(-1)!.split("-").map((p) => p ? p[0]!.toUpperCase()+p.slice(1) : p).join(" "); }
 function requiredElement<T extends HTMLElement>(root:HTMLElement,selector:string,ctor:{new():T}): T { const el=root.querySelector<T>(selector); if (!el || !(el instanceof ctor)) throw new Error(`Character Forge control ${selector} is missing.`); return el; }
 function clearError(target:HTMLElement|null):void { if(target) target.textContent=""; }
 function showError(target:HTMLElement|null,error:unknown,fallback:string):void { if(target) target.textContent=error instanceof Error?error.message:fallback; }
