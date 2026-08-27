@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { dnd5eSrd521Adapter } from "./adapter.js";
 import { guidedStandardArrayGenerateDnd5eFirstSlice } from "./guidedStandardArrayGenerate.js";
 import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
-import { DND5E_SRD_521_CLASS_OPTIONS, DND5E_SRD_521_SPECIES_OPTIONS, GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_SPECIES_IDS } from "./srdCatalog.js";
+import { DND5E_SRD_521_BACKGROUND_OPTIONS, DND5E_SRD_521_CLASS_OPTIONS, DND5E_SRD_521_SPECIES_OPTIONS, GUIDED_DND5E_BACKGROUND_IDS, GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_SPECIES_IDS } from "./srdCatalog.js";
 
 const assignment = { strength: 15, dexterity: 14, constitution: 13, intelligence: 10, wisdom: 12, charisma: 8 };
 
@@ -11,10 +11,12 @@ function payloadOf(character: ReturnType<typeof guidedStandardArrayGenerateDnd5e
 }
 
 describe("guided SRD class and species generation", () => {
-  it("catalogs every SRD 5.2.1 class and species while enabling only modeled choices", () => {
+  it("catalogs the full SRD core and enables only faithfully modeled choices", () => {
     expect(DND5E_SRD_521_CLASS_OPTIONS).toHaveLength(12);
+    expect(DND5E_SRD_521_BACKGROUND_OPTIONS).toHaveLength(4);
     expect(DND5E_SRD_521_SPECIES_OPTIONS).toHaveLength(9);
     expect(GUIDED_DND5E_CLASS_IDS).toEqual(["barbarian", "fighter", "monk", "rogue"]);
+    expect(GUIDED_DND5E_BACKGROUND_IDS).toEqual(["acolyte", "criminal", "sage", "soldier"]);
     expect(GUIDED_DND5E_SPECIES_IDS).toEqual(["dragonborn", "dwarf", "goliath", "halfling", "human", "orc"]);
   });
 

@@ -3,9 +3,11 @@ import { DND5E_POINT_COST_BUDGET, DND5E_POINT_COSTS } from "./abilityGeneration.
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
 import {
   DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
+  DND5E_SPELLCASTING_ABILITY_OPTIONS,
   type GuidedDnd5eCoreChoices,
 } from "./guidedChoices.js";
-import { abilityModifier, DND5E_ABILITY_IDS, type Dnd5eAbilityId } from "./nativeCharacter.js";
+import { abilityModifier, DND5E_ABILITY_IDS, type Dnd5eAbilityId, type Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
+import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import {
   DND5E_SRD_521_BACKGROUND_OPTIONS,
   isGuidedDnd5eBackgroundId,
@@ -19,7 +21,9 @@ import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
 const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, fighter: 10, monk: 8, rogue: 8 };
 const BACKGROUND_EXPECTED: Record<GuidedDnd5eBackgroundId, { feat: string; skills: readonly string[]; tool: string }> = {
+  acolyte: { feat: "magic-initiate:cleric", skills: ["insight", "religion"], tool: "calligraphers-supplies" },
   criminal: { feat: "alert", skills: ["sleight-of-hand", "stealth"], tool: "thieves-tools" },
+  sage: { feat: "magic-initiate:wizard", skills: ["arcana", "history"], tool: "calligraphers-supplies" },
   soldier: { feat: "savage-attacker", skills: ["athletics", "intimidation"], tool: "gaming-set:dice" },
 };
 
@@ -65,8 +69,9 @@ export function validateGuidedCoreNativeState(state: NativeSystemState): RulesVa
 
   validateAbilities(abilities, origin, issues);
   validateBackground(origin, backgroundId, issues);
+  validateMagicInitiateNativeState(payload, backgroundId, issues);
 
-  const coreChoices = reconstructCoreChoices(identity, origin, classState, classId, speciesId, issues);
+  const coreChoices = reconstructCoreChoices(identity, origin, classState, payload, classId, backgroundId, speciesId, issues);
   if (coreChoices) {
     try {
       assertGuidedDnd5eCoreChoices(classId, backgroundId, speciesId, coreChoices);
@@ -136,11 +141,42 @@ function validateBackground(origin: JsonObject, backgroundId: GuidedDnd5eBackgro
   if (equipment !== "A" && equipment !== "B:50-gp") error(issues, "dnd5e.guided.background-equipment", "Background equipment choice must be package A or 50 GP.", "origin.backgroundEquipmentChoice");
 }
 
+function validateMagicInitiateNativeState(payload: JsonObject, backgroundId: GuidedDnd5eBackgroundId, issues: RulesValidationIssue[]): void {
+  const requiredListId = magicInitiateListForBackground(backgroundId);
+  const spells = readObject(payload, "spells");
+  const grants = spells ? readObjects(spells, "grants") : [];
+  const magicGrants = grants.filter((grant) => readString(grant, "sourceId") === "feat:magic-initiate");
+  if (!requiredListId) {
+    if (magicGrants.length) error(issues, "dnd5e.magic-initiate.unexpected", "This background does not grant Magic Initiate.", "spells.grants");
+    return;
+  }
+  if (magicGrants.length !== 1) {
+    error(issues, "dnd5e.magic-initiate.grant-count", "Magic Initiate background requires exactly one Magic Initiate spell grant.", "spells.grants");
+    return;
+  }
+  const grant = magicGrants[0]!;
+  const list = magicInitiateSpellList(requiredListId);
+  if (readString(grant, "grantId") !== `origin:magic-initiate:${requiredListId}`) error(issues, "dnd5e.magic-initiate.grant-id", "Magic Initiate grant ID mismatch.", "spells.grants.grantId");
+  if (readString(grant, "spellListId") !== requiredListId) error(issues, "dnd5e.magic-initiate.list", `Magic Initiate must use the ${requiredListId} list for this background.`, "spells.grants.spellListId");
+  const ability = readString(grant, "spellcastingAbilityId");
+  if (!ability || !DND5E_SPELLCASTING_ABILITY_OPTIONS.some((option) => option.id === ability)) error(issues, "dnd5e.magic-initiate.ability", "Magic Initiate casting ability must be Intelligence, Wisdom, or Charisma.", "spells.grants.spellcastingAbilityId");
+  const cantrips = readStrings(grant, "cantripIds");
+  if (cantrips.length !== 2 || new Set(cantrips).size !== 2 || cantrips.some((id) => !list.cantrips.some((option) => option.id === id))) error(issues, "dnd5e.magic-initiate.cantrips", `Magic Initiate requires two distinct ${list.label} cantrips.`, "spells.grants.cantripIds");
+  const prepared = readStrings(grant, "preparedSpellIds");
+  const alwaysPrepared = readStrings(grant, "alwaysPreparedSpellIds");
+  const freeCastSpellId = readString(grant, "freeCastSpellId");
+  const legalLevelOne = freeCastSpellId ? list.levelOneSpells.some((option) => option.id === freeCastSpellId) : false;
+  if (!legalLevelOne || prepared.length !== 1 || prepared[0] !== freeCastSpellId || alwaysPrepared.length !== 1 || alwaysPrepared[0] !== freeCastSpellId) error(issues, "dnd5e.magic-initiate.level-one", `Magic Initiate requires one always-prepared ${list.label} level 1 spell.`, "spells.grants.preparedSpellIds");
+  if (readNumber(grant, "freeCastMaximum") !== 1 || readNumber(grant, "freeCastCurrent") !== 1 || readString(grant, "freeCastRecharge") !== "long-rest") error(issues, "dnd5e.magic-initiate.free-cast", "Magic Initiate level 1 spell must retain one free cast per Long Rest.", "spells.grants.freeCastMaximum");
+}
+
 function reconstructCoreChoices(
   identity: JsonObject,
   origin: JsonObject,
   classState: JsonObject,
+  payload: JsonObject,
   classId: GuidedDnd5eClassId,
+  backgroundId: GuidedDnd5eBackgroundId,
   speciesId: GuidedDnd5eSpeciesId,
   issues: RulesValidationIssue[],
 ): GuidedDnd5eCoreChoices | undefined {
@@ -168,16 +204,24 @@ function reconstructCoreChoices(
     const bonusLanguages = readStrings(classState, "bonusLanguageIds");
     const bonus = bonusLanguages.find((id) => id !== "thieves-cant"); if (bonus) choices.rogueBonusLanguageId = bonus;
   }
+  const requiredListId = magicInitiateListForBackground(backgroundId);
+  if (requiredListId) {
+    const spells = readObject(payload, "spells");
+    const grant = spells ? readObjects(spells, "grants").find((entry) => readString(entry, "sourceId") === "feat:magic-initiate") : undefined;
+    const ability = grant ? readString(grant, "spellcastingAbilityId") : undefined;
+    const cantrips = grant ? readStrings(grant, "cantripIds") : [];
+    const levelOne = grant ? readString(grant, "freeCastSpellId") : undefined;
+    if (ability && isSpellcastingAbility(ability) && cantrips.length === 2 && cantrips[0] && cantrips[1] && levelOne) {
+      choices.magicInitiate = { spellListId: requiredListId, spellcastingAbilityId: ability, cantripIds: [cantrips[0], cantrips[1]], levelOneSpellId: levelOne };
+    }
+  }
   if (speciesId === "dragonborn") {
     const ancestry = readString(origin, "speciesAncestryId");
-    const expected = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === ancestry);
-    if (expected) choices.dragonbornAncestryId = expected.id;
+    if (ancestry && DND5E_DRAGONBORN_ANCESTRY_OPTIONS.some((option) => option.id === ancestry)) choices.dragonbornAncestryId = ancestry as GuidedDnd5eCoreChoices["dragonbornAncestryId"];
   }
   if (speciesId === "goliath") {
     const ancestry = readString(origin, "speciesAncestryId");
-    if (ancestry === "cloud" || ancestry === "fire" || ancestry === "frost" || ancestry === "hill" || ancestry === "stone" || ancestry === "storm") {
-      choices.goliathAncestryId = ancestry;
-    }
+    if (ancestry === "cloud" || ancestry === "fire" || ancestry === "frost" || ancestry === "hill" || ancestry === "stone" || ancestry === "storm") choices.goliathAncestryId = ancestry;
   }
   if (speciesId === "human") {
     const size = readString(origin, "size"); const skillId = readString(origin, "speciesSkillId"); const feat = readString(origin, "speciesOriginFeatId");
@@ -237,8 +281,13 @@ function validateDerivedAndResources(
   if (speciesId === "orc" && (readNumber(resources, "adrenalineRushMaximum") !== 2 || readNumber(resources, "relentlessEnduranceMaximum") !== 1)) error(issues, "dnd5e.orc.resources", "Orc resources mismatch.", "resources");
 }
 
+function magicInitiateListForBackground(backgroundId: GuidedDnd5eBackgroundId): Dnd5eMagicInitiateSpellListId | undefined {
+  return backgroundId === "acolyte" ? "cleric" : backgroundId === "sage" ? "wizard" : undefined;
+}
+function isSpellcastingAbility(value: string): value is Dnd5eSpellcastingAbilityId { return value === "intelligence" || value === "wisdom" || value === "charisma"; }
 function isObject(value: unknown): value is JsonObject { return typeof value === "object" && value !== null && !Array.isArray(value); }
 function readObject(object: JsonObject, key: string): JsonObject | undefined { const value = object[key]; return isObject(value) ? value : undefined; }
+function readObjects(object: JsonObject, key: string): JsonObject[] { const value = object[key]; return Array.isArray(value) ? value.filter(isObject) : []; }
 function readString(object: JsonObject, key: string): string | undefined { const value = object[key]; return typeof value === "string" ? value : undefined; }
 function readNumber(object: JsonObject, key: string): number | undefined { const value = object[key]; return typeof value === "number" ? value : undefined; }
 function readStrings(object: JsonObject, key: string): string[] { const value = object[key]; return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : []; }

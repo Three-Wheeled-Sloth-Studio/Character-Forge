@@ -9,9 +9,11 @@ import {
   DND5E_MONK_TOOL_OPTIONS,
   DND5E_SKILL_OPTIONS,
   DND5E_SKILLED_PROFICIENCY_OPTIONS,
+  DND5E_SPELLCASTING_ABILITY_OPTIONS,
   DND5E_STANDARD_LANGUAGE_OPTIONS,
   type GuidedDnd5eCoreChoices,
 } from "./guidedChoices.js";
+import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 
 export function assertGuidedDnd5eCoreChoices(
@@ -74,6 +76,8 @@ export function assertGuidedDnd5eCoreChoices(
     throw new Error("Rogue-only Expertise/language choices were supplied to another class.");
   }
 
+  assertMagicInitiate(backgroundId, choices);
+
   if (speciesId === "dragonborn") {
     if (!choices.dragonbornAncestryId) throw new Error("Dragonborn requires a Draconic Ancestry choice.");
     assertOneOf(choices.dragonbornAncestryId, DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((option) => option.id), "Draconic Ancestry");
@@ -108,6 +112,22 @@ export function assertGuidedDnd5eCoreChoices(
   } else if (choices.human) {
     throw new Error("Human-only choices were supplied to a non-Human character.");
   }
+}
+
+function assertMagicInitiate(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): void {
+  const requiredListId: Dnd5eMagicInitiateSpellListId | undefined = backgroundId === "acolyte" ? "cleric" : backgroundId === "sage" ? "wizard" : undefined;
+  if (!requiredListId) {
+    if (choices.magicInitiate) throw new Error("Magic Initiate choices were supplied to a background that does not grant Magic Initiate.");
+    return;
+  }
+  const selection = choices.magicInitiate;
+  if (!selection) throw new Error(`${backgroundId} requires Magic Initiate spell choices.`);
+  if (selection.spellListId !== requiredListId) throw new Error(`${backgroundId} must use the ${requiredListId} Magic Initiate spell list.`);
+  assertOneOf(selection.spellcastingAbilityId, DND5E_SPELLCASTING_ABILITY_OPTIONS.map((option) => option.id), "Magic Initiate spellcasting ability");
+  const list = magicInitiateSpellList(requiredListId);
+  assertExactUnique(selection.cantripIds, 2, "Magic Initiate cantrips");
+  for (const spellId of selection.cantripIds) assertOneOf(spellId, list.cantrips.map((option) => option.id), `${list.label} cantrip`);
+  assertOneOf(selection.levelOneSpellId, list.levelOneSpells.map((option) => option.id), `${list.label} level 1 spell`);
 }
 
 function assertOneOf(value: string, allowed: readonly string[], label: string): void {

@@ -10,6 +10,7 @@ export const DND5E_ABILITY_IDS = [
 ] as const;
 
 export type Dnd5eAbilityId = (typeof DND5E_ABILITY_IDS)[number];
+export type Dnd5eSpellcastingAbilityId = "intelligence" | "wisdom" | "charisma";
 
 export interface Dnd5eAbilityScores extends JsonObject {
   strength: number;
@@ -67,6 +68,24 @@ export interface Dnd5eClassState extends JsonObject {
   classEquipmentChoice: string;
 }
 
+export interface Dnd5eSpellGrantState extends JsonObject {
+  grantId: string;
+  sourceId: string;
+  spellListId: string;
+  spellcastingAbilityId: Dnd5eSpellcastingAbilityId;
+  cantripIds: string[];
+  preparedSpellIds: string[];
+  alwaysPreparedSpellIds: string[];
+  freeCastSpellId: string;
+  freeCastMaximum: number;
+  freeCastCurrent: number;
+  freeCastRecharge: "long-rest";
+}
+
+export interface Dnd5eSpellState extends JsonObject {
+  grants: Dnd5eSpellGrantState[];
+}
+
 export interface Dnd5eEquipmentEntry extends JsonObject {
   itemId: string;
   quantity: number;
@@ -107,6 +126,7 @@ export interface Dnd5eNativeCharacter extends JsonObject {
   origin: Dnd5eOriginState;
   abilities: Dnd5eAbilityState;
   class: Dnd5eClassState;
+  spells?: Dnd5eSpellState;
   featureIds: string[];
   equipment: Dnd5eEquipmentEntry[];
   currencyGp: number;

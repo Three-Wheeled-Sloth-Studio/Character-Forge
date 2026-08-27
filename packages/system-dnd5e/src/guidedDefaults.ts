@@ -26,6 +26,22 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
     choices.expertiseSkillIds = [classSkillIds[0]!, classSkillIds[1]!];
     choices.rogueBonusLanguageId = "giant";
   }
+  if (backgroundId === "acolyte") {
+    choices.magicInitiate = {
+      spellListId: "cleric",
+      spellcastingAbilityId: "wisdom",
+      cantripIds: ["guidance", "sacred-flame"],
+      levelOneSpellId: "bless",
+    };
+  }
+  if (backgroundId === "sage") {
+    choices.magicInitiate = {
+      spellListId: "wizard",
+      spellcastingAbilityId: "intelligence",
+      cantripIds: ["light", "mage-hand"],
+      levelOneSpellId: "magic-missile",
+    };
+  }
   if (speciesId === "dragonborn") choices.dragonbornAncestryId = "red";
   if (speciesId === "goliath") choices.goliathAncestryId = "stone";
   if (speciesId === "human") {

@@ -130,6 +130,14 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
   if (choices.monkToolProficiencyId) decisions.push({ stepId: "class.tool", choiceId: choices.monkToolProficiencyId });
   if (choices.expertiseSkillIds?.length) decisions.push({ stepId: "class.expertise", answer: choices.expertiseSkillIds });
   if (choices.rogueBonusLanguageId) decisions.push({ stepId: "class.bonus-language", choiceId: choices.rogueBonusLanguageId });
+  if (choices.magicInitiate) {
+    decisions.push(
+      { stepId: "background.magic-initiate.spell-list", choiceId: choices.magicInitiate.spellListId },
+      { stepId: "background.magic-initiate.spellcasting-ability", choiceId: choices.magicInitiate.spellcastingAbilityId },
+      { stepId: "background.magic-initiate.cantrips", answer: choices.magicInitiate.cantripIds },
+      { stepId: "background.magic-initiate.level-one-spell", choiceId: choices.magicInitiate.levelOneSpellId },
+    );
+  }
   if (choices.dragonbornAncestryId) decisions.push({ stepId: "species.dragonborn.ancestry", choiceId: choices.dragonbornAncestryId });
   if (choices.goliathAncestryId) decisions.push({ stepId: "species.goliath.ancestry", choiceId: choices.goliathAncestryId });
   if (choices.human) {

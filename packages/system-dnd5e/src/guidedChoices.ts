@@ -1,3 +1,5 @@
+import type { Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
+import type { Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import type { Dnd5eSrdClassId } from "./srdCatalog.js";
 
 export interface Dnd5eChoiceOption {
@@ -12,6 +14,13 @@ export type Dnd5eDragonbornAncestryId =
   | "gold" | "green" | "red" | "silver" | "white";
 
 export type Dnd5eGoliathAncestryId = "cloud" | "fire" | "frost" | "hill" | "stone" | "storm";
+
+export interface GuidedDnd5eMagicInitiateChoices {
+  spellListId: Dnd5eMagicInitiateSpellListId;
+  spellcastingAbilityId: Dnd5eSpellcastingAbilityId;
+  cantripIds: [string, string];
+  levelOneSpellId: string;
+}
 
 export interface GuidedDnd5eHumanChoices {
   size: "small" | "medium";
@@ -32,8 +41,15 @@ export interface GuidedDnd5eCoreChoices {
   rogueBonusLanguageId?: string;
   dragonbornAncestryId?: Dnd5eDragonbornAncestryId | undefined;
   goliathAncestryId?: Dnd5eGoliathAncestryId | undefined;
+  magicInitiate?: GuidedDnd5eMagicInitiateChoices;
   human?: GuidedDnd5eHumanChoices;
 }
+
+export const DND5E_SPELLCASTING_ABILITY_OPTIONS = [
+  { id: "intelligence", label: "Intelligence" },
+  { id: "wisdom", label: "Wisdom" },
+  { id: "charisma", label: "Charisma" },
+] as const satisfies readonly (Dnd5eChoiceOption & { id: Dnd5eSpellcastingAbilityId })[];
 
 export const DND5E_SKILL_OPTIONS = [
   "acrobatics", "animal-handling", "arcana", "athletics", "deception", "history",
@@ -68,7 +84,7 @@ export const DND5E_HUMAN_ORIGIN_FEAT_OPTIONS = [
   { id: "alert", label: "Alert", supported: true },
   { id: "savage-attacker", label: "Savage Attacker", supported: true },
   { id: "skilled", label: "Skilled", supported: true },
-  { id: "magic-initiate", label: "Magic Initiate", supported: false, blockedReason: "Spell choices are not modeled yet." },
+  { id: "magic-initiate", label: "Magic Initiate", supported: false, blockedReason: "Human-selected Magic Initiate still needs a spell-list choice, including Druid." },
 ] as const;
 
 export const DND5E_DRAGONBORN_ANCESTRY_OPTIONS = [

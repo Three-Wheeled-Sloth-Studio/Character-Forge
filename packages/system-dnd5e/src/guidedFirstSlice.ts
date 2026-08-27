@@ -20,6 +20,7 @@ import {
   type Dnd5eNativeCharacter,
   type Dnd5eOriginState,
   type Dnd5eResourcesState,
+  type Dnd5eSpellState,
 } from "./nativeCharacter.js";
 import {
   DND5E_SRD_521_BACKGROUND_OPTIONS,
@@ -79,6 +80,17 @@ interface GuidedBackgroundProfile {
 }
 
 const BACKGROUND_PROFILES: Record<GuidedDnd5eBackgroundId, GuidedBackgroundProfile> = {
+  acolyte: {
+    originFeatId: "magic-initiate:cleric",
+    skillProficiencies: ["insight", "religion"],
+    toolProficiencyId: "calligraphers-supplies",
+    packageEquipment: [
+      { itemId: "calligraphers-supplies", quantity: 1 }, { itemId: "book:prayers", quantity: 1 },
+      { itemId: "holy-symbol", quantity: 1 }, { itemId: "parchment-sheet", quantity: 10 },
+      { itemId: "robe", quantity: 1 },
+    ],
+    packageGold: 8,
+  },
   criminal: {
     originFeatId: "alert",
     skillProficiencies: ["sleight-of-hand", "stealth"],
@@ -89,6 +101,17 @@ const BACKGROUND_PROFILES: Record<GuidedDnd5eBackgroundId, GuidedBackgroundProfi
       { itemId: "travelers-clothes", quantity: 1 },
     ],
     packageGold: 16,
+  },
+  sage: {
+    originFeatId: "magic-initiate:wizard",
+    skillProficiencies: ["arcana", "history"],
+    toolProficiencyId: "calligraphers-supplies",
+    packageEquipment: [
+      { itemId: "quarterstaff", quantity: 1 }, { itemId: "calligraphers-supplies", quantity: 1 },
+      { itemId: "book:history", quantity: 1 }, { itemId: "parchment-sheet", quantity: 8 },
+      { itemId: "robe", quantity: 1 },
+    ],
+    packageGold: 8,
   },
   soldier: {
     originFeatId: "savage-attacker",
@@ -255,6 +278,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...classProfile.resources(proficiencyBonus), ...speciesProfile.resources(proficiencyBonus),
   };
 
+  const spellState = spellStateFor(input.backgroundId, input.coreChoices);
   const backgroundEquipment = input.backgroundEquipmentChoice === "A"
     ? backgroundProfile.packageEquipment.map((entry) => ({ ...entry })) : [];
   const backgroundGold = input.backgroundEquipmentChoice === "A" ? backgroundProfile.packageGold : 50;
@@ -266,6 +290,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     origin,
     abilities: input.abilities,
     class: classState,
+    ...(spellState ? { spells: spellState } : {}),
     featureIds: [
       ...speciesProfile.featureIds,
       ...(dragonbornAncestryId ? [`dragonborn:draconic-ancestry:${dragonbornAncestryId}`] : []),
@@ -280,6 +305,27 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     currencyGp: classEquipment.gold + backgroundGold,
     resources,
     derived: { armorClass, initiativeModifier, passivePerception },
+  };
+}
+
+function spellStateFor(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): Dnd5eSpellState | undefined {
+  if (backgroundId !== "acolyte" && backgroundId !== "sage") return undefined;
+  const selection = choices.magicInitiate;
+  if (!selection) throw new Error(`${backgroundId} requires Magic Initiate choices.`);
+  return {
+    grants: [{
+      grantId: `origin:magic-initiate:${selection.spellListId}`,
+      sourceId: "feat:magic-initiate",
+      spellListId: selection.spellListId,
+      spellcastingAbilityId: selection.spellcastingAbilityId,
+      cantripIds: [...selection.cantripIds],
+      preparedSpellIds: [selection.levelOneSpellId],
+      alwaysPreparedSpellIds: [selection.levelOneSpellId],
+      freeCastSpellId: selection.levelOneSpellId,
+      freeCastMaximum: 1,
+      freeCastCurrent: 1,
+      freeCastRecharge: "long-rest",
+    }],
   };
 }
 

@@ -14,5 +14,6 @@ export * from "./pointCostGenerate.js";
 export * from "./quickGenerate.js";
 export * from "./randomGenerate.js";
 export * from "./rulesSource.js";
+export * from "./spellCatalog.js";
 export * from "./srdCatalog.js";
 export * from "./standardArrayGenerate.js";
