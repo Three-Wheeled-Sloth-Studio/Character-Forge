@@ -30,8 +30,8 @@ export interface GuidedDnd5eCoreChoices {
   monkToolProficiencyId?: string;
   expertiseSkillIds?: string[];
   rogueBonusLanguageId?: string;
-  dragonbornAncestryId?: Dnd5eDragonbornAncestryId;
-  goliathAncestryId?: Dnd5eGoliathAncestryId;
+  dragonbornAncestryId?: Dnd5eDragonbornAncestryId | undefined;
+  goliathAncestryId?: Dnd5eGoliathAncestryId | undefined;
   human?: GuidedDnd5eHumanChoices;
 }
 
