@@ -1,7 +1,9 @@
 import {
   DND5E_ALIGNMENT_OPTIONS,
   DND5E_BONUS_LANGUAGE_OPTIONS,
+  DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
   DND5E_FIGHTING_STYLE_OPTIONS,
+  DND5E_GOLIATH_ANCESTRY_OPTIONS,
   DND5E_GUIDED_CLASS_CHOICE_RULES,
   DND5E_HUMAN_ORIGIN_FEAT_OPTIONS,
   DND5E_MONK_TOOL_OPTIONS,
@@ -70,6 +72,20 @@ export function assertGuidedDnd5eCoreChoices(
     assertOneOf(choices.rogueBonusLanguageId, DND5E_BONUS_LANGUAGE_OPTIONS.map((option) => option.id), "Rogue bonus language");
   } else if (choices.expertiseSkillIds?.length || choices.rogueBonusLanguageId) {
     throw new Error("Rogue-only Expertise/language choices were supplied to another class.");
+  }
+
+  if (speciesId === "dragonborn") {
+    if (!choices.dragonbornAncestryId) throw new Error("Dragonborn requires a Draconic Ancestry choice.");
+    assertOneOf(choices.dragonbornAncestryId, DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((option) => option.id), "Draconic Ancestry");
+  } else if (choices.dragonbornAncestryId) {
+    throw new Error("Dragonborn-only ancestry was supplied to another species.");
+  }
+
+  if (speciesId === "goliath") {
+    if (!choices.goliathAncestryId) throw new Error("Goliath requires a Giant Ancestry choice.");
+    assertOneOf(choices.goliathAncestryId, DND5E_GOLIATH_ANCESTRY_OPTIONS.map((option) => option.id), "Giant Ancestry");
+  } else if (choices.goliathAncestryId) {
+    throw new Error("Goliath-only ancestry was supplied to another species.");
   }
 
   if (speciesId === "human") {
