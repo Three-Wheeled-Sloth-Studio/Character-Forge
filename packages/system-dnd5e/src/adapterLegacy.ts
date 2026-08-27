@@ -243,7 +243,9 @@ const GUIDED_CLASS_HIT_DIE: Record<GuidedDnd5eClassId, number> = {
 };
 
 const GUIDED_SPECIES_SIZE: Record<GuidedDnd5eSpeciesId, "small" | "medium"> = {
+  dragonborn: "medium",
   dwarf: "medium",
+  goliath: "medium",
   halfling: "small",
   human: "medium",
   orc: "medium",
@@ -283,6 +285,10 @@ function validateGuidedFirstSliceRules(payload: JsonObject, issues: RulesValidat
   }
   if (!speciesId || !isGuidedDnd5eSpeciesId(speciesId)) {
     pushError(issues, "dnd5e.guided.species", "Guided generation currently supports Dwarf, Halfling, Human, and Orc.", "origin.speciesId");
+    return;
+  }
+  if (speciesId === "dragonborn" || speciesId === "goliath") {
+    pushError(issues, "dnd5e.guided.legacy-species", "This retained dnd5e-character/0.2 validator predates Dragonborn and Goliath guided support.", "origin.speciesId");
     return;
   }
 
