@@ -3,20 +3,13 @@ import {
   createNativeStateId,
   type CharacterDocument,
 } from "../../character-model/src/index.js";
+import { createGeneratedSeed, createSeededRandom, type RandomSource } from "../../generator-core/src/index.js";
 import {
   createFirstSliceCharacterDocument,
   type FirstSliceAbilityChoices,
 } from "./firstSliceCharacter.js";
+import { pickDnd5eGeneratedName } from "./nameGeneration.js";
 import type { Dnd5eAbilityScores, Dnd5eNativeCharacter } from "./nativeCharacter.js";
-
-const QUICK_NAMES = [
-  "Avery Stone",
-  "Mara Voss",
-  "Rowan Hale",
-  "Tamsin Reed",
-  "Jonas Vale",
-  "Nia Calder",
-] as const;
 
 const STANDARD_ARRAY_ASSIGNMENTS: readonly Dnd5eAbilityScores[] = [
   { strength: 15, dexterity: 14, constitution: 13, intelligence: 8, wisdom: 10, charisma: 12 },
@@ -40,15 +33,16 @@ export interface QuickGenerateDnd5eInput {
 export function quickGenerateDnd5eFirstSlice(
   input: QuickGenerateDnd5eInput = {},
 ): CharacterDocument {
-  const seed = normalizeSeed(input.seed);
+  const seed = input.seed?.trim() || createGeneratedSeed("quick");
   const random = createSeededRandom(seed);
   const abilityChoices: FirstSliceAbilityChoices = {
     assignment: cloneScores(pick(STANDARD_ARRAY_ASSIGNMENTS, random)),
     backgroundIncreases: { ...pick(SOLDIER_INCREASE_PLANS, random) },
   };
   const character = createFirstSliceCharacterDocument(abilityChoices);
-  const name = input.name?.trim() || pick(QUICK_NAMES, random);
+  const name = input.name?.trim() || pickDnd5eGeneratedName(random);
   const nativeState = character.nativeStates[0];
+  if (!nativeState) throw new Error("Quick generation did not produce a native state.");
   const payload = nativeState.payload as Dnd5eNativeCharacter;
 
   character.characterId = createCharacterId();
@@ -72,39 +66,12 @@ export function quickGenerateDnd5eFirstSlice(
   return character;
 }
 
-function normalizeSeed(seed?: string): string {
-  const trimmed = seed?.trim();
-  if (trimmed) return trimmed;
-  const randomPart = Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, "0");
-  return `quick-${Date.now().toString(36)}-${randomPart}`;
-}
-
 function cloneScores(scores: Dnd5eAbilityScores): Dnd5eAbilityScores {
   return { ...scores };
 }
 
-function pick<T>(values: readonly T[], random: () => number): T {
+function pick<T>(values: readonly T[], random: RandomSource): T {
   const value = values[Math.floor(random() * values.length)];
   if (value === undefined) throw new Error("Quick-generation choice set is empty.");
   return value;
-}
-
-function hashSeed(seed: string): number {
-  let hash = 2166136261;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash ^= seed.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function createSeededRandom(seed: string): () => number {
-  let state = hashSeed(seed) || 0x9e3779b9;
-  return () => {
-    state += 0x6d2b79f5;
-    let value = state;
-    value = Math.imul(value ^ (value >>> 15), value | 1);
-    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-  };
 }

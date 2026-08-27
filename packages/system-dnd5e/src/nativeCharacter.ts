@@ -43,6 +43,7 @@ export interface Dnd5eOriginState extends JsonObject {
   backgroundOriginFeatId: string;
   backgroundSkillProficiencies?: string[];
   speciesOriginFeatId?: string;
+  speciesOriginFeatProficiencyIds?: string[];
   speciesSkillId?: string;
   toolProficiencyId: string;
   backgroundEquipmentChoice: string;
@@ -58,6 +59,7 @@ export interface Dnd5eClassState extends JsonObject {
   skillProficiencies: string[];
   expertiseSkillIds?: string[];
   toolProficiencyIds?: string[];
+  bonusLanguageIds?: string[];
   fightingStyleFeatId?: string;
   weaponMasteryIds: string[];
   classEquipmentChoice: string;
@@ -93,7 +95,7 @@ export interface Dnd5eDerivedState extends JsonObject {
 }
 
 export interface Dnd5eNativeCharacter extends JsonObject {
-  schemaVersion: "dnd5e-character/0.1" | "dnd5e-character/0.2";
+  schemaVersion: "dnd5e-character/0.1" | "dnd5e-character/0.2" | "dnd5e-character/0.3";
   rulesSourceIds: string[];
   identity: Dnd5eIdentityState;
   origin: Dnd5eOriginState;

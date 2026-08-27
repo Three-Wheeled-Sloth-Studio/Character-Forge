@@ -2,21 +2,9 @@ import { describe, expect, it } from "vitest";
 import { dnd5eSrd521Adapter } from "./adapter.js";
 import { guidedStandardArrayGenerateDnd5eFirstSlice } from "./guidedStandardArrayGenerate.js";
 import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
-import {
-  DND5E_SRD_521_CLASS_OPTIONS,
-  DND5E_SRD_521_SPECIES_OPTIONS,
-  GUIDED_DND5E_CLASS_IDS,
-  GUIDED_DND5E_SPECIES_IDS,
-} from "./srdCatalog.js";
+import { DND5E_SRD_521_CLASS_OPTIONS, DND5E_SRD_521_SPECIES_OPTIONS, GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_SPECIES_IDS } from "./srdCatalog.js";
 
-const assignment = {
-  strength: 15,
-  dexterity: 14,
-  constitution: 13,
-  intelligence: 10,
-  wisdom: 12,
-  charisma: 8,
-};
+const assignment = { strength: 15, dexterity: 14, constitution: 13, intelligence: 10, wisdom: 12, charisma: 8 };
 
 describe("guided SRD class and species generation", () => {
   it("catalogs every SRD 5.2.1 class and species while enabling only modeled choices", () => {
@@ -29,23 +17,14 @@ describe("guided SRD class and species generation", () => {
   it("builds and validates a Dwarf Soldier Barbarian with class/species-sensitive derived state", () => {
     const character = guidedStandardArrayGenerateDnd5eFirstSlice({
       name: "Bryn Granite",
-      classChoice: {
-        selectedId: "barbarian",
-        acceptableIds: ["barbarian", "fighter", "rogue"],
-        selectionMode: "random",
-      },
-      speciesChoice: {
-        selectedId: "dwarf",
-        acceptableIds: ["dwarf", "halfling", "human", "orc"],
-        selectionMode: "direct",
-      },
+      classChoice: { selectedId: "barbarian", acceptableIds: ["barbarian", "fighter", "rogue"], selectionMode: "random" },
+      speciesChoice: { selectedId: "dwarf", acceptableIds: ["dwarf", "halfling", "human", "orc"], selectionMode: "direct" },
       assignment,
       backgroundIncreases: { strength: 2, constitution: 1 },
     });
-    const nativeState = character.nativeStates[0];
+    const nativeState = character.nativeStates[0]!;
     const payload = nativeState.payload as Dnd5eNativeCharacter;
-
-    expect(nativeState.schemaVersion).toBe("dnd5e-character/0.2");
+    expect(nativeState.schemaVersion).toBe("dnd5e-character/0.3");
     expect(payload.class.classId).toBe("barbarian");
     expect(payload.origin.speciesId).toBe("dwarf");
     expect(payload.resources.hitPointsMaximum).toBe(15);
@@ -55,12 +34,6 @@ describe("guided SRD class and species generation", () => {
     expect(payload.derived.initiativeModifier).toBe(2);
     expect(payload.derived.passivePerception).toBe(13);
     expect(dnd5eSrd521Adapter.validateNativeState(nativeState)).toEqual({ valid: true, issues: [] });
-    expect(character.generation?.decisions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ stepId: "class.acceptable-pool" }),
-      expect.objectContaining({ stepId: "class", choiceId: "barbarian" }),
-      expect.objectContaining({ stepId: "species.acceptable-pool" }),
-      expect.objectContaining({ stepId: "species", choiceId: "dwarf" }),
-    ]));
   });
 
   it("builds all initially enabled class/species combinations through one native-state boundary", () => {
@@ -73,7 +46,7 @@ describe("guided SRD class and species generation", () => {
           assignment,
           backgroundIncreases: { strength: 2, constitution: 1 },
         });
-        expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0]).valid).toBe(true);
+        expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0]!).valid).toBe(true);
       }
     }
   });

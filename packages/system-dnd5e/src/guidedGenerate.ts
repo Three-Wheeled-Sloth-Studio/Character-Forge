@@ -7,7 +7,9 @@ import {
   createStandardArrayAbilityState,
   type Dnd5eAbilityIncreasePlan,
 } from "./abilityGeneration.js";
+import type { GuidedDnd5eCoreChoices } from "./guidedChoices.js";
 import { createGuidedDnd5eFirstSliceCharacter } from "./guidedFirstSlice.js";
+import { resolveDnd5eCharacterName } from "./nameGeneration.js";
 import type { Dnd5eAbilityScores } from "./nativeCharacter.js";
 import {
   assignDnd5eRandomAbilityScores,
@@ -39,59 +41,45 @@ export type GuidedAbilityMethodInput =
   | { method: "standard-array"; assignment: Dnd5eAbilityScores }
   | { method: "manual"; scores: Dnd5eAbilityScores }
   | { method: "point-cost"; scores: Dnd5eAbilityScores }
-  | {
-      method: "random";
-      seed?: string;
-      assignment: Dnd5eRandomAbilityAssignment;
-    };
+  | { method: "random"; seed?: string; assignment: Dnd5eRandomAbilityAssignment };
 
 export interface GuidedGenerateDnd5eInput {
-  name: string;
+  name?: string;
   classChoice: GuidedChoiceProvenance<GuidedDnd5eClassId>;
   backgroundChoice: GuidedChoiceProvenance<GuidedDnd5eBackgroundId>;
   speciesChoice: GuidedChoiceProvenance<GuidedDnd5eSpeciesId>;
+  coreChoices: GuidedDnd5eCoreChoices;
+  coreChoiceProvenance?: GenerationDecision[];
   abilityMethod: GuidedAbilityMethodInput;
   backgroundIncreases: Dnd5eAbilityIncreasePlan;
   backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
 }
 
-export function guidedGenerateDnd5eFirstSlice(
-  input: GuidedGenerateDnd5eInput,
-): CharacterDocument {
-  const displayName = input.name.trim();
-  if (!displayName) throw new Error("Character name is required for guided generation.");
+export function guidedGenerateDnd5eFirstSlice(input: GuidedGenerateDnd5eInput): CharacterDocument {
   assertChoice(input.classChoice, isGuidedDnd5eClassId, "class");
   assertChoice(input.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
   assertChoice(input.speciesChoice, isGuidedDnd5eSpeciesId, "species");
 
-  const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find(
-    (option) => option.id === input.backgroundChoice.selectedId,
-  );
+  const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((option) => option.id === input.backgroundChoice.selectedId);
   if (!background || !background.guidedSupported) {
     throw new Error("Selected background is not supported by the current guided D&D slice.");
   }
 
-  const methodResult = createAbilityMethodResult(
-    input.abilityMethod,
-    background.abilityScoreIds,
-    input.backgroundIncreases,
-  );
-
+  const methodResult = createAbilityMethodResult(input.abilityMethod, background.abilityScoreIds, input.backgroundIncreases);
+  const displayName = resolveDnd5eCharacterName(input.name, methodResult.seed);
   const decisions: GenerationDecision[] = [
-    poolDecision("class", input.classChoice.acceptableIds),
-    choiceDecision("class", input.classChoice),
-    poolDecision("background", input.backgroundChoice.acceptableIds),
-    choiceDecision("background", input.backgroundChoice),
-    {
-      stepId: "background.equipment",
-      choiceId: input.backgroundEquipmentChoice,
-    },
-    poolDecision("species", input.speciesChoice.acceptableIds),
-    choiceDecision("species", input.speciesChoice),
+    poolDecision("class", input.classChoice.acceptableIds), choiceDecision("class", input.classChoice),
+    poolDecision("background", input.backgroundChoice.acceptableIds), choiceDecision("background", input.backgroundChoice),
+    { stepId: "background.equipment", choiceId: input.backgroundEquipmentChoice },
+    poolDecision("species", input.speciesChoice.acceptableIds), choiceDecision("species", input.speciesChoice),
+    ...coreDecisions(input.coreChoices),
+    ...(input.coreChoiceProvenance ?? []),
     ...methodResult.decisions,
+    { stepId: "background.ability-increases", answer: methodResult.abilities.backgroundIncreases },
     {
-      stepId: "background.ability-increases",
-      answer: methodResult.abilities.backgroundIncreases,
+      stepId: "identity.name",
+      answer: displayName,
+      rationale: input.name?.trim() ? "Direct user entry." : "Generated because the name field was left blank.",
     },
   ];
 
@@ -101,90 +89,79 @@ export function guidedGenerateDnd5eFirstSlice(
     backgroundId: input.backgroundChoice.selectedId,
     speciesId: input.speciesChoice.selectedId,
     backgroundEquipmentChoice: input.backgroundEquipmentChoice,
+    coreChoices: input.coreChoices,
     abilities: methodResult.abilities,
     generation: {
-      methodId: `dnd5e:guided-${input.abilityMethod.method}-first-slice`,
+      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`,
       mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical",
-      recipeVersion: "0.2",
+      recipeVersion: "0.3",
       ...(methodResult.seed ? { seed: methodResult.seed } : {}),
       rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
       recipe: {
-        sequence: ["class", "background", "species", "abilities"],
+        sequence: ["class", "background", "species", "origin-details", "abilities", "alignment"],
         classId: input.classChoice.selectedId,
         backgroundId: input.backgroundChoice.selectedId,
         speciesId: input.speciesChoice.selectedId,
         abilityMethod: input.abilityMethod.method,
         backgroundEquipmentChoice: input.backgroundEquipmentChoice,
+        classEquipmentChoice: input.coreChoices.classEquipmentChoice,
       },
       decisions,
     },
   });
 }
 
+function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
+  const decisions: GenerationDecision[] = [
+    { stepId: "alignment", choiceId: choices.alignmentId },
+    { stepId: "origin.languages", answer: choices.originLanguageIds },
+    { stepId: "class.skills", answer: choices.classSkillIds },
+    { stepId: "class.equipment", choiceId: choices.classEquipmentChoice },
+    { stepId: "class.weapon-mastery", answer: choices.weaponMasteryIds },
+  ];
+  if (choices.fightingStyleFeatId) decisions.push({ stepId: "class.fighting-style", choiceId: choices.fightingStyleFeatId });
+  if (choices.monkToolProficiencyId) decisions.push({ stepId: "class.tool", choiceId: choices.monkToolProficiencyId });
+  if (choices.expertiseSkillIds?.length) decisions.push({ stepId: "class.expertise", answer: choices.expertiseSkillIds });
+  if (choices.rogueBonusLanguageId) decisions.push({ stepId: "class.bonus-language", choiceId: choices.rogueBonusLanguageId });
+  if (choices.human) {
+    decisions.push(
+      { stepId: "species.human.size", choiceId: choices.human.size },
+      { stepId: "species.human.skillful", choiceId: choices.human.skillId },
+      { stepId: "species.human.versatile", choiceId: choices.human.originFeatId },
+    );
+    if (choices.human.skilledProficiencyIds?.length) {
+      decisions.push({ stepId: "species.human.skilled", answer: choices.human.skilledProficiencyIds });
+    }
+  }
+  return decisions;
+}
+
 function createAbilityMethodResult(
   method: GuidedAbilityMethodInput,
   backgroundAbilityIds: readonly ("strength" | "dexterity" | "constitution" | "intelligence" | "wisdom" | "charisma")[],
   backgroundIncreases: Dnd5eAbilityIncreasePlan,
-): {
-  abilities: ReturnType<typeof createStandardArrayAbilityState>;
-  decisions: GenerationDecision[];
-  seed?: string;
-} {
+): { abilities: ReturnType<typeof createStandardArrayAbilityState>; decisions: GenerationDecision[]; seed?: string } {
   switch (method.method) {
     case "standard-array": {
-      const abilities = createStandardArrayAbilityState({
-        assignment: method.assignment,
-        backgroundAbilityIds,
-        backgroundIncreases,
-      });
-      return {
-        abilities,
-        decisions: [{ stepId: "abilities.standard-array", answer: abilities.base }],
-      };
+      const abilities = createStandardArrayAbilityState({ assignment: method.assignment, backgroundAbilityIds, backgroundIncreases });
+      return { abilities, decisions: [{ stepId: "abilities.standard-array", answer: abilities.base }] };
     }
     case "manual": {
-      const abilities = createManualAbilityState({
-        scores: method.scores,
-        backgroundAbilityIds,
-        backgroundIncreases,
-      });
-      return {
-        abilities,
-        decisions: [{ stepId: "abilities.manual", answer: abilities.base }],
-      };
+      const abilities = createManualAbilityState({ scores: method.scores, backgroundAbilityIds, backgroundIncreases });
+      return { abilities, decisions: [{ stepId: "abilities.manual", answer: abilities.base }] };
     }
     case "point-cost": {
-      const abilities = createPointCostAbilityState({
-        scores: method.scores,
-        backgroundAbilityIds,
-        backgroundIncreases,
-      });
+      const abilities = createPointCostAbilityState({ scores: method.scores, backgroundAbilityIds, backgroundIncreases });
       const pointsSpent = calculateDnd5ePointCost(method.scores);
-      return {
-        abilities,
-        decisions: [{
-          stepId: "abilities.point-cost",
-          answer: abilities.base,
-          rationale: `${pointsSpent} of 27 points spent.`,
-        }],
-      };
+      return { abilities, decisions: [{ stepId: "abilities.point-cost", answer: abilities.base, rationale: `${pointsSpent} of 27 points spent.` }] };
     }
     case "random": {
       const rollSet = rollDnd5eRandomAbilitySet(method.seed);
       const scores = assignDnd5eRandomAbilityScores(rollSet, method.assignment);
-      const abilities = createRandomAbilityState({
-        scores,
-        backgroundAbilityIds,
-        backgroundIncreases,
-      });
+      const abilities = createRandomAbilityState({ scores, backgroundAbilityIds, backgroundIncreases });
       const rollEvidence: JsonObject = {
         expression: rollSet.expression,
-        results: rollSet.results.map((result) => ({
-          rollIndex: result.rollIndex,
-          rolls: result.rolls,
-          keptValues: result.keptValues,
-          total: result.total,
-        })),
+        results: rollSet.results.map((result) => ({ rollIndex: result.rollIndex, rolls: result.rolls, keptValues: result.keptValues, total: result.total })),
       };
       return {
         abilities,
@@ -200,23 +177,14 @@ function createAbilityMethodResult(
 }
 
 function poolDecision(label: string, acceptableIds: readonly string[]): GenerationDecision {
-  return {
-    stepId: `${label}.acceptable-pool`,
-    answer: [...acceptableIds],
-    rationale: `User-sticky acceptable options used for this ${label} decision.`,
-  };
+  return { stepId: `${label}.acceptable-pool`, answer: [...acceptableIds], rationale: `User-sticky acceptable options used for this ${label} decision.` };
 }
 
-function choiceDecision<TId extends string>(
-  label: string,
-  choice: GuidedChoiceProvenance<TId>,
-): GenerationDecision {
+function choiceDecision<TId extends string>(label: string, choice: GuidedChoiceProvenance<TId>): GenerationDecision {
   return {
     stepId: label,
     choiceId: choice.selectedId,
-    rationale: choice.selectionMode === "random"
-      ? `Randomly selected from the user's acceptable ${label} pool.`
-      : "Direct user choice.",
+    rationale: choice.selectionMode === "random" ? `Randomly selected from the user's acceptable ${label} pool.` : "Direct user choice.",
   };
 }
 
@@ -225,15 +193,9 @@ function assertChoice<TId extends string>(
   isSupported: (value: string) => value is TId,
   label: string,
 ): void {
-  if (!isSupported(choice.selectedId)) {
-    throw new Error(`Selected ${label} is not supported by the current guided D&D slice.`);
-  }
+  if (!isSupported(choice.selectedId)) throw new Error(`Selected ${label} is not supported by the current guided D&D slice.`);
   const acceptable = new Set(choice.acceptableIds);
   if (acceptable.size === 0) throw new Error(`Choose at least one acceptable ${label}.`);
-  for (const id of acceptable) {
-    if (!isSupported(id)) throw new Error(`Acceptable ${label} pool contains an unsupported option.`);
-  }
-  if (!acceptable.has(choice.selectedId)) {
-    throw new Error(`Selected ${label} must be included in the acceptable ${label} pool.`);
-  }
+  for (const id of acceptable) if (!isSupported(id)) throw new Error(`Acceptable ${label} pool contains an unsupported option.`);
+  if (!acceptable.has(choice.selectedId)) throw new Error(`Selected ${label} must be included in the acceptable ${label} pool.`);
 }
