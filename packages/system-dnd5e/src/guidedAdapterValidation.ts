@@ -170,9 +170,8 @@ function reconstructCoreChoices(
   }
   if (speciesId === "dragonborn") {
     const ancestry = readString(origin, "speciesAncestryId");
-    if (ancestry && DND5E_DRAGONBORN_ANCESTRY_OPTIONS.some((option) => option.id === ancestry)) {
-      choices.dragonbornAncestryId = ancestry as GuidedDnd5eCoreChoices["dragonbornAncestryId"];
-    }
+    const expected = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === ancestry);
+    if (expected) choices.dragonbornAncestryId = expected.id;
   }
   if (speciesId === "goliath") {
     const ancestry = readString(origin, "speciesAncestryId");
