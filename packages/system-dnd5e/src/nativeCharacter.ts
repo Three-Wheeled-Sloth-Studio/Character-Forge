@@ -66,6 +66,11 @@ export interface Dnd5eClassState extends JsonObject {
   fightingStyleFeatId?: string;
   weaponMasteryIds: string[];
   classEquipmentChoice: string;
+  divineOrderId?: string;
+  weaponProficiencyIds?: string[];
+  armorTrainingIds?: string[];
+  spellcastingFocusIds?: string[];
+  thaumaturgeKnowledgeBonus?: number;
 }
 
 export interface Dnd5eSpellGrantState extends JsonObject {
@@ -82,8 +87,29 @@ export interface Dnd5eSpellGrantState extends JsonObject {
   freeCastRecharge: "long-rest";
 }
 
+export interface Dnd5eSpellSlotState extends JsonObject {
+  level: number;
+  maximum: number;
+  current: number;
+  recharge: "long-rest";
+}
+
+export interface Dnd5eClassSpellcastingState extends JsonObject {
+  sourceClassId: string;
+  featureId: string;
+  spellListId: string;
+  spellcastingAbilityId: Dnd5eSpellcastingAbilityId;
+  cantripIds: string[];
+  preparedSpellIds: string[];
+  alwaysPreparedSpellIds: string[];
+  spellSlots: Dnd5eSpellSlotState[];
+  preparationChange: "long-rest-any" | "long-rest-one" | "level-one";
+  focusItemIds?: string[];
+}
+
 export interface Dnd5eSpellState extends JsonObject {
   grants: Dnd5eSpellGrantState[];
+  classCasting?: Dnd5eClassSpellcastingState[];
 }
 
 export interface Dnd5eEquipmentEntry extends JsonObject {
