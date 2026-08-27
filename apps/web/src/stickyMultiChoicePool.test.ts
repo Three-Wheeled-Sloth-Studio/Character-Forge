@@ -8,12 +8,12 @@ class MemoryStorage {
 }
 
 describe("sticky multi-choice pools", () => {
-  it("sanitizes stale saved options and keeps the requested number selected", () => {
+  it("sanitizes stale saved options and keeps a legal requested-size pool", () => {
     const storage = new MemoryStorage();
     storage.setItem("skills", JSON.stringify({ acceptableIds: ["a", "stale", "c"], selectedIds: ["stale"] }));
     const state = loadStickyMultiChoicePool(storage, "skills", ["a", "b", "c"], ["a", "b", "c"], ["a", "b"], 2);
-    expect(state.acceptableIds).toEqual(["a", "b", "c"]);
-    expect(state.selectedIds).toEqual(["a", "b"]);
+    expect(state.acceptableIds).toEqual(["a", "c"]);
+    expect(state.selectedIds).toEqual(["a", "c"]);
   });
 
   it("persists only legal non-empty selected pools", () => {
