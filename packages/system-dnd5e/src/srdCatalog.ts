@@ -27,7 +27,7 @@ export type Dnd5eSrdSpeciesId =
   | "orc"
   | "tiefling";
 
-export type GuidedDnd5eClassId = "barbarian" | "fighter" | "monk" | "rogue";
+export type GuidedDnd5eClassId = "barbarian" | "cleric" | "fighter" | "monk" | "rogue";
 export type GuidedDnd5eBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
 export type GuidedDnd5eSpeciesId = "dragonborn" | "dwarf" | "goliath" | "halfling" | "human" | "orc";
 
@@ -59,15 +59,15 @@ export interface Dnd5eSrdSpeciesOption {
 
 export const DND5E_SRD_521_CLASS_OPTIONS: readonly Dnd5eSrdClassOption[] = [
   { id: "barbarian", label: "Barbarian", primaryAbilityIds: ["strength"], guidedSupported: true },
-  { id: "bard", label: "Bard", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Spellcasting native state is not implemented yet." },
-  { id: "cleric", label: "Cleric", primaryAbilityIds: ["wisdom"], guidedSupported: false, blockedReason: "Class spellcasting and Divine Order choices are not implemented yet." },
+  { id: "bard", label: "Bard", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Class spellcasting and Bardic Inspiration native state are not implemented yet." },
+  { id: "cleric", label: "Cleric", primaryAbilityIds: ["wisdom"], guidedSupported: true },
   { id: "druid", label: "Druid", primaryAbilityIds: ["wisdom"], guidedSupported: false, blockedReason: "Class spellcasting and Primal Order choices are not implemented yet." },
   { id: "fighter", label: "Fighter", primaryAbilityIds: ["strength", "dexterity"], guidedSupported: true },
   { id: "monk", label: "Monk", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: true },
   { id: "paladin", label: "Paladin", primaryAbilityIds: ["strength", "charisma"], guidedSupported: false, blockedReason: "Class spellcasting native state is not implemented yet." },
   { id: "ranger", label: "Ranger", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: false, blockedReason: "Class spellcasting native state is not implemented yet." },
   { id: "rogue", label: "Rogue", primaryAbilityIds: ["dexterity"], guidedSupported: true },
-  { id: "sorcerer", label: "Sorcerer", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Class spellcasting native state is not implemented yet." },
+  { id: "sorcerer", label: "Sorcerer", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Class spellcasting and Innate Sorcery state are not implemented yet." },
   { id: "warlock", label: "Warlock", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Pact Magic and invocation choices are not implemented yet." },
   { id: "wizard", label: "Wizard", primaryAbilityIds: ["intelligence"], guidedSupported: false, blockedReason: "Class spellcasting and spellbook native state are not implemented yet." },
 ] as const;
