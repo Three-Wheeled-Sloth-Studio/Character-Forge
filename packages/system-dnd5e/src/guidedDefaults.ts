@@ -7,6 +7,7 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
   const backgroundSkills = new Set<string>(background.skillProficiencies);
   const candidates: Record<GuidedDnd5eClassId, string[]> = {
     barbarian: ["perception", "survival", "animal-handling", "nature", "athletics", "intimidation"],
+    cleric: ["insight", "medicine", "persuasion", "history", "religion"],
     fighter: ["acrobatics", "history", "perception", "insight", "athletics", "persuasion", "survival", "animal-handling", "intimidation"],
     monk: ["acrobatics", "insight", "history", "religion", "athletics", "stealth"],
     rogue: ["acrobatics", "investigation", "perception", "persuasion", "stealth", "deception", "insight", "intimidation", "athletics", "sleight-of-hand"],
@@ -20,6 +21,13 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
     classEquipmentChoice: "A",
     weaponMasteryIds: classId === "barbarian" ? ["greataxe", "handaxe"] : classId === "fighter" ? ["greatsword", "flail", "javelin"] : classId === "rogue" ? ["dagger", "shortbow"] : [],
   };
+  if (classId === "cleric") {
+    choices.cleric = {
+      divineOrderId: "protector",
+      cantripIds: ["guidance", "sacred-flame", "thaumaturgy"],
+      preparedSpellIds: ["bless", "cure-wounds", "guiding-bolt", "shield-of-faith"],
+    };
+  }
   if (classId === "fighter") choices.fightingStyleFeatId = "defense";
   if (classId === "monk") choices.monkToolProficiencyId = "artisan-tools:calligraphers-supplies";
   if (classId === "rogue") {
