@@ -2,6 +2,7 @@ export * from "./abilityGeneration.js";
 export * from "./adapter.js";
 export * from "./firstSliceCharacter.js";
 export * from "./guidedFirstSlice.js";
+export * from "./guidedGenerate.js";
 export * from "./guidedStandardArrayGenerate.js";
 export * from "./manualGenerate.js";
 export * from "./nativeCharacter.js";
