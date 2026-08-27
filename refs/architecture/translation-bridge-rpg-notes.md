@@ -164,3 +164,15 @@ Bridge-RPG implication: A future original RPG can use creation budgets without f
 Confidence: high for the current D&D implementation; medium as a general cross-system principle.
 
 Follow-up: Compare this against systems where unspent character points, advancement points, or build currencies remain live after creation. Do not generalize all point-based systems from D&D's one-time Point Cost method.
+
+### 2026-08-26 - Generated option identity must survive duplicate values
+
+Observation: D&D Random Generation produces six score rolls before those scores are assigned to abilities. Two or more roll slots can legitimately have the same numeric total, so retaining only the six values would lose which generated option the user assigned. The implementation therefore preserves each roll slot's identity, all raw dice, kept dice, total, and the later roll-slot-to-ability assignment as separate generation evidence.
+
+Translator implication: Generated choices can have identity independent from their displayed value. Translation, regeneration, and audit tooling should avoid collapsing repeated generated results into an unlabeled multiset when later choices refer to specific generated options.
+
+Bridge-RPG implication: Random tables and dice-driven creation in the future original RPG should preserve source rolls/options separately from the decisions made with them. That supports transparent rerolls, reassignment, partial regeneration, and explanation of how a final character state was reached.
+
+Confidence: high for generator architecture; medium as a cross-system semantic claim until more systems provide similar evidence.
+
+Follow-up: Guided creation should reuse this distinction between option generation and option selection where useful. If partial regeneration is added later, rerolling a slot and reassigning an existing slot should remain different explicit operations.

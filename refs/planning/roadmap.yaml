@@ -29,8 +29,6 @@ roadmap:
       - One legal Human Soldier Fighter Level 1 native path.
       - D&D-native validation for source/version, ability state, first-slice origin/class constraints, Proficiency Bonus, and Level 1 Fighter Hit Points.
       - CharacterDocument generation provenance and exact JSON native-state round trip.
-      - Input-driven Standard Array assignment without prescribing the Fighter recommendation.
-      - Validation that 15, 14, 13, 12, 10, and 8 are each used exactly once.
       - Shared 2024 background adjustment and final-score behavior used across supported ability methods.
       - Legal background adjustment handling for +2/+1 or +1/+1/+1.
       - Recalculation of affected Fighter HP, Alert Initiative, and Passive Perception.
@@ -38,20 +36,23 @@ roadmap:
       - Browser character review surface with native validation status and retained document inspection.
       - Full generated CharacterDocument handoff to Parchment through the embed boundary.
       - Owner runtime QA green for embedded Quick Generate on 2026-08-26.
-      - Manual ability generation engine path with explicit manual provenance and no invented seed.
+      - Explicit Standard Array API/browser path with exact-use validation for 15, 14, 13, 12, 10, and 8.
+      - Manual ability generation with explicit manual provenance and no invented seed.
       - Manual Ability Entry browser surface using the same CharacterDocument and Parchment handoff boundary.
-      - SRD 5.2.1 Point Cost rules with 27-point budget, 8-15 purchase range, and canonical cost table.
-      - Point Cost generation provenance through the same shared ability-state path.
-      - Point Cost browser surface with live spent/remaining budget feedback and over-budget prevention.
-      - D&D adapter validation for Standard Array, Manual, and Point Cost as distinct base-score methods.
+      - SRD 5.2.1 Point Cost rules with 27-point budget, 8-15 purchase range, canonical cost table, and live browser budget feedback.
+      - Reusable system-neutral generator-core seeded randomness and dice-expression engine.
+      - SRD Random Generation using six deterministic 4d6 keep-highest-3 roll slots.
+      - Random Generation provenance retaining seed, raw dice, kept dice, roll totals, roll-slot assignment, final base scores, and background increases.
+      - Browser Random Generation surface with inspectable rolls and one-use roll-slot assignment.
+      - D&D adapter 0.4.0 validation for Standard Array, Manual, Point Cost, and Random as distinct base-score methods.
     current_gate:
-      - Owner runtime QA for Manual Ability Entry and Point Cost is intentionally deferred while generation breadth continues.
-      - Current Manual + Point Cost stack remains on dev and is not promoted yet.
+      - Owner runtime QA for the accumulated Standard Array, Manual, Point Cost, and Random stack is intentionally deferred while generation breadth continues.
+      - Current base-method stack remains on dev and is not promoted yet.
+      - Automated checkpoint bfe90583c42a39317f03916f1ca51be7b8ddefb5 is green with 11 test files / 47 tests.
     remaining_scope:
-      - Reusable deterministic dice-expression generation with SRD 4d6 keep-highest-3 random abilities as the first consumer.
-      - Guided character creation.
-      - Early guided narrative generation path.
-      - Incremental broadening beyond fixed Human / Soldier / Fighter choices.
+      - Guided mechanical character creation that incrementally replaces fixed Human / Soldier / Fighter choices.
+      - Early guided narrative generation path using the same ordinary generation decisions and APIs.
+      - Incremental broadening beyond fixed Human / Soldier / Fighter choices through legally redistributable SRD content.
   - id: parchment-2-character-persistence
     horizon: completed
     status: completed
