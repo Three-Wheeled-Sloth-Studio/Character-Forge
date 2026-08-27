@@ -26,6 +26,8 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
     choices.expertiseSkillIds = [classSkillIds[0]!, classSkillIds[1]!];
     choices.rogueBonusLanguageId = "giant";
   }
+  if (speciesId === "dragonborn") choices.dragonbornAncestryId = "red";
+  if (speciesId === "goliath") choices.goliathAncestryId = "stone";
   if (speciesId === "human") {
     const taken = new Set([...classSkillIds, ...background.skillProficiencies]);
     const skillId = DND5E_SKILL_OPTIONS.map((option) => option.id).find((id) => !taken.has(id)) ?? "performance";
