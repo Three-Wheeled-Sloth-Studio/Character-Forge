@@ -49,7 +49,7 @@ Issue #11 remains the active breadth epic. Issue #12 creator-workspace polish is
 4. `refs/handoffs/currentHandoff.md`
 5. `refs/architecture/character-architecture.md`
 6. `refs/architecture/translation-bridge-rpg-notes.md`
-7. `refs/architecture/dnd5e-spell-state.md`
+7. `refs/architecture/dnd5e-spell-state-watch.md`
 8. `refs/integration/dnd5e-srd-5.2.1.md`
 9. `refs/product/generation-methods.md`
 10. `refs/product/choice-pools.md`
