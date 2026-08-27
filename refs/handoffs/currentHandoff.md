@@ -2,7 +2,7 @@
 
 Date: 2026-08-26
 Branch: dev
-Phase: D&D 5E 2024 PI 1, guided class/species choice pools implemented and automated-green; owner QA deferred
+Phase: D&D 5E 2024 PI 1, guided backgrounds plus consolidated creator workspace automated-green; owner QA deferred
 
 ## Accepted baseline
 
@@ -12,194 +12,201 @@ Accepted Character Forge checkpoint on `qa` and `main`:
 
 - `8041edb4009abce8a836faafce9a167883e92bda`
 
-Parchment character persistence issue #24 is closed as completed.
+Parchment character persistence issue #24 is complete.
 
 Background non-blockers remain:
 
-- Character Forge issue #2: trace the effective runtime path that still showed name-derived character/native-state IDs despite UUID helpers being present in current code.
-- Character Forge issue #3: add compact icon-first Copy JSON / Download JSON controls to the CharacterDocument inspector.
+- issue #2: trace the effective runtime path that still showed name-derived character/native-state IDs despite UUID helpers in current code;
+- issue #3: add compact icon-first Copy JSON / Download JSON controls to the CharacterDocument inspector.
 
 ## Current development checkpoint
 
-Guided class/species generation plus the sticky acceptable-option pattern are implemented on `dev` at:
+Guided class/background/species creation and the consolidated creator workspace are implemented on `dev` at:
 
-- code checkpoint `be4f6f116cdd3e238362cd8f29e93ad257ec7c1b`
-- GitHub Actions run `33028213283`
-- job `98374426066`
-- full `npm run verify` green
-- refs validation green
-- strict TypeScript green
-- 13 Vitest files / 54 tests / 0 failures
-- web TypeScript build green
+- code checkpoint `0d0b08fc8d5ff972ed2a0597cf388f02e0bb4977`;
+- GitHub Actions run `33030732051`;
+- job `98382400335`;
+- full `npm run verify` green;
+- refs validation green;
+- strict TypeScript green;
+- 14 Vitest files / 58 tests / 0 failures;
+- web TypeScript build green.
 
 Tracking:
 
-- issue #9 Guided D&D class/species choice pools with sticky random selection
-- issues #5, #7, and #8 remain open for the deferred combined runtime acceptance of Manual / Point Cost / base ability methods
+- issue #9 Guided D&D class/species choice pools with sticky random selection now also covers the first background/UI consolidation increment;
+- issues #5, #7, and #8 remain open for the deferred combined runtime acceptance of the accumulated ability-generation work.
 
-Nothing in the current generation stack has been promoted beyond `dev` since that owner QA remains deferred.
+Nothing in the current generation stack has been promoted beyond `dev` since owner runtime QA remains deferred.
 
 ## Product direction established
 
 The default guided D&D 2024 flow follows the official SRD sequence:
 
 1. choose class;
-2. determine origin;
-3. determine ability scores.
+2. determine origin: background, species, and related origin decisions;
+3. determine ability scores;
+4. continue remaining character details.
 
-Character Forge also now has a reusable menu-choice pattern inspired by the requested Nethack-style workflow:
+Character Forge also uses a reusable Nethack-style acceptable-option pattern for menu choices:
 
 - a player may choose one option directly;
 - a player may mark every option they would be happy receiving and ask Character Forge to choose randomly from that checked pool;
 - the acceptable pool is user-sticky across browser sessions;
-- the sticky preference is not authoritative character state;
-- the actual selected result, acceptable pool used for that character, and direct/random selection mode are retained in generation provenance.
+- sticky preference state is not authoritative character state;
+- the selected result, acceptable pool actually used for the character, and direct/random mode are retained in generation provenance.
 
-This pattern should be reused for future backgrounds, skills, languages, feats, equipment packages, subclasses, spells, and similar single-choice menus when the source system permits it.
+The pattern is now active for Class, Background, and Species and should remain the default menu-choice affordance when the source system permits it.
 
-## SRD catalog boundary
+## Creator workspace UI standard
 
-`packages/system-dnd5e/src/srdCatalog.ts` now catalogs all SRD 5.2.1 classes and species available to this adapter.
+The previous stack of separate generation panels was rejected as functionally useful but too clunky. The creator now follows this product standard:
 
-All twelve SRD classes are represented in the catalog:
+- generation and editing controls stay in the left column;
+- the current character summary/details stay in the right column;
+- universal choices appear before method-specific controls;
+- ability-generation method is a single dropdown;
+- only controls required by the selected method appear below that dropdown;
+- acceptable-option pools are compact/collapsible rather than permanently consuming vertical space;
+- random-from-acceptable uses a compact icon-first control;
+- the right-side character result remains visible/sticky on desktop while the left-side generation controls are adjusted;
+- narrow layouts collapse responsively to one column.
 
-- Barbarian
-- Bard
-- Cleric
-- Druid
-- Fighter
-- Monk
-- Paladin
-- Ranger
-- Rogue
-- Sorcerer
-- Warlock
-- Wizard
+This is a Character Forge workspace pattern, not a D&D-only exception. New generation features should fit this shell rather than adding parallel full-width panels.
 
-All nine SRD species are represented:
+Quick Generate remains conceptually distinct from Standard Array / Point Cost / Random / Manual: Quick is a complete-character recipe/front end, while the other four are ability-generation methods inside guided creation. Do not fake Quick as a fifth ability-score method merely to fit the dropdown. When Quick is consolidated into this workspace later, treat it as a top-level creation mode that can reuse ordinary catalogs, sticky preferences, and native generation APIs.
 
-- Dragonborn
-- Dwarf
-- Elf
-- Gnome
-- Goliath
-- Halfling
-- Human
-- Orc
-- Tiefling
+## SRD catalog/support boundary
 
-Catalog presence is intentionally separate from generation support. Options remain disabled when Character Forge cannot yet represent their required native decisions without invention.
+`packages/system-dnd5e/src/srdCatalog.ts` catalogs all SRD 5.2.1 classes, species, and the four SRD backgrounds used by the public adapter.
 
-### Initially guided-supported classes
+### Classes
 
-- Barbarian
-- Fighter
-- Monk
-- Rogue
+All twelve SRD classes are cataloged. Guided Level 1 generation currently supports:
 
-Spellcasting classes remain cataloged but disabled until a real spell/native-state seam exists rather than generating incomplete class state.
+- Barbarian;
+- Fighter;
+- Monk;
+- Rogue.
 
-### Initially guided-supported species
+Spellcasting classes remain cataloged but disabled until faithful native spell/choice state exists.
 
-- Dwarf
-- Halfling
-- Human
-- Orc
+### Species
 
-Dragonborn, Elf, Gnome, Goliath, and Tiefling remain cataloged but disabled because each requires a nested ancestry/lineage/legacy choice that should be modeled explicitly rather than silently defaulted.
+All nine SRD species are cataloged. Guided generation currently supports:
 
-## Guided native state
+- Dwarf;
+- Halfling;
+- Human;
+- Orc.
 
-New guided characters use `dnd5e-character/0.2` while the adapter continues accepting the prior `dnd5e-character/0.1` Human Soldier Fighter documents.
+Dragonborn, Elf, Gnome, Goliath, and Tiefling remain cataloged but disabled because required ancestry/lineage/legacy choices must be explicit rather than silently defaulted.
 
-The `0.2` shape generalizes only fields now justified by concrete SRD choices, including optional:
+### Backgrounds
 
-- class primary abilities;
-- class expertise/tool/fighting-style state;
-- species skill/origin-feat state;
-- class/species resources such as Rage, Second Wind, Stonecunning, Adrenaline Rush, and Relentless Endurance.
+All four SRD backgrounds are cataloged:
 
-The adapter is now `0.5.0` and independently validates both schema versions.
+- Acolyte;
+- Criminal;
+- Sage;
+- Soldier.
 
-The first guided native builder supports all 16 combinations of the four enabled classes and four enabled species. Automated coverage builds and validates every combination.
+Guided generation currently enables:
 
-Class-sensitive native state currently includes the Level 1 hit die, saving throws, fixed legal skill/tool defaults, starting equipment, Level 1 features/resources, weapon mastery where applicable, and derived AC/HP.
+- Criminal;
+- Soldier.
 
-Species-sensitive state currently includes size/speed, core Level 1 species features/resources, Dwarf Toughness HP, Human fixed first-slice Skillful/Versatile choices, and Orc/Dwarf limited-use resources.
+Acolyte and Sage remain visible but disabled because their Magic Initiate Origin feats require spell choices/native spell state that Character Forge does not yet model faithfully.
 
-## Guided browser surface
+## Background-owned mechanical state
 
-A new guided creation panel appears before the older regression-generation forms.
+Background is no longer a fixed Soldier assumption in guided generation.
 
-Current guided order is:
+The selected background now owns:
 
-1. character name;
-2. acceptable class pool + direct choice or Random from checked;
-3. Soldier background, still fixed for this slice;
-4. acceptable species pool + direct choice or Random from checked;
-5. Standard Array assignment;
-6. Soldier ability increases;
-7. build through the ordinary CharacterDocument/Parchment handoff.
+- its three eligible ability scores;
+- its fixed Origin feat;
+- its two skill proficiencies;
+- its tool proficiency;
+- its equipment-package versus 50 GP choice;
+- the legal +2/+1 or +1/+1/+1 ability-increase options shown by the UI.
 
-The class/species acceptable pools are retained in localStorage under versioned keys. Unsupported SRD options remain visible as disabled `later` entries with a reason instead of disappearing from the catalog.
+Criminal and Soldier are generated as real native background state. The adapter independently validates the selected background's eligible increases, feat, skills, tool, and equipment-choice shape.
 
-The existing Quick Generate, explicit Standard Array, Manual, Point Cost, and Random forms remain intact as regression surfaces.
+Human's extra Origin feat avoids duplicating the background feat in the currently supported slice. Human + Criminal therefore uses Criminal's Alert plus Savage Attacker as the Human Versatile choice; Human + Soldier uses Soldier's Savage Attacker plus Alert.
 
-## Provenance boundary
+The guided builder also avoids duplicate fixed skill grants where the current class/background defaults would otherwise overlap, e.g. the current Rogue + Criminal fixture substitutes a legal class skill rather than granting Stealth twice.
 
-Guided generation records:
+## Ability methods inside guided creation
 
-- `class.acceptable-pool`;
-- selected class and whether it was direct or randomly chosen from the pool;
-- fixed Soldier background;
-- `species.acceptable-pool`;
-- selected species and whether it was direct or randomly chosen;
-- Standard Array assignment;
-- background ability increases.
+The consolidated guided path now supports all four explicit ability methods through one native builder:
 
-User-sticky preferences are deliberately separate from the generated character. A later preference change must not rewrite historical character provenance.
+- Standard Array;
+- Point Cost;
+- Random Generation;
+- Manual Entry.
+
+The browser switches method-specific controls dynamically. Background increases are generated from the selected background rather than a Soldier-specific switch.
+
+Random Generation still retains seed, raw rolls, kept dice, roll-slot identity, and assignment provenance. Point Cost still uses the SRD 27-point budget. Manual and Standard Array retain their existing legality/provenance rules.
+
+The older method APIs/tests remain useful regression coverage even though the browser no longer renders five independent creator panels.
+
+## Native-state and adapter boundary
+
+New guided characters continue using `dnd5e-character/0.2`; the adapter continues accepting legacy `dnd5e-character/0.1` Human Soldier Fighter documents.
+
+Adapter version is now `0.6.0`.
+
+Guided native state distinguishes background skill/tool/feat/equipment contributions from class and species state. Derived HP, AC, Initiative, and Passive Perception are recomputed from the selected class/background/species/abilities. Criminal's Alert, for example, contributes to Initiative through ordinary derived-state computation rather than a UI patch.
 
 ## Combined owner QA remains deferred
 
-Do not treat the guided or accumulated ability-generation work as owner-accepted yet.
+Do not treat the accumulated guided work as owner-accepted yet.
 
 When the owner requests the next runtime pass, cover at least:
 
-1. Quick Generate smoke.
-2. Existing Standard Array / Manual / Point Cost / Random paths.
-3. Guided class pool direct choice and random-from-checked behavior.
-4. Reload the browser and confirm checked acceptable pools persist.
-5. Guided species pool direct/random behavior.
-6. Build representative combinations such as Dwarf Barbarian, Human Fighter, Halfling Rogue, and Orc Monk and confirm native validation is green.
-7. Confirm disabled catalog options cannot be selected yet.
-8. Save/reload/reopen at least one `dnd5e-character/0.2` guided character through Parchment and confirm native state and generation provenance survive unchanged.
+1. the new two-column layout: generation left, character details right;
+2. class/background/species direct choices and random-from-checked behavior;
+3. browser reload confirms all three acceptable pools remain sticky;
+4. Background changes regenerate the legal ability-increase menu;
+5. Criminal and Soldier both build valid characters;
+6. Acolyte/Sage and other unsupported catalog options remain visible but unavailable;
+7. Standard Array / Point Cost / Random / Manual each work from the single method dropdown and reveal only their own controls;
+8. representative class/background/species combinations report `Native state valid`;
+9. save/reload/reopen at least one `dnd5e-character/0.2` guided character through Parchment and confirm native state/provenance survive unchanged;
+10. Quick Generate's previously accepted persistence seam remains intact at the API/host boundary.
 
 Do not promote to `qa`/`main` until that accumulated owner pass is accepted.
 
-## Next implementation slice
+## Next mechanical slices
 
-Open SRD backgrounds in the guided path.
+Backgrounds are open enough for current non-spell SRD use. The next useful D&D increments should deepen real choices rather than expand catalogs by defaulting required decisions:
 
-The SRD 5.2.1 guided catalog should next support the four available backgrounds as real mechanical options rather than deepening the fixed Soldier assumption:
+1. open class-owned choices for the four supported martial classes, especially skills, Fighting Style, Weapon Mastery, Expertise/tool choices where applicable;
+2. model nested non-spell species ancestry/lineage decisions and enable additional species only when their native state is faithful;
+3. establish a real spell/native-state seam before enabling Acolyte/Sage or spellcasting classes that require spell choices;
+4. bring Quick Generate back into the consolidated workspace as a top-level creation mode rather than another ability method;
+5. add guided narrative through the same catalogs, choice pools, and generation APIs.
 
-- Acolyte
-- Criminal
-- Sage
-- Soldier
+## Random-tables companion watch point
 
-Use the same sticky acceptable-option pattern and retain direct/random selection provenance.
+Do not implement the random-tables companion module yet, but keep the seam visible.
 
-Background choice must own its real D&D consequences:
+The right time to begin easing it in is after enough ordinary mechanical choice dimensions exist to define a real producer/consumer contract, but before guided narrative grows large enough to invent its own ad hoc table machinery. A practical trigger is after backgrounds plus one or two additional class/species choice slices are working.
 
-- its three eligible ability scores;
-- the fixed Origin feat it grants;
-- skill proficiencies;
-- tool proficiency where applicable;
-- starting-equipment choices / gold path.
+Likely early consumers include:
 
-Then make the guided ability-increase UI derive legal +2/+1 or +1/+1/+1 choices from the selected background rather than using Soldier-specific options.
+- personality traits;
+- ideals;
+- bonds;
+- flaws;
+- equipment/trinket suggestions;
+- later system-owned flavor or encounter/character-detail tables.
 
-After backgrounds, lift the existing ability-generation methods into the guided flow as interchangeable choices, then open the nested species decisions before enabling those five currently-disabled species. Spellcasting classes should wait until their native spell state can be represented faithfully.
+Guardrail: a generic random-table engine should return inspectable structured results/choices and provenance. It should not patch CharacterDocument or D&D native state directly. System-specific datasets and mappings belong with their system/companion layer; the generic table mechanism should remain reusable across systems.
+
+Before implementation, use concrete consumers to decide whether a table entry needs plain text, weighted alternatives, tags, native IDs, follow-up subtable references, or other structured output. Do not design a universal table schema from D&D flavor tables alone.
 
 ## Guardrails
 
@@ -209,6 +216,7 @@ After backgrounds, lift the existing ability-generation methods into the guided 
 - Generation methods and guided choices must converge on the same native validation and persistence boundary.
 - Sticky preference state is not character state; historical per-character choice provenance is.
 - Do not silently default nested source-system decisions merely to mark more catalog entries supported.
+- New creator UI must fit the left-controls/right-details workspace rather than multiplying full-width panels.
 - Keep D&D and Foundry schemas out of shared Character Forge and Parchment contracts.
 - Character Forge owns RPG-native interpretation, validation, generation choices, and provenance.
 - Parchment owns project membership, generic asset lifecycle, relationships, persistence, and future sync/share behavior.

@@ -167,7 +167,7 @@ Follow-up: Compare this against systems where unspent character points, advancem
 
 ### 2026-08-26 - Acceptable-option pools are user intent, not character capability
 
-Observation: Guided D&D class/species creation now distinguishes three related facts: the set of options a user is generally happy to receive, whether the current character's result was chosen directly or randomly from that set, and the single class/species actually possessed by the resulting character. The acceptable pool is sticky user preference; the selected result is native character state; the pool and selection mode used for that character are generation provenance.
+Observation: Guided D&D creation distinguishes three related facts: the set of options a user is generally happy to receive, whether the current character's result was chosen directly or randomly from that set, and the single class/background/species actually possessed by the resulting character. The acceptable pool is sticky user preference; the selected result is native character state; the pool and selection mode used for that character are generation provenance.
 
 Translator implication: Translation should operate on the selected character state, not on the user's broader acceptable-option preferences. Preference data can help future generation or recommendation but does not describe capabilities the character possesses.
 
@@ -175,11 +175,11 @@ Bridge-RPG implication: The original RPG can safely support Nethack-style random
 
 Confidence: high for the separation of preference, provenance, and state; medium on how broadly sticky pools should be reused until more menu types are implemented.
 
-Follow-up: Reuse the pattern for backgrounds and other single-choice menus. Watch for cases where acceptable options are conditional on earlier choices or campaign restrictions and make sure sticky preferences are sanitized rather than treated as authoritative legality.
+Follow-up: Reuse the pattern for other menu decisions. Watch for cases where acceptable options are conditional on earlier choices or campaign restrictions and make sure sticky preferences are sanitized rather than treated as authoritative legality.
 
 ### 2026-08-26 - Nested source choices must not be erased by convenient defaults
 
-Observation: The SRD class/species catalog is broader than the first guided-supported set. Several species require ancestry, lineage, or legacy choices, while spellcasting classes require substantial spell/native state. Character Forge can name those catalog options under the SRD license, but marking them fully supported by silently selecting nested choices would lose real player intent and make the native document falsely look complete.
+Observation: The SRD class/species/background catalog is broader than the guided-supported set. Several species require ancestry, lineage, or legacy choices; Acolyte/Sage and spellcasting classes require spell choices/native state. Character Forge can catalog those options, but marking them fully supported by silently selecting nested choices would lose real player intent and make the native document falsely look complete.
 
 Translator implication: A source option that contains meaningful nested decisions cannot always be translated or generated faithfully as one flat identifier. The bridge may need to preserve a decision tree or explicitly report missing/substituted nested choices.
 
@@ -187,4 +187,16 @@ Bridge-RPG implication: Prefer explicit composable option trees over large packa
 
 Confidence: high.
 
-Follow-up: Model Dragonborn ancestry, Elf/Gnome lineages, Goliath Giant Ancestry, Tiefling legacy, and spell-state choices explicitly before enabling those catalog entries in guided generation. Use the same discipline for future systems.
+Follow-up: Model species ancestry/lineage/legacy and spell-state choices explicitly before enabling those catalog entries. Use the same discipline for future systems.
+
+### 2026-08-26 - Background is a source-owned bundle, not a label
+
+Observation: Opening Criminal and Soldier backgrounds showed that one D&D background simultaneously constrains ability increases and grants an Origin feat, two skill proficiencies, a tool proficiency, and an equipment/gold branch. Those grants can affect derived state: Criminal's Alert changes Initiative even though the selected class, species, and base Dexterity may be unchanged. Human's separate Versatile Origin-feat choice must also avoid duplicating the background-granted feat.
+
+Translator implication: Translating only the background name or only the character's final derived totals would lose important causal information. Background-like concepts in other systems may map partly to training, social history, feats, resources, contacts, skills, or equipment. Translation should preserve source attribution long enough to map those contributions independently and to report when a target system has no equivalent bundle.
+
+Bridge-RPG implication: If the original RPG uses backgrounds/origins, prefer them as composable sources of grants/choices rather than opaque packages whose only persistent meaning is a label. This can support richer lifepaths without forcing every grant to remain permanently tied to one monolithic package.
+
+Confidence: high for D&D source attribution; medium as a cross-system design lesson until another RPG supplies a contrasting background/lifepath model.
+
+Follow-up: Class-owned skill/mastery choices and a second RPG should test whether a generalized source-aware grant/choice concept is justified. Do not promote a universal `background` schema from D&D alone.

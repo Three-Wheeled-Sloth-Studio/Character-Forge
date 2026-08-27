@@ -36,6 +36,8 @@ The current implementation supports:
 
 Manual Ability Entry is a Character Forge input/validation path rather than a separate SRD generation rule.
 
+All four explicit ability methods now run through the generalized guided native builder. The selected background supplies the three legal abilities for the background increase step.
+
 ## SRD class catalog
 
 The SRD 5.2.1 class catalog represented by Character Forge contains:
@@ -55,7 +57,7 @@ The SRD 5.2.1 class catalog represented by Character Forge contains:
 
 Cataloging an SRD class does not mean the current generator can faithfully produce it.
 
-The first guided-enabled class subset is:
+The guided-enabled class subset is:
 
 - Barbarian
 - Fighter
@@ -78,7 +80,7 @@ The SRD 5.2.1 species catalog represented by Character Forge contains:
 - Orc
 - Tiefling
 
-The first guided-enabled species subset is:
+The guided-enabled species subset is:
 
 - Dwarf
 - Halfling
@@ -89,27 +91,40 @@ Dragonborn, Elf, Gnome, Goliath, and Tiefling remain disabled until their requir
 
 ## SRD backgrounds
 
-The SRD 5.2.1 background set targeted by the next guided slice is:
+The SRD 5.2.1 backgrounds represented in the guided catalog are:
 
-- Acolyte
-- Criminal
-- Sage
-- Soldier
+- Acolyte: INT/WIS/CHA; Magic Initiate (Cleric); Insight and Religion; Calligrapher's Supplies; equipment package or 50 GP.
+- Criminal: DEX/CON/INT; Alert; Sleight of Hand and Stealth; Thieves' Tools; equipment package or 50 GP.
+- Sage: CON/INT/WIS; Magic Initiate (Wizard); Arcana and History; Calligrapher's Supplies; equipment package or 50 GP.
+- Soldier: STR/DEX/CON; Savage Attacker; Athletics and Intimidation; Gaming Set; equipment package or 50 GP.
 
-Background selection must preserve the background's real mechanical contributions: eligible ability scores, Origin feat, skill/tool proficiencies, and equipment/gold choices used by generated native state.
+Current guided support enables Criminal and Soldier.
+
+Acolyte and Sage remain cataloged but disabled because their fixed Magic Initiate Origin feats require spell choices that the current native spell model cannot yet represent faithfully. Do not silently select those spells to mark the backgrounds supported.
+
+For enabled backgrounds, generated native state retains:
+
+- the background ID;
+- its fixed Origin feat;
+- its two skill proficiencies;
+- its tool proficiency;
+- package-A versus 50-GP equipment choice;
+- its three eligible ability IDs through the D&D catalog and generation/validation path.
+
+The adapter verifies background-owned ability increases against the selected background rather than a Soldier-specific rule.
 
 ## First guided native slice
 
-The current guided builder uses a deliberately small subset of SRD mechanics while opening real class/species variance:
+The current guided builder uses a deliberately small subset of SRD mechanics while opening real class/background/species variance:
 
 - Level 1 XP and Proficiency Bonus.
-- Barbarian Level 1 including Rage, Unarmored Defense, Weapon Mastery, and starting equipment/profile choices used by the generated fixture.
-- Fighter Level 1 including Fighting Style, Second Wind, Weapon Mastery, and starting equipment/profile choices used by the generated fixture.
-- Monk Level 1 including Martial Arts, Unarmored Defense, and starting equipment/profile choices used by the generated fixture.
-- Rogue Level 1 including Expertise, Sneak Attack, Thieves' Cant, Weapon Mastery, and starting equipment/profile choices used by the generated fixture.
+- Barbarian Level 1 including Rage, Unarmored Defense, Weapon Mastery, and the starting profile used by the generated fixture.
+- Fighter Level 1 including Fighting Style, Second Wind, Weapon Mastery, and the starting profile used by the generated fixture.
+- Monk Level 1 including Martial Arts, Unarmored Defense, and the starting profile used by the generated fixture.
+- Rogue Level 1 including Expertise, Sneak Attack, Thieves' Cant, Weapon Mastery, and the starting profile used by the generated fixture.
+- Criminal and Soldier background mechanics listed above.
 - Dwarf, Halfling, Human, and Orc Level 1 species traits needed by generated state.
-- Soldier remains the only enabled background until the next slice.
-- Alert and Savage Attacker remain the fixed first-slice Human/Soldier Origin-feat choices where applicable.
+- Human Versatile currently selects a non-duplicating supported Origin feat: Soldier/Savage Attacker pairs with Alert; Criminal/Alert pairs with Savage Attacker.
 
 Implementation stores identifiers and mechanical state rather than copying descriptive rules prose.
 

@@ -6,6 +6,7 @@ principles:
   - Add universal concepts only when concrete system mappings justify them.
   - Make guided narrative generation a first-class path early.
   - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
+  - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface rather than multiplying full-width method panels.
 roadmap:
   - id: foundation-0-repository-baseline
     horizon: completed
@@ -32,28 +33,45 @@ roadmap:
       - Standard Array, Manual Ability Entry, SRD Point Cost, and SRD Random Generation.
       - Reusable deterministic system-neutral seeded-random and dice-expression generator core.
       - Random 4d6 keep-highest-3 generation retaining raw dice, kept dice, roll slots, seed, and assignment provenance.
-      - Browser review surface and complete CharacterDocument handoff to Parchment.
       - All twelve SRD 5.2.1 classes cataloged with primary-ability/support metadata.
       - All nine SRD 5.2.1 species cataloged with support/blocking metadata.
+      - All four SRD backgrounds cataloged with ability/feat/skill/tool/support metadata.
       - Reusable sticky acceptable-option choice-pool behavior with direct or random-from-checked selection.
-      - Guided class-first creation surface using sticky class/species pools.
+      - Guided class-first creation using sticky Class, Background, and Species pools.
       - Guided Level 1 native support for Barbarian, Fighter, Monk, and Rogue.
+      - Guided background support for Criminal and Soldier, including real ability eligibility, Origin feat, skills, tool, equipment package or 50 GP, and derived-state effects.
+      - Acolyte and Sage cataloged but blocked until Magic Initiate spell choices/native spell state are explicit.
       - Guided species support for Dwarf, Halfling, Human, and Orc.
       - Generalized dnd5e-character/0.2 guided native state while preserving dnd5e-character/0.1 validation/reopen.
-      - Adapter 0.5.0 independently validates all 16 initially supported guided class/species combinations.
+      - Adapter 0.6.0 validates supported guided class/background/species native state and background-owned ability increases.
+      - Standard Array, Point Cost, Random, and Manual routed through one guided native builder.
+      - Creator workspace consolidated to generation controls on the left and character details on the right, with one dynamic ability-generation dropdown.
     current_gate:
       - Owner runtime QA for the accumulated generation stack remains intentionally deferred.
       - Current generation/guided work stays on dev and is not promoted until that combined pass is accepted.
     current_slice:
-      - Replace fixed Soldier in guided creation with Acolyte, Criminal, Sage, and Soldier.
-      - Reuse sticky acceptable-option pools for background selection.
-      - Derive legal background ability-increase choices from selected background data.
+      - Open real class-owned choices for the four supported martial classes rather than keeping permanent fixture defaults.
+      - Preserve the consolidated creator workspace and ordinary choice-pool/provenance boundaries.
     remaining_scope:
-      - Bring Standard Array, Point Cost, Random, and Manual into the guided flow as interchangeable ability-method choices.
-      - Model nested species ancestry/lineage/legacy choices and then enable the five currently blocked SRD species.
-      - Open additional class-owned choices for the four currently supported martial classes.
-      - Add a faithful spell/native-state seam and enable SRD spellcasting classes incrementally.
+      - Open class skill, Fighting Style, Weapon Mastery, Expertise/tool and related martial choices incrementally.
+      - Model nested species ancestry/lineage/legacy choices and then enable additional SRD species.
+      - Add a faithful spell/native-state seam, then enable Acolyte/Sage and SRD spellcasting classes incrementally.
+      - Consolidate Quick Generate into the creator workspace as a top-level creation mode, not an ability method.
       - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
+      - Introduce a system-neutral random-table companion only after concrete class/species/background consumers define its output contract and before guided narrative creates parallel table machinery.
+  - id: companion-random-tables
+    horizon: watch
+    status: discovery_triggered_later
+    goal: Provide reusable provenance-bearing random-table evaluation for character flavor and structured suggestions without patching native character state directly.
+    trigger:
+      - Backgrounds are open and at least one or two additional class/species choice slices provide concrete consumers.
+      - The table output contract can be derived from real needs such as traits, ideals, bonds, flaws, equipment/trinkets, tags, native IDs, or subtable references.
+      - Start before guided narrative grows large enough to invent separate randomization infrastructure.
+    guardrails:
+      - Generic table engine remains system-neutral.
+      - D&D datasets and mappings remain D&D-owned.
+      - Table results feed ordinary generation decisions or structured suggestions and retain provenance.
+      - Do not freeze a universal table schema from D&D flavor tables alone.
   - id: parchment-2-character-persistence
     horizon: completed
     status: completed
