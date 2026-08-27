@@ -13,6 +13,12 @@ import {
   DND5E_STANDARD_LANGUAGE_OPTIONS,
   type GuidedDnd5eCoreChoices,
 } from "./guidedChoices.js";
+import {
+  clericCantripCount,
+  DND5E_CLERIC_CANTRIP_OPTIONS,
+  DND5E_CLERIC_DIVINE_ORDER_OPTIONS,
+  DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,
+} from "./clericCatalog.js";
 import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 
@@ -41,6 +47,8 @@ export function assertGuidedDnd5eCoreChoices(
   assertOneOf(choices.classEquipmentChoice, classRules.equipmentChoices.map((option) => option.id), `${classId} starting equipment`);
   assertExactUnique(choices.weaponMasteryIds, classRules.weaponMasteryCount, `${classId} Weapon Mastery choices`);
   for (const weaponId of choices.weaponMasteryIds) assertOneOf(weaponId, classRules.weaponMasteryIds, `${classId} mastery weapon`);
+
+  assertClericChoices(classId, choices);
 
   if (classId === "fighter") {
     if (!choices.fightingStyleFeatId) throw new Error("Fighter requires a Fighting Style choice.");
@@ -112,6 +120,21 @@ export function assertGuidedDnd5eCoreChoices(
   } else if (choices.human) {
     throw new Error("Human-only choices were supplied to a non-Human character.");
   }
+}
+
+function assertClericChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreChoices): void {
+  if (classId !== "cleric") {
+    if (choices.cleric) throw new Error("Cleric-only choices were supplied to another class.");
+    return;
+  }
+  const cleric = choices.cleric;
+  if (!cleric) throw new Error("Cleric requires Divine Order and spell choices.");
+  assertOneOf(cleric.divineOrderId, DND5E_CLERIC_DIVINE_ORDER_OPTIONS.map((option) => option.id), "Cleric Divine Order");
+  const cantripCount = clericCantripCount(cleric.divineOrderId);
+  assertExactUnique(cleric.cantripIds, cantripCount, "Cleric cantrips");
+  for (const spellId of cleric.cantripIds) assertOneOf(spellId, DND5E_CLERIC_CANTRIP_OPTIONS.map((option) => option.id), "Cleric cantrip");
+  assertExactUnique(cleric.preparedSpellIds, 4, "Cleric prepared spells");
+  for (const spellId of cleric.preparedSpellIds) assertOneOf(spellId, DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS.map((option) => option.id), "Cleric level 1 spell");
 }
 
 function assertMagicInitiate(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): void {
