@@ -1,57 +1,112 @@
 # D&D 5E Spell-State Boundary Watch
 
 Date: 2026-08-27
-Status: next architecture seam
+Status: Magic Initiate grant seam proven; class spellcasting seam next
 
-## Why this seam is next
+## Current state
 
-The guided Level 1 creator now supports every SRD 5.2.1 option that can be represented faithfully without a general spell/native-state model:
+The first D&D-owned spell-state consumer is now implemented and automated-green.
+
+Guided support currently includes:
 
 - classes: Barbarian, Fighter, Monk, Rogue;
-- backgrounds: Criminal, Soldier;
+- backgrounds: Acolyte, Criminal, Sage, Soldier;
 - species: Dragonborn, Dwarf, Goliath, Halfling, Human, Orc.
 
-The remaining catalog is dominated by choices that grant or require spells:
+Acolyte and Sage prove the first reusable spell primitive without pretending class spellcasting already exists:
 
-- Acolyte and Sage require Magic Initiate spell choices;
-- Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock, and Wizard require Level 1 spell or pact-magic state;
-- Elf, Gnome, and Tiefling lineages include spell-granting choices or spellcasting-ability decisions.
+- Acolyte grants Magic Initiate from the Cleric list;
+- Sage grants Magic Initiate from the Wizard list;
+- casting ability, two cantrips, and one Level 1 spell are explicit choices;
+- the Level 1 spell is retained as always prepared with one free cast per Long Rest;
+- generation provenance retains how the choices were made;
+- the adapter independently reconstructs and validates the retained grant.
 
-The next breadth increment should therefore establish one faithful D&D-owned spell-state seam and use it to unlock real consumers incrementally.
+Code checkpoint:
 
-## Minimum useful contract
+- `523bc579065d81d2e144421ee080c1511a988a1a`
+- Actions `33115103317`
+- 16 test files / 72 tests / 0 failures
 
-Do not model every future spellcasting rule at once. The first contract should be only rich enough to support actual Level 1 creation decisions and retained native state.
+## Proven grant contract
 
-Likely minimum concepts:
+`Dnd5eSpellGrantState` is source-owned spell capability for feats, species features, or similar grants. It retains:
 
-- spell identifier from the licensed SRD source;
-- source/grant provenance, such as class, Origin feat, or species lineage;
-- spell level / cantrip distinction;
-- selected spellcasting ability where the source rule requires a choice;
-- known/prepared/always-prepared relationship where mechanically relevant;
-- spell slots or pact slots when a class owns them;
-- repeatable spell-choice menus with the standard sticky acceptable-pool / direct / random-from-checked affordance;
-- validation that selections are legal for the granting source;
-- retained decisions/provenance sufficient to explain how the spell entered the character.
+- grant identity;
+- granting source identity;
+- spell-list identity;
+- selected spellcasting ability;
+- cantrip IDs;
+- prepared spell IDs;
+- always-prepared spell IDs;
+- free-cast spell identity;
+- free-cast maximum/current uses;
+- recharge cadence.
+
+The contract is deliberately not a generic class spellcasting bucket.
+
+## Next architecture seam: Level 1 class spellcasting
+
+The remaining class catalog requires source-owned class spellcasting state. The next implementation should determine the smallest reusable Level 1 contract that composes with `spells.grants[]` while preserving class distinctions.
+
+Likely common concepts include:
+
+- spellcasting source/class identity;
+- casting ability;
+- cantrips known where applicable;
+- known versus prepared spell relationships;
+- slot maximum/current state for classes that use standard slots;
+- preparation or known-spell limits;
+- reset/recharge semantics;
+- class-specific source collections such as a Wizard spellbook only where the class actually owns one;
+- independent reconstruction/validation of legal state.
+
+Do not force Pact Magic or other genuinely different class mechanics into a flattened standard-slot model merely for schema uniformity. Prefer reusable primitives with explicit source-specific state.
+
+## Composition rule
+
+A character may have both class spellcasting and one or more independent spell grants. These must coexist rather than overwrite each other.
+
+For example, a future Cleric with Sage background should retain:
+
+- Cleric class spellcasting as class-owned state;
+- Sage Magic Initiate (Wizard) as a separate grant;
+- each source's casting ability, prepared/known relationships, uses, and provenance independently.
+
+Do not infer one source's capability from the other.
+
+## Human Magic Initiate boundary
+
+Human-selected Magic Initiate remains intentionally disabled. The general feat permits a Druid-list choice in addition to Cleric and Wizard, while the currently licensed spell catalog slice only contains the Cleric/Wizard lists needed by Acolyte and Sage.
+
+Do not mark Human Magic Initiate supported until the complete relevant choice surface is represented.
+
+## Remaining species consumers
+
+Elf, Gnome, and Tiefling still require lineage/legacy state. Their spell-granting features should reuse the grant primitive where that is mechanically accurate, while preserving:
+
+- lineage/legacy selection;
+- spellcasting-ability choice where required;
+- Level 1 active effects;
+- future level-gated spell grants without pretending those future spells are already active.
 
 ## Guardrails
 
-- Spell state is D&D-native and belongs in `system-dnd5e`; do not promote D&D spell structures into the universal CharacterDocument contract.
-- CharacterDocument continues to retain the D&D native payload losslessly.
+- Spell state is D&D-native and belongs in `system-dnd5e`; do not put D&D spell structures in universal CharacterDocument contracts.
+- CharacterDocument retains the native payload losslessly.
 - Parchment remains unaware of D&D spell mechanics.
-- Do not use spell names as unversioned free text when an SRD source identifier can be retained.
-- Do not silently choose spells merely to enable a catalog option. If Quick Generate later chooses spells automatically, it must do so through ordinary generation decisions and provenance.
-- Support only legally redistributable SRD 5.2.1 spell data in the public repository.
-- Build the smallest consumer-first slice first, then expand from evidence.
+- Retained native state is authoritative; generation provenance explains history but is not needed to reconstruct capability.
+- Do not use unversioned free-text spell names when versioned SRD spell IDs are available.
+- Do not silently choose spells merely to enable a catalog option.
+- Quick/random generation must use the same ordinary choice contracts and provenance as guided generation.
+- Support only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repository.
+- Build consumer-first slices and expand the contract from evidence rather than prebuilding every future spellcasting rule.
 
 ## Suggested unlock order
 
-A useful sequence is:
+1. One faithful Level 1 class-spellcasting vertical slice.
+2. Reuse/refine the class primitives across additional spellcasting classes.
+3. Enable Elf/Gnome/Tiefling lineage spell choices using the proven grant model where appropriate.
+4. Add the Druid Magic Initiate list before enabling Human-selected Magic Initiate.
 
-1. Magic Initiate grant state, because it unlocks Acolyte/Sage and exercises cantrip + Level 1 spell selection without first requiring a complete class spellcasting subsystem.
-2. One straightforward prepared/known Level 1 spellcasting class to prove class-owned spell state.
-3. Reuse the seam across the remaining classes.
-4. Enable Elf/Gnome/Tiefling lineage spell choices once the same grant model is proven.
-
-The exact class order should be chosen from implementation simplicity and architectural value, not player popularity alone.
+Choose the first class for architectural clarity and reusable value, not player popularity or catalog order.
