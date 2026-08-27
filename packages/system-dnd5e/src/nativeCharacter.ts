@@ -45,6 +45,8 @@ export interface Dnd5eOriginState extends JsonObject {
   speciesOriginFeatId?: string;
   speciesOriginFeatProficiencyIds?: string[];
   speciesSkillId?: string;
+  speciesAncestryId?: string;
+  speciesDamageType?: string;
   toolProficiencyId: string;
   backgroundEquipmentChoice: string;
 }
@@ -86,6 +88,10 @@ export interface Dnd5eResourcesState extends JsonObject {
   adrenalineRushCurrent?: number;
   relentlessEnduranceMaximum?: number;
   relentlessEnduranceCurrent?: number;
+  breathWeaponMaximum?: number;
+  breathWeaponCurrent?: number;
+  giantAncestryMaximum?: number;
+  giantAncestryCurrent?: number;
 }
 
 export interface Dnd5eDerivedState extends JsonObject {
