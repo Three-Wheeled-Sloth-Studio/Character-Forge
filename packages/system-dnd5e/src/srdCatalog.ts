@@ -14,6 +14,8 @@ export type Dnd5eSrdClassId =
   | "warlock"
   | "wizard";
 
+export type Dnd5eSrdBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
+
 export type Dnd5eSrdSpeciesId =
   | "dragonborn"
   | "dwarf"
@@ -26,12 +28,24 @@ export type Dnd5eSrdSpeciesId =
   | "tiefling";
 
 export type GuidedDnd5eClassId = "barbarian" | "fighter" | "monk" | "rogue";
+export type GuidedDnd5eBackgroundId = "criminal" | "soldier";
 export type GuidedDnd5eSpeciesId = "dwarf" | "halfling" | "human" | "orc";
 
 export interface Dnd5eSrdClassOption {
   id: Dnd5eSrdClassId;
   label: string;
   primaryAbilityIds: readonly Dnd5eAbilityId[];
+  guidedSupported: boolean;
+  blockedReason?: string;
+}
+
+export interface Dnd5eSrdBackgroundOption {
+  id: Dnd5eSrdBackgroundId;
+  label: string;
+  abilityScoreIds: readonly [Dnd5eAbilityId, Dnd5eAbilityId, Dnd5eAbilityId];
+  originFeatId: string;
+  skillProficiencies: readonly [string, string];
+  toolProficiencyId: string;
   guidedSupported: boolean;
   blockedReason?: string;
 }
@@ -58,6 +72,47 @@ export const DND5E_SRD_521_CLASS_OPTIONS: readonly Dnd5eSrdClassOption[] = [
   { id: "wizard", label: "Wizard", primaryAbilityIds: ["intelligence"], guidedSupported: false, blockedReason: "Spellcasting and spellbook native state are not implemented yet." },
 ] as const;
 
+export const DND5E_SRD_521_BACKGROUND_OPTIONS: readonly Dnd5eSrdBackgroundOption[] = [
+  {
+    id: "acolyte",
+    label: "Acolyte",
+    abilityScoreIds: ["intelligence", "wisdom", "charisma"],
+    originFeatId: "magic-initiate:cleric",
+    skillProficiencies: ["insight", "religion"],
+    toolProficiencyId: "calligraphers-supplies",
+    guidedSupported: false,
+    blockedReason: "Magic Initiate spell choices are not implemented yet.",
+  },
+  {
+    id: "criminal",
+    label: "Criminal",
+    abilityScoreIds: ["dexterity", "constitution", "intelligence"],
+    originFeatId: "alert",
+    skillProficiencies: ["sleight-of-hand", "stealth"],
+    toolProficiencyId: "thieves-tools",
+    guidedSupported: true,
+  },
+  {
+    id: "sage",
+    label: "Sage",
+    abilityScoreIds: ["constitution", "intelligence", "wisdom"],
+    originFeatId: "magic-initiate:wizard",
+    skillProficiencies: ["arcana", "history"],
+    toolProficiencyId: "calligraphers-supplies",
+    guidedSupported: false,
+    blockedReason: "Magic Initiate spell choices are not implemented yet.",
+  },
+  {
+    id: "soldier",
+    label: "Soldier",
+    abilityScoreIds: ["strength", "dexterity", "constitution"],
+    originFeatId: "savage-attacker",
+    skillProficiencies: ["athletics", "intimidation"],
+    toolProficiencyId: "gaming-set:dice",
+    guidedSupported: true,
+  },
+] as const;
+
 export const DND5E_SRD_521_SPECIES_OPTIONS: readonly Dnd5eSrdSpeciesOption[] = [
   { id: "dragonborn", label: "Dragonborn", guidedSupported: false, blockedReason: "Draconic Ancestry choice is not implemented yet." },
   { id: "dwarf", label: "Dwarf", guidedSupported: true },
@@ -74,12 +129,20 @@ export const GUIDED_DND5E_CLASS_IDS = DND5E_SRD_521_CLASS_OPTIONS
   .filter((option): option is Dnd5eSrdClassOption & { id: GuidedDnd5eClassId } => option.guidedSupported)
   .map((option) => option.id);
 
+export const GUIDED_DND5E_BACKGROUND_IDS = DND5E_SRD_521_BACKGROUND_OPTIONS
+  .filter((option): option is Dnd5eSrdBackgroundOption & { id: GuidedDnd5eBackgroundId } => option.guidedSupported)
+  .map((option) => option.id);
+
 export const GUIDED_DND5E_SPECIES_IDS = DND5E_SRD_521_SPECIES_OPTIONS
   .filter((option): option is Dnd5eSrdSpeciesOption & { id: GuidedDnd5eSpeciesId } => option.guidedSupported)
   .map((option) => option.id);
 
 export function isGuidedDnd5eClassId(value: string): value is GuidedDnd5eClassId {
   return (GUIDED_DND5E_CLASS_IDS as readonly string[]).includes(value);
+}
+
+export function isGuidedDnd5eBackgroundId(value: string): value is GuidedDnd5eBackgroundId {
+  return (GUIDED_DND5E_BACKGROUND_IDS as readonly string[]).includes(value);
 }
 
 export function isGuidedDnd5eSpeciesId(value: string): value is GuidedDnd5eSpeciesId {
