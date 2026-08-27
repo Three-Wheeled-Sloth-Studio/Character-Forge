@@ -55,7 +55,7 @@ describe("guided D&D generation", () => {
     expect(payload.origin.toolProficiencyId).toBe("thieves-tools");
     expect(payload.origin.backgroundSkillProficiencies).toEqual(["sleight-of-hand", "stealth"]);
     expect(payload.origin.speciesOriginFeatId).toBe("savage-attacker");
-    expect(payload.derived.initiativeModifier).toBe(4);
+    expect(payload.derived.initiativeModifier).toBe(5);
     expect(character.generation?.decisions).toEqual(expect.arrayContaining([
       expect.objectContaining({ stepId: "background", choiceId: "criminal" }),
       expect.objectContaining({ stepId: "background.acceptable-pool" }),
