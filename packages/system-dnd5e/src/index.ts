@@ -5,4 +5,6 @@ export * from "./manualGenerate.js";
 export * from "./nativeCharacter.js";
 export * from "./pointCostGenerate.js";
 export * from "./quickGenerate.js";
+export * from "./randomGenerate.js";
 export * from "./rulesSource.js";
+export * from "./standardArrayGenerate.js";

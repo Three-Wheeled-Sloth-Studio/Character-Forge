@@ -31,9 +31,15 @@ h2 { font-family: Georgia, serif; font-size: 1.8rem; margin-bottom: 8px; }
 .manual-ability-fieldset legend { padding: 0 6px; color: #65594d; font-size: .82rem; font-weight: 800; }
 .manual-ability-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .manual-ability-grid label { font-size: .75rem; text-align: center; }
-.manual-ability-grid input { text-align: center; }
+.manual-ability-grid input, .manual-ability-grid select { text-align: center; }
 .point-budget { padding: 10px 12px; border-radius: 10px; background: #ede8dd; color: #4f463d; font-size: .84rem; font-weight: 800; text-align: center; }
 .point-budget.over-budget { background: #f4dddd; color: #8a2525; }
+.random-roll-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.random-roll-card { padding: 10px; border: 1px solid #d4c8b8; border-radius: 10px; background: #fbf5eb; text-align: center; }
+.random-roll-card span, .random-roll-card small { display: block; color: #74685a; }
+.random-roll-card strong { display: block; margin: 2px 0; font-family: Georgia, serif; font-size: 1.5rem; }
+.random-roll-card small { font-size: .7rem; line-height: 1.35; }
+.muted { color: #74685a; font-size: .82rem; }
 .form-error { min-height: 1.2em; margin: 0; color: #8a2525; font-size: .82rem; }
 .result-panel { padding: 24px; }
 .empty-result { color: #6c6258; text-align: center; padding: 48px 24px; }
@@ -61,6 +67,7 @@ code { overflow-wrap: anywhere; }
   .forge-header, .creator-panel, .result-heading { grid-template-columns: 1fr; flex-direction: column; }
   .creator-panel { grid-template-columns: 1fr; }
   .manual-ability-grid { grid-template-columns: repeat(2, 1fr); }
+  .random-roll-grid { grid-template-columns: repeat(2, 1fr); }
   .ability-grid { grid-template-columns: repeat(3, 1fr); }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .result-details div { grid-template-columns: 1fr; gap: 2px; }

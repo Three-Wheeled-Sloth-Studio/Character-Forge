@@ -45,6 +45,12 @@ export interface Dnd5ePointCostAbilityInput {
   backgroundIncreases: Dnd5eAbilityIncreasePlan;
 }
 
+export interface Dnd5eRandomAbilityInput {
+  scores: Dnd5eAbilityScores;
+  backgroundAbilityIds: readonly Dnd5eAbilityId[];
+  backgroundIncreases: Dnd5eAbilityIncreasePlan;
+}
+
 function sortedAbilityValues(scores: Dnd5eAbilityScores): number[] {
   return DND5E_ABILITY_IDS
     .map((abilityId) => scores[abilityId])
@@ -64,12 +70,17 @@ function assertStandardArrayAssignment(assignment: Dnd5eAbilityScores): void {
   }
 }
 
-function assertManualBaseScores(scores: Dnd5eAbilityScores): void {
+function assertBaseScoreRange(
+  scores: Dnd5eAbilityScores,
+  methodLabel: string,
+  minimum: number,
+  maximum: number,
+): void {
   for (const abilityId of DND5E_ABILITY_IDS) {
     const score = scores[abilityId];
-    if (!Number.isInteger(score) || score < 3 || score > 18) {
+    if (!Number.isInteger(score) || score < minimum || score > maximum) {
       throw new Error(
-        `Manual base ${abilityId} must be an integer from 3 through 18 before background increases.`,
+        `${methodLabel} base ${abilityId} must be an integer from ${minimum} through ${maximum} before background increases.`,
       );
     }
   }
@@ -182,7 +193,7 @@ export function createStandardArrayAbilityState(
 export function createManualAbilityState(
   input: Dnd5eManualAbilityInput,
 ): Dnd5eAbilityState {
-  assertManualBaseScores(input.scores);
+  assertBaseScoreRange(input.scores, "Manual", 3, 18);
   return createAbilityState({
     generationMethod: "manual",
     base: input.scores,
@@ -202,6 +213,18 @@ export function createPointCostAbilityState(
   }
   return createAbilityState({
     generationMethod: "point-cost",
+    base: input.scores,
+    backgroundAbilityIds: input.backgroundAbilityIds,
+    backgroundIncreases: input.backgroundIncreases,
+  });
+}
+
+export function createRandomAbilityState(
+  input: Dnd5eRandomAbilityInput,
+): Dnd5eAbilityState {
+  assertBaseScoreRange(input.scores, "Random Generation", 3, 18);
+  return createAbilityState({
+    generationMethod: "random",
     base: input.scores,
     backgroundAbilityIds: input.backgroundAbilityIds,
     backgroundIncreases: input.backgroundIncreases,

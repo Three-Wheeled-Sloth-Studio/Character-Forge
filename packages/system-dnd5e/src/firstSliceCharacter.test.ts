@@ -16,7 +16,7 @@ function asObject(value: unknown): JsonObject {
 
 describe("D&D 5E 2024 first vertical slice", () => {
   it("declares a versioned SRD source with license provenance", () => {
-    expect(dnd5eSrd521Adapter.adapterVersion).toBe("0.3.0");
+    expect(dnd5eSrd521Adapter.adapterVersion).toBe("0.4.0");
     expect(dnd5eSrd521Adapter.supportedRulesSources).toEqual([
       DND5E_SRD_5_2_1_SOURCE,
     ]);
@@ -27,7 +27,6 @@ describe("D&D 5E 2024 first vertical slice", () => {
     const result = dnd5eSrd521Adapter.validateNativeState(
       createFirstSliceNativeState(),
     );
-
     expect(result).toEqual({ valid: true, issues: [] });
   });
 
@@ -49,10 +48,7 @@ describe("D&D 5E 2024 first vertical slice", () => {
     const final = asObject(abilities.final);
     const derived = asObject(payload.derived);
 
-    expect(dnd5eSrd521Adapter.validateNativeState(nativeState)).toEqual({
-      valid: true,
-      issues: [],
-    });
+    expect(dnd5eSrd521Adapter.validateNativeState(nativeState)).toEqual({ valid: true, issues: [] });
     expect(final.dexterity).toBe(17);
     expect(derived.initiativeModifier).toBe(5);
     expect(derived.passivePerception).toBe(13);
@@ -82,7 +78,6 @@ describe("D&D 5E 2024 first vertical slice", () => {
         },
       }),
     );
-
     expect(result).toEqual({ valid: true, issues: [] });
   });
 
@@ -94,39 +89,27 @@ describe("D&D 5E 2024 first vertical slice", () => {
     expect(reloaded.nativeStates[0]).toEqual(originalNativeState);
     expect(reloaded.semanticProjection).toBeUndefined();
     expect(dnd5eSrd521Adapter.validateNativeState(reloaded.nativeStates[0]).valid).toBe(true);
-    expect(reloaded.generation?.rulesSourceIds).toContain(
-      DND5E_SRD_5_2_1_SOURCE.id,
-    );
+    expect(reloaded.generation?.rulesSourceIds).toContain(DND5E_SRD_5_2_1_SOURCE.id);
   });
 
   it("rejects a native state whose Level 1 Fighter hit points do not match Constitution", () => {
-    const invalid = JSON.parse(
-      JSON.stringify(createFirstSliceNativeState()),
-    ) as NativeSystemState;
+    const invalid = JSON.parse(JSON.stringify(createFirstSliceNativeState())) as NativeSystemState;
     const payload = asObject(invalid.payload);
     const resources = asObject(payload.resources);
     resources.hitPointsMaximum = 11;
 
     const result = dnd5eSrd521Adapter.validateNativeState(invalid);
-
     expect(result.valid).toBe(false);
-    expect(result.issues.map((issue) => issue.code)).toContain(
-      "dnd5e.fighter.level-one-hp",
-    );
+    expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.fighter.level-one-hp");
   });
 
   it("rejects native state that loses its rules-source provenance", () => {
-    const invalid = JSON.parse(
-      JSON.stringify(createFirstSliceNativeState()),
-    ) as NativeSystemState;
+    const invalid = JSON.parse(JSON.stringify(createFirstSliceNativeState())) as NativeSystemState;
     const payload = asObject(invalid.payload);
     payload.rulesSourceIds = [];
 
     const result = dnd5eSrd521Adapter.validateNativeState(invalid);
-
     expect(result.valid).toBe(false);
-    expect(result.issues.map((issue) => issue.code)).toContain(
-      "dnd5e.rules-source.missing",
-    );
+    expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.rules-source.missing");
   });
 });

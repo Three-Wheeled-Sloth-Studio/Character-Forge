@@ -104,6 +104,27 @@ function validateAbilityState(payload: JsonObject, issues: RulesValidationIssue[
   }
 }
 
+function validateRangeBase(
+  base: JsonObject,
+  issues: RulesValidationIssue[],
+  methodCode: string,
+  methodLabel: string,
+  minimum: number,
+  maximum: number,
+): void {
+  for (const abilityId of DND5E_ABILITY_IDS) {
+    const score = readNumber(base, abilityId);
+    if (score === undefined || !Number.isInteger(score) || score < minimum || score > maximum) {
+      pushError(
+        issues,
+        `dnd5e.${methodCode}.base-range`,
+        `${methodLabel} base ${abilityId} must be an integer from ${minimum} through ${maximum} before background increases.`,
+        `abilities.base.${abilityId}`,
+      );
+    }
+  }
+}
+
 function validatePointCostBase(base: JsonObject, issues: RulesValidationIssue[]): void {
   let pointsSpent = 0;
   let allScoresValid = true;
@@ -165,24 +186,16 @@ function validateAbilityMethodAndSoldierBoosts(
       );
     }
   } else if (generationMethod === "manual") {
-    for (const abilityId of DND5E_ABILITY_IDS) {
-      const score = readNumber(base, abilityId);
-      if (score === undefined || !Number.isInteger(score) || score < 3 || score > 18) {
-        pushError(
-          issues,
-          "dnd5e.manual.base-range",
-          `Manual base ${abilityId} must be an integer from 3 through 18 before background increases.`,
-          `abilities.base.${abilityId}`,
-        );
-      }
-    }
+    validateRangeBase(base, issues, "manual", "Manual", 3, 18);
   } else if (generationMethod === "point-cost") {
     validatePointCostBase(base, issues);
+  } else if (generationMethod === "random") {
+    validateRangeBase(base, issues, "random", "Random Generation", 3, 18);
   } else {
     pushError(
       issues,
       "dnd5e.slice.ability-method",
-      "This slice currently supports Standard Array, Manual ability entry, and Point Cost.",
+      "This slice supports Standard Array, Manual ability entry, Point Cost, and Random Generation.",
       "abilities.generationMethod",
     );
   }
@@ -275,7 +288,7 @@ function validateFirstSliceRules(payload: JsonObject, issues: RulesValidationIss
 
 export const dnd5eSrd521Adapter: RulesSystemAdapter = {
   adapterId: "character-forge:dnd5e-2024",
-  adapterVersion: "0.3.0",
+  adapterVersion: "0.4.0",
   systemId: "dnd5e",
   editionId: "2024",
   supportedRulesSources: [DND5E_SRD_5_2_1_SOURCE],
