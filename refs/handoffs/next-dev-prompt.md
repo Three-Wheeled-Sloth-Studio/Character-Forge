@@ -1,6 +1,6 @@
 # Next Development Prompt
 
-Continue Character Forge D&D 5E 2024 work from the first class-owned spellcasting checkpoint.
+Continue Character Forge D&D 5E 2024 work from the first class-owned spellcasting and runtime-build-identity checkpoint.
 
 Repository:
 
@@ -18,23 +18,48 @@ The embedded Quick Generate plus durable Parchment save/reload/reopen seam is ow
 
 Do not promote the accumulated guided-generation stack until explicit owner runtime acceptance.
 
-## Current automated-green code checkpoint
+## Current automated-green checkpoint
 
-Cleric Level 1 class spellcasting is green at:
+Current Character Forge `dev` includes Cleric Level 1 class spellcasting and visible runtime build identity:
 
-- `80769e8854f4b9ee80e6fffa9e497115df5fda58`
-- Actions `33128723547`
-- job `98712957299`
-- 17 test files / 77 tests / 0 failures
+- `b9c70a99ff30d423ea02cf094939f8da23fd3e37`
+- Actions `33183512628`
+- job `98890465975`
+- 18 test files / 79 tests / 0 failures
 - refs green
 - strict TypeScript green
 - web build green
+- CI build stamp: `Character Forge build 0.0.1 b9c70a99`
+
+The underlying Cleric implementation checkpoint is `80769e8854f4b9ee80e6fffa9e497115df5fda58`.
 
 Guided native schema remains `dnd5e-character/0.3`; adapter is `0.10.0`. Legacy `0.1`/`0.2` reopen paths remain isolated.
 
 Read `refs/handoffs/currentHandoff.md` for the documentation head and detailed state.
 
-Character Forge is wired into the PW workspace pull/build/deploy/promote chain. Its private Parchment Worlds deployment workflow requires successful `verify.yml` validation for the exact source SHA, publishes `/apps/character-forge/`, and exposes `source.json` for provenance smoke testing. The workflow availability does not override the owner-acceptance promotion guard.
+## Runtime freshness checkpoint
+
+Owner QA proved a local-runtime failure mode: after Cleric was implemented on `dev`, the Parchment-hosted Character Forge UI still showed only the old four-class bundle.
+
+Root cause was the local static-server lifecycle:
+
+- Character Forge `dev:web` compiles once, then serves `dist` without watch/HMR;
+- Parchment previously reused any healthy Character Forge process at localhost:5174;
+- a process that survived a later source pull could therefore keep serving obsolete compiled JavaScript.
+
+The correction is deliberately split across ownership boundaries:
+
+### Character Forge
+
+Every `build:web` now emits `dist/build-info.json` and `dist/build-info.js` with version, exact checked-out Character Forge SHA, build timestamp, and local dirty flag. The app header always shows a compact runtime badge such as `v0.0.1 · b9c70a99`; dirty local builds append `+dirty`. Hover/title exposes the full source commit and build time. `/__health` also returns the build identity.
+
+### Parchment Worlds
+
+Parchment `dev` checkpoint `b6095560cfbc2284623466911c8b054e0c05ec43` rebuilds the adjacent Character Forge checkout before reusing an already-live local server. Parchment Actions `33183438679` is green. This refreshes `dist` without requiring QA to kill port 5174.
+
+Parchment and Character Forge remain separate Git checkouts. The launcher may rebuild Character Forge but must not silently pull or switch its Git branch. The visible SHA is the primary QA evidence for which Character Forge source is actually running.
+
+Character Forge is also wired into the Parchment workspace build/deploy/promote chain. The private Parchment deployment workflow checks out the matching Character Forge branch, requires successful `verify.yml` validation for the exact source SHA, builds the web app, publishes `/apps/character-forge/`, and exposes `source.json`. The workflow availability does not override owner-acceptance promotion guards.
 
 ## Read first
 
@@ -71,6 +96,9 @@ Relevant code seams now include:
 - `packages/system-dnd5e/src/adapterLegacy.ts`
 - `apps/web/src/guidedCreationPanel.ts`
 - `apps/web/src/main.ts`
+- `apps/web/src/buildInfo.ts`
+- `tools/write-build-info.mjs`
+- `tools/web-server.mjs`
 
 ## Current support surface
 
@@ -126,7 +154,7 @@ Do not reopen this shape without owner QA evidence or a real reuse conflict from
 
 ## Immediate substantive direction: reuse the class-spellcasting seam
 
-Continue issue #11 by choosing the next smallest faithful consumer that teaches us something reusable.
+After owner confirms the runtime badge and Cleric are visible in the local Parchment embed, continue issue #11 by choosing the next smallest faithful consumer that teaches us something reusable.
 
 Prefer one of these paths:
 
@@ -155,13 +183,15 @@ Pick by reusable architectural value and bounded implementation cost, not catalo
 - include at least one retained-state tampering test;
 - keep all four ability methods converging on the same builder;
 - preserve legacy `0.1` / `0.2` semantics;
+- preserve visible runtime source/version identity;
 - full `npm run verify` green;
 - do not promote before owner acceptance.
 
 ## Owner QA target before promotion
 
-The next owner pass should now include a real magical class:
+The next owner pass should include runtime identity plus a real magical class:
 
+- header build badge is visible and identifies the Character Forge SHA under test;
 - Cleric appears in Class menu;
 - Protector and Thaumaturge both build `Native state valid`;
 - cantrip/prepared-spell direct and random choices work;
@@ -185,4 +215,5 @@ Still do not start the companion merely because magical breadth is expanding. Be
 - Generator-core stays system-neutral; D&D content/rules stay `system-dnd5e`.
 - Character Forge owns RPG-native interpretation, validation, choices, and provenance.
 - Parchment owns generic project membership, lifecycle, relationships, persistence, and future sync/share behavior.
+- Local integration may rebuild an adjacent Character Forge checkout but must never silently mutate its Git source state.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
