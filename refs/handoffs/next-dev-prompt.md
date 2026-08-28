@@ -1,6 +1,6 @@
 # Next Development Prompt
 
-Continue Character Forge D&D 5E 2024 work from the Magic Initiate breadth checkpoint.
+Continue Character Forge D&D 5E 2024 work from the first class-owned spellcasting checkpoint.
 
 Repository:
 
@@ -8,38 +8,31 @@ Repository:
 
 Work directly on `dev`.
 
-## Accepted cross-repo baseline
+## Accepted baseline
 
-The embedded Quick Generate plus durable Parchment save/reload/reopen seam is owner-accepted and promoted. Do not reopen it without new evidence.
+The embedded Quick Generate plus durable Parchment save/reload/reopen seam is owner-accepted and promoted.
 
-Accepted Character Forge `qa` / `main` checkpoint:
+`qa` / `main` remain at:
 
 - `8041edb4009abce8a836faafce9a167883e92bda`
 
-Parchment character persistence issue #24 is complete.
-
-Background non-blockers:
-
-- #2 historical effective-runtime name-derived IDs, only if new evidence makes it relevant;
-- #3 compact Copy JSON / Download JSON controls.
+Do not promote the accumulated guided-generation stack until explicit owner runtime acceptance.
 
 ## Current automated-green code checkpoint
 
-Magic Initiate background support is green at:
+Cleric Level 1 class spellcasting is green at:
 
-- `523bc579065d81d2e144421ee080c1511a988a1a`
-- Actions `33115103317`
-- job `98667599352`
-- 16 test files / 72 tests / 0 failures
-- refs validation green
+- `80769e8854f4b9ee80e6fffa9e497115df5fda58`
+- Actions `33128723547`
+- job `98712957299`
+- 17 test files / 77 tests / 0 failures
+- refs green
 - strict TypeScript green
 - web build green
 
-New guided characters use `dnd5e-character/0.3`; adapter version is `0.9.0`. Legacy `0.1` and `0.2` reopen/validation remain supported through the isolated legacy adapter.
+Guided native schema remains `dnd5e-character/0.3`; adapter is `0.10.0`. Legacy `0.1`/`0.2` reopen paths remain isolated.
 
-Read `refs/handoffs/currentHandoff.md` for the documentation head and latest owner-QA context. Do not promote current generation work to `qa` or `main` until explicit owner acceptance.
-
-Issue #11 remains the active breadth epic. Issue #12 creator-workspace polish is complete/closed. Issues #5/#7/#8 still await accumulated runtime acceptance.
+Read `refs/handoffs/currentHandoff.md` for the documentation head and detailed state.
 
 ## Read first
 
@@ -50,17 +43,20 @@ Issue #11 remains the active breadth epic. Issue #12 creator-workspace polish is
 5. `refs/architecture/character-architecture.md`
 6. `refs/architecture/translation-bridge-rpg-notes.md`
 7. `refs/architecture/dnd5e-spell-state-watch.md`
-8. `refs/integration/dnd5e-srd-5.2.1.md`
-9. `refs/product/generation-methods.md`
-10. `refs/product/choice-pools.md`
-11. `refs/product/creator-workspace.md`
-12. `refs/planning/roadmap.yaml`
-13. `refs/testing/validationCommands.yaml`
-14. GitHub issue #11
+8. `refs/implementation/cleric-level-one-slice-2026-08-27.md`
+9. `refs/integration/dnd5e-srd-5.2.1.md`
+10. `refs/product/generation-methods.md`
+11. `refs/product/choice-pools.md`
+12. `refs/product/creator-workspace.md`
+13. `refs/planning/roadmap.yaml`
+14. `refs/testing/validationCommands.yaml`
+15. GitHub issue #11
 
-Relevant code seams:
+Relevant code seams now include:
 
 - `packages/system-dnd5e/src/spellCatalog.ts`
+- `packages/system-dnd5e/src/clericCatalog.ts`
+- `packages/system-dnd5e/src/classSpellcasting.ts`
 - `packages/system-dnd5e/src/nativeCharacter.ts`
 - `packages/system-dnd5e/src/srdCatalog.ts`
 - `packages/system-dnd5e/src/guidedChoices.ts`
@@ -71,186 +67,120 @@ Relevant code seams:
 - `packages/system-dnd5e/src/guidedAdapterValidation.ts`
 - `packages/system-dnd5e/src/adapter.ts`
 - `packages/system-dnd5e/src/adapterLegacy.ts`
-- `apps/web/src/stickyChoicePool.ts`
-- `apps/web/src/stickyMultiChoicePool.ts`
 - `apps/web/src/guidedCreationPanel.ts`
-- `apps/web/src/styles.css`
+- `apps/web/src/main.ts`
 
 ## Current support surface
 
-All source entries are cataloged. Guided generation currently enables:
+- Classes 5 / 12: Barbarian, Cleric, Fighter, Monk, Rogue
+- Backgrounds 4 / 4: Acolyte, Criminal, Sage, Soldier
+- Species 6 / 9: Dragonborn, Dwarf, Goliath, Halfling, Human, Orc
 
-- classes: Barbarian, Fighter, Monk, Rogue (4 / 12);
-- backgrounds: Acolyte, Criminal, Sage, Soldier (4 / 4);
-- species: Dragonborn, Dwarf, Goliath, Halfling, Human, Orc (6 / 9).
+Remaining classes: Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard.
+Remaining species: Elf, Gnome, Tiefling.
 
-Remaining:
+## Proven spell-state architecture
 
-- classes: Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard;
-- species: Elf, Gnome, Tiefling.
+Do not collapse these two source concepts.
 
-## Existing spell seam: preserve its meaning
+### `spells.grants[]`
 
-The current spell model proves one reusable concept: **a spell grant from a feat or similar source**.
+For independent feat/species-style grants such as Magic Initiate. Retains source/list/casting ability/cantrips/always-prepared spell/free-cast resource/recharge.
 
-`Dnd5eSpellGrantState` retains:
+### `spells.classCasting[]`
 
-- grant/source ID;
-- spell list;
-- casting ability;
-- cantrips;
-- prepared / always-prepared spell IDs;
-- one free-cast resource and Long Rest recharge.
+For class-owned spellcasting capability. Cleric proves:
 
-Acolyte uses Magic Initiate (Cleric); Sage uses Magic Initiate (Wizard). Their spell choices are explicit in the browser, generation provenance, native state, and independent adapter validation.
+- source class and feature identity;
+- spell-list identity;
+- fixed class casting ability;
+- class cantrips;
+- prepared spell state;
+- slot pools with current/maximum/recharge;
+- preparation cadence;
+- focus capability.
 
-Do not reinterpret this as a complete class-spellcasting model. It intentionally does not encode class spell slots, prepared-count rules, known-spell rules, spellbooks, Pact Magic, or class progression.
+A Cleric + Acolyte retains both entries independently and validates cleanly.
 
-Human-selected Magic Initiate remains disabled because the general feat also needs Druid-list support.
+Do not infer either source from the other or from generation provenance.
 
-## Immediate substantive slice: first reusable class-spellcasting contract
+## Cleric: accepted automated implementation shape
 
-Continue issue #11 by defining and implementing the smallest faithful **Level 1 class-spellcasting** extension that composes with `spells.grants[]` without conflating grants with class capability.
+Current guided Cleric explicitly represents:
 
-A strong default is Cleric or Wizard because part of the required SRD spell catalog already exists, but choose based on the cleanest reusable contract after reading the SRD source and current code. Do not choose solely because the data is already nearby.
+- two legal skills;
+- starting package vs 110 GP;
+- Divine Order Protector/Thaumaturge;
+- 3 Cleric cantrips for Protector / 4 for Thaumaturge;
+- 4 prepared Level 1 Cleric spells;
+- two Level 1 slots restored on Long Rest;
+- Wisdom casting and Holy Symbol focus;
+- Protector Martial weapons + Heavy Armor;
+- Thaumaturge Wisdom-derived knowledge bonus.
 
-Before enabling the class, model its actual Level 1 decisions. Examples that must not be silently defaulted include:
+These choices use the existing sticky acceptable-pool/direct/random controls and are retained as native state plus provenance. Adapter tamper tests cover spell slots and casting ability.
 
-- Cleric: Divine Order and Level 1 spellcasting/preparation choices;
-- Wizard: spellbook contents, prepared spells, and other Level 1 spellcasting semantics.
+Do not reopen this shape without owner QA evidence or a real reuse conflict from the next class.
 
-If another class provides a cleaner reusable first vertical slice, use it instead, but document why.
+## Immediate substantive direction: reuse the class-spellcasting seam
 
-### Class spell-state design requirements
+Continue issue #11 by choosing the next smallest faithful consumer that teaches us something reusable.
 
-At minimum determine how native state represents, without duplication:
+Prefer one of these paths:
 
-- spellcasting source/class identity;
-- casting ability;
-- spell-slot maximum/current state where the class uses slots;
-- known versus prepared versus always-prepared spell distinctions where relevant;
-- cantrip choices;
-- preparation/known limits and legality;
-- spellbook or equivalent source-owned collection only for classes that genuinely have one;
-- how class spellcasting and feat/species spell grants coexist on one character;
-- reset/recharge semantics needed for Level 1 state;
-- generation provenance for each ordinary choice;
-- independent adapter reconstruction/validation.
+1. **Another standard-slot spellcasting class** if its Level 1 choices can compose naturally with the current common primitives. Model all source-specific Level 1 features rather than enabling the class with fixture defaults.
+2. **Elf/Gnome/Tiefling** if a lineage/legacy slice can reuse `spells.grants[]` cleanly and give faster breadth without distorting class spellcasting.
+3. **Complete Magic Initiate generality** by adding the Druid spell list, then enable Human-selected Magic Initiate, if that is a clean bounded slice.
 
-Do not force all classes into one flattened model if Pact Magic or another class genuinely needs a distinct native structure. Prefer common primitives plus explicit source-specific state.
+When selecting the next class, explicitly inspect its Level 1 rules first. Candidate considerations:
 
-### Definition of done for the first class slice
+- Druid has standard slots/preparation but Primal Order and its own spell list;
+- Sorcerer has standard slots but Innate Sorcery and known/prepared semantics that may teach a different seam;
+- Bard adds Bardic Inspiration and different spell-selection semantics;
+- Paladin/Ranger may have distinct Level 1 preparation/feature details;
+- Wizard must not be flattened because spellbook state is source-owned;
+- Warlock must not be flattened into standard slots because Pact Magic is genuinely different.
 
-- one previously blocked spellcasting class is genuinely selectable in guided creation;
-- all its required Level 1 source choices are explicit;
-- browser controls use the established direct/acceptable-pool/random pattern where appropriate;
-- native state retains its actual spellcasting capabilities without relying on generation provenance for reconstruction;
-- adapter independently validates the class state and catches at least one tampering case;
-- existing Acolyte/Sage Magic Initiate grants still validate and coexist cleanly with the new class state;
-- all four ability-generation methods still converge on the same builder;
-- legacy `0.1`/`0.2` and existing legal `0.3` documents remain reopenable;
-- full `npm run verify` is green.
+Pick by reusable architectural value and bounded implementation cost, not catalog order.
 
-## Alternate adjacent slice: remaining species
+## Requirements for every newly enabled option
 
-If class-spellcasting design exposes a dependency that makes a clean first class slice premature, take one tightly bounded lineage species instead rather than adding a fake class fixture.
+- source legal options from D&D-owned SRD 5.2.1 data;
+- expose every required Level 1 decision rather than hiding a default;
+- use direct/acceptable-pool/random-from-checked where appropriate;
+- retain selected capability in native state, not only provenance;
+- adapter independently reconstructs/validates legality;
+- include at least one retained-state tampering test;
+- keep all four ability methods converging on the same builder;
+- preserve legacy `0.1` / `0.2` semantics;
+- full `npm run verify` green;
+- do not promote before owner acceptance.
 
-Remaining species:
+## Owner QA target before promotion
 
-- Elf;
-- Gnome;
-- Tiefling.
+The next owner pass should now include a real magical class:
 
-For any such species, explicitly model its lineage/legacy selection, Level 1 effects, spellcasting-ability choices where applicable, and future level-gated grants as source state/provenance rather than pretending future spells are already active.
-
-Use the existing spell-grant primitive where it actually fits.
-
-## Product direction fixed for default D&D 2024
-
-Default guided sequence remains:
-
-1. Class
-2. Origin: Background, Species, related origin decisions
-3. Ability Scores
-4. Remaining details
-
-Do not make this a universal Character Forge order; it is the D&D 2024 adapter/UI default.
-
-Ordinary menus should continue using the acceptable-option model when useful:
-
-- direct choice;
-- check all acceptable choices;
-- random from checked;
-- user-sticky acceptable pools;
-- sticky preference is not authoritative character state;
-- pool/result/mode retained as per-character generation provenance.
-
-## Creator workspace standard
-
-Issue #12 is complete. Preserve:
-
-- controls left, character details right;
-- independent desktop scrolling;
-- one-column narrow fallback;
-- compact/collapsible acceptable pools;
-- icon-first randomization;
-- descriptive equipment labels over canonical IDs;
-- compact contextual help;
-- system-layer generated names with explicit provenance.
-
-Do not expand the temporary six-name list as a substitute for a future culture/species/language-aware naming system.
-
-## Existing core choices: do not redo without evidence
-
-Already explicit and validated:
-
-- class skills;
-- Fighter Fighting Style;
-- class equipment;
-- Barbarian/Fighter/Rogue Weapon Mastery;
-- Monk tool/instrument;
-- Rogue Expertise and bonus language;
-- origin languages;
-- alignment;
-- Human size / Skillful / Versatile / Skilled;
-- Dragonborn Draconic Ancestry;
-- Goliath Giant Ancestry;
-- Acolyte/Sage Magic Initiate;
-- Standard Array, Point Cost, Random Generation, Manual Entry.
-
-## Owner QA still required before promotion
-
-A later combined runtime pass should include:
-
-- direct and random-from-checked behavior;
-- sticky pools across reload;
-- name randomization;
-- independent scrolling;
-- descriptive equipment choices;
-- all four ability methods;
-- representative native-valid Dragonborn/Goliath and Acolyte/Sage characters;
-- representative new spellcasting-class character once implemented;
-- Parchment save/reload/reopen of a `0.3` spell-grant character;
-- no regression of the accepted Quick/Parchment seam.
-
-Do not promote until explicitly accepted.
+- Cleric appears in Class menu;
+- Protector and Thaumaturge both build `Native state valid`;
+- cantrip/prepared-spell direct and random choices work;
+- Thaumaturge changes cantrip count from 3 to 4;
+- Cleric + Acolyte shows separate class casting and Magic Initiate sources;
+- representative Cleric saves/reopens unchanged through Parchment;
+- existing sticky pools, name randomization, independent scrolling, equipment labels, and all four ability methods remain functional.
 
 ## Random-tables watch point
 
-Do not start Random Tables just because spellcasting work is underway. Begin it when concrete flavor/narrative consumers are sufficient to define a clean generic result contract and before guided narrative invents parallel randomization infrastructure.
-
-Generic table evaluation stays system-neutral; D&D datasets/mappings stay D&D-owned; results are structured/provenance-bearing and feed ordinary decisions rather than mutating native state directly.
+Still do not start the companion merely because magical breadth is expanding. Begin it when concrete personality/flavor consumers are sufficient to define a generic table-result contract and before guided narrative invents parallel randomization machinery.
 
 ## Architecture rules
 
-- Native system state is mandatory and lossless.
+- Native state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
-- Generation and validation converge on one D&D-native persistence boundary.
-- Sticky preferences are separate from authoritative state and historical provenance.
-- Do not silently invent nested D&D choices to broaden support counts.
-- Spell grants and class spellcasting are distinct concepts.
-- Generator-core stays system-neutral; D&D rules/content stay `system-dnd5e`.
+- Spell grants and class spellcasting remain distinct source concepts.
+- Use common primitives, but preserve genuinely different class mechanisms explicitly.
+- Sticky preferences are not authoritative character state.
+- Do not silently invent nested choices to improve support counts.
+- Generator-core stays system-neutral; D&D content/rules stay `system-dnd5e`.
 - Character Forge owns RPG-native interpretation, validation, choices, and provenance.
 - Parchment owns generic project membership, lifecycle, relationships, persistence, and future sync/share behavior.
-- Use only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repository.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
