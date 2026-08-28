@@ -16,7 +16,7 @@ function asObject(value: unknown): JsonObject {
 
 describe("D&D 5E 2024 first vertical slice", () => {
   it("declares a versioned SRD source with license provenance", () => {
-    expect(dnd5eSrd521Adapter.adapterVersion).toBe("0.9.0");
+    expect(dnd5eSrd521Adapter.adapterVersion).toBe("0.10.0");
     expect(dnd5eSrd521Adapter.supportedRulesSources).toEqual([
       DND5E_SRD_5_2_1_SOURCE,
     ]);
