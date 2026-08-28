@@ -174,7 +174,7 @@ Still do not start the companion merely because magical breadth is expanding. Be
 
 ## Architecture rules
 
-- Native state is mandatory and lossless.
+- Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - Spell grants and class spellcasting remain distinct source concepts.
 - Use common primitives, but preserve genuinely different class mechanisms explicitly.
