@@ -6,8 +6,9 @@ const repositoryRoot = process.cwd();
 const distRoot = join(repositoryRoot, "dist");
 const packageJson = JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8"));
 const commit = process.env.CHARACTER_FORGE_BUILD_SHA?.trim()
+  || git(["rev-parse", "HEAD"], "")
   || process.env.GITHUB_SHA?.trim()
-  || git(["rev-parse", "HEAD"], "unknown");
+  || "unknown";
 const dirty = process.env.CI ? false : git(["status", "--porcelain"], "").trim().length > 0;
 const buildInfo = {
   version: String(packageJson.version ?? "dev"),
