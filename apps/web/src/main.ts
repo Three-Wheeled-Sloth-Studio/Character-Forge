@@ -4,6 +4,11 @@ import {
 } from "../../../packages/system-dnd5e/src/index.js";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
+  characterForgeBuildTitle,
+  currentCharacterForgeBuildInfo,
+  visibleCharacterForgeBuildLabel,
+} from "./buildInfo.js";
+import {
   parseCharacterOpenMessage,
   resolveHostOrigin,
 } from "./characterForgeHostBridge.js";
@@ -15,12 +20,19 @@ const projectId = params.get("pwProjectId") ?? "";
 const projectName = params.get("pwProjectName") ?? "";
 const returnUrl = params.get("pwReturnUrl") ?? "";
 const hostOrigin = resolveHostOrigin(returnUrl);
+const buildInfo = currentCharacterForgeBuildInfo();
 const app = document.querySelector<HTMLElement>("#app");
 if (!app) throw new Error("Character Forge application root was not found.");
 
 app.innerHTML = `
   <section class="forge-shell">
-    <header class="forge-header"><div><p class="eyebrow">Parchment Worlds module</p><h1>Character Forge</h1><p class="lede">Create a system-native character first. Translation magic comes later.</p></div>${projectName ? `<div class="project-chip">Project: <strong>${escapeHtml(projectName)}</strong></div>` : ""}</header>
+    <header class="forge-header">
+      <div><p class="eyebrow">Parchment Worlds module</p><h1>Character Forge</h1><p class="lede">Create a system-native character first. Translation magic comes later.</p></div>
+      <div class="forge-header-meta">
+        ${projectName ? `<div class="project-chip">Project: <strong>${escapeHtml(projectName)}</strong></div>` : ""}
+        <span class="build-chip" title="${escapeHtml(characterForgeBuildTitle(buildInfo))}">${escapeHtml(visibleCharacterForgeBuildLabel(buildInfo))}</span>
+      </div>
+    </header>
     <div class="forge-workspace">
       <aside id="creator-root" class="creator-column" aria-label="Character generation controls"></aside>
       <section id="result" class="result-panel empty-result" aria-live="polite"><div class="empty-state"><p class="eyebrow">Character details</p><h2>Build a character</h2><p>Your generated character will stay visible here while you adjust generation choices on the left.</p></div></section>
