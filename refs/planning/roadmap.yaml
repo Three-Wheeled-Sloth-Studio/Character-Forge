@@ -35,39 +35,39 @@ roadmap:
       - Standard Array, Manual Ability Entry, SRD Point Cost, and SRD Random Generation.
       - Reusable deterministic system-neutral seeded-random and dice-expression generator core.
       - Random 4d6 keep-highest-3 generation retaining raw dice, kept dice, roll slots, seed, and assignment provenance.
-      - All twelve SRD 5.2.1 classes cataloged.
-      - All nine SRD 5.2.1 species cataloged.
-      - All four SRD backgrounds cataloged.
+      - All twelve SRD 5.2.1 classes, all four backgrounds, and all nine species cataloged.
       - Reusable sticky acceptable-option choice-pool behavior with direct or random-from-checked selection.
       - Reusable sticky count-N acceptable-option behavior for multi-choice decisions.
       - Guided class-first creation using sticky Class, Background, and Species pools.
-      - Guided Level 1 native support for Barbarian, Fighter, Monk, and Rogue.
-      - Guided background support for Criminal and Soldier.
-      - Guided species support for Dwarf, Halfling, Human, and Orc.
       - Standard Array, Point Cost, Random, and Manual routed through one guided native builder.
-      - Creator workspace consolidated to generation controls on the left and character details on the right, with one dynamic ability-generation dropdown.
-      - dnd5e-character/0.3 core-choice state while preserving 0.1 and 0.2 reopen/validation.
-      - Adapter 0.7.0 validation for explicit guided core choices.
-      - Explicit class skills, Fighter Fighting Style, class starting equipment, Weapon Mastery, Monk tool/instrument, Rogue Expertise/bonus language, origin languages, alignment, and Human size/Skillful/Versatile/Skilled follow-up choices.
-      - Blank guided name restored through shared D&D system-layer name generation.
-      - Automated-green core-choice checkpoint 5e48aa5a5c7d40bff05d2506942bae1681d8a271, Actions 33098187264, 15 test files / 63 tests.
+      - Creator workspace consolidated to generation controls left and character details right, with independent desktop scrolling and one dynamic ability-generation dropdown.
+      - dnd5e-character/0.3 guided native state while preserving 0.1 and 0.2 reopen/validation semantics.
+      - Explicit class skills, Fighter Fighting Style, class starting equipment, Weapon Mastery, Monk tool/instrument, Rogue Expertise/bonus language, origin languages, alignment, and Human size/Skillful/Versatile/Skilled choices.
+      - Blank-name generation restored through shared D&D system-layer name generation plus explicit Name randomize action/provenance.
+      - Descriptive starting-equipment presentation and compact generation-method help.
+      - Guided species support for Dragonborn, Dwarf, Goliath, Halfling, Human, and Orc, including explicit Dragonborn and Goliath ancestry choices.
+      - All four SRD backgrounds enabled: Acolyte, Criminal, Sage, Soldier.
+      - D&D-native Magic Initiate spell-grant state for Acolyte and Sage with explicit casting ability, cantrips, Level 1 spell, free-cast resource, provenance, and independent validation.
+      - First class-owned spellcasting state proven with Cleric Level 1, separate from independent spell grants.
+      - Guided class support now includes Barbarian, Cleric, Fighter, Monk, and Rogue.
+      - Cleric Divine Order, 3/4 cantrips, four prepared Level 1 spells, two Level 1 slots, Wisdom casting, Holy Symbol focus, Protector training, and Thaumaturge knowledge bonus retained natively and validated independently.
+      - Cleric + Acolyte coexistence proves `spells.classCasting[]` and `spells.grants[]` remain separate source capabilities.
+      - Legacy dnd5e-character/0.2 class validation isolated from the expanding current guided class union.
+      - Automated-green Cleric checkpoint 80769e8854f4b9ee80e6fffa9e497115df5fda58, Actions 33128723547, 17 test files / 77 tests.
     current_gate:
-      - Owner runtime QA on 2026-08-27 found the core-choice work broadly functional and directionally good.
-      - QA explicitly rejected treating the current 4 classes / 2 backgrounds / 4 species as sufficient breadth.
+      - Owner runtime QA previously found the creator direction broadly functional and requested a real magical class before the next meaningful test pass.
+      - Cleric now supplies that first magical class and awaits owner runtime QA.
       - Current generation/guided work stays on dev and is not promoted until the accumulated pass is explicitly accepted.
     current_slice:
-      - Broaden guided generation toward the full legally redistributable SRD 5.2.1 Level 1 catalog, tracked by issue #11.
-      - Choose implementation order by dependency unlock and smallest faithful vertical slices rather than catalog order.
-      - Establish the minimum faithful Level 1 spell/native-state seam early enough to unlock Magic Initiate, Acolyte/Sage, and spellcasting classes.
-      - Enable additional non-spell species as their ancestry/lineage/legacy choices become explicitly modeled.
-      - Fold in cheap adjacent workspace QA fixes from issue #12 without letting polish displace catalog breadth.
+      - Continue issue #11 from the proven class-spellcasting primitive.
+      - Choose the next consumer by reusable architecture and bounded implementation cost rather than catalog order.
+      - Reuse `spells.classCasting[]` for another standard-slot class only where the source rules genuinely fit the common primitives.
+      - Reuse `spells.grants[]` for Elf/Gnome/Tiefling or general Magic Initiate only where mechanically accurate.
+      - Keep Wizard spellbook and Warlock Pact Magic source-specific rather than flattening them into Cleric semantics.
     remaining_scope:
-      - Enable Dragonborn, Elf, Gnome, Goliath, and Tiefling only after required nested species choices are represented faithfully.
-      - Add faithful spell/native state and enable Acolyte/Sage plus SRD spellcasting classes incrementally.
-      - Add compact Name randomize control using system-layer name generation.
-      - Replace source-like Starting Equipment A/B labels with descriptive package/gold choices.
-      - Make creator-controls and character-details scrolling independent on desktop.
-      - Add compact contextual info/help affordances for generation methods and other complex choices; low priority but retained.
+      - Enable remaining classes Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, and Wizard only after all Level 1 source decisions/mechanics are explicit.
+      - Enable Elf, Gnome, and Tiefling only after lineage/legacy choices and spell grants are represented faithfully.
+      - Add the Druid Magic Initiate list before enabling Human-selected Magic Initiate.
       - Replace the temporary six-name D&D list with a future structured naming architecture informed by culture/species/language consumers rather than a giant flat list.
       - Consolidate Quick Generate into the creator workspace as a top-level creation mode, not an ability method.
       - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
