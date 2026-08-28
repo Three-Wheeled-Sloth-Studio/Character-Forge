@@ -16,14 +16,17 @@ import {
 } from "./nativeCharacter.js";
 import {
   DND5E_SRD_521_BACKGROUND_OPTIONS,
-  isGuidedDnd5eClassId,
   isGuidedDnd5eSpeciesId,
-  type GuidedDnd5eClassId,
   type GuidedDnd5eSpeciesId,
 } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
 type LegacyGuidedDnd5eBackgroundId = "criminal" | "soldier";
+type LegacyGuidedDnd5eClassId = "barbarian" | "fighter" | "monk" | "rogue";
+
+function isLegacyGuidedDnd5eClassId(value: string): value is LegacyGuidedDnd5eClassId {
+  return value === "barbarian" || value === "fighter" || value === "monk" || value === "rogue";
+}
 
 function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -182,7 +185,7 @@ function validateLegacyFirstSliceRules(payload: JsonObject, issues: RulesValidat
   }
 }
 
-const GUIDED_CLASS_HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, fighter: 10, monk: 8, rogue: 8 };
+const GUIDED_CLASS_HIT_DIE: Record<LegacyGuidedDnd5eClassId, number> = { barbarian: 12, fighter: 10, monk: 8, rogue: 8 };
 const GUIDED_SPECIES_SIZE: Record<GuidedDnd5eSpeciesId, "small" | "medium"> = { dragonborn: "medium", dwarf: "medium", goliath: "medium", halfling: "small", human: "medium", orc: "medium" };
 const GUIDED_BACKGROUND_EXPECTED: Record<LegacyGuidedDnd5eBackgroundId, { featId: string; skills: readonly string[]; toolId: string }> = {
   criminal: { featId: "alert", skills: ["sleight-of-hand", "stealth"], toolId: "thieves-tools" },
@@ -195,8 +198,8 @@ function validateGuidedFirstSliceRules(payload: JsonObject, issues: RulesValidat
   const classId = readString(classState, "classId");
   const backgroundId = readString(origin, "backgroundId");
   const speciesId = readString(origin, "speciesId");
-  if (!classId || !isGuidedDnd5eClassId(classId)) {
-    pushError(issues, "dnd5e.guided.class", "Guided generation currently supports Barbarian, Fighter, Monk, and Rogue.", "class.classId");
+  if (!classId || !isLegacyGuidedDnd5eClassId(classId)) {
+    pushError(issues, "dnd5e.guided.class", "This retained dnd5e-character/0.2 validator supports Barbarian, Fighter, Monk, and Rogue.", "class.classId");
     return;
   }
   if (!backgroundId || (backgroundId !== "criminal" && backgroundId !== "soldier")) {
