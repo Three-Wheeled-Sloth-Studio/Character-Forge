@@ -1,8 +1,8 @@
 # Current Handoff
 
-Date: 2026-08-27
+Date: 2026-08-28
 Branch: `dev`
-Phase: D&D 5E 2024 PI 1, guided breadth expansion; first class-owned spellcasting slice automated-green
+Phase: D&D 5E 2024 PI 1, guided breadth expansion; first class-owned spellcasting plus runtime-build identity automated-green
 
 ## Accepted cross-repo baseline
 
@@ -21,16 +21,23 @@ Background non-blockers:
 
 ## Current automated-green development checkpoint
 
-First full class-owned spellcasting consumer: Cleric Level 1.
+The current `dev` checkpoint includes the first full class-owned spellcasting consumer, Cleric Level 1, plus explicit runtime build identity for QA:
 
-- code checkpoint: `80769e8854f4b9ee80e6fffa9e497115df5fda58`
-- GitHub Actions run: `33128723547`
-- job: `98712957299`
+- current Character Forge `dev`: `b9c70a99ff30d423ea02cf094939f8da23fd3e37`
+- GitHub Actions run: `33183512628`
+- job: `98890465975`
 - full `npm run verify` green
 - refs validation green
 - strict TypeScript green
-- 17 Vitest files / 77 tests / 0 failures
+- 18 Vitest files / 79 tests / 0 failures
 - web TypeScript build green
+- build stamping confirmed in CI as `Character Forge build 0.0.1 b9c70a99`
+
+The underlying Cleric code checkpoint remains:
+
+- `80769e8854f4b9ee80e6fffa9e497115df5fda58`
+- Actions `33128723547`
+- job `98712957299`
 
 Guided native schema remains `dnd5e-character/0.3`; D&D adapter version is `0.10.0`. Legacy `0.1` and `0.2` validation remain isolated and preserve their historical supported surfaces.
 
@@ -90,9 +97,9 @@ Explicit Level 1 state includes:
 - Protector Martial-weapon proficiency and Heavy Armor training;
 - Thaumaturge knowledge bonus derived from Wisdom modifier, minimum +1.
 
-The browser uses the existing sticky acceptable-pool/direct/random pattern for Divine Order, cantrips, and prepared spells. The right-side character details now display Divine Order, class spellcasting, prepared spells, spell slots, and order-related training/bonus state.
+The browser uses the existing sticky acceptable-pool/direct/random pattern for Divine Order, cantrips, and prepared spells. The right-side character details display Divine Order, class spellcasting, prepared spells, spell slots, and order-related training/bonus state.
 
-Tests cover Protector, Thaumaturge, class spell-state tampering, and the supported 5-class × 6-species matrix.
+Tests cover Protector, Thaumaturge, class spell-state tampering, and the supported 5-class x 6-species matrix.
 
 ## Spell architecture now proven at two distinct layers
 
@@ -125,6 +132,45 @@ Independent adapter validation rejects illegal cantrip/prepared counts, wrong-li
 
 The retained `dnd5e-character/0.2` validator is explicitly isolated from the expanding current class union. It still recognizes only its original four guided classes, two backgrounds, and historical species boundary. Adding Cleric to current guided creation does not retroactively change what an old document means.
 
+## Runtime freshness / QA build identity
+
+Owner QA on 2026-08-28 showed only Barbarian/Fighter/Monk/Rogue after Cleric had already landed on `dev`. The screenshot proved a real integration defect rather than a Cleric picker defect.
+
+Root cause:
+
+- `npm run dev:web` compiles Character Forge once and then starts the lightweight static `tools/web-server.mjs` server;
+- the server is intentionally not a watcher/HMR process;
+- Parchment's local launcher previously treated a healthy `localhost:5174` process as sufficient and reused it without rebuilding;
+- therefore a Character Forge process that survived a later `git pull` could serve an obsolete `dist` indefinitely.
+
+Character Forge now stamps every `build:web` output with:
+
+- package/app version;
+- exact checked-out Character Forge source commit;
+- build timestamp;
+- local dirty-working-tree flag where applicable.
+
+Generated files in `dist`:
+
+- `build-info.json`
+- `build-info.js`
+
+The Character Forge header always shows a compact QA badge such as:
+
+- `v0.0.1 · b9c70a99`
+- local modified builds append `+dirty`.
+
+Hover/title exposes the full source SHA and build timestamp. `/__health` also exposes the current build metadata.
+
+Parchment Worlds `dev` now contains the companion launcher fix at:
+
+- `b6095560cfbc2284623466911c8b054e0c05ec43`
+- Parchment Actions run `33183438679` green.
+
+When Parchment encounters an already-live local Character Forge server, it now awaits `npm run build:web` in the local Character Forge checkout before returning the embed URL. The existing static server immediately serves the refreshed `dist`, so QA does not need to kill/rebind port 5174 after every pull.
+
+Important local-development fact: Parchment Worlds and Character Forge remain separate Git checkouts. Parchment can rebuild the Character Forge checkout it finds, but it does not silently `git pull` that repository. The visible source SHA makes an outdated adjacent checkout immediately diagnosable.
+
 ## Existing creator/product standards
 
 Preserve:
@@ -139,7 +185,8 @@ Preserve:
 - descriptive equipment labels while retaining canonical IDs underneath;
 - compact contextual help;
 - sticky acceptable pools as preference state, not authoritative character state;
-- per-character pool/result/mode provenance.
+- per-character pool/result/mode provenance;
+- always-visible runtime build/version identity for QA.
 
 Current name generation remains a temporary six-name catalog. Do not grow it into a giant flat list; future naming should be culture/species/language aware and interoperable with Worldbuilding language/culture systems.
 
@@ -154,28 +201,29 @@ All continue through the same guided native builder:
 
 ## Owner runtime QA still required
 
-The next useful owner pass can now actually exercise magical-class behavior. Include:
+The next useful owner pass can now exercise magical-class behavior and confirm the runtime is current. Include:
 
-1. confirm Cleric appears in the Class picker alongside Barbarian/Fighter/Monk/Rogue;
-2. build Protector and Thaumaturge variants and confirm `Native state valid`;
-3. change/randomize Cleric cantrips and prepared Level 1 spells;
-4. verify Thaumaturge exposes four cantrips and Protector three;
-5. build Cleric + Acolyte and confirm class spells and Magic Initiate both appear as separate sources in the right details/native document;
-6. exercise a different ability-generation method with Cleric;
-7. save/reload/reopen a representative Cleric through Parchment and confirm native spell state is unchanged;
-8. retain prior checks for sticky pools, name randomization, independent scrolling, and descriptive equipment.
+1. confirm the header build badge is present and records the Character Forge source SHA being tested;
+2. confirm Cleric appears in the Class picker alongside Barbarian/Fighter/Monk/Rogue;
+3. build Protector and Thaumaturge variants and confirm `Native state valid`;
+4. change/randomize Cleric cantrips and prepared Level 1 spells;
+5. verify Thaumaturge exposes four cantrips and Protector three;
+6. build Cleric + Acolyte and confirm class spells and Magic Initiate both appear as separate sources in the right details/native document;
+7. exercise a different ability-generation method with Cleric;
+8. save/reload/reopen a representative Cleric through Parchment and confirm native spell state is unchanged;
+9. retain prior checks for sticky pools, name randomization, independent scrolling, and descriptive equipment.
 
 Do not promote until explicit owner acceptance.
 
 ## Deployment integration
 
-Character Forge is now part of the local PW checkout, pull, verify/build, deploy, and promotion chain. Private orchestration in Parchment Worlds checks out the matching Character Forge branch, requires a successful `verify.yml` run for the exact source SHA, builds the web app, and publishes only `/apps/character-forge/`. The hosted deployment includes `source.json` so smoke tests can verify exact commit provenance.
+Character Forge is now part of the local PW checkout, verify/build, deploy, and promotion chain. Private orchestration in Parchment Worlds checks out the matching Character Forge branch, requires a successful `verify.yml` run for the exact source SHA, builds the web app, and publishes only `/apps/character-forge/`. The hosted deployment includes `source.json`; the Character Forge bundle itself also carries `dist/build-info.json` and the visible build badge.
 
 This integration does not change the acceptance gate above: do not run the QA or production promotion helpers until the owner accepts the accumulated runtime pass.
 
 ## Immediate next direction
 
-Continue issue #11 from the now-proven class-spellcasting primitive.
+Continue issue #11 from the now-proven class-spellcasting primitive after the runtime QA checkpoint is confirmed.
 
 Good next slices are:
 
@@ -203,4 +251,6 @@ A generic table engine returns structured, inspectable, provenance-bearing resul
 - Generator-core stays system-neutral; D&D rules/content stay in `system-dnd5e`.
 - Character Forge owns RPG-native interpretation, validation, choices, and provenance.
 - Parchment owns generic project membership, lifecycle, relationships, persistence, and future sync/share behavior.
+- Local Parchment launcher may rebuild an adjacent Character Forge checkout but must not silently mutate its Git branch or pull source.
+- Keep visible runtime source/version identity available in QA builds.
 - Use only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repository.
