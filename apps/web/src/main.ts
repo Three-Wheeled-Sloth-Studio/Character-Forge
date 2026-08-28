@@ -58,6 +58,8 @@ function renderCharacter(character: CharacterDocument): void {
   const expertise = payload.class.expertiseSkillIds ?? [];
   const bonusLanguages = payload.class.bonusLanguageIds ?? [];
   const skilled = payload.origin.speciesOriginFeatProficiencyIds ?? [];
+  const classCasting = payload.spells?.classCasting ?? [];
+  const spellGrants = payload.spells?.grants ?? [];
 
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
@@ -77,6 +79,12 @@ function renderCharacter(character: CharacterDocument): void {
       <div><strong>Background tool</strong><span>${humanize(payload.origin.toolProficiencyId)}</span></div>
       ${classTools.length ? `<div><strong>Class tools</strong><span>${classTools.map(humanize).join(", ")}</span></div>` : ""}
       ${bonusLanguages.length ? `<div><strong>Class languages</strong><span>${bonusLanguages.map(humanize).join(", ")}</span></div>` : ""}
+      ${payload.class.divineOrderId ? `<div><strong>Divine Order</strong><span>${humanize(payload.class.divineOrderId)}</span></div>` : ""}
+      ${(payload.class.weaponProficiencyIds ?? []).length ? `<div><strong>Weapon training</strong><span>${payload.class.weaponProficiencyIds!.map(humanize).join(", ")}</span></div>` : ""}
+      ${(payload.class.armorTrainingIds ?? []).length ? `<div><strong>Armor training</strong><span>${payload.class.armorTrainingIds!.map(humanize).join(", ")}</span></div>` : ""}
+      ${payload.class.thaumaturgeKnowledgeBonus !== undefined ? `<div><strong>Thaumaturge knowledge bonus</strong><span>${signed(payload.class.thaumaturgeKnowledgeBonus)}</span></div>` : ""}
+      ${classCasting.map((casting) => `<div><strong>${humanize(casting.sourceClassId)} cantrips</strong><span>${casting.cantripIds.map(humanize).join(", ")}</span></div><div><strong>${humanize(casting.sourceClassId)} prepared spells</strong><span>${casting.preparedSpellIds.map(humanize).join(", ")}</span></div><div><strong>Spell slots</strong><span>${casting.spellSlots.map((slot) => `Level ${slot.level}: ${slot.current} / ${slot.maximum}`).join(", ")}</span></div>`).join("")}
+      ${spellGrants.map((grant) => `<div><strong>${humanize(grant.sourceId)} cantrips</strong><span>${grant.cantripIds.map(humanize).join(", ")}</span></div><div><strong>${humanize(grant.sourceId)} spell</strong><span>${grant.preparedSpellIds.map(humanize).join(", ")} · ${grant.freeCastCurrent}/${grant.freeCastMaximum} free cast</span></div>`).join("")}
       <div><strong>Background equipment</strong><span>${payload.origin.backgroundEquipmentChoice === "A" ? "Equipment package" : "50 GP"}</span></div>
       <div><strong>Class equipment</strong><span>${humanize(payload.class.classEquipmentChoice)}</span></div>
       ${payload.class.fightingStyleFeatId ? `<div><strong>Fighting style</strong><span>${humanize(payload.class.fightingStyleFeatId)}</span></div>` : ""}
