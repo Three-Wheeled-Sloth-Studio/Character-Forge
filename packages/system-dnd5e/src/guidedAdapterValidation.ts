@@ -1,5 +1,6 @@
 import type { JsonObject, NativeSystemState, RulesValidationIssue, RulesValidationResult } from "../../character-model/src/index.js";
 import { DND5E_POINT_COST_BUDGET, DND5E_POINT_COSTS } from "./abilityGeneration.js";
+import { clericCantripCount, DND5E_CLERIC_CANTRIP_OPTIONS, DND5E_CLERIC_DIVINE_ORDER_OPTIONS, DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS } from "./clericCatalog.js";
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
 import {
   DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
@@ -19,7 +20,7 @@ import {
 } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
-const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, fighter: 10, monk: 8, rogue: 8 };
+const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, cleric: 8, fighter: 10, monk: 8, rogue: 8 };
 const BACKGROUND_EXPECTED: Record<GuidedDnd5eBackgroundId, { feat: string; skills: readonly string[]; tool: string }> = {
   acolyte: { feat: "magic-initiate:cleric", skills: ["insight", "religion"], tool: "calligraphers-supplies" },
   criminal: { feat: "alert", skills: ["sleight-of-hand", "stealth"], tool: "thieves-tools" },
@@ -38,9 +39,7 @@ export function validateGuidedCoreNativeState(state: NativeSystemState): RulesVa
     return { valid: false, issues };
   }
   const payload = state.payload;
-  if (!readStrings(payload, "rulesSourceIds").includes(DND5E_SRD_5_2_1_SOURCE.id)) {
-    error(issues, "dnd5e.rules-source.missing", "Native state must retain SRD 5.2.1 provenance.", "rulesSourceIds");
-  }
+  if (!readStrings(payload, "rulesSourceIds").includes(DND5E_SRD_5_2_1_SOURCE.id)) error(issues, "dnd5e.rules-source.missing", "Native state must retain SRD 5.2.1 provenance.", "rulesSourceIds");
 
   const identity = readObject(payload, "identity");
   const origin = readObject(payload, "origin");
@@ -52,9 +51,7 @@ export function validateGuidedCoreNativeState(state: NativeSystemState): RulesVa
     error(issues, "dnd5e.guided.shape", "Guided native state requires identity, origin, class, abilities, resources, and derived state.");
     return { valid: false, issues };
   }
-  if (readNumber(identity, "level") !== 1 || readNumber(identity, "experiencePoints") !== 0) {
-    error(issues, "dnd5e.level-one.identity", "Guided generation requires Level 1 and 0 XP.", "identity");
-  }
+  if (readNumber(identity, "level") !== 1 || readNumber(identity, "experiencePoints") !== 0) error(issues, "dnd5e.level-one.identity", "Guided generation requires Level 1 and 0 XP.", "identity");
   if (readNumber(classState, "proficiencyBonus") !== 2) error(issues, "dnd5e.proficiency.level-one", "Level 1 Proficiency Bonus must be +2.", "class.proficiencyBonus");
 
   const classId = readString(classState, "classId");
@@ -63,13 +60,13 @@ export function validateGuidedCoreNativeState(state: NativeSystemState): RulesVa
   if (!classId || !isGuidedDnd5eClassId(classId)) error(issues, "dnd5e.guided.class", "Unsupported guided class.", "class.classId");
   if (!backgroundId || !isGuidedDnd5eBackgroundId(backgroundId)) error(issues, "dnd5e.guided.background", "Unsupported guided background.", "origin.backgroundId");
   if (!speciesId || !isGuidedDnd5eSpeciesId(speciesId)) error(issues, "dnd5e.guided.species", "Unsupported guided species.", "origin.speciesId");
-  if (!classId || !backgroundId || !speciesId || !isGuidedDnd5eClassId(classId) || !isGuidedDnd5eBackgroundId(backgroundId) || !isGuidedDnd5eSpeciesId(speciesId)) {
-    return { valid: false, issues };
-  }
+  if (!classId || !backgroundId || !speciesId || !isGuidedDnd5eClassId(classId) || !isGuidedDnd5eBackgroundId(backgroundId) || !isGuidedDnd5eSpeciesId(speciesId)) return { valid: false, issues };
 
   validateAbilities(abilities, origin, issues);
   validateBackground(origin, backgroundId, issues);
   validateMagicInitiateNativeState(payload, backgroundId, issues);
+  const final = readObject(abilities, "final");
+  validateClassSpellcastingNativeState(payload, classState, final, classId, issues);
 
   const coreChoices = reconstructCoreChoices(identity, origin, classState, payload, classId, backgroundId, speciesId, issues);
   if (coreChoices) {
@@ -79,8 +76,6 @@ export function validateGuidedCoreNativeState(state: NativeSystemState): RulesVa
       error(issues, "dnd5e.guided.core-choices", caught instanceof Error ? caught.message : "Invalid guided core choices.", "class");
     }
   }
-
-  const final = readObject(abilities, "final");
   if (final) validateDerivedAndResources(origin, classState, resources, derived, final, classId, backgroundId, speciesId, issues);
   return { valid: !issues.some((issue) => issue.severity === "error"), issues };
 }
@@ -95,9 +90,7 @@ function validateAbilities(abilities: JsonObject, origin: JsonObject, issues: Ru
   }
   for (const id of DND5E_ABILITY_IDS) {
     const b = readNumber(base, id); const inc = readNumber(increases, id); const f = readNumber(final, id);
-    if (b === undefined || inc === undefined || f === undefined || f !== b + inc || !Number.isInteger(f) || f < 1 || f > 20) {
-      error(issues, "dnd5e.abilities.value", `Invalid ${id} base/increase/final relationship.`, `abilities.${id}`);
-    }
+    if (b === undefined || inc === undefined || f === undefined || f !== b + inc || !Number.isInteger(f) || f < 1 || f > 20) error(issues, "dnd5e.abilities.value", `Invalid ${id} base/increase/final relationship.`, `abilities.${id}`);
   }
   const method = readString(abilities, "generationMethod");
   if (method === "standard-array") {
@@ -116,9 +109,7 @@ function validateAbilities(abilities: JsonObject, origin: JsonObject, issues: Ru
       else spent += cost;
     }
     if (spent > DND5E_POINT_COST_BUDGET) error(issues, "dnd5e.point-cost.budget", "Point Cost exceeds the 27-point budget.", "abilities.base");
-  } else {
-    error(issues, "dnd5e.slice.ability-method", "Unsupported ability-generation method.", "abilities.generationMethod");
-  }
+  } else error(issues, "dnd5e.slice.ability-method", "Unsupported ability-generation method.", "abilities.generationMethod");
 
   const backgroundId = readString(origin, "backgroundId");
   const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((option) => option.id === backgroundId);
@@ -127,9 +118,7 @@ function validateAbilities(abilities: JsonObject, origin: JsonObject, issues: Ru
   const nonZero = DND5E_ABILITY_IDS.filter((id) => values[id] !== 0);
   const pattern = nonZero.map((id) => values[id]).sort((a, b) => b - a);
   const legal = (pattern.length === 2 && pattern[0] === 2 && pattern[1] === 1) || (pattern.length === 3 && pattern.every((value) => value === 1));
-  if (!legal || nonZero.some((id) => !background.abilityScoreIds.includes(id))) {
-    error(issues, "dnd5e.background.ability-increases", `${background.label} ability increases are invalid.`, "abilities.backgroundIncreases");
-  }
+  if (!legal || nonZero.some((id) => !background.abilityScoreIds.includes(id))) error(issues, "dnd5e.background.ability-increases", `${background.label} ability increases are invalid.`, "abilities.backgroundIncreases");
 }
 
 function validateBackground(origin: JsonObject, backgroundId: GuidedDnd5eBackgroundId, issues: RulesValidationIssue[]): void {
@@ -170,16 +159,53 @@ function validateMagicInitiateNativeState(payload: JsonObject, backgroundId: Gui
   if (readNumber(grant, "freeCastMaximum") !== 1 || readNumber(grant, "freeCastCurrent") !== 1 || readString(grant, "freeCastRecharge") !== "long-rest") error(issues, "dnd5e.magic-initiate.free-cast", "Magic Initiate level 1 spell must retain one free cast per Long Rest.", "spells.grants.freeCastMaximum");
 }
 
-function reconstructCoreChoices(
-  identity: JsonObject,
-  origin: JsonObject,
-  classState: JsonObject,
-  payload: JsonObject,
-  classId: GuidedDnd5eClassId,
-  backgroundId: GuidedDnd5eBackgroundId,
-  speciesId: GuidedDnd5eSpeciesId,
-  issues: RulesValidationIssue[],
-): GuidedDnd5eCoreChoices | undefined {
+function validateClassSpellcastingNativeState(payload: JsonObject, classState: JsonObject, final: JsonObject | undefined, classId: GuidedDnd5eClassId, issues: RulesValidationIssue[]): void {
+  const spells = readObject(payload, "spells");
+  const classCasting = spells ? readObjects(spells, "classCasting") : [];
+  if (classId !== "cleric") {
+    if (classCasting.length) error(issues, "dnd5e.class-spellcasting.unexpected", "This supported class does not own class spellcasting state.", "spells.classCasting");
+    return;
+  }
+  if (classCasting.length !== 1) {
+    error(issues, "dnd5e.cleric.spellcasting-count", "Level 1 Cleric requires exactly one class spellcasting entry.", "spells.classCasting");
+    return;
+  }
+  const casting = classCasting[0]!;
+  const order = readString(classState, "divineOrderId");
+  if (!order || !DND5E_CLERIC_DIVINE_ORDER_OPTIONS.some((option) => option.id === order)) {
+    error(issues, "dnd5e.cleric.divine-order", "Cleric requires Protector or Thaumaturge Divine Order.", "class.divineOrderId");
+    return;
+  }
+  if (readString(casting, "sourceClassId") !== "cleric" || readString(casting, "featureId") !== "cleric:spellcasting" || readString(casting, "spellListId") !== "cleric") error(issues, "dnd5e.cleric.spellcasting-source", "Cleric class spellcasting source/list mismatch.", "spells.classCasting");
+  if (readString(casting, "spellcastingAbilityId") !== "wisdom") error(issues, "dnd5e.cleric.spellcasting-ability", "Cleric class spellcasting ability must be Wisdom.", "spells.classCasting.spellcastingAbilityId");
+  const cantrips = readStrings(casting, "cantripIds");
+  const expectedCantrips = clericCantripCount(order as "protector" | "thaumaturge");
+  if (cantrips.length !== expectedCantrips || new Set(cantrips).size !== expectedCantrips || cantrips.some((id) => !DND5E_CLERIC_CANTRIP_OPTIONS.some((option) => option.id === id))) error(issues, "dnd5e.cleric.cantrips", `Cleric ${order} requires ${expectedCantrips} distinct Cleric cantrips.`, "spells.classCasting.cantripIds");
+  const prepared = readStrings(casting, "preparedSpellIds");
+  if (prepared.length !== 4 || new Set(prepared).size !== 4 || prepared.some((id) => !DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS.some((option) => option.id === id))) error(issues, "dnd5e.cleric.prepared-spells", "Level 1 Cleric requires four distinct prepared Level 1 Cleric spells.", "spells.classCasting.preparedSpellIds");
+  if (readStrings(casting, "alwaysPreparedSpellIds").length !== 0) error(issues, "dnd5e.cleric.always-prepared", "Base Level 1 Cleric class spellcasting has no always-prepared class spells.", "spells.classCasting.alwaysPreparedSpellIds");
+  const slots = readObjects(casting, "spellSlots");
+  const slot = slots[0];
+  if (slots.length !== 1 || !slot || readNumber(slot, "level") !== 1 || readNumber(slot, "maximum") !== 2 || readNumber(slot, "current") !== 2 || readString(slot, "recharge") !== "long-rest") error(issues, "dnd5e.cleric.spell-slots", "Level 1 Cleric requires two Level 1 spell slots restored on Long Rest.", "spells.classCasting.spellSlots");
+  if (readString(casting, "preparationChange") !== "long-rest-any") error(issues, "dnd5e.cleric.preparation", "Cleric prepared spells must be changeable after a Long Rest.", "spells.classCasting.preparationChange");
+  if (!sameSet(readStrings(casting, "focusItemIds"), ["holy-symbol"]) || !sameSet(readStrings(classState, "spellcastingFocusIds"), ["holy-symbol"])) error(issues, "dnd5e.cleric.focus", "Cleric spellcasting must retain Holy Symbol focus capability.", "class.spellcastingFocusIds");
+  validateClericOrderState(classState, final, order as "protector" | "thaumaturge", issues);
+}
+
+function validateClericOrderState(classState: JsonObject, final: JsonObject | undefined, order: "protector" | "thaumaturge", issues: RulesValidationIssue[]): void {
+  const weapons = readStrings(classState, "weaponProficiencyIds");
+  const armor = readStrings(classState, "armorTrainingIds");
+  if (order === "protector") {
+    if (!sameSet(weapons, ["simple", "martial"]) || !sameSet(armor, ["light", "medium", "heavy", "shield"])) error(issues, "dnd5e.cleric.protector-training", "Protector must retain Martial weapon proficiency and Heavy Armor training.", "class");
+    if (readNumber(classState, "thaumaturgeKnowledgeBonus") !== undefined) error(issues, "dnd5e.cleric.protector-bonus", "Protector must not retain the Thaumaturge knowledge bonus.", "class.thaumaturgeKnowledgeBonus");
+    return;
+  }
+  if (!sameSet(weapons, ["simple"]) || !sameSet(armor, ["light", "medium", "shield"])) error(issues, "dnd5e.cleric.thaumaturge-training", "Thaumaturge retains the base Cleric weapon and armor training only.", "class");
+  const wisdom = final ? readNumber(final, "wisdom") : undefined;
+  if (wisdom !== undefined && readNumber(classState, "thaumaturgeKnowledgeBonus") !== Math.max(1, abilityModifier(wisdom))) error(issues, "dnd5e.cleric.thaumaturge-bonus", "Thaumaturge knowledge bonus must equal Wisdom modifier, minimum +1.", "class.thaumaturgeKnowledgeBonus");
+}
+
+function reconstructCoreChoices(identity: JsonObject, origin: JsonObject, classState: JsonObject, payload: JsonObject, classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId, issues: RulesValidationIssue[]): GuidedDnd5eCoreChoices | undefined {
   const languages = readStrings(origin, "languages");
   if (languages.length !== 3 || languages[0] !== "common" || !languages[1] || !languages[2]) {
     error(issues, "dnd5e.guided.origin-languages", "Origin languages must be Common plus two standard languages.", "origin.languages");
@@ -195,14 +221,19 @@ function reconstructCoreChoices(
     classEquipmentChoice,
     weaponMasteryIds: readStrings(classState, "weaponMasteryIds"),
   };
-  const style = readString(classState, "fightingStyleFeatId"); if (style) choices.fightingStyleFeatId = style;
-  if (classId === "monk") {
-    const tool = readStrings(classState, "toolProficiencyIds")[0]; if (tool) choices.monkToolProficiencyId = tool;
+  if (classId === "cleric") {
+    const order = readString(classState, "divineOrderId");
+    const spells = readObject(payload, "spells");
+    const casting = spells ? readObjects(spells, "classCasting").find((entry) => readString(entry, "sourceClassId") === "cleric") : undefined;
+    const cantrips = casting ? readStrings(casting, "cantripIds") : [];
+    const prepared = casting ? readStrings(casting, "preparedSpellIds") : [];
+    if ((order === "protector" || order === "thaumaturge") && cantrips.length && prepared.length) choices.cleric = { divineOrderId: order, cantripIds: cantrips, preparedSpellIds: prepared };
   }
+  const style = readString(classState, "fightingStyleFeatId"); if (style) choices.fightingStyleFeatId = style;
+  if (classId === "monk") { const tool = readStrings(classState, "toolProficiencyIds")[0]; if (tool) choices.monkToolProficiencyId = tool; }
   if (classId === "rogue") {
     choices.expertiseSkillIds = readStrings(classState, "expertiseSkillIds");
-    const bonusLanguages = readStrings(classState, "bonusLanguageIds");
-    const bonus = bonusLanguages.find((id) => id !== "thieves-cant"); if (bonus) choices.rogueBonusLanguageId = bonus;
+    const bonus = readStrings(classState, "bonusLanguageIds").find((id) => id !== "thieves-cant"); if (bonus) choices.rogueBonusLanguageId = bonus;
   }
   const requiredListId = magicInitiateListForBackground(backgroundId);
   if (requiredListId) {
@@ -211,9 +242,7 @@ function reconstructCoreChoices(
     const ability = grant ? readString(grant, "spellcastingAbilityId") : undefined;
     const cantrips = grant ? readStrings(grant, "cantripIds") : [];
     const levelOne = grant ? readString(grant, "freeCastSpellId") : undefined;
-    if (ability && isSpellcastingAbility(ability) && cantrips.length === 2 && cantrips[0] && cantrips[1] && levelOne) {
-      choices.magicInitiate = { spellListId: requiredListId, spellcastingAbilityId: ability, cantripIds: [cantrips[0], cantrips[1]], levelOneSpellId: levelOne };
-    }
+    if (ability && isSpellcastingAbility(ability) && cantrips.length === 2 && cantrips[0] && cantrips[1] && levelOne) choices.magicInitiate = { spellListId: requiredListId, spellcastingAbilityId: ability, cantripIds: [cantrips[0], cantrips[1]], levelOneSpellId: levelOne };
   }
   if (speciesId === "dragonborn") {
     const ancestry = readString(origin, "speciesAncestryId");
@@ -225,21 +254,12 @@ function reconstructCoreChoices(
   }
   if (speciesId === "human") {
     const size = readString(origin, "size"); const skillId = readString(origin, "speciesSkillId"); const feat = readString(origin, "speciesOriginFeatId");
-    if ((size === "small" || size === "medium") && skillId && (feat === "alert" || feat === "savage-attacker" || feat === "skilled")) {
-      choices.human = {
-        size, skillId, originFeatId: feat,
-        ...(feat === "skilled" ? { skilledProficiencyIds: readStrings(origin, "speciesOriginFeatProficiencyIds") } : {}),
-      };
-    }
+    if ((size === "small" || size === "medium") && skillId && (feat === "alert" || feat === "savage-attacker" || feat === "skilled")) choices.human = { size, skillId, originFeatId: feat, ...(feat === "skilled" ? { skilledProficiencyIds: readStrings(origin, "speciesOriginFeatProficiencyIds") } : {}) };
   }
   return choices;
 }
 
-function validateDerivedAndResources(
-  origin: JsonObject, classState: JsonObject, resources: JsonObject, derived: JsonObject, final: JsonObject,
-  classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId,
-  issues: RulesValidationIssue[],
-): void {
+function validateDerivedAndResources(origin: JsonObject, classState: JsonObject, resources: JsonObject, derived: JsonObject, final: JsonObject, classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId, issues: RulesValidationIssue[]): void {
   const con = readNumber(final, "constitution"); const dex = readNumber(final, "dexterity"); const wis = readNumber(final, "wisdom");
   if (con === undefined || dex === undefined || wis === undefined) return;
   if (readNumber(classState, "hitDie") !== HIT_DIE[classId]) error(issues, "dnd5e.guided.class-core", "Class Hit Die mismatch.", "class.hitDie");
@@ -248,27 +268,23 @@ function validateDerivedAndResources(
   const equipmentChoice = readString(classState, "classEquipmentChoice") ?? "";
   const style = readString(classState, "fightingStyleFeatId");
   const expectedAc = classId === "barbarian" ? 10 + abilityModifier(dex) + abilityModifier(con)
-    : classId === "monk" ? 10 + abilityModifier(dex) + abilityModifier(wis)
-      : classId === "rogue" ? (equipmentChoice === "A" ? 11 : 10) + abilityModifier(dex)
-        : equipmentChoice === "A" ? 16 + (style === "defense" ? 1 : 0)
-          : equipmentChoice === "B" ? 12 + abilityModifier(dex) + (style === "defense" ? 1 : 0)
-            : 10 + abilityModifier(dex);
+    : classId === "cleric" ? (equipmentChoice === "A" ? 15 + Math.min(2, abilityModifier(dex)) : 10 + abilityModifier(dex))
+      : classId === "monk" ? 10 + abilityModifier(dex) + abilityModifier(wis)
+        : classId === "rogue" ? (equipmentChoice === "A" ? 11 : 10) + abilityModifier(dex)
+          : equipmentChoice === "A" ? 16 + (style === "defense" ? 1 : 0)
+            : equipmentChoice === "B" ? 12 + abilityModifier(dex) + (style === "defense" ? 1 : 0)
+              : 10 + abilityModifier(dex);
   if (readNumber(derived, "armorClass") !== expectedAc) error(issues, "dnd5e.guided.armor-class", "Armor Class does not match equipment and abilities.", "derived.armorClass");
   const alert = BACKGROUND_EXPECTED[backgroundId].feat === "alert" || readString(origin, "speciesOriginFeatId") === "alert";
   const initiative = abilityModifier(dex) + (alert ? 2 : 0);
   if (readNumber(derived, "initiativeModifier") !== initiative) error(issues, "dnd5e.guided.initiative", "Initiative does not match Dexterity and Alert proficiency.", "derived.initiativeModifier");
-  const allSkills = new Set([
-    ...readStrings(classState, "skillProficiencies"), ...readStrings(origin, "backgroundSkillProficiencies"),
-    ...(readString(origin, "speciesSkillId") ? [readString(origin, "speciesSkillId")!] : []),
-    ...readStrings(origin, "speciesOriginFeatProficiencyIds"),
-  ]);
+  const allSkills = new Set([...readStrings(classState, "skillProficiencies"), ...readStrings(origin, "backgroundSkillProficiencies"), ...(readString(origin, "speciesSkillId") ? [readString(origin, "speciesSkillId")!] : []), ...readStrings(origin, "speciesOriginFeatProficiencyIds")]);
   const passive = 10 + abilityModifier(wis) + (allSkills.has("perception") ? 2 : 0);
   if (readNumber(derived, "passivePerception") !== passive) error(issues, "dnd5e.guided.passive-perception", "Passive Perception mismatch.", "derived.passivePerception");
   if (classId === "fighter" && (readNumber(resources, "secondWindMaximum") !== 2 || readNumber(resources, "secondWindCurrent") !== 2)) error(issues, "dnd5e.fighter.second-wind", "Fighter requires two Second Wind uses.", "resources");
   if (classId === "barbarian" && (readNumber(resources, "rageMaximum") !== 2 || readNumber(resources, "rageCurrent") !== 2 || readNumber(resources, "rageDamageBonus") !== 2)) error(issues, "dnd5e.barbarian.rage", "Barbarian Rage resources mismatch.", "resources");
   if (speciesId === "dragonborn") {
-    const ancestry = readString(origin, "speciesAncestryId");
-    const expected = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === ancestry);
+    const ancestry = readString(origin, "speciesAncestryId"); const expected = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === ancestry);
     if (!expected || readString(origin, "speciesDamageType") !== expected.damageType) error(issues, "dnd5e.dragonborn.ancestry", "Dragonborn ancestry and damage type must agree.", "origin.speciesAncestryId");
     if (readString(origin, "size") !== "medium" || readNumber(origin, "speedFeet") !== 30) error(issues, "dnd5e.dragonborn.physical", "Dragonborn must be Medium with 30-foot Speed.", "origin");
     if (readNumber(resources, "breathWeaponMaximum") !== 2 || readNumber(resources, "breathWeaponCurrent") !== 2) error(issues, "dnd5e.dragonborn.breath-weapon", "Dragonborn Breath Weapon uses must equal Proficiency Bonus.", "resources");
@@ -281,9 +297,7 @@ function validateDerivedAndResources(
   if (speciesId === "orc" && (readNumber(resources, "adrenalineRushMaximum") !== 2 || readNumber(resources, "relentlessEnduranceMaximum") !== 1)) error(issues, "dnd5e.orc.resources", "Orc resources mismatch.", "resources");
 }
 
-function magicInitiateListForBackground(backgroundId: GuidedDnd5eBackgroundId): Dnd5eMagicInitiateSpellListId | undefined {
-  return backgroundId === "acolyte" ? "cleric" : backgroundId === "sage" ? "wizard" : undefined;
-}
+function magicInitiateListForBackground(backgroundId: GuidedDnd5eBackgroundId): Dnd5eMagicInitiateSpellListId | undefined { return backgroundId === "acolyte" ? "cleric" : backgroundId === "sage" ? "wizard" : undefined; }
 function isSpellcastingAbility(value: string): value is Dnd5eSpellcastingAbilityId { return value === "intelligence" || value === "wisdom" || value === "charisma"; }
 function isObject(value: unknown): value is JsonObject { return typeof value === "object" && value !== null && !Array.isArray(value); }
 function readObject(object: JsonObject, key: string): JsonObject | undefined { const value = object[key]; return isObject(value) ? value : undefined; }
@@ -292,6 +306,4 @@ function readString(object: JsonObject, key: string): string | undefined { const
 function readNumber(object: JsonObject, key: string): number | undefined { const value = object[key]; return typeof value === "number" ? value : undefined; }
 function readStrings(object: JsonObject, key: string): string[] { const value = object[key]; return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : []; }
 function sameSet(left: readonly string[], right: readonly string[]): boolean { return left.length === right.length && left.every((value) => right.includes(value)); }
-function error(issues: RulesValidationIssue[], code: string, message: string, path?: string): void {
-  issues.push({ code, message, severity: "error", ...(path ? { path } : {}) });
-}
+function error(issues: RulesValidationIssue[], code: string, message: string, path?: string): void { issues.push({ code, message, severity: "error", ...(path ? { path } : {}) }); }
