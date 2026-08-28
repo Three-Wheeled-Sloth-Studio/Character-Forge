@@ -167,6 +167,12 @@ The next useful owner pass can now actually exercise magical-class behavior. Inc
 
 Do not promote until explicit owner acceptance.
 
+## Deployment integration
+
+Character Forge is now part of the local PW checkout, pull, verify/build, deploy, and promotion chain. Private orchestration in Parchment Worlds checks out the matching Character Forge branch, requires a successful `verify.yml` run for the exact source SHA, builds the web app, and publishes only `/apps/character-forge/`. The hosted deployment includes `source.json` so smoke tests can verify exact commit provenance.
+
+This integration does not change the acceptance gate above: do not run the QA or production promotion helpers until the owner accepts the accumulated runtime pass.
+
 ## Immediate next direction
 
 Continue issue #11 from the now-proven class-spellcasting primitive.

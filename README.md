@@ -48,6 +48,8 @@ npm run verify
 
 Routine development happens directly on `dev`. Accepted commits promote unchanged through `qa` and then `main`.
 
+The PW workspace pull/build scripts include Character Forge. Deployment is orchestrated from the private Parchment Worlds repository after exact-source CI verification and publishes this app at `apps/character-forge/`; deployment credentials do not live in this public repository.
+
 ## Licensing
 
 Repository source code is licensed under the repository `LICENSE`.

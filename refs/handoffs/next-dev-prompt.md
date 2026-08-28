@@ -34,6 +34,8 @@ Guided native schema remains `dnd5e-character/0.3`; adapter is `0.10.0`. Legacy 
 
 Read `refs/handoffs/currentHandoff.md` for the documentation head and detailed state.
 
+Character Forge is wired into the PW workspace pull/build/deploy/promote chain. Its private Parchment Worlds deployment workflow requires successful `verify.yml` validation for the exact source SHA, publishes `/apps/character-forge/`, and exposes `source.json` for provenance smoke testing. The workflow availability does not override the owner-acceptance promotion guard.
+
 ## Read first
 
 1. `AGENTS.md`

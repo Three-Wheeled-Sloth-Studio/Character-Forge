@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-08-26
+updated: 2026-08-28
 identity:
   name: Character Forge
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge
@@ -41,6 +41,11 @@ stack:
     - TypeScript
     - Vitest
     - GitHub Actions
+deployment:
+  hosted_path: apps/character-forge/
+  orchestrator_repository: Three-Wheeled-Sloth-Studio/Parchment-Worlds
+  source_validation_workflow: .github/workflows/verify.yml
+  policy: Deploy only an exact source SHA with successful verification; keep deployment credentials out of this public repository.
 repository_layout:
   current_source_roots:
     - packages/character-model
