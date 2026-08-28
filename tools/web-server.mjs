@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 
@@ -8,13 +8,14 @@ const host = readArg("--host") ?? "localhost";
 const indexPath = join(repositoryRoot, "apps", "web", "index.html");
 const stylesPath = join(repositoryRoot, "apps", "web", "src", "styles.css");
 const distRoot = resolve(repositoryRoot, "dist");
+const buildInfoPath = join(distRoot, "build-info.json");
 
 const server = createServer((request, response) => {
   const pathname = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`).pathname;
 
   if (pathname === "/__health") {
-    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-    response.end(JSON.stringify({ app: "character-forge", status: "ready" }));
+    response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    response.end(JSON.stringify({ app: "character-forge", status: "ready", build: readBuildInfo() }));
     return;
   }
   if (pathname === "/" || pathname === "/index.html") {
@@ -33,12 +34,22 @@ const server = createServer((request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Character Forge ready at http://${host}:${port}`);
+  const build = readBuildInfo();
+  const identity = build ? ` v${build.version} ${String(build.commit).slice(0, 8)}${build.dirty ? "+dirty" : ""}` : "";
+  console.log(`Character Forge${identity} ready at http://${host}:${port}`);
 });
 
 function readArg(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : undefined;
+}
+
+function readBuildInfo() {
+  try {
+    return JSON.parse(readFileSync(buildInfoPath, "utf8"));
+  } catch {
+    return null;
+  }
 }
 
 function streamFile(filePath, response) {
