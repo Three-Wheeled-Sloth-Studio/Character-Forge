@@ -11,6 +11,8 @@ const DRUID_LIST = magicInitiateSpellList("druid");
 
 export const DND5E_DRUID_CANTRIP_OPTIONS = DRUID_LIST.cantrips;
 export const DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS = DRUID_LIST.levelOneSpells;
+export const DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS = DRUID_LIST.levelOneSpells
+  .filter((spell) => spell.id !== "speak-with-animals");
 
 export function druidCantripCount(primalOrderId: Dnd5eDruidPrimalOrderId): number {
   return primalOrderId === "magician" ? 3 : 2;

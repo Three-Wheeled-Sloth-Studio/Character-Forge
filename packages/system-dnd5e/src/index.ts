@@ -14,6 +14,7 @@ export * from "./manualGenerate.js";
 export * from "./nameGeneration.js";
 export * from "./nativeCharacter.js";
 export * from "./pointCostGenerate.js";
+export * from "./preparedCasterCatalog.js";
 export * from "./quickGenerate.js";
 export * from "./randomGenerate.js";
 export * from "./rulesSource.js";

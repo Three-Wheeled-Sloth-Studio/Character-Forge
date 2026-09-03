@@ -1,17 +1,7 @@
-import {
-  dnd5eSrd521Adapter,
-  type Dnd5eNativeCharacter,
-} from "../../../packages/system-dnd5e/src/index.js";
+import { dnd5eSrd521Adapter, type Dnd5eNativeCharacter } from "../../../packages/system-dnd5e/src/index.js";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
-import {
-  characterForgeBuildTitle,
-  currentCharacterForgeBuildInfo,
-  visibleCharacterForgeBuildLabel,
-} from "./buildInfo.js";
-import {
-  parseCharacterOpenMessage,
-  resolveHostOrigin,
-} from "./characterForgeHostBridge.js";
+import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
+import { parseCharacterOpenMessage, resolveHostOrigin } from "./characterForgeHostBridge.js";
 import { mountGuidedCreationPanel } from "./guidedCreationPanel.js";
 
 const CHARACTER_GENERATED_MESSAGE = "character-forge:character-generated";
@@ -97,7 +87,8 @@ function renderCharacter(character: CharacterDocument): void {
       ${(payload.class.armorTrainingIds ?? []).length ? `<div><strong>Armor training</strong><span>${payload.class.armorTrainingIds!.map(humanize).join(", ")}</span></div>` : ""}
       ${payload.class.thaumaturgeKnowledgeBonus !== undefined ? `<div><strong>Thaumaturge knowledge bonus</strong><span>${signed(payload.class.thaumaturgeKnowledgeBonus)}</span></div>` : ""}
       ${payload.class.druidicKnowledgeBonus !== undefined ? `<div><strong>Druidic knowledge bonus</strong><span>${signed(payload.class.druidicKnowledgeBonus)}</span></div>` : ""}
-      ${classCasting.map((casting) => `<div><strong>${humanize(casting.sourceClassId)} cantrips</strong><span>${casting.cantripIds.map(humanize).join(", ")}</span></div><div><strong>${humanize(casting.sourceClassId)} prepared spells</strong><span>${casting.preparedSpellIds.map(humanize).join(", ")}</span></div>${casting.alwaysPreparedSpellIds.length ? `<div><strong>${humanize(casting.sourceClassId)} always prepared</strong><span>${casting.alwaysPreparedSpellIds.map(humanize).join(", ")}</span></div>` : ""}<div><strong>Spell slots</strong><span>${casting.spellSlots.map((slot) => `Level ${slot.level}: ${slot.current} / ${slot.maximum}`).join(", ")}</span></div>`).join("")}
+      ${classResourceDetails(payload)}
+      ${classCasting.map((casting) => `<div><strong>${humanize(casting.sourceClassId)} cantrips</strong><span>${casting.cantripIds.length ? casting.cantripIds.map(humanize).join(", ") : "None"}</span></div>${casting.spellbookSpellIds?.length ? `<div><strong>Spellbook</strong><span>${casting.spellbookSpellIds.map(humanize).join(", ")}</span></div>` : ""}<div><strong>${humanize(casting.sourceClassId)} prepared spells</strong><span>${casting.preparedSpellIds.map(humanize).join(", ")}</span></div>${casting.alwaysPreparedSpellIds.length ? `<div><strong>${humanize(casting.sourceClassId)} always prepared</strong><span>${casting.alwaysPreparedSpellIds.map(humanize).join(", ")}</span></div>` : ""}<div><strong>Spell slots</strong><span>${casting.spellSlots.map((slot) => `Level ${slot.level}: ${slot.current} / ${slot.maximum} · ${humanize(slot.recharge)}`).join(", ")}</span></div>`).join("")}
       ${spellGrants.map((grant) => `<div><strong>${humanize(grant.sourceId)} cantrips</strong><span>${grant.cantripIds.map(humanize).join(", ")}</span></div><div><strong>${humanize(grant.sourceId)} spell</strong><span>${grant.preparedSpellIds.map(humanize).join(", ")} · ${grant.freeCastCurrent}/${grant.freeCastMaximum} free cast</span></div>`).join("")}
       <div><strong>Background equipment</strong><span>${payload.origin.backgroundEquipmentChoice === "A" ? "Equipment package" : "50 GP"}</span></div>
       <div><strong>Class equipment</strong><span>${humanize(payload.class.classEquipmentChoice)}</span></div>
@@ -109,6 +100,18 @@ function renderCharacter(character: CharacterDocument): void {
     </div>
     <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
 }
+
+function classResourceDetails(payload: Dnd5eNativeCharacter): string {
+  const r = payload.resources;
+  const details: string[] = [];
+  if (r.bardicInspirationMaximum !== undefined) details.push(resourceRow("Bardic Inspiration", `${r.bardicInspirationCurrent}/${r.bardicInspirationMaximum} · d${r.bardicInspirationDie}`));
+  if (r.layOnHandsMaximum !== undefined) details.push(resourceRow("Lay on Hands", `${r.layOnHandsCurrent}/${r.layOnHandsMaximum} HP pool`));
+  if (r.favoredEnemyMaximum !== undefined) details.push(resourceRow("Favored Enemy", `${r.favoredEnemyCurrent}/${r.favoredEnemyMaximum} free Hunter's Mark casts`));
+  if (r.innateSorceryMaximum !== undefined) details.push(resourceRow("Innate Sorcery", `${r.innateSorceryCurrent}/${r.innateSorceryMaximum}`));
+  if (r.arcaneRecoveryMaximum !== undefined) details.push(resourceRow("Arcane Recovery", `${r.arcaneRecoveryCurrent}/${r.arcaneRecoveryMaximum} · ${r.arcaneRecoverySpellLevelBudget} spell level`));
+  return details.join("");
+}
+function resourceRow(label: string, value: string): string { return `<div><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value)}</span></div>`; }
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
   resultElement.classList.remove("empty-result");

@@ -18,11 +18,11 @@ describe("D&D Magic Initiate SRD spell catalogs", () => {
     expect(druid.levelOneSpells.map((spell) => spell.id)).toEqual(expect.arrayContaining(["animal-friendship", "faerie-fire", "speak-with-animals", "thunderwave"]));
   });
 
-  it("retains the complete SRD 5.2.1 Wizard options used by Sage", () => {
+  it("retains the complete SRD 5.2.1 Wizard options used by Sage and Wizard", () => {
     const wizard = DND5E_MAGIC_INITIATE_SPELL_LISTS.wizard;
     expect(wizard.cantrips).toHaveLength(15);
-    expect(wizard.levelOneSpells).toHaveLength(25);
-    expect(wizard.cantrips.map((spell) => spell.id)).toEqual(expect.arrayContaining(["fire-bolt", "mage-hand", "true-strike"]));
-    expect(wizard.levelOneSpells.map((spell) => spell.id)).toEqual(expect.arrayContaining(["find-familiar", "magic-missile", "shield"]));
+    expect(wizard.levelOneSpells).toHaveLength(30);
+    expect(wizard.cantrips.map((spell) => spell.id)).toEqual(expect.arrayContaining(["fire-bolt", "mage-hand", "ray-of-frost", "shocking-grasp", "true-strike"]));
+    expect(wizard.levelOneSpells.map((spell) => spell.id)).toEqual(expect.arrayContaining(["find-familiar", "floating-disk", "magic-missile", "shield", "unseen-servant"]));
   });
 });

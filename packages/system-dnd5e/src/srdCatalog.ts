@@ -1,33 +1,15 @@
 import type { Dnd5eAbilityId } from "./nativeCharacter.js";
 
 export type Dnd5eSrdClassId =
-  | "barbarian"
-  | "bard"
-  | "cleric"
-  | "druid"
-  | "fighter"
-  | "monk"
-  | "paladin"
-  | "ranger"
-  | "rogue"
-  | "sorcerer"
-  | "warlock"
-  | "wizard";
+  | "barbarian" | "bard" | "cleric" | "druid" | "fighter" | "monk"
+  | "paladin" | "ranger" | "rogue" | "sorcerer" | "warlock" | "wizard";
 
 export type Dnd5eSrdBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
 
 export type Dnd5eSrdSpeciesId =
-  | "dragonborn"
-  | "dwarf"
-  | "elf"
-  | "gnome"
-  | "goliath"
-  | "halfling"
-  | "human"
-  | "orc"
-  | "tiefling";
+  | "dragonborn" | "dwarf" | "elf" | "gnome" | "goliath" | "halfling" | "human" | "orc" | "tiefling";
 
-export type GuidedDnd5eClassId = "barbarian" | "cleric" | "druid" | "fighter" | "monk" | "rogue";
+export type GuidedDnd5eClassId = Exclude<Dnd5eSrdClassId, "warlock">;
 export type GuidedDnd5eBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
 export type GuidedDnd5eSpeciesId = "dragonborn" | "dwarf" | "goliath" | "halfling" | "human" | "orc";
 
@@ -59,56 +41,24 @@ export interface Dnd5eSrdSpeciesOption {
 
 export const DND5E_SRD_521_CLASS_OPTIONS: readonly Dnd5eSrdClassOption[] = [
   { id: "barbarian", label: "Barbarian", primaryAbilityIds: ["strength"], guidedSupported: true },
-  { id: "bard", label: "Bard", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Class spellcasting and Bardic Inspiration native state are not implemented yet." },
+  { id: "bard", label: "Bard", primaryAbilityIds: ["charisma"], guidedSupported: true },
   { id: "cleric", label: "Cleric", primaryAbilityIds: ["wisdom"], guidedSupported: true },
   { id: "druid", label: "Druid", primaryAbilityIds: ["wisdom"], guidedSupported: true },
   { id: "fighter", label: "Fighter", primaryAbilityIds: ["strength", "dexterity"], guidedSupported: true },
   { id: "monk", label: "Monk", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: true },
-  { id: "paladin", label: "Paladin", primaryAbilityIds: ["strength", "charisma"], guidedSupported: false, blockedReason: "Class spellcasting native state is not implemented yet." },
-  { id: "ranger", label: "Ranger", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: false, blockedReason: "Class spellcasting native state is not implemented yet." },
+  { id: "paladin", label: "Paladin", primaryAbilityIds: ["strength", "charisma"], guidedSupported: true },
+  { id: "ranger", label: "Ranger", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: true },
   { id: "rogue", label: "Rogue", primaryAbilityIds: ["dexterity"], guidedSupported: true },
-  { id: "sorcerer", label: "Sorcerer", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Class spellcasting and Innate Sorcery state are not implemented yet." },
-  { id: "warlock", label: "Warlock", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Pact Magic and invocation choices are not implemented yet." },
-  { id: "wizard", label: "Wizard", primaryAbilityIds: ["intelligence"], guidedSupported: false, blockedReason: "Class spellcasting and spellbook native state are not implemented yet." },
+  { id: "sorcerer", label: "Sorcerer", primaryAbilityIds: ["charisma"], guidedSupported: true },
+  { id: "warlock", label: "Warlock", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Pact Magic short-rest slots and the Level 1 Eldritch Invocation decision tree remain a distinct native-state seam." },
+  { id: "wizard", label: "Wizard", primaryAbilityIds: ["intelligence"], guidedSupported: true },
 ] as const;
 
 export const DND5E_SRD_521_BACKGROUND_OPTIONS: readonly Dnd5eSrdBackgroundOption[] = [
-  {
-    id: "acolyte",
-    label: "Acolyte",
-    abilityScoreIds: ["intelligence", "wisdom", "charisma"],
-    originFeatId: "magic-initiate:cleric",
-    skillProficiencies: ["insight", "religion"],
-    toolProficiencyId: "calligraphers-supplies",
-    guidedSupported: true,
-  },
-  {
-    id: "criminal",
-    label: "Criminal",
-    abilityScoreIds: ["dexterity", "constitution", "intelligence"],
-    originFeatId: "alert",
-    skillProficiencies: ["sleight-of-hand", "stealth"],
-    toolProficiencyId: "thieves-tools",
-    guidedSupported: true,
-  },
-  {
-    id: "sage",
-    label: "Sage",
-    abilityScoreIds: ["constitution", "intelligence", "wisdom"],
-    originFeatId: "magic-initiate:wizard",
-    skillProficiencies: ["arcana", "history"],
-    toolProficiencyId: "calligraphers-supplies",
-    guidedSupported: true,
-  },
-  {
-    id: "soldier",
-    label: "Soldier",
-    abilityScoreIds: ["strength", "dexterity", "constitution"],
-    originFeatId: "savage-attacker",
-    skillProficiencies: ["athletics", "intimidation"],
-    toolProficiencyId: "gaming-set:dice",
-    guidedSupported: true,
-  },
+  { id: "acolyte", label: "Acolyte", abilityScoreIds: ["intelligence", "wisdom", "charisma"], originFeatId: "magic-initiate:cleric", skillProficiencies: ["insight", "religion"], toolProficiencyId: "calligraphers-supplies", guidedSupported: true },
+  { id: "criminal", label: "Criminal", abilityScoreIds: ["dexterity", "constitution", "intelligence"], originFeatId: "alert", skillProficiencies: ["sleight-of-hand", "stealth"], toolProficiencyId: "thieves-tools", guidedSupported: true },
+  { id: "sage", label: "Sage", abilityScoreIds: ["constitution", "intelligence", "wisdom"], originFeatId: "magic-initiate:wizard", skillProficiencies: ["arcana", "history"], toolProficiencyId: "calligraphers-supplies", guidedSupported: true },
+  { id: "soldier", label: "Soldier", abilityScoreIds: ["strength", "dexterity", "constitution"], originFeatId: "savage-attacker", skillProficiencies: ["athletics", "intimidation"], toolProficiencyId: "gaming-set:dice", guidedSupported: true },
 ] as const;
 
 export const DND5E_SRD_521_SPECIES_OPTIONS: readonly Dnd5eSrdSpeciesOption[] = [
@@ -138,11 +88,9 @@ export const GUIDED_DND5E_SPECIES_IDS = DND5E_SRD_521_SPECIES_OPTIONS
 export function isGuidedDnd5eClassId(value: string): value is GuidedDnd5eClassId {
   return (GUIDED_DND5E_CLASS_IDS as readonly string[]).includes(value);
 }
-
 export function isGuidedDnd5eBackgroundId(value: string): value is GuidedDnd5eBackgroundId {
   return (GUIDED_DND5E_BACKGROUND_IDS as readonly string[]).includes(value);
 }
-
 export function isGuidedDnd5eSpeciesId(value: string): value is GuidedDnd5eSpeciesId {
   return (GUIDED_DND5E_SPECIES_IDS as readonly string[]).includes(value);
 }
