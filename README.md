@@ -32,6 +32,18 @@ PI 0 establishes:
 
 See `refs/handoffs/currentHandoff.md` for the current implementation state.
 
+## Agentic project memory
+
+Character Forge uses [Agent Academy](https://github.com/Three-Wheeled-Sloth-Studio/Agent-Academy) and exposes its `refs/` project memory through an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format) v0.2-compatible profile.
+
+- [Browse the OKF knowledge bundle](refs/index.md).
+- [Inspect the Character Forge OKF profile](refs/okfProfile.yaml).
+- Markdown knowledge is exposed as OKF concepts with committed deterministic indexes.
+- Structured YAML remains authoritative where exact project state or system contracts matter.
+- OKF compatibility is validated as part of the ordinary repository verification path.
+
+The profile is an interoperability layer, not a replacement for Character Forge's native-system and loss-aware translation contracts. Tests and structural validation do not by themselves create OKF `verified` trust claims.
+
 ## Development
 
 Requirements:
