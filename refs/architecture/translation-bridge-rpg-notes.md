@@ -1,3 +1,10 @@
+---
+type: "Architecture Reference"
+title: "Translation and Bridge RPG Evidence Ledger"
+tags:
+- character-forge
+- architecture
+---
 # Translation and Bridge RPG Evidence Ledger
 
 This file captures lessons discovered while implementing real systems. It exists so useful translation and original-RPG design evidence survives day-to-day development without prematurely becoming architecture.

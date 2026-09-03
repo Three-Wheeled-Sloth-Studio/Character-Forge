@@ -8,6 +8,7 @@ Before changing this repository:
 4. Read the relevant planning, architecture, product, testing, and integration references.
 5. Treat `refs/` as durable project memory and update it when implementation changes a fact, decision, risk, validation command, or handoff state.
 6. Read relevant shared studio guidance from `Three-Wheeled-Sloth-Studio/TWS-Design-Principles` when available.
+7. Use `refs/index.md` for generic OKF-compatible discovery; `refs/okfProfile.yaml` defines the Agent Academy interoperability boundary while the reading order above remains authoritative.
 
 ## Repository workflow
 

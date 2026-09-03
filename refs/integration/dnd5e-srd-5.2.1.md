@@ -1,3 +1,10 @@
+---
+type: "Integration Reference"
+title: "D&D 5E 2024 SRD 5.2.1 Source Boundary"
+tags:
+- character-forge
+- integration
+---
 # D&D 5E 2024 SRD 5.2.1 Source Boundary
 
 Status: Active source contract for D&D 5E 2024 implementation.

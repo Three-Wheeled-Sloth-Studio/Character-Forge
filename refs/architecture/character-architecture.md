@@ -1,3 +1,10 @@
+---
+type: "Architecture Reference"
+title: "Character Architecture"
+tags:
+- character-forge
+- architecture
+---
 # Character Architecture
 
 Status: Foundation contract, intentionally narrow.

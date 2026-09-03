@@ -1,3 +1,10 @@
+---
+type: "Implementation Reference"
+title: "Guided Choice Pool Plan"
+tags:
+- character-forge
+- implementation
+---
 # Guided Choice Pool Plan
 
 Date: 2026-08-26

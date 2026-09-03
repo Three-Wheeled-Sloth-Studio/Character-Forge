@@ -1,3 +1,10 @@
+---
+type: "Implementation Reference"
+title: "Manual Ability Generation Slice"
+tags:
+- character-forge
+- implementation
+---
 # Manual Ability Generation Slice
 
 Date: 2026-08-26

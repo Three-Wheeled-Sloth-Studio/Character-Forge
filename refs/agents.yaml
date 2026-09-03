@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-08-26
+updated: 2026-09-03
 required_reading:
   - AGENTS.md
   - refs/README.md
@@ -24,3 +24,7 @@ licensing:
   public_repository: true
   secrets_allowed: false
   non_redistributable_rules_content_allowed: false
+
+okf_profile:
+  profile: refs/okfProfile.yaml
+  discovery_index: refs/index.md

@@ -7,12 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "validate:refs": "python refs/tools/validate_refs.py",
+    "validate:refs": "python refs/tools/validate_refs.py && npm run validate:okf",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build:web": "tsc -p tsconfig.web.json && node tools/write-build-info.mjs",
     "dev:web": "npm run build:web && node tools/web-server.mjs",
-    "verify": "npm run validate:refs && npm run typecheck && npm test && npm run build:web"
+    "verify": "npm run validate:refs && npm run typecheck && npm test && npm run build:web",
+    "validate:okf": "python refs/tools/validate_okf.py"
   },
   "devDependencies": {
     "typescript": "7.0.2",

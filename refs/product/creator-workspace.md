@@ -1,3 +1,10 @@
+---
+type: "Product Reference"
+title: "Creator Workspace"
+tags:
+- character-forge
+- product
+---
 # Creator Workspace
 
 Status: Product/UI standard established by the D&D guided-creation refactor on 2026-08-26.

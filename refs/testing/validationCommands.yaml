@@ -1,9 +1,12 @@
 version: 1
-updated: 2026-08-26
+updated: 2026-09-03
 commands:
   refs:
-    command: python refs/tools/validate_refs.py
-    purpose: Confirm required durable project-memory files exist and contain the foundation guardrails.
+    command: npm run validate:refs
+    purpose: Confirm required durable project-memory files and foundation guardrails, then validate the Agent Academy OKF profile and deterministic discovery indexes.
+  okf:
+    command: npm run validate:okf
+    purpose: Validate OKF v0.2 concept frontmatter, the pinned Agent Academy profile, and deterministic discovery indexes.
   typecheck:
     command: npm run typecheck
     purpose: Type-check all TypeScript packages under strict settings.

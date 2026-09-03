@@ -1,3 +1,10 @@
+---
+type: "Handoff Record"
+title: "Next Development Prompt"
+tags:
+- character-forge
+- handoffs
+---
 # Next Development Prompt
 
 Continue Character Forge D&D 5E 2024 work from the first class-owned spellcasting and runtime-build-identity checkpoint.

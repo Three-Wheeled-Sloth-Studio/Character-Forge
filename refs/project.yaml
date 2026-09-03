@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-08-28
+updated: 2026-09-03
 identity:
   name: Character Forge
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge
@@ -63,6 +63,8 @@ source_of_truth:
   integration: refs/integration
   handoffs: refs/handoffs
   testing: refs/testing
+  okf_profile: refs/okfProfile.yaml
+  okf_discovery_index: refs/index.md
 known_open_questions:
   - Which non-D&D system should be the second semantic stress test after the first D&D vertical slices?
   - What is the minimum semantic vocabulary justified by D&D without overfitting shared contracts to d20 mechanics?

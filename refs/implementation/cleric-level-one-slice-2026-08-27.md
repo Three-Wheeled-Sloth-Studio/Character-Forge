@@ -1,3 +1,10 @@
+---
+type: "Implementation Reference"
+title: "Cleric Level 1 Guided Slice"
+tags:
+- character-forge
+- implementation
+---
 # Cleric Level 1 Guided Slice
 
 Date: 2026-08-27

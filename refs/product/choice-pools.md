@@ -1,3 +1,10 @@
+---
+type: "Product Reference"
+title: "Choice Pools"
+tags:
+- character-forge
+- product
+---
 # Choice Pools
 
 Status: Product pattern established by guided creation and now used for Class, Background, and Species.

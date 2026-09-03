@@ -1,3 +1,10 @@
+---
+type: "Product Reference"
+title: "Generation Methods"
+tags:
+- character-forge
+- product
+---
 # Generation Methods
 
 Status: Base D&D ability-generation methods and the first guided class/background/species path are implemented on `dev`. This remains product direction rather than a frozen engine API.

@@ -1,3 +1,10 @@
+---
+type: "Architecture Reference"
+title: "D&D 5E Spell-State Boundary Watch"
+tags:
+- character-forge
+- architecture
+---
 # D&D 5E Spell-State Boundary Watch
 
 Date: 2026-08-27

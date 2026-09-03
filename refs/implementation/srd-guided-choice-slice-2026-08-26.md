@@ -1,3 +1,10 @@
+---
+type: "Implementation Reference"
+title: "SRD Guided Class and Species Slice"
+tags:
+- character-forge
+- implementation
+---
 # SRD Guided Class and Species Slice
 
 Date: 2026-08-26

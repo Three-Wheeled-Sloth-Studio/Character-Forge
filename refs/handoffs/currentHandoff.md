@@ -1,3 +1,10 @@
+---
+type: "Handoff Record"
+title: "Current Handoff"
+tags:
+- character-forge
+- handoffs
+---
 # Current Handoff
 
 Date: 2026-08-28
@@ -254,3 +261,9 @@ A generic table engine returns structured, inspectable, provenance-bearing resul
 - Local Parchment launcher may rebuild an adjacent Character Forge checkout but must not silently mutate its Git branch or pull source.
 - Keep visible runtime source/version identity available in QA builds.
 - Use only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repository.
+
+## Agent Academy OKF compatibility
+
+On 2026-09-03, Character Forge adopted the Agent Academy `agent-academy-okf-v1` compatibility profile pinned to OKF v0.2 and Agent Academy commit `16691651776151a7eb1f13d99a92658e0684e6`.
+
+This is a project-memory interoperability increment. Native character state, system-adapter ownership, translation-loss rules, generation replayability, licensing boundaries, and exact-SHA promotion remain unchanged. Markdown refs are now OKF concepts and committed deterministic indexes expose the corpus to generic OKF consumers and the future studio catalog.
