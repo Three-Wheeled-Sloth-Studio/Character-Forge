@@ -1,6 +1,7 @@
 import type { JsonObject, NativeSystemState, RulesValidationIssue, RulesValidationResult } from "../../character-model/src/index.js";
 import { DND5E_POINT_COST_BUDGET, DND5E_POINT_COSTS } from "./abilityGeneration.js";
 import { clericCantripCount, DND5E_CLERIC_CANTRIP_OPTIONS, DND5E_CLERIC_DIVINE_ORDER_OPTIONS, DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS } from "./clericCatalog.js";
+import { druidCantripCount, DND5E_DRUID_CANTRIP_OPTIONS, DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS, DND5E_DRUID_PRIMAL_ORDER_OPTIONS } from "./druidCatalog.js";
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
 import {
   DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
@@ -20,7 +21,7 @@ import {
 } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
-const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, cleric: 8, fighter: 10, monk: 8, rogue: 8 };
+const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, cleric: 8, druid: 8, fighter: 10, monk: 8, rogue: 8 };
 const BACKGROUND_EXPECTED: Record<GuidedDnd5eBackgroundId, { feat: string; skills: readonly string[]; tool: string }> = {
   acolyte: { feat: "magic-initiate:cleric", skills: ["insight", "religion"], tool: "calligraphers-supplies" },
   criminal: { feat: "alert", skills: ["sleight-of-hand", "stealth"], tool: "thieves-tools" },
@@ -162,10 +163,18 @@ function validateMagicInitiateNativeState(payload: JsonObject, backgroundId: Gui
 function validateClassSpellcastingNativeState(payload: JsonObject, classState: JsonObject, final: JsonObject | undefined, classId: GuidedDnd5eClassId, issues: RulesValidationIssue[]): void {
   const spells = readObject(payload, "spells");
   const classCasting = spells ? readObjects(spells, "classCasting") : [];
-  if (classId !== "cleric") {
-    if (classCasting.length) error(issues, "dnd5e.class-spellcasting.unexpected", "This supported class does not own class spellcasting state.", "spells.classCasting");
+  if (classId === "cleric") {
+    validateClericSpellcasting(classCasting, classState, final, issues);
     return;
   }
+  if (classId === "druid") {
+    validateDruidSpellcasting(classCasting, classState, final, issues);
+    return;
+  }
+  if (classCasting.length) error(issues, "dnd5e.class-spellcasting.unexpected", "This supported class does not own class spellcasting state.", "spells.classCasting");
+}
+
+function validateClericSpellcasting(classCasting: JsonObject[], classState: JsonObject, final: JsonObject | undefined, issues: RulesValidationIssue[]): void {
   if (classCasting.length !== 1) {
     error(issues, "dnd5e.cleric.spellcasting-count", "Level 1 Cleric requires exactly one class spellcasting entry.", "spells.classCasting");
     return;
@@ -184,12 +193,42 @@ function validateClassSpellcastingNativeState(payload: JsonObject, classState: J
   const prepared = readStrings(casting, "preparedSpellIds");
   if (prepared.length !== 4 || new Set(prepared).size !== 4 || prepared.some((id) => !DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS.some((option) => option.id === id))) error(issues, "dnd5e.cleric.prepared-spells", "Level 1 Cleric requires four distinct prepared Level 1 Cleric spells.", "spells.classCasting.preparedSpellIds");
   if (readStrings(casting, "alwaysPreparedSpellIds").length !== 0) error(issues, "dnd5e.cleric.always-prepared", "Base Level 1 Cleric class spellcasting has no always-prepared class spells.", "spells.classCasting.alwaysPreparedSpellIds");
-  const slots = readObjects(casting, "spellSlots");
-  const slot = slots[0];
-  if (slots.length !== 1 || !slot || readNumber(slot, "level") !== 1 || readNumber(slot, "maximum") !== 2 || readNumber(slot, "current") !== 2 || readString(slot, "recharge") !== "long-rest") error(issues, "dnd5e.cleric.spell-slots", "Level 1 Cleric requires two Level 1 spell slots restored on Long Rest.", "spells.classCasting.spellSlots");
-  if (readString(casting, "preparationChange") !== "long-rest-any") error(issues, "dnd5e.cleric.preparation", "Cleric prepared spells must be changeable after a Long Rest.", "spells.classCasting.preparationChange");
+  validateStandardLevelOneSlots(casting, "cleric", issues);
   if (!sameSet(readStrings(casting, "focusItemIds"), ["holy-symbol"]) || !sameSet(readStrings(classState, "spellcastingFocusIds"), ["holy-symbol"])) error(issues, "dnd5e.cleric.focus", "Cleric spellcasting must retain Holy Symbol focus capability.", "class.spellcastingFocusIds");
   validateClericOrderState(classState, final, order as "protector" | "thaumaturge", issues);
+}
+
+function validateDruidSpellcasting(classCasting: JsonObject[], classState: JsonObject, final: JsonObject | undefined, issues: RulesValidationIssue[]): void {
+  if (classCasting.length !== 1) {
+    error(issues, "dnd5e.druid.spellcasting-count", "Level 1 Druid requires exactly one class spellcasting entry.", "spells.classCasting");
+    return;
+  }
+  const casting = classCasting[0]!;
+  const order = readString(classState, "primalOrderId");
+  if (!order || !DND5E_DRUID_PRIMAL_ORDER_OPTIONS.some((option) => option.id === order)) {
+    error(issues, "dnd5e.druid.primal-order", "Druid requires Magician or Warden Primal Order.", "class.primalOrderId");
+    return;
+  }
+  if (readString(casting, "sourceClassId") !== "druid" || readString(casting, "featureId") !== "druid:spellcasting" || readString(casting, "spellListId") !== "druid") error(issues, "dnd5e.druid.spellcasting-source", "Druid class spellcasting source/list mismatch.", "spells.classCasting");
+  if (readString(casting, "spellcastingAbilityId") !== "wisdom") error(issues, "dnd5e.druid.spellcasting-ability", "Druid class spellcasting ability must be Wisdom.", "spells.classCasting.spellcastingAbilityId");
+  const cantrips = readStrings(casting, "cantripIds");
+  const expectedCantrips = druidCantripCount(order as "magician" | "warden");
+  if (cantrips.length !== expectedCantrips || new Set(cantrips).size !== expectedCantrips || cantrips.some((id) => !DND5E_DRUID_CANTRIP_OPTIONS.some((option) => option.id === id))) error(issues, "dnd5e.druid.cantrips", `Druid ${order} requires ${expectedCantrips} distinct Druid cantrips.`, "spells.classCasting.cantripIds");
+  const prepared = readStrings(casting, "preparedSpellIds");
+  if (prepared.length !== 4 || new Set(prepared).size !== 4 || prepared.some((id) => !DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS.some((option) => option.id === id))) error(issues, "dnd5e.druid.prepared-spells", "Level 1 Druid requires four distinct prepared Level 1 Druid spells.", "spells.classCasting.preparedSpellIds");
+  if (!sameSet(readStrings(casting, "alwaysPreparedSpellIds"), ["speak-with-animals"])) error(issues, "dnd5e.druid.always-prepared", "Druidic must retain Speak with Animals as an always-prepared Druid spell.", "spells.classCasting.alwaysPreparedSpellIds");
+  validateStandardLevelOneSlots(casting, "druid", issues);
+  if (!sameSet(readStrings(casting, "focusItemIds"), ["druidic-focus"]) || !sameSet(readStrings(classState, "spellcastingFocusIds"), ["druidic-focus"])) error(issues, "dnd5e.druid.focus", "Druid spellcasting must retain Druidic Focus capability.", "class.spellcastingFocusIds");
+  if (!sameSet(readStrings(classState, "toolProficiencyIds"), ["herbalism-kit"])) error(issues, "dnd5e.druid.herbalism", "Druid requires Herbalism Kit proficiency.", "class.toolProficiencyIds");
+  if (!sameSet(readStrings(classState, "bonusLanguageIds"), ["druidic"])) error(issues, "dnd5e.druid.druidic", "Druidic must be retained as a class language.", "class.bonusLanguageIds");
+  validateDruidOrderState(classState, final, order as "magician" | "warden", issues);
+}
+
+function validateStandardLevelOneSlots(casting: JsonObject, classId: "cleric" | "druid", issues: RulesValidationIssue[]): void {
+  const slots = readObjects(casting, "spellSlots");
+  const slot = slots[0];
+  if (slots.length !== 1 || !slot || readNumber(slot, "level") !== 1 || readNumber(slot, "maximum") !== 2 || readNumber(slot, "current") !== 2 || readString(slot, "recharge") !== "long-rest") error(issues, `dnd5e.${classId}.spell-slots`, `Level 1 ${classId === "cleric" ? "Cleric" : "Druid"} requires two Level 1 spell slots restored on Long Rest.`, "spells.classCasting.spellSlots");
+  if (readString(casting, "preparationChange") !== "long-rest-any") error(issues, `dnd5e.${classId}.preparation`, `${classId === "cleric" ? "Cleric" : "Druid"} prepared spells must be changeable after a Long Rest.`, "spells.classCasting.preparationChange");
 }
 
 function validateClericOrderState(classState: JsonObject, final: JsonObject | undefined, order: "protector" | "thaumaturge", issues: RulesValidationIssue[]): void {
@@ -203,6 +242,19 @@ function validateClericOrderState(classState: JsonObject, final: JsonObject | un
   if (!sameSet(weapons, ["simple"]) || !sameSet(armor, ["light", "medium", "shield"])) error(issues, "dnd5e.cleric.thaumaturge-training", "Thaumaturge retains the base Cleric weapon and armor training only.", "class");
   const wisdom = final ? readNumber(final, "wisdom") : undefined;
   if (wisdom !== undefined && readNumber(classState, "thaumaturgeKnowledgeBonus") !== Math.max(1, abilityModifier(wisdom))) error(issues, "dnd5e.cleric.thaumaturge-bonus", "Thaumaturge knowledge bonus must equal Wisdom modifier, minimum +1.", "class.thaumaturgeKnowledgeBonus");
+}
+
+function validateDruidOrderState(classState: JsonObject, final: JsonObject | undefined, order: "magician" | "warden", issues: RulesValidationIssue[]): void {
+  const weapons = readStrings(classState, "weaponProficiencyIds");
+  const armor = readStrings(classState, "armorTrainingIds");
+  if (order === "warden") {
+    if (!sameSet(weapons, ["simple", "martial"]) || !sameSet(armor, ["light", "medium", "shield"])) error(issues, "dnd5e.druid.warden-training", "Warden must retain Martial weapon proficiency and Medium Armor training.", "class");
+    if (readNumber(classState, "druidicKnowledgeBonus") !== undefined) error(issues, "dnd5e.druid.warden-bonus", "Warden must not retain the Magician knowledge bonus.", "class.druidicKnowledgeBonus");
+    return;
+  }
+  if (!sameSet(weapons, ["simple"]) || !sameSet(armor, ["light", "shield"])) error(issues, "dnd5e.druid.magician-training", "Magician retains the base Druid weapon and armor training only.", "class");
+  const wisdom = final ? readNumber(final, "wisdom") : undefined;
+  if (wisdom !== undefined && readNumber(classState, "druidicKnowledgeBonus") !== Math.max(1, abilityModifier(wisdom))) error(issues, "dnd5e.druid.magician-bonus", "Magician knowledge bonus must equal Wisdom modifier, minimum +1.", "class.druidicKnowledgeBonus");
 }
 
 function reconstructCoreChoices(identity: JsonObject, origin: JsonObject, classState: JsonObject, payload: JsonObject, classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId, issues: RulesValidationIssue[]): GuidedDnd5eCoreChoices | undefined {
@@ -223,11 +275,17 @@ function reconstructCoreChoices(identity: JsonObject, origin: JsonObject, classS
   };
   if (classId === "cleric") {
     const order = readString(classState, "divineOrderId");
-    const spells = readObject(payload, "spells");
-    const casting = spells ? readObjects(spells, "classCasting").find((entry) => readString(entry, "sourceClassId") === "cleric") : undefined;
+    const casting = findClassCasting(payload, "cleric");
     const cantrips = casting ? readStrings(casting, "cantripIds") : [];
     const prepared = casting ? readStrings(casting, "preparedSpellIds") : [];
     if ((order === "protector" || order === "thaumaturge") && cantrips.length && prepared.length) choices.cleric = { divineOrderId: order, cantripIds: cantrips, preparedSpellIds: prepared };
+  }
+  if (classId === "druid") {
+    const order = readString(classState, "primalOrderId");
+    const casting = findClassCasting(payload, "druid");
+    const cantrips = casting ? readStrings(casting, "cantripIds") : [];
+    const prepared = casting ? readStrings(casting, "preparedSpellIds") : [];
+    if ((order === "magician" || order === "warden") && cantrips.length && prepared.length) choices.druid = { primalOrderId: order, cantripIds: cantrips, preparedSpellIds: prepared };
   }
   const style = readString(classState, "fightingStyleFeatId"); if (style) choices.fightingStyleFeatId = style;
   if (classId === "monk") { const tool = readStrings(classState, "toolProficiencyIds")[0]; if (tool) choices.monkToolProficiencyId = tool; }
@@ -259,6 +317,11 @@ function reconstructCoreChoices(identity: JsonObject, origin: JsonObject, classS
   return choices;
 }
 
+function findClassCasting(payload: JsonObject, classId: string): JsonObject | undefined {
+  const spells = readObject(payload, "spells");
+  return spells ? readObjects(spells, "classCasting").find((entry) => readString(entry, "sourceClassId") === classId) : undefined;
+}
+
 function validateDerivedAndResources(origin: JsonObject, classState: JsonObject, resources: JsonObject, derived: JsonObject, final: JsonObject, classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId, issues: RulesValidationIssue[]): void {
   const con = readNumber(final, "constitution"); const dex = readNumber(final, "dexterity"); const wis = readNumber(final, "wisdom");
   if (con === undefined || dex === undefined || wis === undefined) return;
@@ -269,11 +332,12 @@ function validateDerivedAndResources(origin: JsonObject, classState: JsonObject,
   const style = readString(classState, "fightingStyleFeatId");
   const expectedAc = classId === "barbarian" ? 10 + abilityModifier(dex) + abilityModifier(con)
     : classId === "cleric" ? (equipmentChoice === "A" ? 15 + Math.min(2, abilityModifier(dex)) : 10 + abilityModifier(dex))
-      : classId === "monk" ? 10 + abilityModifier(dex) + abilityModifier(wis)
-        : classId === "rogue" ? (equipmentChoice === "A" ? 11 : 10) + abilityModifier(dex)
-          : equipmentChoice === "A" ? 16 + (style === "defense" ? 1 : 0)
-            : equipmentChoice === "B" ? 12 + abilityModifier(dex) + (style === "defense" ? 1 : 0)
-              : 10 + abilityModifier(dex);
+      : classId === "druid" ? (equipmentChoice === "A" ? 13 + abilityModifier(dex) : 10 + abilityModifier(dex))
+        : classId === "monk" ? 10 + abilityModifier(dex) + abilityModifier(wis)
+          : classId === "rogue" ? (equipmentChoice === "A" ? 11 : 10) + abilityModifier(dex)
+            : equipmentChoice === "A" ? 16 + (style === "defense" ? 1 : 0)
+              : equipmentChoice === "B" ? 12 + abilityModifier(dex) + (style === "defense" ? 1 : 0)
+                : 10 + abilityModifier(dex);
   if (readNumber(derived, "armorClass") !== expectedAc) error(issues, "dnd5e.guided.armor-class", "Armor Class does not match equipment and abilities.", "derived.armorClass");
   const alert = BACKGROUND_EXPECTED[backgroundId].feat === "alert" || readString(origin, "speciesOriginFeatId") === "alert";
   const initiative = abilityModifier(dex) + (alert ? 2 : 0);

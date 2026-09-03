@@ -129,6 +129,13 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
       { stepId: "class.cleric.prepared-spells", answer: choices.cleric.preparedSpellIds },
     );
   }
+  if (choices.druid) {
+    decisions.push(
+      { stepId: "class.druid.primal-order", choiceId: choices.druid.primalOrderId },
+      { stepId: "class.druid.cantrips", answer: choices.druid.cantripIds },
+      { stepId: "class.druid.prepared-spells", answer: choices.druid.preparedSpellIds },
+    );
+  }
   if (choices.fightingStyleFeatId) decisions.push({ stepId: "class.fighting-style", choiceId: choices.fightingStyleFeatId });
   if (choices.monkToolProficiencyId) decisions.push({ stepId: "class.tool", choiceId: choices.monkToolProficiencyId });
   if (choices.expertiseSkillIds?.length) decisions.push({ stepId: "class.expertise", answer: choices.expertiseSkillIds });

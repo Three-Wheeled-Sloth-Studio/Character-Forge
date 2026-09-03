@@ -4,12 +4,16 @@ import {
   classChoiceRules,
   clericCantripCount,
   defaultGuidedDnd5eCoreChoices,
+  druidCantripCount,
   DND5E_ALIGNMENT_OPTIONS,
   DND5E_BONUS_LANGUAGE_OPTIONS,
   DND5E_CLERIC_CANTRIP_OPTIONS,
   DND5E_CLERIC_DIVINE_ORDER_OPTIONS,
   DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,
   DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
+  DND5E_DRUID_CANTRIP_OPTIONS,
+  DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS,
+  DND5E_DRUID_PRIMAL_ORDER_OPTIONS,
   DND5E_FIGHTING_STYLE_OPTIONS,
   DND5E_GOLIATH_ANCESTRY_OPTIONS,
   DND5E_HUMAN_ORIGIN_FEAT_OPTIONS,
@@ -35,6 +39,7 @@ import {
   type Dnd5eAbilityIncreasePlan,
   type Dnd5eAbilityScores,
   type Dnd5eClericDivineOrderId,
+  type Dnd5eDruidPrimalOrderId,
   type Dnd5eMagicInitiateSpellListId,
   type Dnd5eRandomAbilityAssignment,
   type Dnd5eRandomAbilitySet,
@@ -207,6 +212,20 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
       bindMultiChoice(`${prefix}.cleric-cantrips`, "cleric-cantrips", DND5E_CLERIC_CANTRIP_OPTIONS.map((o) => o.id), cantripDefaults.slice(0, cantripCount), cantripCount);
       bindMultiChoice(`${prefix}.cleric-prepared`, "cleric-prepared", DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS.map((o) => o.id), defaults.cleric.preparedSpellIds, 4);
     }
+    if (classState.selectedId === "druid" && defaults.druid) {
+      bindStickySelect("druid-order", DND5E_DRUID_PRIMAL_ORDER_OPTIONS.map((o) => o.id), defaults.druid.primalOrderId, prefix, true);
+      const selectedOrder = readStickySelect(root, "druid-order") as Dnd5eDruidPrimalOrderId;
+      const cantripCount = druidCantripCount(selectedOrder);
+      const cantripDefaults = [...defaults.druid.cantripIds];
+      for (const option of DND5E_DRUID_CANTRIP_OPTIONS) {
+        if (cantripDefaults.length >= cantripCount) break;
+        if (!cantripDefaults.includes(option.id)) cantripDefaults.push(option.id);
+      }
+      const cantripHost = root.querySelector<HTMLElement>("#creator-druid-cantrip-host");
+      if (cantripHost) cantripHost.innerHTML = multiChoiceHtml("Druid cantrips", "druid-cantrips", DND5E_DRUID_CANTRIP_OPTIONS.map((o) => o.id), cantripCount);
+      bindMultiChoice(`${prefix}.druid-cantrips`, "druid-cantrips", DND5E_DRUID_CANTRIP_OPTIONS.map((o) => o.id), cantripDefaults.slice(0, cantripCount), cantripCount);
+      bindMultiChoice(`${prefix}.druid-prepared`, "druid-prepared", DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS.map((o) => o.id), defaults.druid.preparedSpellIds, 4);
+    }
     if (classState.selectedId === "fighter") bindStickySelect("fighting-style", DND5E_FIGHTING_STYLE_OPTIONS.map((o) => o.id), defaults.fightingStyleFeatId ?? "defense", prefix);
     if (classState.selectedId === "monk") bindStickySelect("monk-tool", DND5E_MONK_TOOL_OPTIONS.map((o) => o.id), defaults.monkToolProficiencyId ?? DND5E_MONK_TOOL_OPTIONS[0]!.id, prefix);
 
@@ -366,6 +385,11 @@ function coreControlsHtml(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5e
       "<div id=\"creator-cleric-cantrip-host\"></div>",
       multiChoiceHtml("Prepared Level 1 spells", "cleric-prepared", DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS.map((o) => o.id), 4),
     ] : []),
+    ...(classId === "druid" && defaults.druid ? [
+      selectPoolRow("Primal Order", "druid-order", DND5E_DRUID_PRIMAL_ORDER_OPTIONS, defaults.druid.primalOrderId),
+      "<div id=\"creator-druid-cantrip-host\"></div>",
+      multiChoiceHtml("Prepared Level 1 spells", "druid-prepared", DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS.map((o) => o.id), 4),
+    ] : []),
     ...(classId === "fighter" ? [selectPoolRow("Fighting Style", "fighting-style", DND5E_FIGHTING_STYLE_OPTIONS, defaults.fightingStyleFeatId ?? "defense")] : []),
     ...(rules.weaponMasteryCount ? [multiChoiceHtml("Weapon Mastery", "weapon-mastery", rules.weaponMasteryIds, rules.weaponMasteryCount)] : []),
     ...(classId === "monk" ? [selectPoolRow("Tool or instrument", "monk-tool", DND5E_MONK_TOOL_OPTIONS, defaults.monkToolProficiencyId ?? DND5E_MONK_TOOL_OPTIONS[0]!.id)] : []),
@@ -401,6 +425,14 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
       preparedSpellIds: readMultiSelected(root, "cleric-prepared", 4),
     };
   }
+  if (classId === "druid") {
+    const primalOrderId = readStickySelect(root, "druid-order") as Dnd5eDruidPrimalOrderId;
+    choices.druid = {
+      primalOrderId,
+      cantripIds: readMultiSelected(root, "druid-cantrips", druidCantripCount(primalOrderId)),
+      preparedSpellIds: readMultiSelected(root, "druid-prepared", 4),
+    };
+  }
   if (classId === "fighter") choices.fightingStyleFeatId = readStickySelect(root, "fighting-style");
   if (classId === "monk") choices.monkToolProficiencyId = readStickySelect(root, "monk-tool");
   if (classId === "rogue") { choices.expertiseSkillIds = readMultiSelected(root, "expertise", 2); choices.rogueBonusLanguageId = readStickySelect(root, "rogue-language"); }
@@ -430,6 +462,14 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
     const preparedState = loadStickyMultiChoicePool(localStorage, `${prefix}.cleric-prepared`, preparedAllowed, preparedAllowed, choices.cleric.preparedSpellIds, 4);
     provenance.push({ stepId: "class.cleric.prepared-spells.acceptable-pool", answer: preparedState.acceptableIds });
   }
+  if (choices.druid) {
+    const cantripAllowed = DND5E_DRUID_CANTRIP_OPTIONS.map((o) => o.id);
+    const cantripState = loadStickyMultiChoicePool(localStorage, `${prefix}.druid-cantrips`, cantripAllowed, cantripAllowed, choices.druid.cantripIds, choices.druid.cantripIds.length);
+    provenance.push({ stepId: "class.druid.cantrips.acceptable-pool", answer: cantripState.acceptableIds });
+    const preparedAllowed = DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS.map((o) => o.id);
+    const preparedState = loadStickyMultiChoicePool(localStorage, `${prefix}.druid-prepared`, preparedAllowed, preparedAllowed, choices.druid.preparedSpellIds, 4);
+    provenance.push({ stepId: "class.druid.prepared-spells.acceptable-pool", answer: preparedState.acceptableIds });
+  }
   if (choices.magicInitiate) { const list = magicInitiateSpellList(choices.magicInitiate.spellListId); const allowed = list.cantrips.map((o) => o.id); const state = loadStickyMultiChoicePool(localStorage, `${prefix}.magic-initiate-cantrips`, allowed, allowed, choices.magicInitiate.cantripIds, 2); provenance.push({ stepId: "background.magic-initiate.cantrips.acceptable-pool", answer: state.acceptableIds }); }
   if (classId === "rogue") { const expertiseAllowed = [...new Set([...choices.classSkillIds, ...background.skillProficiencies, ...(choices.human?.skillId ? [choices.human.skillId] : [])])]; const state = loadStickyMultiChoicePool(localStorage, `${prefix}.expertise`, expertiseAllowed, expertiseAllowed, choices.expertiseSkillIds ?? [], 2); provenance.push({ stepId: "class.expertise.acceptable-pool", answer: state.acceptableIds }); }
   if (speciesId === "human" && choices.human?.originFeatId === "skilled") { const allowed = DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id); const state = loadStickyMultiChoicePool(localStorage, `${prefix}.skilled`, allowed, allowed, choices.human.skilledProficiencyIds ?? [], 3); provenance.push({ stepId: "species.human.skilled.acceptable-pool", answer: state.acceptableIds }); }
@@ -446,6 +486,7 @@ function coreSingleFields(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5e
     { id: "class-equipment", stepId: "class.equipment", allowed: () => rules.equipmentChoices.map((o) => o.id) },
   ];
   if (classId === "cleric") fields.push({ id: "cleric-order", stepId: "class.cleric.divine-order", allowed: () => DND5E_CLERIC_DIVINE_ORDER_OPTIONS.map((o) => o.id) });
+  if (classId === "druid") fields.push({ id: "druid-order", stepId: "class.druid.primal-order", allowed: () => DND5E_DRUID_PRIMAL_ORDER_OPTIONS.map((o) => o.id) });
   if (classId === "fighter") fields.push({ id: "fighting-style", stepId: "class.fighting-style", allowed: () => DND5E_FIGHTING_STYLE_OPTIONS.map((o) => o.id) });
   if (classId === "monk") fields.push({ id: "monk-tool", stepId: "class.tool", allowed: () => DND5E_MONK_TOOL_OPTIONS.map((o) => o.id) });
   if (classId === "rogue") fields.push({ id: "rogue-language", stepId: "class.bonus-language", allowed: () => DND5E_BONUS_LANGUAGE_OPTIONS.map((o) => o.id) });
@@ -471,6 +512,7 @@ function coreSingleValue(field: string, choices: GuidedDnd5eCoreChoices): string
   if (field === "language-2") return choices.originLanguageIds[1];
   if (field === "class-equipment") return choices.classEquipmentChoice;
   if (field === "cleric-order") return choices.cleric?.divineOrderId ?? "";
+  if (field === "druid-order") return choices.druid?.primalOrderId ?? "";
   if (field === "fighting-style") return choices.fightingStyleFeatId ?? "";
   if (field === "monk-tool") return choices.monkToolProficiencyId ?? "";
   if (field === "rogue-language") return choices.rogueBonusLanguageId ?? "";
@@ -514,7 +556,7 @@ function randomAssignmentSelect(label:string,id:string,index:number): string { r
 function abilityInput(prefix:string,label:string,id:string,value:number,min:number,max:number,extra=""): string { return `<label>${label}<input id="${prefix}-${id}" type="number" min="${min}" max="${max}" step="1" required value="${value}" ${extra} /></label>`; }
 function abilityLabel(id:Dnd5eAbilityId): string { return ({strength:"STR",dexterity:"DEX",constitution:"CON",intelligence:"INT",wisdom:"WIS",charisma:"CHA"} as const)[id]; }
 function coreKey(classId:GuidedDnd5eClassId,backgroundId:GuidedDnd5eBackgroundId,speciesId:GuidedDnd5eSpeciesId): string { return `${CORE_STORAGE_PREFIX}.${classId}.${backgroundId}.${speciesId}`; }
-function labelFor(id:string): string { const weapon = DND5E_WEAPON_OPTIONS.find((o) => o.id === id); const option = [...DND5E_SKILL_OPTIONS,...DND5E_MONK_TOOL_OPTIONS,...DND5E_SKILLED_PROFICIENCY_OPTIONS,...DND5E_STANDARD_LANGUAGE_OPTIONS,...DND5E_BONUS_LANGUAGE_OPTIONS,...DND5E_ALIGNMENT_OPTIONS,...DND5E_FIGHTING_STYLE_OPTIONS,...DND5E_CLERIC_DIVINE_ORDER_OPTIONS,...DND5E_CLERIC_CANTRIP_OPTIONS,...DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRAGONBORN_ANCESTRY_OPTIONS,...DND5E_GOLIATH_ANCESTRY_OPTIONS].find((o) => o.id === id); return weapon?.label ?? option?.label ?? id.split(":").at(-1)!.split("-").map((p) => p ? p[0]!.toUpperCase()+p.slice(1) : p).join(" "); }
+function labelFor(id:string): string { const weapon = DND5E_WEAPON_OPTIONS.find((o) => o.id === id); const option = [...DND5E_SKILL_OPTIONS,...DND5E_MONK_TOOL_OPTIONS,...DND5E_SKILLED_PROFICIENCY_OPTIONS,...DND5E_STANDARD_LANGUAGE_OPTIONS,...DND5E_BONUS_LANGUAGE_OPTIONS,...DND5E_ALIGNMENT_OPTIONS,...DND5E_FIGHTING_STYLE_OPTIONS,...DND5E_CLERIC_DIVINE_ORDER_OPTIONS,...DND5E_CLERIC_CANTRIP_OPTIONS,...DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRUID_PRIMAL_ORDER_OPTIONS,...DND5E_DRUID_CANTRIP_OPTIONS,...DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRAGONBORN_ANCESTRY_OPTIONS,...DND5E_GOLIATH_ANCESTRY_OPTIONS].find((o) => o.id === id); return weapon?.label ?? option?.label ?? id.split(":").at(-1)!.split("-").map((p) => p ? p[0]!.toUpperCase()+p.slice(1) : p).join(" "); }
 function requiredElement<T extends HTMLElement>(root:HTMLElement,selector:string,ctor:{new():T}): T { const el=root.querySelector<T>(selector); if (!el || !(el instanceof ctor)) throw new Error(`Character Forge control ${selector} is missing.`); return el; }
 function clearError(target:HTMLElement|null):void { if(target) target.textContent=""; }
 function showError(target:HTMLElement|null,error:unknown,fallback:string):void { if(target) target.textContent=error instanceof Error?error.message:fallback; }

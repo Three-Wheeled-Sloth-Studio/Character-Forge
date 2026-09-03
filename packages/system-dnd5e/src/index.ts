@@ -2,6 +2,7 @@ export * from "./abilityGeneration.js";
 export * from "./adapter.js";
 export * from "./classSpellcasting.js";
 export * from "./clericCatalog.js";
+export * from "./druidCatalog.js";
 export * from "./firstSliceCharacter.js";
 export * from "./guidedChoices.js";
 export * from "./guidedCoreValidation.js";

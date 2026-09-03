@@ -19,6 +19,12 @@ import {
   DND5E_CLERIC_DIVINE_ORDER_OPTIONS,
   DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,
 } from "./clericCatalog.js";
+import {
+  druidCantripCount,
+  DND5E_DRUID_CANTRIP_OPTIONS,
+  DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS,
+  DND5E_DRUID_PRIMAL_ORDER_OPTIONS,
+} from "./druidCatalog.js";
 import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 
@@ -49,6 +55,7 @@ export function assertGuidedDnd5eCoreChoices(
   for (const weaponId of choices.weaponMasteryIds) assertOneOf(weaponId, classRules.weaponMasteryIds, `${classId} mastery weapon`);
 
   assertClericChoices(classId, choices);
+  assertDruidChoices(classId, choices);
 
   if (classId === "fighter") {
     if (!choices.fightingStyleFeatId) throw new Error("Fighter requires a Fighting Style choice.");
@@ -135,6 +142,21 @@ function assertClericChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCo
   for (const spellId of cleric.cantripIds) assertOneOf(spellId, DND5E_CLERIC_CANTRIP_OPTIONS.map((option) => option.id), "Cleric cantrip");
   assertExactUnique(cleric.preparedSpellIds, 4, "Cleric prepared spells");
   for (const spellId of cleric.preparedSpellIds) assertOneOf(spellId, DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS.map((option) => option.id), "Cleric level 1 spell");
+}
+
+function assertDruidChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreChoices): void {
+  if (classId !== "druid") {
+    if (choices.druid) throw new Error("Druid-only choices were supplied to another class.");
+    return;
+  }
+  const druid = choices.druid;
+  if (!druid) throw new Error("Druid requires Primal Order and spell choices.");
+  assertOneOf(druid.primalOrderId, DND5E_DRUID_PRIMAL_ORDER_OPTIONS.map((option) => option.id), "Druid Primal Order");
+  const cantripCount = druidCantripCount(druid.primalOrderId);
+  assertExactUnique(druid.cantripIds, cantripCount, "Druid cantrips");
+  for (const spellId of druid.cantripIds) assertOneOf(spellId, DND5E_DRUID_CANTRIP_OPTIONS.map((option) => option.id), "Druid cantrip");
+  assertExactUnique(druid.preparedSpellIds, 4, "Druid prepared spells");
+  for (const spellId of druid.preparedSpellIds) assertOneOf(spellId, DND5E_DRUID_LEVEL_ONE_SPELL_OPTIONS.map((option) => option.id), "Druid level 1 spell");
 }
 
 function assertMagicInitiate(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): void {

@@ -67,10 +67,12 @@ export interface Dnd5eClassState extends JsonObject {
   weaponMasteryIds: string[];
   classEquipmentChoice: string;
   divineOrderId?: string;
+  primalOrderId?: string;
   weaponProficiencyIds?: string[];
   armorTrainingIds?: string[];
   spellcastingFocusIds?: string[];
   thaumaturgeKnowledgeBonus?: number;
+  druidicKnowledgeBonus?: number;
 }
 
 export interface Dnd5eSpellGrantState extends JsonObject {

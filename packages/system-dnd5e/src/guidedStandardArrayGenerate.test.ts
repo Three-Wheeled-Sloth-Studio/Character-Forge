@@ -15,7 +15,7 @@ describe("guided SRD class and species generation", () => {
     expect(DND5E_SRD_521_CLASS_OPTIONS).toHaveLength(12);
     expect(DND5E_SRD_521_BACKGROUND_OPTIONS).toHaveLength(4);
     expect(DND5E_SRD_521_SPECIES_OPTIONS).toHaveLength(9);
-    expect(GUIDED_DND5E_CLASS_IDS).toEqual(["barbarian", "cleric", "fighter", "monk", "rogue"]);
+    expect(GUIDED_DND5E_CLASS_IDS).toEqual(["barbarian", "cleric", "druid", "fighter", "monk", "rogue"]);
     expect(GUIDED_DND5E_BACKGROUND_IDS).toEqual(["acolyte", "criminal", "sage", "soldier"]);
     expect(GUIDED_DND5E_SPECIES_IDS).toEqual(["dragonborn", "dwarf", "goliath", "halfling", "human", "orc"]);
   });

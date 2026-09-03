@@ -6,7 +6,7 @@ import {
   type GenerationRecord,
   type NativeSystemState,
 } from "../../character-model/src/index.js";
-import { createLevelOneClericSpellcasting } from "./classSpellcasting.js";
+import { createLevelOneClericSpellcasting, createLevelOneDruidSpellcasting } from "./classSpellcasting.js";
 import {
   DND5E_DRAGONBORN_ANCESTRY_OPTIONS,
   DND5E_SKILL_OPTIONS,
@@ -55,6 +55,14 @@ const CLASS_PROFILES: Record<GuidedDnd5eClassId, GuidedClassProfile> = {
     primaryAbilityIds: ["wisdom"],
     savingThrowProficiencies: ["wisdom", "charisma"],
     featureIds: ["cleric:spellcasting", "cleric:divine-order"],
+    resources: () => ({}),
+  },
+  druid: {
+    hitDie: 8,
+    primaryAbilityIds: ["wisdom"],
+    savingThrowProficiencies: ["intelligence", "wisdom"],
+    fixedToolProficiencyIds: ["herbalism-kit"],
+    featureIds: ["druid:spellcasting", "druid:druidic", "druid:primal-order"],
     resources: () => ({}),
   },
   fighter: {
@@ -226,6 +234,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const proficiencyBonus = 2;
   const human = input.speciesId === "human" ? input.coreChoices.human : undefined;
   const cleric = input.classId === "cleric" ? input.coreChoices.cleric : undefined;
+  const druid = input.classId === "druid" ? input.coreChoices.druid : undefined;
   const dragonbornAncestryId = input.speciesId === "dragonborn" ? input.coreChoices.dragonbornAncestryId : undefined;
   const dragonbornAncestry = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((option) => option.id === dragonbornAncestryId);
   const goliathAncestryId = input.speciesId === "goliath" ? input.coreChoices.goliathAncestryId : undefined;
@@ -268,6 +277,9 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...(classProfile.fixedToolProficiencyIds ?? []),
     ...(input.coreChoices.monkToolProficiencyId ? [input.coreChoices.monkToolProficiencyId] : []),
   ];
+  const bonusLanguageIds = input.classId === "druid"
+    ? ["druidic"]
+    : input.coreChoices.rogueBonusLanguageId ? ["thieves-cant", input.coreChoices.rogueBonusLanguageId] : [];
   const classState: Dnd5eClassState = {
     classId: input.classId,
     level: 1,
@@ -278,9 +290,10 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     skillProficiencies: [...input.coreChoices.classSkillIds],
     ...(input.coreChoices.expertiseSkillIds?.length ? { expertiseSkillIds: [...input.coreChoices.expertiseSkillIds] } : {}),
     ...(toolProficiencyIds.length ? { toolProficiencyIds } : {}),
-    ...(input.coreChoices.rogueBonusLanguageId ? { bonusLanguageIds: ["thieves-cant", input.coreChoices.rogueBonusLanguageId] } : {}),
+    ...(bonusLanguageIds.length ? { bonusLanguageIds } : {}),
     ...(input.coreChoices.fightingStyleFeatId ? { fightingStyleFeatId: input.coreChoices.fightingStyleFeatId } : {}),
-    ...(cleric ? clericClassState( cleric.divineOrderId, input.abilities.final.wisdom) : {}),
+    ...(cleric ? clericClassState(cleric.divineOrderId, input.abilities.final.wisdom) : {}),
+    ...(druid ? druidClassState(druid.primalOrderId, input.abilities.final.wisdom) : {}),
     weaponMasteryIds: [...input.coreChoices.weaponMasteryIds],
     classEquipmentChoice: input.coreChoices.classEquipmentChoice,
   };
@@ -312,6 +325,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
       ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []),
       ...classProfile.featureIds,
       ...(cleric ? [`cleric:divine-order:${cleric.divineOrderId}`] : []),
+      ...(druid ? [`druid:primal-order:${druid.primalOrderId}`] : []),
       ...(input.coreChoices.fightingStyleFeatId ? [`fighting-style:${input.coreChoices.fightingStyleFeatId}`] : []),
     ],
     equipment: [...classEquipment.equipment, ...backgroundEquipment],
@@ -339,6 +353,24 @@ function clericClassState(divineOrderId: "protector" | "thaumaturge", wisdomScor
   };
 }
 
+function druidClassState(primalOrderId: "magician" | "warden", wisdomScore: number): Pick<Dnd5eClassState, "primalOrderId" | "weaponProficiencyIds" | "armorTrainingIds" | "spellcastingFocusIds" | "druidicKnowledgeBonus"> {
+  if (primalOrderId === "warden") {
+    return {
+      primalOrderId,
+      weaponProficiencyIds: ["simple", "martial"],
+      armorTrainingIds: ["light", "medium", "shield"],
+      spellcastingFocusIds: ["druidic-focus"],
+    };
+  }
+  return {
+    primalOrderId,
+    weaponProficiencyIds: ["simple"],
+    armorTrainingIds: ["light", "shield"],
+    spellcastingFocusIds: ["druidic-focus"],
+    druidicKnowledgeBonus: Math.max(1, abilityModifier(wisdomScore)),
+  };
+}
+
 function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): Dnd5eSpellState | undefined {
   const grants: Dnd5eSpellGrantState[] = [];
   if (backgroundId === "acolyte" || backgroundId === "sage") {
@@ -362,6 +394,10 @@ function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBac
   if (classId === "cleric") {
     if (!choices.cleric) throw new Error("Cleric requires class spellcasting choices.");
     classCasting.push(createLevelOneClericSpellcasting(choices.cleric));
+  }
+  if (classId === "druid") {
+    if (!choices.druid) throw new Error("Druid requires class spellcasting choices.");
+    classCasting.push(createLevelOneDruidSpellcasting(choices.druid));
   }
   if (!grants.length && !classCasting.length) return undefined;
   return {
@@ -397,6 +433,14 @@ function classEquipmentFor(
         { itemId: "holy-symbol", quantity: 1 }, { itemId: "priests-pack", quantity: 1 },
       ], gold: 7 }
       : { equipment: [], gold: 110 };
+  }
+  if (classId === "druid") {
+    return choice === "A"
+      ? { equipment: [
+        { itemId: "leather-armor", quantity: 1 }, { itemId: "shield", quantity: 1 }, { itemId: "sickle", quantity: 1 },
+        { itemId: "druidic-focus:quarterstaff", quantity: 1 }, { itemId: "explorers-pack", quantity: 1 }, { itemId: "herbalism-kit", quantity: 1 },
+      ], gold: 9 }
+      : { equipment: [], gold: 50 };
   }
   if (classId === "fighter") {
     if (choice === "A") return { equipment: [
@@ -437,6 +481,7 @@ function armorClassFor(
   const dexterity = abilityModifier(abilities.final.dexterity);
   if (classId === "barbarian") return 10 + dexterity + abilityModifier(abilities.final.constitution);
   if (classId === "cleric") return equipmentChoice === "A" ? 15 + Math.min(2, dexterity) : 10 + dexterity;
+  if (classId === "druid") return equipmentChoice === "A" ? 13 + dexterity : 10 + dexterity;
   if (classId === "monk") return 10 + dexterity + abilityModifier(abilities.final.wisdom);
   if (classId === "rogue") return (equipmentChoice === "A" ? 11 : 10) + dexterity;
   const armored = equipmentChoice === "A" || equipmentChoice === "B";

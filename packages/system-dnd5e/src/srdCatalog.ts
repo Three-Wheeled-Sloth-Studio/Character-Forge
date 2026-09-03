@@ -27,7 +27,7 @@ export type Dnd5eSrdSpeciesId =
   | "orc"
   | "tiefling";
 
-export type GuidedDnd5eClassId = "barbarian" | "cleric" | "fighter" | "monk" | "rogue";
+export type GuidedDnd5eClassId = "barbarian" | "cleric" | "druid" | "fighter" | "monk" | "rogue";
 export type GuidedDnd5eBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
 export type GuidedDnd5eSpeciesId = "dragonborn" | "dwarf" | "goliath" | "halfling" | "human" | "orc";
 
@@ -61,7 +61,7 @@ export const DND5E_SRD_521_CLASS_OPTIONS: readonly Dnd5eSrdClassOption[] = [
   { id: "barbarian", label: "Barbarian", primaryAbilityIds: ["strength"], guidedSupported: true },
   { id: "bard", label: "Bard", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Class spellcasting and Bardic Inspiration native state are not implemented yet." },
   { id: "cleric", label: "Cleric", primaryAbilityIds: ["wisdom"], guidedSupported: true },
-  { id: "druid", label: "Druid", primaryAbilityIds: ["wisdom"], guidedSupported: false, blockedReason: "Class spellcasting and Primal Order choices are not implemented yet." },
+  { id: "druid", label: "Druid", primaryAbilityIds: ["wisdom"], guidedSupported: true },
   { id: "fighter", label: "Fighter", primaryAbilityIds: ["strength", "dexterity"], guidedSupported: true },
   { id: "monk", label: "Monk", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: true },
   { id: "paladin", label: "Paladin", primaryAbilityIds: ["strength", "charisma"], guidedSupported: false, blockedReason: "Class spellcasting native state is not implemented yet." },

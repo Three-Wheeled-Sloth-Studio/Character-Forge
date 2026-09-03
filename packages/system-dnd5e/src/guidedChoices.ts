@@ -1,5 +1,6 @@
 import type { Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
 import type { Dnd5eClericDivineOrderId } from "./clericCatalog.js";
+import type { Dnd5eDruidPrimalOrderId } from "./druidCatalog.js";
 import type { Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import type { Dnd5eSrdClassId } from "./srdCatalog.js";
 
@@ -29,6 +30,12 @@ export interface GuidedDnd5eClericChoices {
   preparedSpellIds: string[];
 }
 
+export interface GuidedDnd5eDruidChoices {
+  primalOrderId: Dnd5eDruidPrimalOrderId;
+  cantripIds: string[];
+  preparedSpellIds: string[];
+}
+
 export interface GuidedDnd5eHumanChoices {
   size: "small" | "medium";
   skillId: string;
@@ -43,6 +50,7 @@ export interface GuidedDnd5eCoreChoices {
   classEquipmentChoice: string;
   weaponMasteryIds: string[];
   cleric?: GuidedDnd5eClericChoices;
+  druid?: GuidedDnd5eDruidChoices;
   fightingStyleFeatId?: string;
   monkToolProficiencyId?: string;
   expertiseSkillIds?: string[];
@@ -92,7 +100,7 @@ export const DND5E_HUMAN_ORIGIN_FEAT_OPTIONS = [
   { id: "alert", label: "Alert", supported: true },
   { id: "savage-attacker", label: "Savage Attacker", supported: true },
   { id: "skilled", label: "Skilled", supported: true },
-  { id: "magic-initiate", label: "Magic Initiate", supported: false, blockedReason: "Human-selected Magic Initiate still needs a spell-list choice, including Druid." },
+  { id: "magic-initiate", label: "Magic Initiate", supported: false, blockedReason: "Human-selected Magic Initiate still needs its spell-list and spell choices wired into Human guided state." },
 ] as const;
 
 export const DND5E_DRAGONBORN_ANCESTRY_OPTIONS = [
@@ -182,7 +190,7 @@ const ROGUE_WEAPONS = DND5E_WEAPON_OPTIONS
   .filter((option) => option.category === "simple" || option.finesse || option.light)
   .map((option) => option.id);
 
-export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "cleric" | "fighter" | "monk" | "rogue", GuidedDnd5eClassChoiceRules> = {
+export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "cleric" | "druid" | "fighter" | "monk" | "rogue", GuidedDnd5eClassChoiceRules> = {
   barbarian: {
     skillIds: ["animal-handling", "athletics", "intimidation", "nature", "perception", "survival"],
     skillCount: 2,
@@ -198,6 +206,16 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "cleric" | "f
     equipmentChoices: [
       { id: "A", label: "Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack + 7 GP" },
       { id: "B", label: "110 GP" },
+    ],
+  },
+  druid: {
+    skillIds: ["animal-handling", "arcana", "insight", "medicine", "nature", "perception", "religion", "survival"],
+    skillCount: 2,
+    weaponMasteryIds: [],
+    weaponMasteryCount: 0,
+    equipmentChoices: [
+      { id: "A", label: "Leather Armor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit + 9 GP" },
+      { id: "B", label: "50 GP" },
     ],
   },
   fighter: {
@@ -232,7 +250,7 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<"barbarian" | "cleric" | "f
 };
 
 export function classChoiceRules(classId: Dnd5eSrdClassId): GuidedDnd5eClassChoiceRules | undefined {
-  if (classId === "barbarian" || classId === "cleric" || classId === "fighter" || classId === "monk" || classId === "rogue") {
+  if (classId === "barbarian" || classId === "cleric" || classId === "druid" || classId === "fighter" || classId === "monk" || classId === "rogue") {
     return DND5E_GUIDED_CLASS_CHOICE_RULES[classId];
   }
   return undefined;
