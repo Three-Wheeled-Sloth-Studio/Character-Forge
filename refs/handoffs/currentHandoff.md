@@ -11,39 +11,39 @@ Date: 2026-09-03
 Branch: `dev`
 Phase: D&D 5E 2024 PI 1, broad Level 1 guided catalog expansion
 
-## Accepted cross-repo baseline
+## Promoted baseline
 
-The embedded Quick Generate plus durable Parchment save/reload/reopen seam is owner-accepted and promoted. Do not reopen it without new evidence.
+The embedded persistence/reopen seam and the later direct-choice/acceptable-pool visibility correction are already promoted. Current Character Forge branch heads are:
 
-Accepted Character Forge checkpoint on `qa` and `main`:
+- `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
+- `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-- `8041edb4009abce8a836faafce9a167883e92bda`
+The **current eleven-class batch has not been promoted**. Keep it on `dev` until explicit owner batch runtime acceptance.
 
 Parchment remains system-agnostic. Character Forge owns D&D-native interpretation, generation, validation, and provenance.
 
-Nothing in the accumulated guided-generation stack has been promoted beyond `dev`. Owner batch runtime acceptance is still required before exact-SHA promotion.
+## Current automated-green code checkpoint
 
-## Current automated-green development checkpoint
-
-The current `dev` code checkpoint is:
-
-- `e5863b9007d2fdac9f6bb053225c2587321821e3`
-- implementation base: `d2fd0be576e21351243ac44a683acc63b889c74c` (`feat: expand guided SRD classes to eleven`)
-- GitHub Actions run: `33820208614`
+- code: `e5863b9007d2fdac9f6bb053225c2587321821e3`
+- batch implementation base: `d2fd0be576e21351243ac44a683acc63b889c74c`
+- Actions: `33820208614`
 - job: `100861054551`
-- full `npm run verify` green
-- refs / OKF validation green
+- refs / OKF green
 - strict TypeScript green
-- 22 Vitest files / 97 tests / 0 failures
-- web TypeScript build green
+- **22 Vitest files / 97 tests / 0 failures**
+- web build green
+- native schema: `dnd5e-character/0.3`
+- adapter: `0.12.0`
 
-Guided native schema remains `dnd5e-character/0.3`. D&D adapter is `0.12.0`. Legacy `0.1` and `0.2` validation remain isolated and preserve their historical supported surfaces.
+Legacy `0.1` and `0.2` validation remain isolated and preserve their historical supported surfaces.
 
-## Current guided support surface
+## Current guided support
 
-All 12 SRD classes, 4 backgrounds, and 9 species remain cataloged.
+All 12 SRD classes, 4 backgrounds, and 9 species are cataloged.
 
 ### Classes: 11 / 12
+
+Supported:
 
 - Barbarian
 - Bard
@@ -57,11 +57,11 @@ All 12 SRD classes, 4 backgrounds, and 9 species remain cataloged.
 - Sorcerer
 - Wizard
 
-Still blocked:
+Blocked deliberately:
 
 - Warlock
 
-Warlock is intentionally not forced into the ordinary spell-slot model. Pact Magic short-rest slots and the Level 1 Eldritch Invocation choice tree are the next distinct class-owned spellcasting seam.
+Warlock must not be represented as an ordinary Long-Rest caster. Pact Magic short-rest slots and Level 1 Eldritch Invocations are the next distinct class-owned seam.
 
 ### Backgrounds: 4 / 4
 
@@ -85,111 +85,52 @@ Still blocked:
 - Gnome
 - Tiefling
 
-These require explicit lineage/legacy state and spell-grant choices before enablement.
-
 ## Class expansion batch
-
-The class-owned spellcasting seam now has multiple real consumers instead of being a Cleric-only abstraction.
 
 ### Druid
 
-Level 1 Druid retains:
+Retains Primal Order, Druidic language/focus, Herbalism Kit, Warden/Magician consequences, Wisdom spellcasting, 2/3 cantrips, four ordinary prepared Level 1 spells, and two Level 1 Long-Rest slots.
 
-- Primal Order: Warden / Magician;
-- 2 base cantrips, 3 for Magician;
-- 4 ordinary prepared Level 1 Druid spells;
-- 2 Level 1 spell slots restored on Long Rest;
-- Wisdom casting and Druidic Focus;
-- Druidic language and Herbalism Kit proficiency;
-- `Speak with Animals` always prepared through Druidic;
-- Warden Martial weapons + Medium Armor;
-- Magician Wisdom-derived knowledge bonus.
-
-Important corrected distinction: `Speak with Animals` is excluded from the four ordinary prepared-spell choices because it is already always prepared through Druidic. Adapter validation independently rejects a retained Druid that places it in the ordinary prepared selection or loses the always-prepared grant.
+`Speak with Animals` is always prepared through Druidic and is **excluded from the four ordinary prepared-spell choices**. Adapter validation enforces both parts.
 
 ### Bard
 
-Level 1 Bard retains:
-
-- Charisma spellcasting;
-- 2 Bard cantrips;
-- 4 Level 1 Bard spells;
-- 2 Level 1 spell slots;
-- Bardic Inspiration resource state;
-- 3 explicit musical-instrument proficiencies;
-- those selected instruments as valid Bard spellcasting foci;
-- Light Armor and Simple Weapon training;
-- descriptive package-vs-gold starting equipment.
+Retains Charisma spellcasting, 2 cantrips, 4 Level 1 spells, two Level 1 slots, Bardic Inspiration, three explicit musical-instrument proficiencies, those selected instruments as spellcasting foci, and source training/equipment.
 
 ### Paladin
 
-Level 1 Paladin retains:
-
-- Charisma spellcasting;
-- 2 prepared Level 1 Paladin spells;
-- 2 Level 1 spell slots;
-- Holy Symbol focus;
-- Lay on Hands 5-point pool;
-- Simple + Martial Weapon proficiency;
-- Light + Medium + Heavy Armor + Shield training;
-- 2 Weapon Mastery choices;
-- descriptive package-vs-gold equipment.
+Retains Charisma spellcasting, 2 prepared Level 1 spells, two Level 1 slots, Holy Symbol focus, Lay on Hands 5-point pool, Martial/Simple training, Light/Medium/Heavy Armor + Shield training, two Weapon Masteries, and source equipment.
 
 ### Ranger
 
-Level 1 Ranger retains:
+Retains Wisdom spellcasting, 2 ordinary prepared Level 1 spells, two Level 1 slots, Druidic Focus capability, Favored Enemy resource state, two Weapon Masteries, and source training/equipment.
 
-- Wisdom spellcasting;
-- 2 ordinary prepared Level 1 Ranger spells;
-- 2 Level 1 spell slots;
-- Druidic Focus capability;
-- `Hunter's Mark` always prepared through Favored Enemy;
-- Favored Enemy 2-use free-cast resource;
-- 2 Weapon Mastery choices;
-- Martial/Simple Weapon and Light/Medium Armor + Shield training.
-
-`Hunter's Mark` is excluded from the ordinary two-spell prepared selector and retained separately as always prepared.
+`Hunter's Mark` is always prepared through Favored Enemy and is **excluded from the two ordinary prepared choices**.
 
 ### Sorcerer
 
-Level 1 Sorcerer retains:
-
-- Charisma spellcasting;
-- 4 cantrips;
-- 2 Level 1 spells;
-- 2 Level 1 spell slots;
-- Arcane Focus capability;
-- Innate Sorcery 2-use resource;
-- Simple Weapon training and no armor training.
+Retains Charisma spellcasting, 4 cantrips, 2 Level 1 spells, two Level 1 slots, Arcane Focus capability, Innate Sorcery 2-use state, and source training/equipment.
 
 ### Wizard
 
-Level 1 Wizard explicitly retains source-owned spellbook state:
+Retains Intelligence spellcasting, 3 cantrips, an explicit **six-spell Level 1 spellbook**, four prepared Level 1 spells constrained to that retained spellbook, two Level 1 slots, Arcane Focus/spellbook capability, and Arcane Recovery state.
 
-- Intelligence spellcasting;
-- 3 Wizard cantrips;
-- 6 distinct Level 1 spells in the spellbook;
-- 4 prepared Level 1 spells selected from that retained spellbook subset;
-- 2 Level 1 spell slots;
-- Arcane Focus + spellbook capability;
-- Arcane Recovery 1-use / Level-1 recovery budget state.
+Adapter validation rejects prepared Wizard spells outside the retained spellbook.
 
-The adapter rejects prepared spells not present in the retained spellbook. Wizard is therefore not flattened into the Cleric prepared-spell model even though both use standard Long-Rest spell slots.
+## Spell architecture
 
-## Spell architecture evidence
+Keep these source concepts distinct.
 
-### Independent grants: `spells.grants[]`
+### `spells.grants[]`
 
-Keep this for feat/species-style grants. Current consumers remain:
+Independent feat/species-style grants. Current consumers:
 
 - Acolyte -> Magic Initiate (Cleric)
 - Sage -> Magic Initiate (Wizard)
 
-Grant state retains source/list/casting ability/cantrips/always-prepared Level 1 spell/free cast/recharge.
+### `spells.classCasting[]`
 
-### Class-owned spellcasting: `spells.classCasting[]`
-
-Current standard-slot consumers are:
+Current standard-slot consumers:
 
 - Bard
 - Cleric
@@ -199,112 +140,94 @@ Current standard-slot consumers are:
 - Sorcerer
 - Wizard
 
-The common structure retains source class, list, casting ability, cantrips, prepared/always-prepared spell state, slots, preparation cadence, focus capability, and optional spellbook state. Source-specific class state remains outside the generic spell entry where appropriate: Divine Order, Primal Order, Bardic Inspiration, Lay on Hands, Favored Enemy, Innate Sorcery, Arcane Recovery, etc.
+Common class-casting state retains source/list/casting ability/cantrips/prepared and always-prepared state/slots/preparation cadence/focus capability and optional spellbook state. Source-specific class mechanics remain explicit in class/resource state.
 
-A character may retain class spellcasting and independent Magic Initiate grants simultaneously. Neither source is reconstructed from the other or from generation provenance.
+### Future Pact Magic
 
-### Warlock boundary
-
-Warlock remains the one intentionally unsupported SRD class. Do not represent Pact Magic as ordinary 2/2 Long-Rest Level 1 slots. The next Warlock slice must explicitly model:
-
-- Pact Magic slot count/level;
-- Short Rest recharge;
-- Level 1 cantrip/spell choices;
-- the Level 1 Eldritch Invocation choice tree and any invocation-created spell/capability state;
-- Warlock-specific focus/training/equipment state.
+Warlock remains separate until its Short Rest slot and invocation semantics are modeled faithfully. Prefer a dedicated Pact Magic contract or explicit casting-mode distinction over weakening the meaning of current standard class slots.
 
 ## Automated coverage
 
-The green batch includes:
+The green batch covers:
 
-- the full supported 11-class x 6-species generation matrix through the common native-state boundary;
-- dedicated prepared-caster catalog tests;
-- Bard/Paladin/Ranger/Sorcerer/Wizard generation and reopen checks;
-- Wizard spellbook/subset tamper validation;
-- Ranger `Hunter's Mark` always-prepared separation;
-- Druid `Speak with Animals` always-prepared separation;
-- retained Cleric and Magic Initiate regression coverage;
-- all existing Standard Array, Point Cost, Random, Manual, persistence-contract, acceptable-pool, and build-identity tests.
+- supported **11-class x 6-species** generation matrix;
+- dedicated prepared-caster catalog/generation tests;
+- Bard/Paladin/Ranger/Sorcerer/Wizard reopen/tamper behavior;
+- Wizard spellbook/prepared-subset validation;
+- Ranger `Hunter's Mark` always-prepared distinction;
+- Druid `Speak with Animals` always-prepared distinction;
+- Cleric and Magic Initiate regressions;
+- existing ability-method, choice-pool, build-identity, and native-state tests.
 
-## Existing creator/product standards
-
-Preserve:
+## Creator standards to preserve
 
 - controls left / character review right;
-- independent desktop scrolling;
+- independent desktop panel scrolling;
 - one-column narrow fallback;
 - universal controls before method-specific controls;
 - one ability-generation dropdown with dynamic controls;
-- compact/collapsible acceptable pools;
-- direct dropdowns show every supported option, while checked acceptable pools constrain only randomization;
-- icon-first randomization including Character Name;
-- descriptive equipment labels while retaining canonical IDs underneath;
+- direct dropdowns show **all supported options**;
+- checked acceptable pools constrain randomization only;
+- sticky acceptable pools are preference state, not authoritative character state;
+- random-from-checked and direct choices retain provenance;
+- icon-first randomization including Name;
+- descriptive equipment labels;
 - compact contextual help;
-- sticky acceptable pools as preference state, not authoritative character state;
-- per-character pool/result/mode provenance;
-- always-visible runtime build/version identity for QA.
+- visible runtime build/source badge for QA.
 
-Current name generation remains a temporary six-name catalog. Do not grow it into a giant flat list; future naming should be culture/species/language aware and interoperable with Worldbuilding language/culture systems.
+Current name generation is still a temporary six-full-name catalog. Do not expand it into a giant flat list; future naming should be culture/species/language aware.
 
 ## Ability methods
 
-All continue through the same guided native builder:
+All converge on the same guided native builder:
 
 - Standard Array
 - Point Cost
-- Random Generation (4d6 keep highest 3)
+- Random 4d6 keep highest 3
 - Manual Entry
 
 ## Owner batch QA target
 
-The user explicitly requested testing this class expansion as a batch. Recommended runtime pass:
+The user explicitly requested testing this expansion together. Recommended pass:
 
-1. confirm the visible Character Forge badge identifies the pulled `dev` revision;
-2. confirm the Class picker exposes all supported classes except Warlock;
-3. build at least one Bard, Druid, Paladin, Ranger, Sorcerer, and Wizard and confirm `Native state valid`;
-4. Druid: confirm `Speak with Animals` appears as always prepared but is not an ordinary prepared-spell option;
-5. Ranger: confirm `Hunter's Mark` appears as always prepared/Favored Enemy state but is not one of the two ordinary prepared choices;
-6. Wizard: choose six spellbook spells, then verify the four prepared choices are constrained to that spellbook and survive generation/reopen;
-7. Bard: change/randomize three instruments and confirm retained instrument/focus state;
-8. exercise direct vs random-from-checked spell choices on multiple casters;
-9. combine at least one new caster with Acolyte or Sage and confirm Magic Initiate remains a separate spell source;
-10. exercise a non-Standard-Array ability method on a new caster;
-11. save/reload/reopen representative new classes through Parchment and confirm native state/provenance unchanged;
-12. retain prior checks for sticky pools, name randomization, independent scrolling, and descriptive equipment.
+1. confirm the visible build badge identifies the pulled `dev` revision;
+2. confirm the Class picker shows all supported classes except Warlock regardless of old acceptable-pool checkmarks;
+3. build Bard, Druid, Paladin, Ranger, Sorcerer, and Wizard and confirm `Native state valid`;
+4. verify Druid `Speak with Animals` is always prepared but absent from ordinary prepared choices;
+5. verify Ranger `Hunter's Mark` is always prepared/Favored Enemy but absent from ordinary prepared choices;
+6. verify Wizard six-spell spellbook -> four prepared subset behavior;
+7. change/randomize Bard's three instrument choices;
+8. use random-from-checked on multiple spell menus;
+9. combine a new caster with Acolyte or Sage and confirm Magic Initiate is a separate source;
+10. use a non-Standard-Array ability method on a new caster;
+11. save/reload/reopen representative new casters through Parchment;
+12. retain prior sticky-pool/name/scrolling/equipment checks.
 
 Do not promote until explicit owner acceptance.
 
-## Immediate next direction after batch QA
+## Next work after batch QA
 
-Issue #11 remains open. The two clearest remaining breadth seams are:
+Issue #11 remains open. Highest-value remaining breadth seams:
 
-1. **Warlock Level 1** as a deliberately separate Pact Magic / Eldritch Invocation native-state slice; and
-2. **Elf/Gnome/Tiefling** lineage/legacy support using `spells.grants[]` where mechanically accurate.
+1. **Warlock Level 1**: Pact Magic + Eldritch Invocation native state;
+2. **Elf/Gnome/Tiefling**: lineage/legacy choices and spell grants;
+3. **Human-selected Magic Initiate**: full general feat path including Druid list selection.
 
-Human-selected Magic Initiate also remains disabled until its full general feat path, including the Druid list, is wired through Human Versatile state.
+Choose based on QA evidence and architectural value, not support-count optics.
 
-## Random-tables companion watch point
+## Random-tables watch point
 
-Still defer implementation until concrete personality/flavor/table consumers are sufficient to define the generic producer contract. Likely first consumers remain traits, ideals, bonds, flaws, equipment/trinket suggestions, and later system-specific flavor tables.
-
-A generic table engine returns structured, inspectable, provenance-bearing results. It does not mutate CharacterDocument/native state directly.
+Still defer the companion until concrete personality/flavor consumers define the generic result contract. Likely first consumers remain traits, ideals, bonds, flaws, equipment/trinkets, and later system-specific flavor tables. Start before Guided Narrative creates parallel table machinery.
 
 ## Guardrails
 
 - Work directly on `dev`; preserve exact-SHA `dev -> qa -> main` promotion.
-- Native system state remains mandatory and lossless.
+- Native state is mandatory and lossless.
 - Never reconstruct retained D&D state from semantic projection.
-- Generation methods and choices converge on one native validation/persistence boundary.
-- Spell grants, standard class spellcasting, and future Pact Magic remain distinct source concepts where mechanics differ.
-- Sticky preferences are separate from authoritative state and historical provenance.
-- Do not silently default nested source-system decisions to improve support counts.
+- Spell grants, standard class spellcasting, and Pact Magic remain distinct where mechanics differ.
+- Do not silently default nested source decisions to improve support counts.
 - Generator-core stays system-neutral; D&D rules/content stay in `system-dnd5e`.
-- Character Forge owns RPG-native interpretation, validation, choices, and provenance.
-- Parchment owns generic project membership, lifecycle, relationships, persistence, and future sync/share behavior.
-- Local Parchment launcher may rebuild an adjacent Character Forge checkout but must not silently mutate its Git branch or pull source.
+- Character Forge owns RPG-native interpretation/validation/generation/provenance.
+- Parchment owns generic project membership/lifecycle/persistence/sync.
 - Keep visible runtime source/version identity available in QA builds.
-- Use only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repository.
-
-## Agent Academy OKF compatibility
-
-Character Forge uses the Agent Academy `agent-academy-okf-v1` compatibility profile pinned to OKF v0.2. This remains project-memory interoperability only; native character-state ownership, translation-loss rules, licensing boundaries, and exact-SHA promotion are unchanged.
+- Use only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repo.
