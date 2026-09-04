@@ -165,7 +165,7 @@ Do not start solely because mechanical breadth is high. Start when traits/ideals
 
 ## Architecture rules
 
-- Native state is mandatory and lossless.
+- Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - Spell grants, standard class spellcasting, and Pact Magic stay distinct where rules differ.
 - Direct menus show all supported options; acceptable pools constrain randomization only.
