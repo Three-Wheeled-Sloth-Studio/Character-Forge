@@ -43,7 +43,7 @@ export interface GuidedDnd5eCoreChoices {
   expertiseSkillIds?: string[];
   rogueBonusLanguageId?: string;
   dragonbornAncestryId?: Dnd5eDragonbornAncestryId | undefined;
-  goliathAncestryId?: Dnd5eGoliathAncestryId;
+  goliathAncestryId?: Dnd5eGoliathAncestryId | undefined;
   magicInitiate?: GuidedDnd5eMagicInitiateChoices;
   human?: GuidedDnd5eHumanChoices;
 }
