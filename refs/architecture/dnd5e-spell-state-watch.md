@@ -7,80 +7,144 @@ tags:
 ---
 # D&D 5E Spell-State Boundary Watch
 
-Date: 2026-08-27
-Status: independent spell grants and first class-owned spellcasting seam proven
+Date: 2026-09-03
+Status: independent spell grants, standard class spellcasting, spellbook state, and source-specific Level 1 class extensions proven; Pact Magic remains separate
 
 ## Current support
 
 Guided generation now includes:
 
-- classes: Barbarian, Cleric, Fighter, Monk, Rogue;
+- classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Wizard;
 - backgrounds: Acolyte, Criminal, Sage, Soldier;
 - species: Dragonborn, Dwarf, Goliath, Halfling, Human, Orc.
 
-Automated-green Cleric checkpoint:
+Current automated-green code checkpoint:
 
-- `80769e8854f4b9ee80e6fffa9e497115df5fda58`
-- Actions `33128723547`
-- 17 test files / 77 tests / 0 failures
+- `e5863b9007d2fdac9f6bb053225c2587321821e3`
+- Actions `33820208614`
+- job `100861054551`
+- 22 test files / 97 tests / 0 failures
+- adapter `0.12.0`
 
-## Two source concepts are now proven
+## Source concept 1: independent spell grants
 
-### Independent spell grants: `spells.grants[]`
+`spells.grants[]` represents spell capability granted independently of class spellcasting.
 
-Current Magic Initiate consumers prove spell capability granted independently of class casting. Each grant retains:
-
-- grant/source identity;
-- spell-list identity;
-- selected casting ability;
-- cantrip IDs;
-- prepared / always-prepared Level 1 spell;
-- one free-cast resource;
-- recharge cadence.
-
-Current consumers:
+Current Magic Initiate consumers:
 
 - Acolyte -> Magic Initiate (Cleric)
 - Sage -> Magic Initiate (Wizard)
 
-### Class-owned spellcasting: `spells.classCasting[]`
+Each grant retains:
 
-Cleric proves the first standard-slot class capability. A class-casting entry retains:
+- source/grant identity;
+- spell-list identity;
+- selected casting ability;
+- cantrip IDs;
+- prepared / always-prepared Level 1 spell;
+- free-cast resource;
+- recharge cadence.
+
+This state coexists with class spellcasting and is not reconstructed from it.
+
+## Source concept 2: standard class spellcasting
+
+`spells.classCasting[]` now has seven real Level 1 consumers:
+
+- Bard
+- Cleric
+- Druid
+- Paladin
+- Ranger
+- Sorcerer
+- Wizard
+
+The common record can retain:
 
 - source class and feature identity;
 - spell-list identity;
 - class casting ability;
-- class cantrips;
-- prepared spell state;
-- always-prepared spell state where applicable;
-- spell-slot pools with level/current/maximum/recharge;
-- preparation-change cadence;
-- class spellcasting focus capability.
+- cantrips;
+- ordinary prepared/selected Level 1 spells;
+- always-prepared class spells;
+- spell-slot level/current/maximum/recharge;
+- preparation/replacement cadence;
+- spellcasting focus capability;
+- optional source-owned spellbook contents.
 
-The common structure is intentionally small. It is evidence from one real class, not a declaration that every class must fit the same shape.
+This is now evidence from several distinct classes, not a Cleric-only hypothesis. It is still not a declaration that Pact Magic must fit it.
 
-## Cleric-specific source state
+## Source-specific state remains explicit
 
-Cleric also demonstrates that class spellcasting alone is not enough to model the class. `Dnd5eClassState` retains the Level 1 Divine Order consequence:
+Common spell primitives do not replace class mechanics.
 
-- `divineOrderId`;
-- Protector weapon and armor training;
+### Cleric
+
+Retains Divine Order and its consequences:
+
+- Protector training;
 - Thaumaturge knowledge bonus;
-- Holy Symbol focus capability.
+- Divine Order-dependent cantrip count.
 
-Protector and Thaumaturge can therefore be validated from retained native state without consulting generation provenance.
+### Druid
 
-Thaumaturge changes the class cantrip count from 3 to 4. This is validated against the selected Divine Order rather than represented as an unexplained extra cantrip.
+Retains Primal Order and Druidic state:
+
+- Warden training;
+- Magician knowledge bonus;
+- Druidic language;
+- Herbalism Kit proficiency;
+- `Speak with Animals` always prepared through Druidic.
+
+`Speak with Animals` is excluded from the four ordinary prepared-spell selections. The adapter validates both sides of that distinction.
+
+### Bard
+
+Retains:
+
+- Bardic Inspiration resource state;
+- three explicit musical-instrument proficiencies;
+- selected instruments as Bard spellcasting foci.
+
+### Paladin
+
+Retains:
+
+- Lay on Hands 5-point pool;
+- Martial/Simple Weapon training;
+- Light/Medium/Heavy Armor + Shield training;
+- two Weapon Mastery choices.
+
+### Ranger
+
+Retains:
+
+- Favored Enemy resource state;
+- `Hunter's Mark` always prepared separately from the two ordinary prepared spells;
+- two free Favored Enemy uses;
+- Martial/Simple Weapon and Light/Medium Armor + Shield training;
+- two Weapon Mastery choices.
+
+### Sorcerer
+
+Retains Innate Sorcery 2-use resource state separately from ordinary spell slots.
+
+### Wizard
+
+Wizard proves that a standard-slot caster can still require a source-owned preparation substrate:
+
+- six retained Level 1 spellbook spells;
+- four prepared spells constrained to that spellbook subset;
+- Arcane Recovery resource state;
+- Arcane Focus + spellbook capability.
+
+The adapter rejects a retained Wizard whose prepared spells are not contained in the retained spellbook.
 
 ## Composition rule
 
 A character may have both class spellcasting and one or more independent spell grants. These coexist; neither overwrites or reconstructs the other.
 
-This is now tested with Cleric + Acolyte:
-
-- Cleric class spellcasting appears in `spells.classCasting[]`;
-- Acolyte Magic Initiate (Cleric) appears separately in `spells.grants[]`;
-- both may reference the Cleric list while preserving distinct source identity and resource rules.
+Examples already covered by the architecture/tests include class casters combined with Acolyte or Sage Magic Initiate. Two capabilities may even reference the same source spell list while retaining different source identity and resource rules.
 
 Generation provenance explains how choices were made but is not required to reconstruct capability.
 
@@ -88,37 +152,38 @@ Generation provenance explains how choices were made but is not required to reco
 
 Current adapter validation checks, among other things:
 
-- legal source/list identity;
+- source/list identity;
 - legal cantrip counts and source lists;
-- legal prepared Level 1 spell counts/lists;
-- fixed Cleric Wisdom casting ability;
-- Level 1 Cleric slot pool: 2/2 Level 1, Long Rest recharge;
-- preparation cadence;
-- Holy Symbol focus;
-- Protector versus Thaumaturge native consequences;
+- legal ordinary prepared-spell counts/lists;
+- always-prepared spell distinctions;
+- fixed class casting abilities;
+- Level 1 slot pools and Long Rest recharge for the standard-slot consumers;
+- preparation/replacement cadence;
+- class focus capability;
+- Wizard spellbook contents and prepared subset relationship;
+- class-specific training/resource state;
 - Magic Initiate free-cast state separately from class slots.
 
-Tampering tests prove that a retained Cleric with an altered slot maximum or casting ability is rejected.
+Retained-state tampering tests cover class spell state, spellbook/subset behavior, Druid/Ranger always-prepared distinctions, and class-specific consequences.
 
 ## Compatibility rule
 
-The retained `dnd5e-character/0.2` validator is intentionally isolated from the expanding current guided class union. A new class becoming supported in `0.3` must not silently become valid in a historical schema version.
+The retained `dnd5e-character/0.2` validator remains intentionally isolated from the expanding current guided class union. A new class becoming supported in `0.3` does not silently become valid in a historical schema version.
 
-## What this does not prove yet
+## Source concept 3 still unproven: Pact Magic
 
-Do not treat Cleric as proof that all magical classes fit one flattened structure.
+Warlock is intentionally the sole unsupported SRD class after the current batch.
 
-Still source-specific or unproven:
+Do not encode Warlock by merely changing `recharge` on an otherwise ordinary standard-slot entry unless the complete rule audit proves that representation retains the important semantics. The Warlock slice must explicitly account for:
 
-- known-spell versus prepared-spell classes;
-- Wizard spellbook contents and preparation relationship;
-- Warlock Pact Magic slots;
-- class-specific recovery or replacement rules;
-- future domain/subclass spell grants;
-- Druid Primal Order and Druid spell catalog;
-- other class-owned Level 1 resources such as Bardic Inspiration or Innate Sorcery.
+- Pact Magic slot count and slot level;
+- Short Rest recharge;
+- cantrip and spell choices;
+- Eldritch Invocation choices at Level 1;
+- invocation-created spells/capabilities and prerequisites;
+- future slot-level scaling without pretending Pact Magic is a standard caster table.
 
-Prefer common primitives plus explicit source-owned extensions when the rules genuinely differ.
+A dedicated Pact Magic structure or an explicit casting-mode contract should be chosen from the actual Warlock rules and validation needs.
 
 ## Remaining species consumers
 
@@ -131,18 +196,17 @@ Elf, Gnome, and Tiefling still require lineage/legacy state. Their spell-grantin
 
 ## Human Magic Initiate boundary
 
-Human-selected Magic Initiate remains disabled because the general feat includes the Druid spell list. Add the complete relevant list/choice surface before marking it supported.
+The Druid spell catalog now exists as a real consumer. Human-selected Magic Initiate nevertheless remains disabled until the Human Versatile path explicitly retains the selected spell list, casting ability, cantrips, Level 1 spell, free-cast state, and provenance rather than borrowing the background-only Magic Initiate fixture.
 
 ## Suggested next evidence
 
-Choose the next consumer for what it teaches:
+After owner batch QA, the highest-value remaining spell-state evidence is:
 
-1. another standard-slot class to test reuse of `classCasting[]`;
-2. a known-spell class to test whether known/prepared state needs an explicit distinction;
-3. Elf/Gnome/Tiefling to test species-grant reuse;
-4. Druid-list Magic Initiate to complete the general Origin-feat choice.
+1. Warlock Pact Magic + Eldritch Invocation state;
+2. Elf/Gnome/Tiefling lineage/legacy grants;
+3. Human-selected general Magic Initiate.
 
-Wizard and Warlock should be delayed until their distinctive spellbook/Pact Magic state can be modeled explicitly rather than squeezed into Cleric semantics.
+Choose based on concrete QA evidence and architecture value, not merely catalog completion percentage.
 
 ## Guardrails
 
@@ -151,5 +215,7 @@ Wizard and Warlock should be delayed until their distinctive spellbook/Pact Magi
 - Retained native state is authoritative; generation provenance explains history.
 - Do not silently choose spells merely to enable catalog entries.
 - Quick/random generation must use the same ordinary choice contracts and provenance as guided generation.
+- Use common primitives only where source mechanics really align.
+- Keep Pact Magic distinct if its source rules require a distinct contract.
 - Support only legally redistributable SRD 5.2.1 / CC-BY-4.0 material in the public repository.
 - Expand contracts from real consumers rather than prebuilding every future spellcasting rule.
