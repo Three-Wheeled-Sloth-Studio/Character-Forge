@@ -1,9 +1,8 @@
 import type { Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
 import type { Dnd5eClericDivineOrderId } from "./clericCatalog.js";
 import type { Dnd5eDruidPrimalOrderId } from "./druidCatalog.js";
-import type { GuidedPreparedCasterClassId } from "./preparedCasterCatalog.js";
 import type { Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
-import type { Dnd5eSrdClassId } from "./srdCatalog.js";
+import type { Dnd5eSrdClassId, GuidedDnd5eClassId } from "./srdCatalog.js";
 
 export interface Dnd5eChoiceOption { id: string; label: string; supported?: boolean; blockedReason?: string; }
 export type Dnd5eDragonbornAncestryId = "black" | "blue" | "brass" | "bronze" | "copper" | "gold" | "green" | "red" | "silver" | "white";
@@ -18,7 +17,7 @@ export interface GuidedDnd5eMagicInitiateChoices {
 export interface GuidedDnd5eClericChoices { divineOrderId: Dnd5eClericDivineOrderId; cantripIds: string[]; preparedSpellIds: string[]; }
 export interface GuidedDnd5eDruidChoices { primalOrderId: Dnd5eDruidPrimalOrderId; cantripIds: string[]; preparedSpellIds: string[]; }
 export interface GuidedDnd5ePreparedCasterChoices {
-  classId: GuidedPreparedCasterClassId;
+  classId: GuidedDnd5eClassId;
   cantripIds: string[];
   preparedSpellIds: string[];
   spellbookSpellIds?: string[];
@@ -43,7 +42,7 @@ export interface GuidedDnd5eCoreChoices {
   monkToolProficiencyId?: string;
   expertiseSkillIds?: string[];
   rogueBonusLanguageId?: string;
-  dragonbornAncestryId?: Dnd5eDragonbornAncestryId;
+  dragonbornAncestryId?: Dnd5eDragonbornAncestryId | undefined;
   goliathAncestryId?: Dnd5eGoliathAncestryId;
   magicInitiate?: GuidedDnd5eMagicInitiateChoices;
   human?: GuidedDnd5eHumanChoices;
