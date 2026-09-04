@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-08-27
+updated: 2026-09-03
 principles:
   - Ship small vertical slices and revise architecture from evidence.
   - Keep native system state lossless even while the semantic bridge evolves.
@@ -37,6 +37,7 @@ roadmap:
       - Random 4d6 keep-highest-3 generation retaining raw dice, kept dice, roll slots, seed, and assignment provenance.
       - All twelve SRD 5.2.1 classes, all four backgrounds, and all nine species cataloged.
       - Reusable sticky acceptable-option choice-pool behavior with direct or random-from-checked selection.
+      - Direct dropdowns expose all supported options while acceptable pools constrain randomization only.
       - Reusable sticky count-N acceptable-option behavior for multi-choice decisions.
       - Guided class-first creation using sticky Class, Background, and Species pools.
       - Standard Array, Point Cost, Random, and Manual routed through one guided native builder.
@@ -48,26 +49,35 @@ roadmap:
       - Guided species support for Dragonborn, Dwarf, Goliath, Halfling, Human, and Orc, including explicit Dragonborn and Goliath ancestry choices.
       - All four SRD backgrounds enabled: Acolyte, Criminal, Sage, Soldier.
       - D&D-native Magic Initiate spell-grant state for Acolyte and Sage with explicit casting ability, cantrips, Level 1 spell, free-cast resource, provenance, and independent validation.
-      - First class-owned spellcasting state proven with Cleric Level 1, separate from independent spell grants.
-      - Guided class support now includes Barbarian, Cleric, Fighter, Monk, and Rogue.
+      - Class-owned standard-slot spellcasting state proven separately from independent spell grants.
+      - Guided class support expanded to eleven of twelve SRD classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Wizard.
       - Cleric Divine Order, 3/4 cantrips, four prepared Level 1 spells, two Level 1 slots, Wisdom casting, Holy Symbol focus, Protector training, and Thaumaturge knowledge bonus retained natively and validated independently.
-      - Cleric + Acolyte coexistence proves `spells.classCasting[]` and `spells.grants[]` remain separate source capabilities.
+      - Druid Primal Order, Druidic language/focus, Herbalism Kit, Warden/Magician consequences, and class spellcasting retained natively.
+      - Druid Speak with Animals retained as always prepared through Druidic and excluded from ordinary four-spell preparation choices.
+      - Bard spellcasting, Bardic Inspiration, and three explicit musical instrument proficiency/focus choices retained and validated.
+      - Paladin spellcasting, Lay on Hands, Martial/Heavy Armor training, and two Weapon Mastery choices retained and validated.
+      - Ranger spellcasting, Favored Enemy, Hunter's Mark always-prepared/free-cast state, training, and two Weapon Mastery choices retained and validated.
+      - Ranger Hunter's Mark excluded from the two ordinary prepared-spell choices.
+      - Sorcerer spellcasting and Innate Sorcery resource state retained and validated.
+      - Wizard six-spell Level 1 spellbook, four-spell prepared subset, Arcane Recovery, slots, and focus/spellbook capability retained and validated.
+      - Wizard adapter validation rejects prepared spells outside the retained spellbook.
+      - Class spellcasting and Acolyte/Sage Magic Initiate coexist as separate native source capabilities.
       - Legacy dnd5e-character/0.2 class validation isolated from the expanding current guided class union.
-      - Automated-green Cleric checkpoint 80769e8854f4b9ee80e6fffa9e497115df5fda58, Actions 33128723547, 17 test files / 77 tests.
+      - Visible Character Forge runtime build/source badge and Parchment local rebuild seam added for QA provenance.
+      - Automated-green eleven-class checkpoint e5863b9007d2fdac9f6bb053225c2587321821e3, Actions 33820208614, 22 test files / 97 tests.
     current_gate:
-      - Owner runtime QA previously found the creator direction broadly functional and requested a real magical class before the next meaningful test pass.
-      - Cleric now supplies that first magical class and awaits owner runtime QA.
+      - User requested that the broad remaining-class expansion be tested as a batch.
+      - Eleven of twelve classes are now automated-green and await owner runtime QA together.
       - Current generation/guided work stays on dev and is not promoted until the accumulated pass is explicitly accepted.
     current_slice:
-      - Continue issue #11 from the proven class-spellcasting primitive.
-      - Choose the next consumer by reusable architecture and bounded implementation cost rather than catalog order.
-      - Reuse `spells.classCasting[]` for another standard-slot class only where the source rules genuinely fit the common primitives.
-      - Reuse `spells.grants[]` for Elf/Gnome/Tiefling or general Magic Initiate only where mechanically accurate.
-      - Keep Wizard spellbook and Warlock Pact Magic source-specific rather than flattening them into Cleric semantics.
+      - Complete owner batch QA across Bard, Druid, Paladin, Ranger, Sorcerer, Wizard and representative prior classes.
+      - Verify Druid Speak with Animals and Ranger Hunter's Mark remain always-prepared source features rather than ordinary prepared choices.
+      - Verify Wizard spellbook-to-prepared subset behavior survives Parchment save/reopen.
+      - Keep Warlock behind a deliberate Pact Magic / Eldritch Invocation architecture boundary rather than flattening it into standard Long-Rest class slots.
     remaining_scope:
-      - Enable remaining classes Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, and Wizard only after all Level 1 source decisions/mechanics are explicit.
+      - Enable Warlock only after Pact Magic short-rest slot semantics and Level 1 Eldritch Invocation choices are explicit and independently validated.
       - Enable Elf, Gnome, and Tiefling only after lineage/legacy choices and spell grants are represented faithfully.
-      - Add the Druid Magic Initiate list before enabling Human-selected Magic Initiate.
+      - Enable Human-selected Magic Initiate only after the full general feat choice path, including Druid list selection, is retained in Human native/provenance state.
       - Replace the temporary six-name D&D list with a future structured naming architecture informed by culture/species/language consumers rather than a giant flat list.
       - Consolidate Quick Generate into the creator workspace as a top-level creation mode, not an ability method.
       - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
