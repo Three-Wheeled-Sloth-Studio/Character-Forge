@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge D&D 5E 2024 work from the eleven-class guided Level 1 batch.
+Continue Character Forge D&D 5E 2024 work from the automated-green full-class guided Level 1 checkpoint.
 
 Repository:
 
@@ -17,31 +17,30 @@ Work directly on `dev`.
 
 ## Promoted baseline
 
-Current promoted Character Forge branch heads are:
+Current promoted Character Forge branch heads remain:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Those branches include the accepted persistence seam and direct-choice/acceptable-pool visibility correction. The **current eleven-class batch remains dev-only** pending explicit owner runtime acceptance.
+Those branches include the accepted persistence seam and direct-choice/acceptable-pool visibility correction. The current broad generation batch remains **dev-only** pending explicit owner runtime acceptance.
 
 ## Current automated-green code checkpoint
 
-- code: `e5863b9007d2fdac9f6bb053225c2587321821e3`
-- batch implementation: `d2fd0be576e21351243ac44a683acc63b889c74c`
-- Actions: `33820208614`
-- job: `100861054551`
-- **22 test files / 97 tests / 0 failures**
+- code: `ede93e159a03beb51c077b4bd610a21d2bdaf56b`
+- Actions: `34125730424`
+- job: `101753835916`
+- **24 test files / 107 tests / 0 failures**
 - refs / OKF green
 - strict TypeScript green
 - web build green
 - native schema `dnd5e-character/0.3`
-- adapter `0.12.0`
+- adapter `0.13.0`
 
-Read `refs/handoffs/currentHandoff.md` for the detailed batch state and owner QA checklist.
+Read `refs/handoffs/currentHandoff.md` for detailed state and the owner QA checklist.
 
 ## Current support surface
 
-Classes **11 / 12**:
+Classes **12 / 12**:
 
 - Barbarian
 - Bard
@@ -53,9 +52,8 @@ Classes **11 / 12**:
 - Ranger
 - Rogue
 - Sorcerer
+- Warlock
 - Wizard
-
-Warlock remains intentionally unsupported.
 
 Backgrounds **4 / 4**: Acolyte, Criminal, Sage, Soldier.
 
@@ -86,6 +84,7 @@ Relevant code seams:
 - `packages/system-dnd5e/src/clericCatalog.ts`
 - `packages/system-dnd5e/src/druidCatalog.ts`
 - `packages/system-dnd5e/src/preparedCasterCatalog.ts`
+- `packages/system-dnd5e/src/warlockCatalog.ts`
 - `packages/system-dnd5e/src/classSpellcasting.ts`
 - `packages/system-dnd5e/src/nativeCharacter.ts`
 - `packages/system-dnd5e/src/srdCatalog.ts`
@@ -99,11 +98,11 @@ Relevant code seams:
 - `apps/web/src/guidedCreationPanel.ts`
 - `apps/web/src/main.ts`
 
-## Proven class-spellcasting distinctions
+## Proven spellcasting distinctions
 
 `spells.grants[]` remains for independent sources such as Magic Initiate.
 
-`spells.classCasting[]` currently serves Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, and Wizard where standard Level 1 slot semantics fit.
+Standard Long-Rest class slots remain distinct from Warlock Pact Magic.
 
 Preserve these source-owned distinctions:
 
@@ -115,59 +114,64 @@ Preserve these source-owned distinctions:
 - Ranger owns Favored Enemy and Weapon Mastery.
 - Sorcerer owns Innate Sorcery.
 - Wizard owns Arcane Recovery.
+- Warlock owns one Level 1 Pact Magic slot at Level 1, restored on Short or Long Rest.
+- Warlock chooses one genuinely Level-1-legal Eldritch Invocation; use-time choices are not frozen prematurely.
+- Pact of the Tome owns three cantrips and two Level 1 ritual spells, all of which must exclude spells already prepared through Pact Magic or Magic Initiate.
 
 ## Immediate gate: owner batch QA
 
-Do not promote before the requested batch test.
+Do not promote before the requested accumulated runtime test.
 
 Recommended QA:
 
 1. confirm visible build badge/source SHA;
-2. confirm all supported classes except Warlock appear in the direct Class picker regardless of old acceptable-pool state;
-3. build Bard, Druid, Paladin, Ranger, Sorcerer, Wizard and confirm `Native state valid`;
-4. verify Druid `Speak with Animals` separation;
-5. verify Ranger `Hunter's Mark` separation;
-6. verify Wizard six-spell spellbook -> four prepared subset behavior;
-7. verify Bard three-instrument direct/random choices;
-8. exercise random-from-checked across several spell menus;
-9. combine a new caster with Acolyte/Sage and confirm Magic Initiate stays a separate grant;
-10. exercise a non-Standard-Array method;
-11. save/reload/reopen representative new classes through Parchment;
-12. retain sticky-pool/name/scrolling/equipment checks.
+2. confirm all 12 SRD classes appear in the direct Class picker regardless of old acceptable-pool state;
+3. build representative Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard characters and confirm `Native state valid`;
+4. verify Warlock one-slot Short/Long-Rest Pact Magic semantics;
+5. verify all five Level 1 Warlock Invocations and Pact-of-the-Tome-only nested choices;
+6. combine Warlock with Acolyte/Sage and verify Tome options exclude already-prepared Magic Initiate spells;
+7. verify Druid `Speak with Animals` separation;
+8. verify Ranger `Hunter's Mark` separation;
+9. verify Wizard six-spell spellbook -> four prepared subset behavior;
+10. exercise random-from-checked across several spell/invocation/Tome menus;
+11. exercise a non-Standard-Array method;
+12. save/reload/reopen representative new classes through Parchment;
+13. retain sticky-pool/name/scrolling/equipment checks.
 
 ## Next substantive work after QA
 
-### Warlock Level 1
-
-Warlock is the sole unsupported class and must introduce real Pact Magic rather than masquerading as ordinary Long-Rest casting. Audit/model:
-
-- Pact Magic slot count and slot level;
-- Short Rest recharge;
-- cantrip/spell choices;
-- Level 1 Eldritch Invocation choices and prerequisites;
-- invocation-created spell/capability state;
-- focus/training/equipment;
-- reopen/tamper validation.
-
-Prefer a dedicated Pact Magic structure or explicit casting-mode contract if the source rules require it.
-
 ### Elf / Gnome / Tiefling
 
-Model lineage/legacy selection and Level 1 spell grants through `spells.grants[]` where accurate. Keep future level-gated grants explicit without activating them early.
+This is now the largest remaining SRD Level 1 breadth seam. Audit the exact SRD 5.2.1 species text before implementation and model each species' lineage/legacy decision faithfully. Requirements:
+
+- explicit lineage/legacy selection where the source requires it;
+- Level 1 spell grants through native `spells.grants[]` where appropriate;
+- future level-gated grants retained as explicit future capability metadata rather than activated early;
+- source-owned spellcasting ability semantics;
+- sticky direct/random acceptable-pool behavior for source menus;
+- independent reopen/tamper validation;
+- do not broaden generic character state just to fit D&D lineage mechanics.
+
+Do not enable a species until all required Level 1 decisions are represented and validated.
 
 ### Human-selected Magic Initiate
 
-The Druid spell catalog now exists, but Human Versatile still needs the full general feat state/provenance path before this option is enabled.
+Human Versatile still needs a full general Origin-feat state/provenance path before Magic Initiate is enabled there. Unlike Acolyte/Sage, the Human path must support selection of the Cleric, Druid, or Wizard list as an explicit choice, plus casting ability and spell selections. Do not treat a background-fixed Magic Initiate grant as a substitute for this general feat contract.
 
-## Random-tables watch point
+### Later Level 1 product work
 
-Do not start solely because mechanical breadth is high. Start when traits/ideals/bonds/flaws/equipment or other concrete consumers define the generic table-result contract, and before Guided Narrative invents parallel randomization infrastructure.
+After catalog breadth and owner acceptance, reassess:
+
+- consolidating Quick Generate into the creator workspace as a top-level creation mode rather than an ability method;
+- early guided narrative generation using the same catalogs and native generation APIs;
+- the system-neutral random-table companion once concrete personality/flavor consumers define its result contract;
+- the structured naming architecture rather than expanding the temporary flat name list.
 
 ## Architecture rules
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
-- Spell grants, standard class spellcasting, and Pact Magic stay distinct where rules differ.
+- Independent grants, ordinary class spellcasting, and Pact Magic stay distinct where rules differ.
 - Direct menus show all supported options; acceptable pools constrain randomization only.
 - Sticky preferences are not authoritative state.
 - Do not silently invent nested choices to improve support counts.
