@@ -1,8 +1,8 @@
 import { createCharacterDocument, createCharacterId, createNativeStateId, type CharacterDocument, type GenerationRecord, type NativeSystemState } from "../../character-model/src/index.js";
-import { createLevelOneClericSpellcasting, createLevelOneDruidSpellcasting, createLevelOnePreparedCasterSpellcasting } from "./classSpellcasting.js";
+import { createLevelOneClericSpellcasting, createLevelOneDruidSpellcasting, createLevelOnePreparedCasterSpellcasting, createLevelOneWarlockPactMagic } from "./classSpellcasting.js";
 import { DND5E_DRAGONBORN_ANCESTRY_OPTIONS, DND5E_SKILL_OPTIONS, type GuidedDnd5eCoreChoices } from "./guidedChoices.js";
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
-import { abilityModifier, type Dnd5eAbilityState, type Dnd5eClassSpellcastingState, type Dnd5eClassState, type Dnd5eEquipmentEntry, type Dnd5eNativeCharacter, type Dnd5eOriginState, type Dnd5eResourcesState, type Dnd5eSpellGrantState, type Dnd5eSpellState } from "./nativeCharacter.js";
+import { abilityModifier, type Dnd5eAbilityState, type Dnd5eClassSpellcastingState, type Dnd5eClassState, type Dnd5eEldritchInvocationState, type Dnd5eEquipmentEntry, type Dnd5eNativeCharacter, type Dnd5eOriginState, type Dnd5eResourcesState, type Dnd5eSpellGrantState, type Dnd5eSpellState } from "./nativeCharacter.js";
 import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
@@ -26,6 +26,7 @@ const CLASS_PROFILES: Record<GuidedDnd5eClassId, GuidedClassProfile> = {
   ranger: { hitDie: 10, primaryAbilityIds: ["dexterity", "wisdom"], savingThrowProficiencies: ["strength", "dexterity"], featureIds: ["ranger:favored-enemy", "ranger:spellcasting", "ranger:weapon-mastery"] },
   rogue: { hitDie: 8, primaryAbilityIds: ["dexterity"], savingThrowProficiencies: ["dexterity", "intelligence"], fixedToolProficiencyIds: ["thieves-tools"], featureIds: ["rogue:expertise", "rogue:sneak-attack:1d6", "rogue:thieves-cant", "rogue:weapon-mastery"] },
   sorcerer: { hitDie: 6, primaryAbilityIds: ["charisma"], savingThrowProficiencies: ["constitution", "charisma"], featureIds: ["sorcerer:innate-sorcery", "sorcerer:spellcasting"] },
+  warlock: { hitDie: 8, primaryAbilityIds: ["charisma"], savingThrowProficiencies: ["wisdom", "charisma"], featureIds: ["warlock:eldritch-invocations", "warlock:pact-magic"] },
   wizard: { hitDie: 6, primaryAbilityIds: ["intelligence"], savingThrowProficiencies: ["intelligence", "wisdom"], featureIds: ["wizard:spellcasting", "wizard:ritual-adept", "wizard:arcane-recovery"] },
 };
 
@@ -68,6 +69,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const human = input.speciesId === "human" ? input.coreChoices.human : undefined;
   const cleric = input.classId === "cleric" ? input.coreChoices.cleric : undefined;
   const druid = input.classId === "druid" ? input.coreChoices.druid : undefined;
+  const warlock = input.classId === "warlock" ? input.coreChoices.warlock : undefined;
   const dragonbornAncestryId = input.speciesId === "dragonborn" ? input.coreChoices.dragonbornAncestryId : undefined;
   const dragonbornAncestry = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((o) => o.id === dragonbornAncestryId);
   const goliathAncestryId = input.speciesId === "goliath" ? input.coreChoices.goliathAncestryId : undefined;
@@ -94,6 +96,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const toolProficiencyIds = [...(classProfile.fixedToolProficiencyIds ?? []), ...(input.coreChoices.monkToolProficiencyId ? [input.coreChoices.monkToolProficiencyId] : []), ...(input.coreChoices.bardInstrumentIds ?? [])];
   const bonusLanguageIds = input.classId === "druid" ? ["druidic"] : input.coreChoices.rogueBonusLanguageId ? ["thieves-cant", input.coreChoices.rogueBonusLanguageId] : [];
   const training = classTrainingFor(input.classId, input.coreChoices);
+  const eldritchInvocations: Dnd5eEldritchInvocationState[] = warlock ? [{ invocationId: warlock.invocationId, ...(warlock.pactTomeCantripIds?.length ? { pactTomeCantripIds: [...warlock.pactTomeCantripIds] } : {}), ...(warlock.pactTomeRitualSpellIds?.length ? { pactTomeRitualSpellIds: [...warlock.pactTomeRitualSpellIds] } : {}) }] : [];
   const classState: Dnd5eClassState = {
     classId: input.classId, level: 1, hitDie: classProfile.hitDie, proficiencyBonus,
     ...(classProfile.primaryAbilityIds ? { primaryAbilityIds: [...classProfile.primaryAbilityIds] } : {}),
@@ -101,6 +104,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...(input.coreChoices.expertiseSkillIds?.length ? { expertiseSkillIds: [...input.coreChoices.expertiseSkillIds] } : {}),
     ...(toolProficiencyIds.length ? { toolProficiencyIds } : {}), ...(bonusLanguageIds.length ? { bonusLanguageIds } : {}),
     ...(input.coreChoices.fightingStyleFeatId ? { fightingStyleFeatId: input.coreChoices.fightingStyleFeatId } : {}),
+    ...(eldritchInvocations.length ? { eldritchInvocations } : {}),
     ...training, ...(cleric ? clericOrderState(cleric.divineOrderId, input.abilities.final.wisdom) : {}), ...(druid ? druidOrderState(druid.primalOrderId, input.abilities.final.wisdom) : {}),
     weaponMasteryIds: [...input.coreChoices.weaponMasteryIds], classEquipmentChoice: input.coreChoices.classEquipmentChoice,
   };
@@ -113,7 +117,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     schemaVersion: "dnd5e-character/0.3", rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
     identity: { name: input.displayName, level: 1, experiencePoints: 0, alignment: input.coreChoices.alignmentId }, origin, abilities: input.abilities, class: classState,
     ...(spellState ? { spells: spellState } : {}),
-    featureIds: [...speciesProfile.featureIds, ...(dragonbornAncestryId ? [`dragonborn:draconic-ancestry:${dragonbornAncestryId}`] : []), ...(dragonbornAncestry ? [`dragonborn:damage-type:${dragonbornAncestry.damageType}`] : []), ...(goliathAncestryId ? [`goliath:giant-ancestry:${goliathAncestryId}`] : []), `feat:${backgroundProfile.originFeatId}`, ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []), ...classProfile.featureIds, ...(cleric ? [`cleric:divine-order:${cleric.divineOrderId}`] : []), ...(druid ? [`druid:primal-order:${druid.primalOrderId}`] : []), ...(input.coreChoices.fightingStyleFeatId ? [`fighting-style:${input.coreChoices.fightingStyleFeatId}`] : [])],
+    featureIds: [...speciesProfile.featureIds, ...(dragonbornAncestryId ? [`dragonborn:draconic-ancestry:${dragonbornAncestryId}`] : []), ...(dragonbornAncestry ? [`dragonborn:damage-type:${dragonbornAncestry.damageType}`] : []), ...(goliathAncestryId ? [`goliath:giant-ancestry:${goliathAncestryId}`] : []), `feat:${backgroundProfile.originFeatId}`, ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []), ...classProfile.featureIds, ...(cleric ? [`cleric:divine-order:${cleric.divineOrderId}`] : []), ...(druid ? [`druid:primal-order:${druid.primalOrderId}`] : []), ...(warlock ? [`warlock:invocation:${warlock.invocationId}`] : []), ...(input.coreChoices.fightingStyleFeatId ? [`fighting-style:${input.coreChoices.fightingStyleFeatId}`] : [])],
     equipment: [...classEquipment.equipment, ...backgroundEquipment], currencyGp: classEquipment.gold + backgroundGold, resources,
     derived: { armorClass, initiativeModifier, passivePerception },
   };
@@ -124,6 +128,7 @@ function classTrainingFor(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreC
   if (classId === "paladin") return { weaponProficiencyIds: ["simple", "martial"], armorTrainingIds: ["light", "medium", "heavy", "shield"], spellcastingFocusIds: ["holy-symbol"] };
   if (classId === "ranger") return { weaponProficiencyIds: ["simple", "martial"], armorTrainingIds: ["light", "medium", "shield"], spellcastingFocusIds: ["druidic-focus"] };
   if (classId === "sorcerer") return { weaponProficiencyIds: ["simple"], armorTrainingIds: [], spellcastingFocusIds: ["arcane-focus"] };
+  if (classId === "warlock") return { weaponProficiencyIds: ["simple"], armorTrainingIds: ["light"], spellcastingFocusIds: ["arcane-focus"] };
   if (classId === "wizard") return { weaponProficiencyIds: ["simple"], armorTrainingIds: [], spellcastingFocusIds: ["arcane-focus", "spellbook"] };
   return {};
 }
@@ -157,6 +162,7 @@ function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBac
   const classCasting: Dnd5eClassSpellcastingState[] = [];
   if (classId === "cleric") { if (!choices.cleric) throw new Error("Cleric requires class spellcasting choices."); classCasting.push(createLevelOneClericSpellcasting(choices.cleric)); }
   else if (classId === "druid") { if (!choices.druid) throw new Error("Druid requires class spellcasting choices."); classCasting.push(createLevelOneDruidSpellcasting(choices.druid)); }
+  else if (classId === "warlock") { if (!choices.preparedCaster) throw new Error("Warlock requires Pact Magic spell choices."); classCasting.push(createLevelOneWarlockPactMagic(choices.preparedCaster)); }
   else if (preparedCasterCatalog(classId)) { if (!choices.preparedCaster) throw new Error(`${classId} requires class spellcasting choices.`); classCasting.push(createLevelOnePreparedCasterSpellcasting(choices.preparedCaster, focusIds)); }
   if (!grants.length && !classCasting.length) return undefined;
   return { grants, ...(classCasting.length ? { classCasting } : {}) };
@@ -171,7 +177,7 @@ export function guidedBackgroundAbilityIds(backgroundId: GuidedDnd5eBackgroundId
 function classEquipmentFor(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreChoices): { equipment: Dnd5eEquipmentEntry[]; gold: number } {
   const choice = choices.classEquipmentChoice;
   if (choice !== "A") {
-    const gold: Record<GuidedDnd5eClassId, number> = { barbarian: 75, bard: 90, cleric: 110, druid: 50, fighter: 155, monk: 50, paladin: 150, ranger: 150, rogue: 100, sorcerer: 50, wizard: 55 };
+    const gold: Record<GuidedDnd5eClassId, number> = { barbarian: 75, bard: 90, cleric: 110, druid: 50, fighter: 155, monk: 50, paladin: 150, ranger: 150, rogue: 100, sorcerer: 50, warlock: 100, wizard: 55 };
     if (classId === "fighter" && choice === "B") return { equipment: [{ itemId: "studded-leather-armor", quantity: 1 }, { itemId: "scimitar", quantity: 1 }, { itemId: "shortsword", quantity: 1 }, { itemId: "longbow", quantity: 1 }, { itemId: "arrow", quantity: 20 }, { itemId: "quiver", quantity: 1 }, { itemId: "dungeoneers-pack", quantity: 1 }], gold: 11 };
     return { equipment: [], gold: gold[classId] };
   }
@@ -186,6 +192,7 @@ function classEquipmentFor(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCore
     ranger: { equipment: [{ itemId: "studded-leather-armor", quantity: 1 }, { itemId: "scimitar", quantity: 1 }, { itemId: "shortsword", quantity: 1 }, { itemId: "longbow", quantity: 1 }, { itemId: "arrow", quantity: 20 }, { itemId: "quiver", quantity: 1 }, { itemId: "druidic-focus:sprig-of-mistletoe", quantity: 1 }, { itemId: "explorers-pack", quantity: 1 }], gold: 7 },
     rogue: { equipment: [{ itemId: "leather-armor", quantity: 1 }, { itemId: "dagger", quantity: 2 }, { itemId: "shortsword", quantity: 1 }, { itemId: "shortbow", quantity: 1 }, { itemId: "arrow", quantity: 20 }, { itemId: "quiver", quantity: 1 }, { itemId: "thieves-tools", quantity: 1 }, { itemId: "burglars-pack", quantity: 1 }], gold: 8 },
     sorcerer: { equipment: [{ itemId: "spear", quantity: 1 }, { itemId: "dagger", quantity: 2 }, { itemId: "arcane-focus:crystal", quantity: 1 }, { itemId: "dungeoneers-pack", quantity: 1 }], gold: 28 },
+    warlock: { equipment: [{ itemId: "leather-armor", quantity: 1 }, { itemId: "sickle", quantity: 1 }, { itemId: "dagger", quantity: 2 }, { itemId: "arcane-focus:orb", quantity: 1 }, { itemId: "book:occult-lore", quantity: 1 }, { itemId: "scholars-pack", quantity: 1 }], gold: 15 },
     wizard: { equipment: [{ itemId: "dagger", quantity: 2 }, { itemId: "arcane-focus:quarterstaff", quantity: 1 }, { itemId: "robe", quantity: 1 }, { itemId: "spellbook", quantity: 1 }, { itemId: "scholars-pack", quantity: 1 }], gold: 5 },
   };
   return packages[classId];
@@ -201,6 +208,7 @@ function armorClassFor(classId: GuidedDnd5eClassId, equipmentChoice: string, fig
   if (classId === "paladin") return equipmentChoice === "A" ? 18 : 10 + dex;
   if (classId === "ranger") return equipmentChoice === "A" ? 12 + dex : 10 + dex;
   if (classId === "rogue") return (equipmentChoice === "A" ? 11 : 10) + dex;
+  if (classId === "warlock") return (equipmentChoice === "A" ? 11 : 10) + dex;
   return 10 + dex;
 }
 function label(value: string): string { return value.slice(0, 1).toUpperCase() + value.slice(1); }

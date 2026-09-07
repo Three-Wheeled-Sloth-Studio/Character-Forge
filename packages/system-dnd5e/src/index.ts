@@ -21,3 +21,4 @@ export * from "./rulesSource.js";
 export * from "./spellCatalog.js";
 export * from "./srdCatalog.js";
 export * from "./standardArrayGenerate.js";
+export * from "./warlockCatalog.js";

@@ -9,7 +9,7 @@ export type Dnd5eSrdBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
 export type Dnd5eSrdSpeciesId =
   | "dragonborn" | "dwarf" | "elf" | "gnome" | "goliath" | "halfling" | "human" | "orc" | "tiefling";
 
-export type GuidedDnd5eClassId = Exclude<Dnd5eSrdClassId, "warlock">;
+export type GuidedDnd5eClassId = Dnd5eSrdClassId;
 export type GuidedDnd5eBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
 export type GuidedDnd5eSpeciesId = "dragonborn" | "dwarf" | "goliath" | "halfling" | "human" | "orc";
 
@@ -50,7 +50,7 @@ export const DND5E_SRD_521_CLASS_OPTIONS: readonly Dnd5eSrdClassOption[] = [
   { id: "ranger", label: "Ranger", primaryAbilityIds: ["dexterity", "wisdom"], guidedSupported: true },
   { id: "rogue", label: "Rogue", primaryAbilityIds: ["dexterity"], guidedSupported: true },
   { id: "sorcerer", label: "Sorcerer", primaryAbilityIds: ["charisma"], guidedSupported: true },
-  { id: "warlock", label: "Warlock", primaryAbilityIds: ["charisma"], guidedSupported: false, blockedReason: "Pact Magic short-rest slots and the Level 1 Eldritch Invocation decision tree remain a distinct native-state seam." },
+  { id: "warlock", label: "Warlock", primaryAbilityIds: ["charisma"], guidedSupported: true },
   { id: "wizard", label: "Wizard", primaryAbilityIds: ["intelligence"], guidedSupported: true },
 ] as const;
 

@@ -3,6 +3,7 @@ import type { Dnd5eClericDivineOrderId } from "./clericCatalog.js";
 import type { Dnd5eDruidPrimalOrderId } from "./druidCatalog.js";
 import type { Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import type { Dnd5eSrdClassId, GuidedDnd5eClassId } from "./srdCatalog.js";
+import type { Dnd5eLevelOneEldritchInvocationId } from "./warlockCatalog.js";
 
 export interface Dnd5eChoiceOption { id: string; label: string; supported?: boolean; blockedReason?: string; }
 export type Dnd5eDragonbornAncestryId = "black" | "blue" | "brass" | "bronze" | "copper" | "gold" | "green" | "red" | "silver" | "white";
@@ -22,6 +23,11 @@ export interface GuidedDnd5ePreparedCasterChoices {
   preparedSpellIds: string[];
   spellbookSpellIds?: string[];
 }
+export interface GuidedDnd5eWarlockChoices {
+  invocationId: Dnd5eLevelOneEldritchInvocationId;
+  pactTomeCantripIds?: string[];
+  pactTomeRitualSpellIds?: string[];
+}
 export interface GuidedDnd5eHumanChoices {
   size: "small" | "medium";
   skillId: string;
@@ -37,6 +43,7 @@ export interface GuidedDnd5eCoreChoices {
   cleric?: GuidedDnd5eClericChoices;
   druid?: GuidedDnd5eDruidChoices;
   preparedCaster?: GuidedDnd5ePreparedCasterChoices;
+  warlock?: GuidedDnd5eWarlockChoices;
   bardInstrumentIds?: string[];
   fightingStyleFeatId?: string;
   monkToolProficiencyId?: string;
@@ -113,7 +120,7 @@ const ALL_WEAPONS = DND5E_WEAPON_OPTIONS.map((option) => option.id);
 const ROGUE_WEAPONS = DND5E_WEAPON_OPTIONS.filter((option) => option.category === "simple" || option.finesse || option.light).map((option) => option.id);
 const ALL_SKILLS = DND5E_SKILL_OPTIONS.map((option) => option.id);
 
-export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<Exclude<Dnd5eSrdClassId, "warlock">, GuidedDnd5eClassChoiceRules> = {
+export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<Dnd5eSrdClassId, GuidedDnd5eClassChoiceRules> = {
   barbarian: { skillIds: ["animal-handling", "athletics", "intimidation", "nature", "perception", "survival"], skillCount: 2, weaponMasteryIds: ALL_WEAPONS, weaponMasteryCount: 2, equipmentChoices: [{ id: "A", label: "Greataxe, 4 Handaxes, Explorer's Pack + 15 GP" }, { id: "B", label: "75 GP" }] },
   bard: { skillIds: ALL_SKILLS, skillCount: 3, weaponMasteryIds: [], weaponMasteryCount: 0, equipmentChoices: [{ id: "A", label: "Leather Armor, 2 Daggers, chosen Musical Instrument, Entertainer's Pack + 19 GP" }, { id: "B", label: "90 GP" }] },
   cleric: { skillIds: ["history", "insight", "medicine", "persuasion", "religion"], skillCount: 2, weaponMasteryIds: [], weaponMasteryCount: 0, equipmentChoices: [{ id: "A", label: "Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack + 7 GP" }, { id: "B", label: "110 GP" }] },
@@ -124,11 +131,12 @@ export const DND5E_GUIDED_CLASS_CHOICE_RULES: Record<Exclude<Dnd5eSrdClassId, "w
   ranger: { skillIds: ["animal-handling", "athletics", "insight", "investigation", "nature", "perception", "stealth", "survival"], skillCount: 3, weaponMasteryIds: ALL_WEAPONS, weaponMasteryCount: 2, equipmentChoices: [{ id: "A", label: "Studded Leather, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Druidic Focus, Explorer's Pack + 7 GP" }, { id: "B", label: "150 GP" }] },
   rogue: { skillIds: ["acrobatics", "athletics", "deception", "insight", "intimidation", "investigation", "perception", "persuasion", "sleight-of-hand", "stealth"], skillCount: 4, weaponMasteryIds: ROGUE_WEAPONS, weaponMasteryCount: 2, equipmentChoices: [{ id: "A", label: "Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack + 8 GP" }, { id: "B", label: "100 GP" }] },
   sorcerer: { skillIds: ["arcana", "deception", "insight", "intimidation", "persuasion", "religion"], skillCount: 2, weaponMasteryIds: [], weaponMasteryCount: 0, equipmentChoices: [{ id: "A", label: "Spear, 2 Daggers, Arcane Focus (Crystal), Dungeoneer's Pack + 28 GP" }, { id: "B", label: "50 GP" }] },
+  warlock: { skillIds: ["arcana", "deception", "history", "intimidation", "investigation", "nature", "religion"], skillCount: 2, weaponMasteryIds: [], weaponMasteryCount: 0, equipmentChoices: [{ id: "A", label: "Leather Armor, Sickle, 2 Daggers, Arcane Focus (Orb), Occult Lore Book, Scholar's Pack + 15 GP" }, { id: "B", label: "100 GP" }] },
   wizard: { skillIds: ["arcana", "history", "insight", "investigation", "medicine", "nature", "religion"], skillCount: 2, weaponMasteryIds: [], weaponMasteryCount: 0, equipmentChoices: [{ id: "A", label: "2 Daggers, Arcane Focus (Quarterstaff), Robe, Spellbook, Scholar's Pack + 5 GP" }, { id: "B", label: "55 GP" }] },
 };
 
-export function classChoiceRules(classId: Dnd5eSrdClassId): GuidedDnd5eClassChoiceRules | undefined {
-  return classId === "warlock" ? undefined : DND5E_GUIDED_CLASS_CHOICE_RULES[classId];
+export function classChoiceRules(classId: Dnd5eSrdClassId): GuidedDnd5eClassChoiceRules {
+  return DND5E_GUIDED_CLASS_CHOICE_RULES[classId];
 }
 export function labelId(value: string): string { return value.split(":").at(-1)!.split("-").map((part) => part ? part[0]!.toUpperCase() + part.slice(1) : part).join(" "); }
 function weapon(id: string, category: "simple" | "martial", finesse = false, light = false): Dnd5eWeaponChoiceOption { return { id, label: labelId(id), category, finesse, light }; }

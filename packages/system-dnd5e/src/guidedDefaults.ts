@@ -17,6 +17,7 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
     ranger: ["perception", "survival", "nature", "stealth", "animal-handling", "insight", "investigation", "athletics"],
     rogue: ["acrobatics", "investigation", "perception", "persuasion", "stealth", "deception", "insight", "intimidation", "athletics", "sleight-of-hand"],
     sorcerer: ["arcana", "persuasion", "deception", "insight", "intimidation", "religion"],
+    warlock: ["arcana", "deception", "intimidation", "investigation", "history", "nature", "religion"],
     wizard: ["arcana", "investigation", "history", "nature", "insight", "medicine", "religion"],
   };
   const count = classId === "rogue" ? 4 : classId === "bard" || classId === "ranger" ? 3 : 2;
@@ -41,11 +42,13 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
     if (classId === "paladin") choices.preparedCaster = { classId, cantripIds: [], preparedSpellIds: ["bless", "cure-wounds"] };
     if (classId === "ranger") choices.preparedCaster = { classId, cantripIds: [], preparedSpellIds: ["goodberry", "longstrider"] };
     if (classId === "sorcerer") choices.preparedCaster = { classId, cantripIds, preparedSpellIds: ["magic-missile", "shield"] };
+    if (classId === "warlock") choices.preparedCaster = { classId, cantripIds: ["eldritch-blast", "prestidigitation"], preparedSpellIds: ["charm-person", "hex"] };
     if (classId === "wizard") {
       const spellbookSpellIds = ["detect-magic", "find-familiar", "mage-armor", "magic-missile", "shield", "sleep"];
       choices.preparedCaster = { classId, cantripIds, spellbookSpellIds, preparedSpellIds: spellbookSpellIds.slice(0, 4) };
     }
   }
+  if (classId === "warlock") choices.warlock = { invocationId: "pact-of-the-tome", pactTomeCantripIds: ["guidance", "sacred-flame", "vicious-mockery"], pactTomeRitualSpellIds: ["detect-magic", "find-familiar"] };
   if (classId === "bard") choices.bardInstrumentIds = DND5E_MUSICAL_INSTRUMENT_OPTIONS.slice(0, 3).map((option) => option.id);
   if (classId === "fighter") choices.fightingStyleFeatId = "defense";
   if (classId === "monk") choices.monkToolProficiencyId = "artisan-tools:calligraphers-supplies";

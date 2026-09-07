@@ -1,7 +1,8 @@
 import type { Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
 import { magicInitiateSpellList, type Dnd5eSpellOption } from "./spellCatalog.js";
+import { DND5E_WARLOCK_CANTRIP_OPTIONS, DND5E_WARLOCK_LEVEL_ONE_SPELL_OPTIONS } from "./warlockCatalog.js";
 
-export type GuidedPreparedCasterClassId = "bard" | "paladin" | "ranger" | "sorcerer" | "wizard";
+export type GuidedPreparedCasterClassId = "bard" | "paladin" | "ranger" | "sorcerer" | "warlock" | "wizard";
 
 export interface Dnd5ePreparedCasterCatalog {
   classId: GuidedPreparedCasterClassId;
@@ -73,6 +74,12 @@ export const DND5E_PREPARED_CASTER_CATALOGS: Record<GuidedPreparedCasterClassId,
     cantripCount: 4, preparedSpellCount: 2, alwaysPreparedSpellIds: [],
     preparationChange: "level-one", focusItemIds: ["arcane-focus"],
   },
+  warlock: {
+    classId: "warlock", label: "Warlock", spellcastingAbilityId: "charisma",
+    cantripOptions: DND5E_WARLOCK_CANTRIP_OPTIONS, preparedSpellOptions: DND5E_WARLOCK_LEVEL_ONE_SPELL_OPTIONS,
+    cantripCount: 2, preparedSpellCount: 2, alwaysPreparedSpellIds: [],
+    preparationChange: "level-one", focusItemIds: ["arcane-focus"],
+  },
   wizard: {
     classId: "wizard", label: "Wizard", spellcastingAbilityId: "intelligence",
     cantripOptions: WIZARD.cantrips, preparedSpellOptions: WIZARD.levelOneSpells,
@@ -86,7 +93,7 @@ export function preparedCasterCatalog(classId: string): Dnd5ePreparedCasterCatal
 }
 
 export function isPreparedCasterClassId(classId: string): classId is GuidedPreparedCasterClassId {
-  return classId === "bard" || classId === "paladin" || classId === "ranger" || classId === "sorcerer" || classId === "wizard";
+  return classId === "bard" || classId === "paladin" || classId === "ranger" || classId === "sorcerer" || classId === "warlock" || classId === "wizard";
 }
 
 function spells(ids: readonly string[]): readonly Dnd5eSpellOption[] {

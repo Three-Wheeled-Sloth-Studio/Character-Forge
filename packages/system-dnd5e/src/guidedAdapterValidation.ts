@@ -9,8 +9,9 @@ import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
 import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, isGuidedDnd5eBackgroundId, isGuidedDnd5eClassId, isGuidedDnd5eSpeciesId, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
+import { DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS, DND5E_PACT_TOME_CANTRIP_OPTIONS, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS, DND5E_WARLOCK_CANTRIP_OPTIONS, DND5E_WARLOCK_LEVEL_ONE_SPELL_OPTIONS, isLevelOneEldritchInvocationId } from "./warlockCatalog.js";
 
-const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, bard: 8, cleric: 8, druid: 8, fighter: 10, monk: 8, paladin: 10, ranger: 10, rogue: 8, sorcerer: 6, wizard: 6 };
+const HIT_DIE: Record<GuidedDnd5eClassId, number> = { barbarian: 12, bard: 8, cleric: 8, druid: 8, fighter: 10, monk: 8, paladin: 10, ranger: 10, rogue: 8, sorcerer: 6, warlock: 8, wizard: 6 };
 const BACKGROUND_EXPECTED: Record<GuidedDnd5eBackgroundId, { feat: string; skills: readonly string[]; tool: string }> = {
   acolyte: { feat: "magic-initiate:cleric", skills: ["insight", "religion"], tool: "calligraphers-supplies" },
   criminal: { feat: "alert", skills: ["sleight-of-hand", "stealth"], tool: "thieves-tools" },
@@ -94,6 +95,7 @@ function validateClassSpellcastingNativeState(payload: JsonObject, classState: J
   const spells = readObject(payload, "spells"); const castingEntries = spells ? readObjects(spells, "classCasting") : [];
   if (classId === "cleric") { validateCleric(castingEntries, classState, final, issues); return; }
   if (classId === "druid") { validateDruid(castingEntries, classState, final, issues); return; }
+  if (classId === "warlock") { validateWarlock(castingEntries, classState, issues); return; }
   const catalog = preparedCasterCatalog(classId);
   if (catalog) { validatePreparedCaster(castingEntries, classState, classId, issues); return; }
   if (castingEntries.length) error(issues, "dnd5e.class-spellcasting.unexpected", "This class does not own Level 1 class spellcasting state.", "spells.classCasting");
@@ -123,6 +125,34 @@ function validateDruid(entries: JsonObject[], classState: JsonObject, final: Jso
   if (!sameSet(readStrings(classState, "toolProficiencyIds"), ["herbalism-kit"])) error(issues, "dnd5e.druid.herbalism", "Druid requires Herbalism Kit proficiency.", "class.toolProficiencyIds");
   if (!sameSet(readStrings(classState, "bonusLanguageIds"), ["druidic"])) error(issues, "dnd5e.druid.druidic", "Druidic must be retained as a class language.", "class.bonusLanguageIds");
   validateDruidOrder(classState, final, order as "magician" | "warden", issues);
+}
+function validateWarlock(entries: JsonObject[], classState: JsonObject, issues: RulesValidationIssue[]): void {
+  if (entries.length !== 1) { error(issues, "dnd5e.warlock.pact-magic-count", "Level 1 Warlock requires exactly one Pact Magic entry.", "spells.classCasting"); return; }
+  const c = entries[0]!;
+  if (readString(c, "sourceClassId") !== "warlock" || readString(c, "featureId") !== "warlock:pact-magic" || readString(c, "spellListId") !== "warlock") error(issues, "dnd5e.warlock.pact-magic-source", "Warlock Pact Magic source/list mismatch.", "spells.classCasting");
+  if (readString(c, "spellcastingAbilityId") !== "charisma" || readString(c, "castingMode") !== "pact-magic") error(issues, "dnd5e.warlock.pact-magic-mode", "Warlock must retain Charisma-based Pact Magic mode.", "spells.classCasting");
+  const cantrips = readStrings(c, "cantripIds");
+  if (cantrips.length !== 2 || new Set(cantrips).size !== 2 || cantrips.some((id) => !DND5E_WARLOCK_CANTRIP_OPTIONS.some((o) => o.id === id))) error(issues, "dnd5e.warlock.cantrips", "Warlock cantrip selection is invalid.", "spells.classCasting.cantripIds");
+  validateSpellSelection(c, DND5E_WARLOCK_LEVEL_ONE_SPELL_OPTIONS.map((o) => o.id), 2, [], "warlock", issues);
+  const slots = readObjects(c, "spellSlots"); const slot = slots[0];
+  if (slots.length !== 1 || !slot || readNumber(slot, "level") !== 1 || readNumber(slot, "maximum") !== 1 || readNumber(slot, "current") !== 1 || readString(slot, "recharge") !== "short-or-long-rest") error(issues, "dnd5e.warlock.pact-slots", "Level 1 Pact Magic requires one Level 1 slot restored on a Short or Long Rest.", "spells.classCasting.spellSlots");
+  if (readString(c, "preparationChange") !== "level-one") error(issues, "dnd5e.warlock.preparation", "Warlock prepared spell replacement occurs on Warlock level gain.", "spells.classCasting.preparationChange");
+  if (!sameSet(readStrings(c, "focusItemIds"), ["arcane-focus"]) || !sameSet(readStrings(classState, "spellcastingFocusIds"), ["arcane-focus"])) error(issues, "dnd5e.warlock.focus", "Warlock Pact Magic must retain Arcane Focus capability.", "class.spellcastingFocusIds");
+  validateWarlockInvocation(classState, readStrings(c, "preparedSpellIds"), issues);
+}
+function validateWarlockInvocation(classState: JsonObject, basePrepared: readonly string[], issues: RulesValidationIssue[]): void {
+  const invocations = readObjects(classState, "eldritchInvocations");
+  if (invocations.length !== 1) { error(issues, "dnd5e.warlock.invocation-count", "Level 1 Warlock requires exactly one Eldritch Invocation.", "class.eldritchInvocations"); return; }
+  const invocation = invocations[0]!; const invocationId = readString(invocation, "invocationId");
+  if (!invocationId || !isLevelOneEldritchInvocationId(invocationId)) { error(issues, "dnd5e.warlock.invocation", "Choose a legal Level 1 Eldritch Invocation.", "class.eldritchInvocations.invocationId"); return; }
+  const tomeCantrips = readStrings(invocation, "pactTomeCantripIds"); const tomeRituals = readStrings(invocation, "pactTomeRitualSpellIds");
+  if (invocationId !== "pact-of-the-tome") {
+    if (tomeCantrips.length || tomeRituals.length) error(issues, "dnd5e.warlock.tome-unexpected", "Only Pact of the Tome may retain Book of Shadows spell choices.", "class.eldritchInvocations");
+    return;
+  }
+  if (tomeCantrips.length !== 3 || new Set(tomeCantrips).size !== 3 || tomeCantrips.some((id) => !DND5E_PACT_TOME_CANTRIP_OPTIONS.some((o) => o.id === id))) error(issues, "dnd5e.warlock.tome-cantrips", "Pact of the Tome requires three distinct legal cantrips.", "class.eldritchInvocations.pactTomeCantripIds");
+  if (tomeRituals.length !== 2 || new Set(tomeRituals).size !== 2 || tomeRituals.some((id) => !DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS.some((o) => o.id === id))) error(issues, "dnd5e.warlock.tome-rituals", "Pact of the Tome requires two distinct legal Level 1 ritual spells.", "class.eldritchInvocations.pactTomeRitualSpellIds");
+  if (tomeRituals.some((id) => basePrepared.includes(id))) error(issues, "dnd5e.warlock.tome-duplicate-prepared", "Pact of the Tome ritual spells must not duplicate Warlock spells already prepared.", "class.eldritchInvocations.pactTomeRitualSpellIds");
 }
 function validatePreparedCaster(entries: JsonObject[], classState: JsonObject, classId: GuidedDnd5eClassId, issues: RulesValidationIssue[]): void {
   const catalog = preparedCasterCatalog(classId)!;
@@ -167,6 +197,7 @@ function validateClassTrainingAndResources(classState: JsonObject, resources: Js
   if (classId === "paladin") { if (!sameSet(weapons, ["simple", "martial"]) || !sameSet(armor, ["light", "medium", "heavy", "shield"])) error(issues, "dnd5e.paladin.training", "Paladin weapon/armor training mismatch.", "class"); if (readNumber(resources, "layOnHandsMaximum") !== 5 || readNumber(resources, "layOnHandsCurrent") !== 5) error(issues, "dnd5e.paladin.lay-on-hands", "Level 1 Lay on Hands pool must be 5.", "resources"); }
   if (classId === "ranger") { if (!sameSet(weapons, ["simple", "martial"]) || !sameSet(armor, ["light", "medium", "shield"])) error(issues, "dnd5e.ranger.training", "Ranger weapon/armor training mismatch.", "class"); if (readNumber(resources, "favoredEnemyMaximum") !== 2 || readNumber(resources, "favoredEnemyCurrent") !== 2) error(issues, "dnd5e.ranger.favored-enemy", "Favored Enemy must retain two free Hunter's Mark casts.", "resources"); }
   if (classId === "sorcerer") { if (!sameSet(weapons, ["simple"]) || armor.length) error(issues, "dnd5e.sorcerer.training", "Sorcerer training mismatch.", "class"); if (readNumber(resources, "innateSorceryMaximum") !== 2 || readNumber(resources, "innateSorceryCurrent") !== 2) error(issues, "dnd5e.sorcerer.innate-sorcery", "Innate Sorcery requires two uses.", "resources"); }
+  if (classId === "warlock" && (!sameSet(weapons, ["simple"]) || !sameSet(armor, ["light"]))) error(issues, "dnd5e.warlock.training", "Warlock weapon/armor training mismatch.", "class");
   if (classId === "wizard") { if (!sameSet(weapons, ["simple"]) || armor.length) error(issues, "dnd5e.wizard.training", "Wizard training mismatch.", "class"); if (readNumber(resources, "arcaneRecoveryMaximum") !== 1 || readNumber(resources, "arcaneRecoveryCurrent") !== 1 || readNumber(resources, "arcaneRecoverySpellLevelBudget") !== 1) error(issues, "dnd5e.wizard.arcane-recovery", "Level 1 Arcane Recovery state mismatch.", "resources"); }
   if (classId === "fighter" && (readNumber(resources, "secondWindMaximum") !== 2 || readNumber(resources, "secondWindCurrent") !== 2)) error(issues, "dnd5e.fighter.second-wind", "Fighter requires two Second Wind uses.", "resources");
   if (classId === "barbarian" && (readNumber(resources, "rageMaximum") !== 2 || readNumber(resources, "rageCurrent") !== 2 || readNumber(resources, "rageDamageBonus") !== 2)) error(issues, "dnd5e.barbarian.rage", "Barbarian Rage resources mismatch.", "resources");
@@ -190,6 +221,10 @@ function reconstructCoreChoices(identity: JsonObject, origin: JsonObject, classS
   if (classId === "cleric") { const order = readString(classState, "divineOrderId"); if ((order === "protector" || order === "thaumaturge") && casting) choices.cleric = { divineOrderId: order, cantripIds: readStrings(casting, "cantripIds"), preparedSpellIds: readStrings(casting, "preparedSpellIds") }; }
   if (classId === "druid") { const order = readString(classState, "primalOrderId"); if ((order === "magician" || order === "warden") && casting) choices.druid = { primalOrderId: order, cantripIds: readStrings(casting, "cantripIds"), preparedSpellIds: readStrings(casting, "preparedSpellIds") }; }
   if (preparedCasterCatalog(classId) && casting) choices.preparedCaster = { classId, cantripIds: readStrings(casting, "cantripIds"), preparedSpellIds: readStrings(casting, "preparedSpellIds"), ...(readStrings(casting, "spellbookSpellIds").length ? { spellbookSpellIds: readStrings(casting, "spellbookSpellIds") } : {}) };
+  if (classId === "warlock") {
+    const invocation = readObjects(classState, "eldritchInvocations")[0]; const invocationId = invocation ? readString(invocation, "invocationId") : undefined;
+    if (invocationId && isLevelOneEldritchInvocationId(invocationId)) choices.warlock = { invocationId, ...(readStrings(invocation, "pactTomeCantripIds").length ? { pactTomeCantripIds: readStrings(invocation, "pactTomeCantripIds") } : {}), ...(readStrings(invocation, "pactTomeRitualSpellIds").length ? { pactTomeRitualSpellIds: readStrings(invocation, "pactTomeRitualSpellIds") } : {}) };
+  }
   if (classId === "bard") choices.bardInstrumentIds = readStrings(classState, "toolProficiencyIds");
   const style = readString(classState, "fightingStyleFeatId"); if (style) choices.fightingStyleFeatId = style;
   if (classId === "monk") { const tool = readStrings(classState, "toolProficiencyIds")[0]; if (tool) choices.monkToolProficiencyId = tool; }
@@ -207,7 +242,7 @@ function validateDerivedAndSpecies(origin: JsonObject, classState: JsonObject, r
   if (readNumber(classState, "hitDie") !== HIT_DIE[classId]) error(issues, "dnd5e.guided.class-core", "Class Hit Die mismatch.", "class.hitDie");
   const hp = HIT_DIE[classId] + abilityModifier(con) + (speciesId === "dwarf" ? 1 : 0); if (readNumber(resources, "hitPointsMaximum") !== hp || readNumber(resources, "hitPointsCurrent") !== hp) error(issues, "dnd5e.guided.level-one-hp", "Level 1 Hit Points mismatch.", "resources");
   const equipment = readString(classState, "classEquipmentChoice") ?? ""; const style = readString(classState, "fightingStyleFeatId"); const d = abilityModifier(dex);
-  const expectedAc = classId === "barbarian" ? 10 + d + abilityModifier(con) : classId === "bard" ? (equipment === "A" ? 11 + d : 10 + d) : classId === "cleric" ? (equipment === "A" ? 15 + Math.min(2, d) : 10 + d) : classId === "druid" ? (equipment === "A" ? 13 + d : 10 + d) : classId === "fighter" ? (equipment === "A" ? 16 + (style === "defense" ? 1 : 0) : equipment === "B" ? 12 + d + (style === "defense" ? 1 : 0) : 10 + d) : classId === "monk" ? 10 + d + abilityModifier(wis) : classId === "paladin" ? (equipment === "A" ? 18 : 10 + d) : classId === "ranger" ? (equipment === "A" ? 12 + d : 10 + d) : classId === "rogue" ? (equipment === "A" ? 11 : 10) + d : 10 + d;
+  const expectedAc = classId === "barbarian" ? 10 + d + abilityModifier(con) : classId === "bard" ? (equipment === "A" ? 11 + d : 10 + d) : classId === "cleric" ? (equipment === "A" ? 15 + Math.min(2, d) : 10 + d) : classId === "druid" ? (equipment === "A" ? 13 + d : 10 + d) : classId === "fighter" ? (equipment === "A" ? 16 + (style === "defense" ? 1 : 0) : equipment === "B" ? 12 + d + (style === "defense" ? 1 : 0) : 10 + d) : classId === "monk" ? 10 + d + abilityModifier(wis) : classId === "paladin" ? (equipment === "A" ? 18 : 10 + d) : classId === "ranger" ? (equipment === "A" ? 12 + d : 10 + d) : classId === "rogue" ? (equipment === "A" ? 11 : 10) + d : classId === "warlock" ? (equipment === "A" ? 11 : 10) + d : 10 + d;
   if (readNumber(derived, "armorClass") !== expectedAc) error(issues, "dnd5e.guided.armor-class", "Armor Class does not match equipment and abilities.", "derived.armorClass");
   const alert = BACKGROUND_EXPECTED[backgroundId].feat === "alert" || readString(origin, "speciesOriginFeatId") === "alert"; if (readNumber(derived, "initiativeModifier") !== d + (alert ? 2 : 0)) error(issues, "dnd5e.guided.initiative", "Initiative mismatch.", "derived.initiativeModifier");
   const skills = new Set([...readStrings(classState, "skillProficiencies"), ...readStrings(origin, "backgroundSkillProficiencies"), ...(readString(origin, "speciesSkillId") ? [readString(origin, "speciesSkillId")!] : []), ...readStrings(origin, "speciesOriginFeatProficiencyIds")]); const passive = 10 + abilityModifier(wis) + (skills.has("perception") ? 2 : 0); if (readNumber(derived, "passivePerception") !== passive) error(issues, "dnd5e.guided.passive-perception", "Passive Perception mismatch.", "derived.passivePerception");

@@ -27,7 +27,7 @@ export function createLevelOnePreparedCasterSpellcasting(
   focusItemIds?: readonly string[],
 ): Dnd5eClassSpellcastingState {
   const catalog = preparedCasterCatalog(choices.classId);
-  if (!catalog) throw new Error(`No Level 1 prepared-caster catalog for ${choices.classId}.`);
+  if (!catalog || choices.classId === "warlock") throw new Error(`No standard Level 1 prepared-caster catalog for ${choices.classId}.`);
   return {
     sourceClassId: choices.classId,
     featureId: `${choices.classId}:spellcasting`,
@@ -40,5 +40,22 @@ export function createLevelOnePreparedCasterSpellcasting(
     spellSlots: [levelOneStandardSlot()],
     preparationChange: catalog.preparationChange,
     focusItemIds: [...(focusItemIds ?? catalog.focusItemIds)],
+  };
+}
+
+export function createLevelOneWarlockPactMagic(choices: GuidedDnd5ePreparedCasterChoices): Dnd5eClassSpellcastingState {
+  if (choices.classId !== "warlock") throw new Error("Warlock Pact Magic requires Warlock spell choices.");
+  return {
+    sourceClassId: "warlock",
+    featureId: "warlock:pact-magic",
+    spellListId: "warlock",
+    spellcastingAbilityId: "charisma",
+    cantripIds: [...choices.cantripIds],
+    preparedSpellIds: [...choices.preparedSpellIds],
+    alwaysPreparedSpellIds: [],
+    spellSlots: [{ level: 1, maximum: 1, current: 1, recharge: "short-or-long-rest" }],
+    preparationChange: "level-one",
+    focusItemIds: ["arcane-focus"],
+    castingMode: "pact-magic",
   };
 }

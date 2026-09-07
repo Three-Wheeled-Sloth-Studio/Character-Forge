@@ -32,6 +32,11 @@ export interface Dnd5eOriginState extends JsonObject {
   toolProficiencyId: string;
   backgroundEquipmentChoice: string;
 }
+export interface Dnd5eEldritchInvocationState extends JsonObject {
+  invocationId: string;
+  pactTomeCantripIds?: string[];
+  pactTomeRitualSpellIds?: string[];
+}
 export interface Dnd5eClassState extends JsonObject {
   classId: string;
   level: number;
@@ -48,6 +53,7 @@ export interface Dnd5eClassState extends JsonObject {
   classEquipmentChoice: string;
   divineOrderId?: string;
   primalOrderId?: string;
+  eldritchInvocations?: Dnd5eEldritchInvocationState[];
   weaponProficiencyIds?: string[];
   armorTrainingIds?: string[];
   spellcastingFocusIds?: string[];
@@ -85,6 +91,7 @@ export interface Dnd5eClassSpellcastingState extends JsonObject {
   spellSlots: Dnd5eSpellSlotState[];
   preparationChange: "long-rest-any" | "long-rest-one" | "level-one";
   focusItemIds?: string[];
+  castingMode?: "standard" | "pact-magic";
 }
 export interface Dnd5eSpellState extends JsonObject {
   grants: Dnd5eSpellGrantState[];

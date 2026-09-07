@@ -47,7 +47,7 @@ export function guidedGenerateDnd5eFirstSlice(input: GuidedGenerateDnd5eInput): 
     displayName, classId: input.classChoice.selectedId, backgroundId: input.backgroundChoice.selectedId, speciesId: input.speciesChoice.selectedId,
     backgroundEquipmentChoice: input.backgroundEquipmentChoice, coreChoices: input.coreChoices, abilities: methodResult.abilities,
     generation: {
-      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`, mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical", recipeVersion: "0.4",
+      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`, mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical", recipeVersion: "0.5",
       ...(methodResult.seed ? { seed: methodResult.seed } : {}), rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
       recipe: { sequence: ["class", "background", "species", "origin-details", "abilities", "alignment"], classId: input.classChoice.selectedId, backgroundId: input.backgroundChoice.selectedId, speciesId: input.speciesChoice.selectedId, abilityMethod: input.abilityMethod.method, backgroundEquipmentChoice: input.backgroundEquipmentChoice, classEquipmentChoice: input.coreChoices.classEquipmentChoice },
       decisions,
@@ -67,6 +67,11 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
     if (choices.preparedCaster.cantripIds.length) decisions.push({ stepId: `class.${choices.preparedCaster.classId}.cantrips`, answer: choices.preparedCaster.cantripIds });
     if (choices.preparedCaster.spellbookSpellIds?.length) decisions.push({ stepId: "class.wizard.spellbook", answer: choices.preparedCaster.spellbookSpellIds });
     decisions.push({ stepId: `class.${choices.preparedCaster.classId}.prepared-spells`, answer: choices.preparedCaster.preparedSpellIds });
+  }
+  if (choices.warlock) {
+    decisions.push({ stepId: "class.warlock.eldritch-invocation", choiceId: choices.warlock.invocationId });
+    if (choices.warlock.pactTomeCantripIds?.length) decisions.push({ stepId: "class.warlock.pact-tome.cantrips", answer: choices.warlock.pactTomeCantripIds });
+    if (choices.warlock.pactTomeRitualSpellIds?.length) decisions.push({ stepId: "class.warlock.pact-tome.ritual-spells", answer: choices.warlock.pactTomeRitualSpellIds });
   }
   if (choices.bardInstrumentIds?.length) decisions.push({ stepId: "class.bard.instruments", answer: choices.bardInstrumentIds });
   if (choices.fightingStyleFeatId) decisions.push({ stepId: "class.fighting-style", choiceId: choices.fightingStyleFeatId });

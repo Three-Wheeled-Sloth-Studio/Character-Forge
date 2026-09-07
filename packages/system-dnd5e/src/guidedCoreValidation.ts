@@ -10,6 +10,7 @@ import { druidCantripCount, DND5E_DRUID_CANTRIP_OPTIONS, DND5E_DRUID_PREPARED_LE
 import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
 import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
+import { DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS, DND5E_PACT_TOME_CANTRIP_OPTIONS, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS } from "./warlockCatalog.js";
 
 export function assertGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId, choices: GuidedDnd5eCoreChoices): void {
   assertOneOf(choices.alignmentId, DND5E_ALIGNMENT_OPTIONS.map((o) => o.id), "alignment");
@@ -29,6 +30,7 @@ export function assertGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backgr
   assertClericChoices(classId, choices);
   assertDruidChoices(classId, choices);
   assertPreparedCasterChoices(classId, choices);
+  assertWarlockChoices(classId, choices);
 
   if (classId === "bard") {
     const ids = choices.bardInstrumentIds ?? [];
@@ -102,6 +104,25 @@ function assertPreparedCasterChoices(classId: GuidedDnd5eClassId, choices: Guide
     for (const id of spellbook) assertOneOf(id, catalog.preparedSpellOptions.map((o) => o.id), `${catalog.label} spellbook spell`);
     if (casting.preparedSpellIds.some((id) => !spellbook.includes(id))) throw new Error("Wizard prepared spells must be contained in the selected Level 1 spellbook spells.");
   } else if (casting.spellbookSpellIds?.length) throw new Error("Only the current Wizard slice owns a Level 1 spellbook selection.");
+}
+
+function assertWarlockChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreChoices): void {
+  if (classId !== "warlock") { if (choices.warlock) throw new Error("Warlock-only choices were supplied to another class."); return; }
+  const warlock = choices.warlock;
+  if (!warlock) throw new Error("Warlock requires one Level 1 Eldritch Invocation choice.");
+  assertOneOf(warlock.invocationId, DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS.map((o) => o.id), "Level 1 Eldritch Invocation");
+  if (warlock.invocationId !== "pact-of-the-tome") {
+    if (warlock.pactTomeCantripIds?.length || warlock.pactTomeRitualSpellIds?.length) throw new Error("Pact of the Tome spell choices require the Pact of the Tome invocation.");
+    return;
+  }
+  const tomeCantrips = warlock.pactTomeCantripIds ?? [];
+  const tomeRituals = warlock.pactTomeRitualSpellIds ?? [];
+  assertExactUnique(tomeCantrips, 3, "Pact of the Tome cantrips");
+  for (const id of tomeCantrips) assertOneOf(id, DND5E_PACT_TOME_CANTRIP_OPTIONS.map((o) => o.id), "Pact of the Tome cantrip");
+  assertExactUnique(tomeRituals, 2, "Pact of the Tome ritual spells");
+  for (const id of tomeRituals) assertOneOf(id, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS.map((o) => o.id), "Pact of the Tome Level 1 ritual spell");
+  const basePrepared = choices.preparedCaster?.preparedSpellIds ?? [];
+  if (tomeRituals.some((id) => basePrepared.includes(id))) throw new Error("Pact of the Tome ritual spells must not duplicate Warlock spells already prepared.");
 }
 
 function assertMagicInitiate(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): void {
