@@ -8,7 +8,7 @@ function asObject(value: unknown): JsonObject { if (typeof value !== "object" ||
 
 describe("D&D 5E 2024 first vertical slice", () => {
   it("declares a versioned SRD source with license provenance", () => {
-    expect(dnd5eSrd521Adapter.adapterVersion).toBe("0.12.0");
+    expect(dnd5eSrd521Adapter.adapterVersion).toBe("0.13.0");
     expect(dnd5eSrd521Adapter.supportedRulesSources).toEqual([DND5E_SRD_5_2_1_SOURCE]);
     expect(DND5E_SRD_5_2_1_SOURCE.license.id).toBe("CC-BY-4.0");
   });
