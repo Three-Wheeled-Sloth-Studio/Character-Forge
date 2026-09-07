@@ -121,8 +121,13 @@ function assertWarlockChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eC
   for (const id of tomeCantrips) assertOneOf(id, DND5E_PACT_TOME_CANTRIP_OPTIONS.map((o) => o.id), "Pact of the Tome cantrip");
   assertExactUnique(tomeRituals, 2, "Pact of the Tome ritual spells");
   for (const id of tomeRituals) assertOneOf(id, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS.map((o) => o.id), "Pact of the Tome Level 1 ritual spell");
-  const basePrepared = choices.preparedCaster?.preparedSpellIds ?? [];
-  if (tomeRituals.some((id) => basePrepared.includes(id))) throw new Error("Pact of the Tome ritual spells must not duplicate Warlock spells already prepared.");
+  const alreadyPrepared = new Set([
+    ...(choices.preparedCaster?.cantripIds ?? []),
+    ...(choices.preparedCaster?.preparedSpellIds ?? []),
+    ...(choices.magicInitiate?.cantripIds ?? []),
+    ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+  ]);
+  if ([...tomeCantrips, ...tomeRituals].some((id) => alreadyPrepared.has(id))) throw new Error("Pact of the Tome spells must not duplicate spells the Warlock already has prepared from any source.");
 }
 
 function assertMagicInitiate(backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices): void {
