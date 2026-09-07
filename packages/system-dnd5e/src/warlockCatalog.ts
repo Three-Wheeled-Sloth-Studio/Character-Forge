@@ -46,8 +46,21 @@ export const DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS: readonly Dnd5eSpellOption
   "identify", "illusory-script", "purify-food-and-drink", "speak-with-animals", "unseen-servant",
 ]);
 
+export function pactTomeCantripOptionsExcluding(alreadyPreparedSpellIds: readonly string[]): readonly Dnd5eSpellOption[] {
+  return pactTomeOptionsExcluding(DND5E_PACT_TOME_CANTRIP_OPTIONS, alreadyPreparedSpellIds);
+}
+
+export function pactTomeRitualSpellOptionsExcluding(alreadyPreparedSpellIds: readonly string[]): readonly Dnd5eSpellOption[] {
+  return pactTomeOptionsExcluding(DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS, alreadyPreparedSpellIds);
+}
+
 export function isLevelOneEldritchInvocationId(value: string): value is Dnd5eLevelOneEldritchInvocationId {
   return DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS.some((option) => option.id === value);
+}
+
+function pactTomeOptionsExcluding(options: readonly Dnd5eSpellOption[], alreadyPreparedSpellIds: readonly string[]): readonly Dnd5eSpellOption[] {
+  const alreadyPrepared = new Set(alreadyPreparedSpellIds);
+  return options.filter((option) => !alreadyPrepared.has(option.id));
 }
 
 function spells(ids: readonly string[]): readonly Dnd5eSpellOption[] {
