@@ -204,7 +204,7 @@ function validateClassTrainingAndResources(classState: JsonObject, resources: Js
 }
 function validateClericOrder(classState: JsonObject, final: JsonObject | undefined, order: "protector" | "thaumaturge", issues: RulesValidationIssue[]): void {
   const weapons = readStrings(classState, "weaponProficiencyIds"); const armor = readStrings(classState, "armorTrainingIds");
-  if (order === "protector") { if (!sameSet(weapons, ["simple", "martial"]) || !sameSet(armor, ["light", "medium", "heavy", "shield"])) error(issues, "dnd5e.cleric.protector-training", "Protector training mismatch.", "class"); if (readNumber(classState, "thaumaturgeKnowledgeBonus") !== undefined) error(issues, "dnd5e.cleric.protector-bonus", "Protector must not retain Thaumaturge bonus.", "class.thaumaturgeKnowledgeBonus"); return; }
+  if (order === "protector") { if (!sameSet(weapons, ["simple", "martial"]) || !sameSet(armor, ["light", "medium", "heavy", "shield"])) error(issues, "dnd5e.cleric.protector-training", "Protector training mismatch.", "class"); if (readNumber(classState, "thaumaturgeKnowledgeBonus") !== undefined) error(issues, "dnd5e.cleric.protector-bonus", "Protector must not retain Thaumaturge bonus.", "class.druidicKnowledgeBonus"); return; }
   if (!sameSet(weapons, ["simple"]) || !sameSet(armor, ["light", "medium", "shield"])) error(issues, "dnd5e.cleric.thaumaturge-training", "Thaumaturge training mismatch.", "class"); const wis = final ? readNumber(final, "wisdom") : undefined; if (wis !== undefined && readNumber(classState, "thaumaturgeKnowledgeBonus") !== Math.max(1, abilityModifier(wis))) error(issues, "dnd5e.cleric.thaumaturge-bonus", "Thaumaturge knowledge bonus mismatch.", "class.thaumaturgeKnowledgeBonus");
 }
 function validateDruidOrder(classState: JsonObject, final: JsonObject | undefined, order: "magician" | "warden", issues: RulesValidationIssue[]): void {
@@ -222,8 +222,9 @@ function reconstructCoreChoices(identity: JsonObject, origin: JsonObject, classS
   if (classId === "druid") { const order = readString(classState, "primalOrderId"); if ((order === "magician" || order === "warden") && casting) choices.druid = { primalOrderId: order, cantripIds: readStrings(casting, "cantripIds"), preparedSpellIds: readStrings(casting, "preparedSpellIds") }; }
   if (preparedCasterCatalog(classId) && casting) choices.preparedCaster = { classId, cantripIds: readStrings(casting, "cantripIds"), preparedSpellIds: readStrings(casting, "preparedSpellIds"), ...(readStrings(casting, "spellbookSpellIds").length ? { spellbookSpellIds: readStrings(casting, "spellbookSpellIds") } : {}) };
   if (classId === "warlock") {
-    const invocation = readObjects(classState, "eldritchInvocations")[0]; const invocationId = invocation ? readString(invocation, "invocationId") : undefined;
-    if (invocationId && isLevelOneEldritchInvocationId(invocationId)) choices.warlock = { invocationId, ...(readStrings(invocation, "pactTomeCantripIds").length ? { pactTomeCantripIds: readStrings(invocation, "pactTomeCantripIds") } : {}), ...(readStrings(invocation, "pactTomeRitualSpellIds").length ? { pactTomeRitualSpellIds: readStrings(invocation, "pactTomeRitualSpellIds") } : {}) };
+    const invocation = readObjects(classState, "eldritchInvocations")[0];
+    const invocationId = invocation ? readString(invocation, "invocationId") : undefined;
+    if (invocation && invocationId && isLevelOneEldritchInvocationId(invocationId)) choices.warlock = { invocationId, ...(readStrings(invocation, "pactTomeCantripIds").length ? { pactTomeCantripIds: readStrings(invocation, "pactTomeCantripIds") } : {}), ...(readStrings(invocation, "pactTomeRitualSpellIds").length ? { pactTomeRitualSpellIds: readStrings(invocation, "pactTomeRitualSpellIds") } : {}) };
   }
   if (classId === "bard") choices.bardInstrumentIds = readStrings(classState, "toolProficiencyIds");
   const style = readString(classState, "fightingStyleFeatId"); if (style) choices.fightingStyleFeatId = style;
