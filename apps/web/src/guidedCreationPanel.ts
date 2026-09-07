@@ -10,7 +10,8 @@ import {
   DND5E_SKILLED_PROFICIENCY_OPTIONS, DND5E_SPELLCASTING_ABILITY_OPTIONS, DND5E_SRD_521_BACKGROUND_OPTIONS,
   DND5E_SRD_521_CLASS_OPTIONS, DND5E_SRD_521_SPECIES_OPTIONS, DND5E_STANDARD_ARRAY, DND5E_STANDARD_LANGUAGE_OPTIONS,
   DND5E_WEAPON_OPTIONS, GUIDED_DND5E_BACKGROUND_IDS, GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_SPECIES_IDS,
-  guidedGenerateDnd5eFirstSlice, magicInitiateSpellList, preparedCasterCatalog, resolveDnd5eCharacterName,
+  guidedGenerateDnd5eFirstSlice, magicInitiateSpellList, pactTomeCantripOptionsExcluding, pactTomeRitualSpellOptionsExcluding,
+  preparedCasterCatalog, resolveDnd5eCharacterName,
   rollDnd5eRandomAbilitySet, type Dnd5eAbilityId, type Dnd5eAbilityIncreasePlan, type Dnd5eAbilityScores,
   type Dnd5eClericDivineOrderId, type Dnd5eDruidPrimalOrderId, type Dnd5eLevelOneEldritchInvocationId,
   type Dnd5eMagicInitiateSpellListId, type Dnd5eRandomAbilityAssignment, type Dnd5eRandomAbilitySet,
@@ -131,10 +132,20 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
       const invocation = readStickySelect(root, "warlock-invocation") as Dnd5eLevelOneEldritchInvocationId;
       const host = root.querySelector<HTMLElement>("#creator-warlock-invocation-host");
       if (host && invocation === "pact-of-the-tome") {
-        const basePrepared = caster ? readMultiSelected(root, "class-prepared", caster.preparedSpellCount) : [];
-        const ritualIds = DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS.map((o) => o.id).filter((id) => !basePrepared.includes(id));
-        host.innerHTML = `<p class="muted">Book of Shadows choices are current native state and may change when the book is conjured after a rest.</p>${multiChoiceHtml("Book of Shadows cantrips", "warlock-tome-cantrips", DND5E_PACT_TOME_CANTRIP_OPTIONS.map((o) => o.id), 3)}${multiChoiceHtml("Book of Shadows Level 1 rituals", "warlock-tome-rituals", ritualIds, 2)}`;
-        bindMultiChoice(`${prefix}.warlock-tome-cantrips`, "warlock-tome-cantrips", DND5E_PACT_TOME_CANTRIP_OPTIONS.map((o) => o.id), defaults.warlock.pactTomeCantripIds ?? DND5E_PACT_TOME_CANTRIP_OPTIONS.slice(0, 3).map((o) => o.id), 3);
+        const classCantrips = caster?.cantripCount ? readMultiSelected(root, "class-cantrips", caster.cantripCount) : [];
+        const classPrepared = caster ? readMultiSelected(root, "class-prepared", caster.preparedSpellCount) : [];
+        const magicList = defaults.magicInitiate ? magicInitiateSpellList(defaults.magicInitiate.spellListId) : undefined;
+        const magicCantrips = defaults.magicInitiate && magicList
+          ? loadStickyMultiChoicePool(localStorage, `${prefix}.magic-initiate-cantrips`, magicList.cantrips.map((o) => o.id), magicList.cantrips.map((o) => o.id), defaults.magicInitiate.cantripIds, 2).selectedIds
+          : [];
+        const magicLevelOne = defaults.magicInitiate && magicList
+          ? loadStickyChoicePool(localStorage, `${prefix}.magic-initiate-level-one`, magicList.levelOneSpells.map((o) => o.id), magicList.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId).selectedId
+          : undefined;
+        const alreadyPrepared = [...classCantrips, ...classPrepared, ...magicCantrips, ...(magicLevelOne ? [magicLevelOne] : [])];
+        const tomeCantripIds = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
+        const ritualIds = pactTomeRitualSpellOptionsExcluding(alreadyPrepared).map((o) => o.id);
+        host.innerHTML = `<p class="muted">Book of Shadows choices are current native state and may change when the book is conjured after a rest. Spells already prepared from Pact Magic or Magic Initiate are excluded.</p>${multiChoiceHtml("Book of Shadows cantrips", "warlock-tome-cantrips", tomeCantripIds, 3)}${multiChoiceHtml("Book of Shadows Level 1 rituals", "warlock-tome-rituals", ritualIds, 2)}`;
+        bindMultiChoice(`${prefix}.warlock-tome-cantrips`, "warlock-tome-cantrips", tomeCantripIds, fillDefaults(defaults.warlock.pactTomeCantripIds ?? [], tomeCantripIds, 3), 3);
         bindMultiChoice(`${prefix}.warlock-tome-rituals`, "warlock-tome-rituals", ritualIds, fillDefaults(defaults.warlock.pactTomeRitualSpellIds ?? [], ritualIds, 2), 2);
       }
     }
@@ -147,7 +158,7 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
       const list = magicInitiateSpellList(defaults.magicInitiate.spellListId);
       bindStickySelect("magic-initiate-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), defaults.magicInitiate.spellcastingAbilityId, prefix);
       bindMultiChoice(`${prefix}.magic-initiate-cantrips`, "magic-initiate-cantrips", list.cantrips.map((o) => o.id), defaults.magicInitiate.cantripIds, 2);
-      bindStickySelect("magic-initiate-level-one", list.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId, prefix);
+      bindStickySelect("magic-initiate-level-one", list.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId, prefix, true);
     }
     if (speciesState.selectedId === "dragonborn") bindStickySelect("dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((o) => o.id), defaults.dragonbornAncestryId ?? "red", prefix);
     if (speciesState.selectedId === "goliath") bindStickySelect("goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS.map((o) => o.id), defaults.goliathAncestryId ?? "stone", prefix);
@@ -279,8 +290,15 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
     else provenance.push(poolEvidence(`${prefix}.${caster.classId}-prepared`, `class.${caster.classId}.prepared-spells.acceptable-pool`, caster.preparedSpellOptions.map((o) => o.id), choices.preparedCaster.preparedSpellIds, caster.preparedSpellCount));
   }
   if (choices.warlock?.invocationId === "pact-of-the-tome") {
-    provenance.push(poolEvidence(`${prefix}.warlock-tome-cantrips`, "class.warlock.pact-tome.cantrips.acceptable-pool", DND5E_PACT_TOME_CANTRIP_OPTIONS.map((o) => o.id), choices.warlock.pactTomeCantripIds ?? [], 3));
-    const ritualAllowed = DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS.map((o) => o.id).filter((id) => !choices.preparedCaster?.preparedSpellIds.includes(id));
+    const alreadyPrepared = [
+      ...(choices.preparedCaster?.cantripIds ?? []),
+      ...(choices.preparedCaster?.preparedSpellIds ?? []),
+      ...(choices.magicInitiate?.cantripIds ?? []),
+      ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+    ];
+    const tomeCantripAllowed = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
+    const ritualAllowed = pactTomeRitualSpellOptionsExcluding(alreadyPrepared).map((o) => o.id);
+    provenance.push(poolEvidence(`${prefix}.warlock-tome-cantrips`, "class.warlock.pact-tome.cantrips.acceptable-pool", tomeCantripAllowed, choices.warlock.pactTomeCantripIds ?? [], 3));
     provenance.push(poolEvidence(`${prefix}.warlock-tome-rituals`, "class.warlock.pact-tome.ritual-spells.acceptable-pool", ritualAllowed, choices.warlock.pactTomeRitualSpellIds ?? [], 2));
   }
   if (choices.bardInstrumentIds) provenance.push(poolEvidence(`${prefix}.bard-instruments`, "class.bard.instruments.acceptable-pool", DND5E_MUSICAL_INSTRUMENT_OPTIONS.map((o) => o.id), choices.bardInstrumentIds, 3));
@@ -316,7 +334,7 @@ function selectPoolRow(label: string, field: string, options: readonly { id: str
 function methodControlsHtml(method: string): string { if (method === "standard-array") return abilityFieldset("Standard Array assignment", [standardArraySelect("STR", "strength", 15), standardArraySelect("DEX", "dexterity", 14), standardArraySelect("CON", "constitution", 13), standardArraySelect("INT", "intelligence", 12), standardArraySelect("WIS", "wisdom", 10), standardArraySelect("CHA", "charisma", 8)]); if (method === "manual") return abilityFieldset("Base ability scores", [abilityInput("creator-manual", "STR", "strength", 15, 3, 18), abilityInput("creator-manual", "DEX", "dexterity", 14, 3, 18), abilityInput("creator-manual", "CON", "constitution", 13, 3, 18), abilityInput("creator-manual", "INT", "intelligence", 12, 3, 18), abilityInput("creator-manual", "WIS", "wisdom", 10, 3, 18), abilityInput("creator-manual", "CHA", "charisma", 8, 3, 18)]); if (method === "point-cost") return `${abilityFieldset("Point Cost scores", [abilityInput("creator-point", "STR", "strength", 15, 8, 15, "data-point-score"), abilityInput("creator-point", "DEX", "dexterity", 14, 8, 15, "data-point-score"), abilityInput("creator-point", "CON", "constitution", 13, 8, 15, "data-point-score"), abilityInput("creator-point", "INT", "intelligence", 12, 8, 15, "data-point-score"), abilityInput("creator-point", "WIS", "wisdom", 10, 8, 15, "data-point-score"), abilityInput("creator-point", "CHA", "charisma", 8, 8, 15, "data-point-score")])}<p id="creator-point-budget" class="point-budget"></p>`; return `<label>Optional random seed<input id="creator-random-seed" type="text" placeholder="Leave blank for a new seed" /></label><button id="creator-random-roll" type="button" class="secondary-action">Roll 4d6 keep highest 3</button><div id="creator-random-roll-results" class="random-roll-grid"></div>${abilityFieldset("Assign rolled totals", [randomAssignmentSelect("STR", "strength", 0), randomAssignmentSelect("DEX", "dexterity", 1), randomAssignmentSelect("CON", "constitution", 2), randomAssignmentSelect("INT", "intelligence", 3), randomAssignmentSelect("WIS", "wisdom", 4), randomAssignmentSelect("CHA", "charisma", 5)])}`; }
 function readAbilityMethod(root: HTMLElement, method: string, randomRollSet: Dnd5eRandomAbilitySet | null): GuidedAbilityMethodInput { if (method === "standard-array") return { method, assignment: readStandardArrayScores(root) }; if (method === "manual") return { method, scores: readAbilityScores(root, "creator-manual") }; if (method === "point-cost") return { method, scores: readAbilityScores(root, "creator-point") }; if (method === "random") { if (!randomRollSet) throw new Error("Roll the six random ability totals before building the character."); return { method, seed: randomRollSet.seed, assignment: readRandomAssignment(root) }; } throw new Error("Choose a supported ability-generation method."); }
 function refreshBackgroundBoosts(select: HTMLSelectElement, id: GuidedDnd5eBackgroundId): void { const bg = DND5E_SRD_521_BACKGROUND_OPTIONS.find((o) => o.id === id)!; const [a,b,c] = bg.abilityScoreIds; select.innerHTML = `<option value="${a}:2,${b}:1">+2 ${abilityLabel(a)}, +1 ${abilityLabel(b)}</option><option value="${a}:2,${c}:1">+2 ${abilityLabel(a)}, +1 ${abilityLabel(c)}</option><option value="${b}:2,${a}:1">+2 ${abilityLabel(b)}, +1 ${abilityLabel(a)}</option><option value="${b}:2,${c}:1">+2 ${abilityLabel(b)}, +1 ${abilityLabel(c)}</option><option value="${c}:2,${a}:1">+2 ${abilityLabel(c)}, +1 ${abilityLabel(a)}</option><option value="${c}:2,${b}:1">+2 ${abilityLabel(c)}, +1 ${abilityLabel(b)}</option><option value="${a}:1,${b}:1,${c}:1">+1 ${abilityLabel(a)}, +1 ${abilityLabel(b)}, +1 ${abilityLabel(c)}</option>`; }
-function parseBoostPlan(value: string): Dnd5eAbilityIncreasePlan { const plan: Dnd5eAbilityIncreasePlan = {}; for (const part of value.split(",")) { const [id, amountText] = part.split(":"); const amount = Number(amountText); if (!id || (amount !== 1 && amount !== 2)) throw new Error("Choose a legal background ability-increase plan."); (plan as Partial<Record<Dnd5eAbilityId, 1 | 2>>)[id as Dnd5eAbilityId] = amount; } return plan; }
+function parseBoostPlan(value:string): Dnd5eAbilityIncreasePlan { const plan:Dnd5eAbilityIncreasePlan={}; for(const part of value.split(",")){const [id,amount]=part.split(":"); if(!id||!amount)continue; const parsed=Number(amount); if(parsed!==1&&parsed!==2) throw new Error("Background ability increases must be +1 or +2."); plan[id as Dnd5eAbilityId]=parsed;} return plan; }
 function backgroundEquipmentOptions(id: GuidedDnd5eBackgroundId): string { const descriptions:Record<GuidedDnd5eBackgroundId,string>={acolyte:"Calligrapher's Supplies, prayer book, Holy Symbol, 10 parchment, Robe + 8 GP",criminal:"2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes + 16 GP",sage:"Quarterstaff, Calligrapher's Supplies, history book, 8 parchment, Robe + 8 GP",soldier:"Spear, Shortbow, 20 Arrows, Dice Set, Healer's Kit, Quiver, Traveler's Clothes + 14 GP"}; return `<option value="A">${descriptions[id]}</option><option value="B:50-gp">50 GP</option>`; }
 function refreshBackgroundEquipment(select:HTMLSelectElement,id:GuidedDnd5eBackgroundId):void { select.innerHTML=backgroundEquipmentOptions(id); }
 function readBackgroundEquipmentChoice(root:HTMLElement):"A"|"B:50-gp" { const value=root.querySelector<HTMLSelectElement>("#creator-background-equipment")?.value; if(value!=="A"&&value!=="B:50-gp") throw new Error("Choose a supported background equipment option."); return value; }
