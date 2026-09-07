@@ -6,6 +6,7 @@ import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
 
 const dwarfChoice = { selectedId: "dwarf" as const, acceptableIds: ["dwarf"] as const, selectionMode: "direct" as const };
 const criminalChoice = { selectedId: "criminal" as const, acceptableIds: ["criminal"] as const, selectionMode: "direct" as const };
+const acolyteChoice = { selectedId: "acolyte" as const, acceptableIds: ["acolyte"] as const, selectionMode: "direct" as const };
 const assignment = { strength: 8, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 15 };
 
 function warlockCharacter(invocationId: "armor-of-shadows" | "eldritch-mind" | "pact-of-the-blade" | "pact-of-the-chain" | "pact-of-the-tome" = "pact-of-the-tome") {
@@ -21,6 +22,20 @@ function warlockCharacter(invocationId: "armor-of-shadows" | "eldritch-mind" | "
     coreChoices: core,
     abilityMethod: { method: "standard-array", assignment },
     backgroundIncreases: { dexterity: 2, constitution: 1 },
+    backgroundEquipmentChoice: "B:50-gp",
+  });
+}
+
+function acolyteWarlockCharacter() {
+  const core = defaultGuidedDnd5eCoreChoices("warlock", "acolyte", "dwarf");
+  return guidedGenerateDnd5eFirstSlice({
+    name: "Acolyte Warlock",
+    classChoice: { selectedId: "warlock", acceptableIds: ["warlock"], selectionMode: "direct" },
+    backgroundChoice: acolyteChoice,
+    speciesChoice: dwarfChoice,
+    coreChoices: core,
+    abilityMethod: { method: "standard-array", assignment },
+    backgroundIncreases: { wisdom: 2, charisma: 1 },
     backgroundEquipmentChoice: "B:50-gp",
   });
 }
@@ -93,5 +108,25 @@ describe("guided Level 1 Warlock", () => {
     const result = dnd5eSrd521Adapter.validateNativeState(nativeState);
     expect(result.valid).toBe(false);
     expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.warlock.tome-duplicate-prepared");
+  });
+
+  it("rejects a Pact of the Tome cantrip duplicated in Pact Magic cantrips", () => {
+    const character = warlockCharacter();
+    const nativeState = JSON.parse(JSON.stringify(character.nativeStates[0]!)) as typeof character.nativeStates[0];
+    const p = nativeState.payload as Dnd5eNativeCharacter;
+    p.class.eldritchInvocations![0]!.pactTomeCantripIds = ["eldritch-blast", "sacred-flame", "vicious-mockery"];
+    const result = dnd5eSrd521Adapter.validateNativeState(nativeState);
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.guided.core-choices");
+  });
+
+  it("rejects a Pact of the Tome spell duplicated by Magic Initiate", () => {
+    const character = acolyteWarlockCharacter();
+    const nativeState = JSON.parse(JSON.stringify(character.nativeStates[0]!)) as typeof character.nativeStates[0];
+    const p = nativeState.payload as Dnd5eNativeCharacter;
+    p.class.eldritchInvocations![0]!.pactTomeCantripIds = ["guidance", "druidcraft", "vicious-mockery"];
+    const result = dnd5eSrd521Adapter.validateNativeState(nativeState);
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.guided.core-choices");
   });
 });
