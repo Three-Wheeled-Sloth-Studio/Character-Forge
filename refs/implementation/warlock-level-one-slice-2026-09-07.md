@@ -1,3 +1,12 @@
+---
+type: "Implementation Reference"
+title: "Warlock Level 1 Guided Slice"
+tags:
+- character-forge
+- implementation
+- dnd5e
+- warlock
+---
 # Warlock Level 1 guided slice
 
 Status: implementation in progress on `dev`.
