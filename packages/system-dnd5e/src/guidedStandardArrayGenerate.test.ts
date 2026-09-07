@@ -12,10 +12,10 @@ describe("guided SRD class and species generation", () => {
     expect(DND5E_SRD_521_CLASS_OPTIONS).toHaveLength(12);
     expect(DND5E_SRD_521_BACKGROUND_OPTIONS).toHaveLength(4);
     expect(DND5E_SRD_521_SPECIES_OPTIONS).toHaveLength(9);
-    expect(GUIDED_DND5E_CLASS_IDS).toEqual(["barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin", "ranger", "rogue", "sorcerer", "wizard"]);
+    expect(GUIDED_DND5E_CLASS_IDS).toEqual(["barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard"]);
     expect(GUIDED_DND5E_BACKGROUND_IDS).toEqual(["acolyte", "criminal", "sage", "soldier"]);
     expect(GUIDED_DND5E_SPECIES_IDS).toEqual(["dragonborn", "dwarf", "goliath", "halfling", "human", "orc"]);
-    expect(DND5E_SRD_521_CLASS_OPTIONS.find((option) => option.id === "warlock")).toEqual(expect.objectContaining({ guidedSupported: false }));
+    expect(DND5E_SRD_521_CLASS_OPTIONS.find((option) => option.id === "warlock")).toEqual(expect.objectContaining({ guidedSupported: true }));
   });
 
   it("builds and validates a Dwarf Soldier Barbarian with class/species-sensitive derived state", () => {
@@ -35,8 +35,8 @@ describe("guided SRD class and species generation", () => {
     const payload = payloadOf(character); expect(payload.origin.speciesAncestryId).toBe("stone"); expect(payload.origin.speedFeet).toBe(35); expect(payload.resources.giantAncestryMaximum).toBe(2); expect(payload.resources.giantAncestryCurrent).toBe(2); expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0]!).valid).toBe(true);
   });
 
-  it("builds all 66 enabled class/species combinations through one native-state boundary", () => {
-    expect(GUIDED_DND5E_CLASS_IDS.length * GUIDED_DND5E_SPECIES_IDS.length).toBe(66);
+  it("builds all 72 enabled class/species combinations through one native-state boundary", () => {
+    expect(GUIDED_DND5E_CLASS_IDS.length * GUIDED_DND5E_SPECIES_IDS.length).toBe(72);
     for (const classId of GUIDED_DND5E_CLASS_IDS) {
       for (const speciesId of GUIDED_DND5E_SPECIES_IDS) {
         const character = guidedStandardArrayGenerateDnd5eFirstSlice({ name: `${speciesId} ${classId}`, classChoice: { selectedId: classId, acceptableIds: [classId], selectionMode: "direct" }, speciesChoice: { selectedId: speciesId, acceptableIds: [speciesId], selectionMode: "direct" }, assignment, backgroundIncreases: { strength: 2, constitution: 1 } });
