@@ -1,6 +1,7 @@
 import { DND5E_MUSICAL_INSTRUMENT_OPTIONS, DND5E_SKILL_OPTIONS, type GuidedDnd5eCoreChoices } from "./guidedChoices.js";
 import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
+import { DND5E_PACT_TOME_CANTRIP_OPTIONS, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS } from "./warlockCatalog.js";
 
 export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId): GuidedDnd5eCoreChoices {
   const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((option) => option.id === backgroundId);
@@ -48,13 +49,25 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
       choices.preparedCaster = { classId, cantripIds, spellbookSpellIds, preparedSpellIds: spellbookSpellIds.slice(0, 4) };
     }
   }
-  if (classId === "warlock") choices.warlock = { invocationId: "pact-of-the-tome", pactTomeCantripIds: ["guidance", "sacred-flame", "vicious-mockery"], pactTomeRitualSpellIds: ["detect-magic", "find-familiar"] };
   if (classId === "bard") choices.bardInstrumentIds = DND5E_MUSICAL_INSTRUMENT_OPTIONS.slice(0, 3).map((option) => option.id);
   if (classId === "fighter") choices.fightingStyleFeatId = "defense";
   if (classId === "monk") choices.monkToolProficiencyId = "artisan-tools:calligraphers-supplies";
   if (classId === "rogue") { choices.expertiseSkillIds = [classSkillIds[0]!, classSkillIds[1]!]; choices.rogueBonusLanguageId = "giant"; }
   if (backgroundId === "acolyte") choices.magicInitiate = { spellListId: "cleric", spellcastingAbilityId: "wisdom", cantripIds: ["guidance", "sacred-flame"], levelOneSpellId: "bless" };
   if (backgroundId === "sage") choices.magicInitiate = { spellListId: "wizard", spellcastingAbilityId: "intelligence", cantripIds: ["light", "mage-hand"], levelOneSpellId: "magic-missile" };
+  if (classId === "warlock") {
+    const alreadyPrepared = new Set([
+      ...(choices.preparedCaster?.cantripIds ?? []),
+      ...(choices.preparedCaster?.preparedSpellIds ?? []),
+      ...(choices.magicInitiate?.cantripIds ?? []),
+      ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+    ]);
+    choices.warlock = {
+      invocationId: "pact-of-the-tome",
+      pactTomeCantripIds: DND5E_PACT_TOME_CANTRIP_OPTIONS.map((option) => option.id).filter((id) => !alreadyPrepared.has(id)).slice(0, 3),
+      pactTomeRitualSpellIds: DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS.map((option) => option.id).filter((id) => !alreadyPrepared.has(id)).slice(0, 2),
+    };
+  }
   if (speciesId === "dragonborn") choices.dragonbornAncestryId = "red";
   if (speciesId === "goliath") choices.goliathAncestryId = "stone";
   if (speciesId === "human") {
