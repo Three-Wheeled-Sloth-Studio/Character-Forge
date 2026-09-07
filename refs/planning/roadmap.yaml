@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-03
+updated: 2026-09-07
 principles:
   - Ship small vertical slices and revise architecture from evidence.
   - Keep native system state lossless even while the semantic bridge evolves.
@@ -50,7 +50,7 @@ roadmap:
       - All four SRD backgrounds enabled: Acolyte, Criminal, Sage, Soldier.
       - D&D-native Magic Initiate spell-grant state for Acolyte and Sage with explicit casting ability, cantrips, Level 1 spell, free-cast resource, provenance, and independent validation.
       - Class-owned standard-slot spellcasting state proven separately from independent spell grants.
-      - Guided class support expanded to eleven of twelve SRD classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Wizard.
+      - Guided class support expanded to all twelve SRD classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard.
       - Cleric Divine Order, 3/4 cantrips, four prepared Level 1 spells, two Level 1 slots, Wisdom casting, Holy Symbol focus, Protector training, and Thaumaturge knowledge bonus retained natively and validated independently.
       - Druid Primal Order, Druidic language/focus, Herbalism Kit, Warden/Magician consequences, and class spellcasting retained natively.
       - Druid Speak with Animals retained as always prepared through Druidic and excluded from ordinary four-spell preparation choices.
@@ -61,23 +61,28 @@ roadmap:
       - Sorcerer spellcasting and Innate Sorcery resource state retained and validated.
       - Wizard six-spell Level 1 spellbook, four-spell prepared subset, Arcane Recovery, slots, and focus/spellbook capability retained and validated.
       - Wizard adapter validation rejects prepared spells outside the retained spellbook.
+      - Warlock Pact Magic retained separately from ordinary Long-Rest slot semantics with one Level 1 slot restored on Short or Long Rest.
+      - Warlock Level 1 retains two cantrips, two prepared Level 1 spells, Arcane Focus capability, training, and one explicit Eldritch Invocation.
+      - Five genuinely Level-1-legal Warlock Invocations supported: Armor of Shadows, Eldritch Mind, Pact of the Blade, Pact of the Chain, Pact of the Tome.
+      - Pact of the Tome retains three cantrips and two Level 1 ritual spells while excluding spells already prepared through Pact Magic or Magic Initiate.
+      - Pact of the Tome browser menus and sticky provenance use the same filtered legal option set rather than deferring duplicate detection to submit time.
       - Class spellcasting and Acolyte/Sage Magic Initiate coexist as separate native source capabilities.
       - Legacy dnd5e-character/0.2 class validation isolated from the expanding current guided class union.
       - Visible Character Forge runtime build/source badge and Parchment local rebuild seam added for QA provenance.
-      - Automated-green eleven-class checkpoint e5863b9007d2fdac9f6bb053225c2587321821e3, Actions 33820208614, 22 test files / 97 tests.
+      - Automated-green full-class checkpoint ede93e159a03beb51c077b4bd610a21d2bdaf56b, Actions 34125730424, 24 test files / 107 tests.
     current_gate:
-      - User requested that the broad remaining-class expansion be tested as a batch.
-      - Eleven of twelve classes are now automated-green and await owner runtime QA together.
+      - User requested that the broad class expansion be tested as an accumulated batch.
+      - All twelve SRD classes are now automated-green and await owner runtime QA together.
       - Current generation/guided work stays on dev and is not promoted until the accumulated pass is explicitly accepted.
     current_slice:
-      - Complete owner batch QA across Bard, Druid, Paladin, Ranger, Sorcerer, Wizard and representative prior classes.
+      - Complete owner batch QA across representative classes including Warlock and the prior prepared-caster batch.
+      - Verify Warlock one-slot Short/Long-Rest Pact Magic semantics and all five Level 1 Invocations.
+      - Verify Pact of the Tome excludes spells already prepared through Pact Magic or Magic Initiate.
       - Verify Druid Speak with Animals and Ranger Hunter's Mark remain always-prepared source features rather than ordinary prepared choices.
       - Verify Wizard spellbook-to-prepared subset behavior survives Parchment save/reopen.
-      - Keep Warlock behind a deliberate Pact Magic / Eldritch Invocation architecture boundary rather than flattening it into standard Long-Rest class slots.
     remaining_scope:
-      - Enable Warlock only after Pact Magic short-rest slot semantics and Level 1 Eldritch Invocation choices are explicit and independently validated.
       - Enable Elf, Gnome, and Tiefling only after lineage/legacy choices and spell grants are represented faithfully.
-      - Enable Human-selected Magic Initiate only after the full general feat choice path, including Druid list selection, is retained in Human native/provenance state.
+      - Enable Human-selected Magic Initiate only after the full general feat choice path, including Cleric/Druid/Wizard list selection, is retained in Human native/provenance state.
       - Replace the temporary six-name D&D list with a future structured naming architecture informed by culture/species/language consumers rather than a giant flat list.
       - Consolidate Quick Generate into the creator workspace as a top-level creation mode, not an ability method.
       - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
