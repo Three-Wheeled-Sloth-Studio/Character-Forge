@@ -5,22 +5,22 @@ import { guidedGenerateDnd5eFirstSlice } from "./guidedGenerate.js";
 import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
 
 const dwarfChoice = { selectedId: "dwarf" as const, acceptableIds: ["dwarf"] as const, selectionMode: "direct" as const };
-const soldierChoice = { selectedId: "soldier" as const, acceptableIds: ["soldier"] as const, selectionMode: "direct" as const };
+const criminalChoice = { selectedId: "criminal" as const, acceptableIds: ["criminal"] as const, selectionMode: "direct" as const };
 const assignment = { strength: 8, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 15 };
 
 function warlockCharacter(invocationId: "armor-of-shadows" | "eldritch-mind" | "pact-of-the-blade" | "pact-of-the-chain" | "pact-of-the-tome" = "pact-of-the-tome") {
-  const core = defaultGuidedDnd5eCoreChoices("warlock", "soldier", "dwarf");
+  const core = defaultGuidedDnd5eCoreChoices("warlock", "criminal", "dwarf");
   core.warlock = invocationId === "pact-of-the-tome"
     ? { invocationId, pactTomeCantripIds: ["guidance", "sacred-flame", "vicious-mockery"], pactTomeRitualSpellIds: ["detect-magic", "find-familiar"] }
     : { invocationId };
   return guidedGenerateDnd5eFirstSlice({
     name: `Warlock ${invocationId}`,
     classChoice: { selectedId: "warlock", acceptableIds: ["warlock"], selectionMode: "direct" },
-    backgroundChoice: soldierChoice,
+    backgroundChoice: criminalChoice,
     speciesChoice: dwarfChoice,
     coreChoices: core,
     abilityMethod: { method: "standard-array", assignment },
-    backgroundIncreases: { charisma: 2, constitution: 1 },
+    backgroundIncreases: { dexterity: 2, constitution: 1 },
     backgroundEquipmentChoice: "B:50-gp",
   });
 }
