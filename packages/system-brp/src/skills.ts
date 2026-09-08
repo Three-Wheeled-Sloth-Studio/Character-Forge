@@ -9,7 +9,7 @@ import type {
 export interface BrpStaticSkillDefinitionTemplate {
   skillId: string;
   label: string;
-  baseChance: number | "int-x5";
+  baseChance: number;
   specialty: BrpSkillSpecialty | null;
 }
 
@@ -88,7 +88,7 @@ export function brpSkillIdentityKey(skillId: string, specialty: BrpSkillSpecialt
 
 export function resolveBrpStaticSkillDefinition(
   skillKey: BrpFirstSliceSkillKey,
-  characteristics: BrpCharacteristicValues,
+  _characteristics: BrpCharacteristicValues,
 ): BrpResolvedSkillDefinition {
   const definition = BRP_FIRST_SLICE_SKILL_CATALOG[skillKey];
   const specialty = definition.specialty ? { ...definition.specialty } : null;
@@ -96,9 +96,7 @@ export function resolveBrpStaticSkillDefinition(
     key: brpSkillIdentityKey(definition.skillId, specialty),
     skillId: definition.skillId,
     label: definition.label,
-    baseChance: definition.baseChance === "int-x5"
-      ? characteristics.INT * 5
-      : definition.baseChance,
+    baseChance: definition.baseChance,
     specialty,
   };
 }
