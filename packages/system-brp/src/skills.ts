@@ -49,8 +49,8 @@ export const BRP_FIRST_SLICE_SKILL_CATALOG = {
   stealth: { skillId: "stealth", label: "Stealth", baseChance: 10, specialty: null },
   track: { skillId: "track", label: "Track", baseChance: 10, specialty: null },
   "first-aid": { skillId: "first-aid", label: "First Aid", baseChance: 30, specialty: null },
-  "language:other": { skillId: "language", label: "Language (Other)", baseChance: 0, specialty: null },
-  "language:own": { skillId: "language", label: "Language (Own)", baseChance: "int-x5", specialty: null },
+  "language:other": { skillId: "language-other", label: "Language (Other)", baseChance: 0, specialty: null },
+  "language:own": { skillId: "language-own", label: "Language (Own)", baseChance: "int-x5", specialty: null },
   teach: { skillId: "teach", label: "Teach", baseChance: 10, specialty: null },
 } as const satisfies Record<string, BrpStaticSkillDefinitionTemplate>;
 
