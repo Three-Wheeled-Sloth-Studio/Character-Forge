@@ -76,7 +76,8 @@ export function resolveBrpPowerLevelProfile(
     };
   }
 
-  if (!Number.isInteger(defaultStartingAge)
+  if (defaultStartingAge === undefined
+    || !Number.isInteger(defaultStartingAge)
     || defaultStartingAge < BRP_DEFAULT_STARTING_AGE_MINIMUM
     || defaultStartingAge > BRP_DEFAULT_STARTING_AGE_MAXIMUM) {
     throw new Error(
