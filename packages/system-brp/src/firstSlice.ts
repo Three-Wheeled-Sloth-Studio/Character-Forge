@@ -1,9 +1,16 @@
 import {
   createCharacterDocument,
   type CharacterDocument,
+  type GenerationMode,
   type NativeSystemState,
 } from "../../character-model/src/index.js";
+import {
+  generateBrpStandardRolledCharacteristics,
+  type BrpCharacteristicRedistributionInput,
+} from "./characteristicGeneration.js";
 import type {
+  BrpCharacteristicGeneration,
+  BrpCharacteristicGenerationState,
   BrpCharacteristicValues,
   BrpCharacteristics,
   BrpDamageModifier,
@@ -20,17 +27,25 @@ export interface BrpSkillAllocationInput {
   points: number;
 }
 
-export interface BrpFirstSliceInput {
+export interface BrpFirstSliceBaseInput {
   characterId: string;
   nativeStateId: string;
   displayName: string;
   age: number;
   gender: string;
   wealth: BrpWealthLevel;
-  characteristics: BrpCharacteristicValues;
   detectiveElectiveSkillKeys: BrpDetectiveElectiveSkillKey[];
   professionalAllocations: BrpSkillAllocationInput[];
   personalAllocations: BrpSkillAllocationInput[];
+}
+
+export interface BrpFirstSliceInput extends BrpFirstSliceBaseInput {
+  characteristics: BrpCharacteristicValues;
+}
+
+export interface BrpStandardRolledFirstSliceInput extends BrpFirstSliceBaseInput {
+  seed: string;
+  redistribution?: BrpCharacteristicRedistributionInput[];
 }
 
 interface BrpSkillDefinition {
@@ -38,6 +53,16 @@ interface BrpSkillDefinition {
   label: string;
   baseChance: number;
   specialty: BrpSkillSpecialty | null;
+}
+
+interface BrpCharacteristicConstruction {
+  values: BrpCharacteristicValues;
+  state: BrpCharacteristics;
+  generationState: BrpCharacteristicGenerationState;
+  method: BrpCharacteristicGeneration;
+  generationMode: GenerationMode;
+  methodId: string;
+  seed?: string;
 }
 
 export const BRP_FIRST_SLICE_SKILL_CATALOG = {
@@ -99,8 +124,37 @@ export const BRP_NORMAL_PROFESSIONAL_SKILL_POINTS = 250;
 export const BRP_NORMAL_STARTING_SKILL_CAP = 75;
 
 export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): CharacterDocument {
-  validateIdentity(input);
   validateCharacteristics(input.characteristics);
+  return buildBrpFirstSliceCharacterFromConstruction(input, {
+    values: input.characteristics,
+    state: buildExplicitCharacteristicState(input.characteristics),
+    generationState: { method: "explicit" },
+    method: "explicit",
+    generationMode: "manual",
+    methodId: "brp-uge-first-slice-explicit",
+  });
+}
+
+export function buildBrpStandardRolledFirstSliceCharacter(
+  input: BrpStandardRolledFirstSliceInput,
+): CharacterDocument {
+  const generated = generateBrpStandardRolledCharacteristics(input.seed, input.redistribution ?? []);
+  return buildBrpFirstSliceCharacterFromConstruction(input, {
+    values: generated.final,
+    state: generated.characteristics,
+    generationState: generated.generationState,
+    method: "standard-rolled",
+    generationMode: "mechanical",
+    methodId: "brp-uge-first-slice-standard-rolled",
+    seed: generated.generationState.seed,
+  });
+}
+
+function buildBrpFirstSliceCharacterFromConstruction(
+  input: BrpFirstSliceBaseInput,
+  construction: BrpCharacteristicConstruction,
+): CharacterDocument {
+  validateIdentity(input);
   validateDetectiveElectives(input.detectiveElectiveSkillKeys);
 
   const professional = allocationMap(input.professionalAllocations, "professional");
@@ -121,7 +175,7 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
     throw new Error(`Normal BRP characters must allocate exactly ${BRP_NORMAL_PROFESSIONAL_SKILL_POINTS} professional skill points.`);
   }
 
-  const personalTotal = input.characteristics.INT * 10;
+  const personalTotal = construction.values.INT * 10;
   const personalSpent = sumAllocations(personal);
   if (personalSpent !== personalTotal) {
     throw new Error(`BRP personal skill points must total INT x 10 (${personalTotal}).`);
@@ -133,15 +187,14 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
   ])].sort();
 
   const skills = allSkillKeys.map((skillKey) => buildSkillState(skillKey, professional, personal));
-  const characteristics = buildCharacteristicState(input.characteristics);
-  const derived = calculateBrpDerivedState(input.characteristics);
+  const derived = calculateBrpDerivedState(construction.values);
 
   const nativeCharacter: BrpNativeCharacter = {
     schemaVersion: "brp-character/0.1",
     rulesSourceIds: [BRP_UGE_ORC_1_05_SOURCE.id],
     rulesProfile: {
       powerLevel: "normal",
-      characteristicGeneration: "explicit",
+      characteristicGeneration: construction.method,
       enabledOptions: [],
       enabledPowerSystems: [],
     },
@@ -154,14 +207,15 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
         selectedElectiveSkillIds: [...input.detectiveElectiveSkillKeys],
       },
     },
-    characteristics,
+    characteristics: construction.state,
+    characteristicGenerationState: construction.generationState,
     characteristicRolls: {
-      effort: input.characteristics.STR * 5,
-      stamina: input.characteristics.CON * 5,
-      idea: input.characteristics.INT * 5,
-      luck: input.characteristics.POW * 5,
-      agility: input.characteristics.DEX * 5,
-      charisma: input.characteristics.CHA * 5,
+      effort: construction.values.STR * 5,
+      stamina: construction.values.CON * 5,
+      idea: construction.values.INT * 5,
+      luck: construction.values.POW * 5,
+      agility: construction.values.DEX * 5,
+      charisma: construction.values.CHA * 5,
     },
     derived,
     skillBudgets: {
@@ -188,7 +242,9 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
     provenance: {
       origin: "generated",
       sourceId: BRP_UGE_ORC_1_05_SOURCE.id,
-      notes: "BRP UGE first-slice explicit-characteristics builder",
+      notes: construction.method === "standard-rolled"
+        ? "BRP UGE first-slice standard rolled-characteristics builder"
+        : "BRP UGE first-slice explicit-characteristics builder",
     },
   };
 
@@ -198,13 +254,14 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
     primaryNativeStateId: nativeState.id,
     nativeStates: [nativeState],
     generation: {
-      methodId: "brp-uge-first-slice-explicit",
-      mode: "manual",
-      recipeVersion: "brp-uge-first-slice/0.1",
+      methodId: construction.methodId,
+      mode: construction.generationMode,
+      recipeVersion: "brp-uge-first-slice/0.2",
+      ...(construction.seed ? { seed: construction.seed } : {}),
       rulesSourceIds: [BRP_UGE_ORC_1_05_SOURCE.id],
       recipe: {
         powerLevel: "normal",
-        characteristicGeneration: "explicit",
+        characteristicGeneration: construction.method,
         professionId: "detective",
         enabledOptions: [],
         enabledPowerSystems: [],
@@ -212,7 +269,15 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
       decisions: [
         { stepId: "identity.profession", choiceId: "detective" },
         { stepId: "identity.wealth", choiceId: input.wealth },
-        { stepId: "characteristics.method", choiceId: "explicit" },
+        { stepId: "characteristics.method", choiceId: construction.method },
+        ...(construction.method === "standard-rolled"
+          ? [{
+            stepId: "characteristics.redistribution",
+            answer: construction.generationState.method === "standard-rolled"
+              ? construction.generationState.redistribution
+              : [],
+          }]
+          : []),
         { stepId: "skills.professional-allocation", answer: professionalSpent },
         { stepId: "skills.personal-allocation", answer: personalSpent },
       ],
@@ -272,7 +337,7 @@ function buildSkillState(
   };
 }
 
-function buildCharacteristicState(values: BrpCharacteristicValues): BrpCharacteristics {
+function buildExplicitCharacteristicState(values: BrpCharacteristicValues): BrpCharacteristics {
   return {
     STR: { initial: values.STR, adjustments: [], final: values.STR },
     CON: { initial: values.CON, adjustments: [], final: values.CON },
@@ -284,7 +349,7 @@ function buildCharacteristicState(values: BrpCharacteristicValues): BrpCharacter
   };
 }
 
-function validateIdentity(input: BrpFirstSliceInput): void {
+function validateIdentity(input: BrpFirstSliceBaseInput): void {
   if (!input.characterId.trim() || !input.nativeStateId.trim() || !input.displayName.trim()) {
     throw new Error("BRP first-slice identifiers and display name must be non-empty.");
   }
