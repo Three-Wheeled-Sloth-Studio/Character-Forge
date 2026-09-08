@@ -64,15 +64,19 @@ Risk: It can easily make shared abstractions accidentally d20-shaped.
 
 Mitigation: Keep system state native and semantic vocabulary provisional.
 
-### Strongest current second candidate: Call of Cthulhu
+### Second target: Basic Roleplaying Universal Game Engine
 
-Reason: It creates useful pressure away from class/level/d20 assumptions through percentile skills, Sanity, Luck, occupation-driven identity, horror-oriented state, and different advancement expectations.
+Decision: Accepted 2026-09-08. Implement the 2023 BRP Universal Game Engine ORC content with corrections 1.05 as the second full system stress test.
 
-Open question: After the D&D vertical slice, compare Call of Cthulhu against at least one more structurally different candidate before locking system two. Candidates worth comparing include Fate, Traveller, and GURPS depending on which D&D assumptions most need breaking.
+Reason: BRP pressures D&D-shaped assumptions through percentile skills, profession-guided rather than class-bounded starting competence, separate professional and personal skill allocation, open-ended skill specialties, campaign-profile-dependent optional rules, non-level advancement, and multiple possible power systems.
+
+Licensing boundary: BRP UGE is the public implementation target. Branded Call of Cthulhu remains a possible separately licensed future product target and must not be treated as interchangeable with BRP UGE content.
+
+First implementation result: No shared `CharacterDocument` change was needed. BRP-specific rules profile, characteristics, derived values, profession, layered skill construction, and specialties fit inside mandatory native state while the shared semantic layer remained unchanged.
 
 ### Pathfinder
 
-Current direction: Likely system three or four rather than system two. It is strategically important but too close to D&D to be the first serious stress test of the universal semantic layer.
+Current direction: Likely system three or later rather than system two. It is strategically important but too close to D&D to be the first serious stress test of the universal semantic layer.
 
 ## Evidence log
 
@@ -122,7 +126,7 @@ Bridge-RPG implication: This reinforces the existing direction toward minor woun
 
 Confidence: high.
 
-Follow-up: Call of Cthulhu or another second system should be used to pressure-test health, injury, and recovery semantics before any shared harm schema is promoted.
+Follow-up: BRP and later systems should pressure-test health, injury, and recovery semantics before any shared harm schema is promoted.
 
 ### 2026-08-26 - Ability values need causal layers
 
@@ -219,3 +223,51 @@ Bridge-RPG implication: Capability source and unlock timing are useful independe
 Confidence: high for the D&D source separation; medium as a cross-system semantic claim until a second RPG tests it.
 
 Follow-up: Use Foundry mapping and the second RPG stress test to determine whether a generalized source-aware capability grant is justified. Do not promote the current spell-specific schema directly into the universal semantic layer.
+
+### 2026-09-08 - BRP confirms causal value layers beyond D&D
+
+Observation: A BRP skill's starting percentage is not adequately described by one final scalar. The first BRP slice retains base chance, professional allocation, personal allocation, and final rating separately. This independently reproduces the causal-layer pressure first seen in D&D base/background/final ability scores, but in a different mechanic and a different rules family.
+
+Translator implication: There is now cross-system evidence that final capability values can require causal layers for faithful validation, replay, and translation. This strengthens the case for a future generic contribution/provenance concept, but it still does not justify freezing one shared modifier schema because the source semantics differ.
+
+Bridge-RPG implication: Explicit contribution layers remain attractive for training, origin, augmentation, age, injury, corruption, and other persistent causes. The design should favor inspectable causes over destructive overwrite where practical.
+
+Confidence: high that causal layers recur; medium on the eventual universal representation.
+
+Follow-up: Compare against FitD/Fate/Cypher or another third system before promoting a universal contribution contract.
+
+### 2026-09-08 - BRP profession is evidence against universal class
+
+Observation: BRP profession controls where starting professional skill points may be spent, while personal allocation can cross that boundary and later learning is not class-restricted. Treating Detective as a D&D-style class would misrepresent the source system.
+
+Translator implication: `class` must remain D&D-owned. A future bridge may need separate concepts for current profession/social identity, training source, and actual competence rather than forcing them into one taxonomy.
+
+Bridge-RPG implication: Separating professional history from current capability supports lifepaths, retraining, career changes, and settings where characters accumulate multiple forms of expertise.
+
+Confidence: high.
+
+Follow-up: Watch a lifepath-heavy system and a playbook-based system before defining any shared profession/training ontology.
+
+### 2026-09-08 - BRP rules profile is part of native interpretability
+
+Observation: `BRP UGE` alone is not enough context to validate every BRP character. Power level and optional systems can change creation budgets, caps, characteristic sets, derived state, and available powers. The first native schema therefore retains an effective rules profile even though the first profile is deliberately Normal, non-powered, and option-free.
+
+Translator implication: Some systems require campaign/rules-profile context to interpret character state correctly. Character Forge should preserve enough effective native configuration to validate and reopen a character rather than infer the profile from final numbers.
+
+Bridge-RPG implication: If the original system becomes modular, character documents should retain the rules modules that materially shaped them rather than depending on ambient campaign configuration alone.
+
+Confidence: high for BRP; medium as a cross-system architectural principle.
+
+Follow-up: Revisit when a second BRP power level or optional subsystem is implemented and when another configurable RPG adapter exists.
+
+### 2026-09-08 - Open-ended specialties should not become universal enums
+
+Observation: BRP skill identity can include an open specialty, demonstrated in the first slice by Firearm (Handgun), Knowledge (Law), and Science (Forensics). Specialty identity is source-meaningful but cannot safely be reduced to a fixed universal catalog.
+
+Translator implication: Preserve parent skill identity and source specialty identity natively. Translation can later map or approximate the specialization if a target system has an equivalent, while reporting loss when it does not.
+
+Bridge-RPG implication: A controlled open-specialty mechanism may be more extensible than proliferating narrowly named skills, but that is a design hypothesis rather than a shared Character Forge requirement.
+
+Confidence: high for native retention; medium for future shared or original-system design.
+
+Follow-up: Compare with another system's specialization/tag mechanics before promoting a universal specialty concept.
