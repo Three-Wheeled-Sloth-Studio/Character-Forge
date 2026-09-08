@@ -115,7 +115,7 @@ export function resolveBrpAllocationSkillDefinition(
   if ("skillKey" in allocation && allocation.skillKey !== undefined) {
     return resolveBrpStaticSkillDefinition(allocation.skillKey, characteristics);
   }
-  return resolveBrpAcademicSkillDefinition(allocation.skill);
+  return resolveBrpAcademicSkillDefinition(normalizeBrpAcademicSkillSelection(allocation.skill));
 }
 
 export function identifyBrpSkillDefinition(
