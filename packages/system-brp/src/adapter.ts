@@ -20,8 +20,6 @@ import {
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
   BRP_FIRST_SLICE_SKILL_CATALOG,
-  BRP_NORMAL_PROFESSIONAL_SKILL_POINTS,
-  BRP_NORMAL_STARTING_SKILL_CAP,
   calculateBrpDerivedState,
   type BrpDetectiveElectiveSkillKey,
   type BrpFirstSliceSkillKey,
@@ -31,8 +29,21 @@ import type {
   BrpCharacteristicId,
   BrpCharacteristicRedistributionTransfer,
   BrpCharacteristicValues,
+  BrpPowerLevel,
 } from "./nativeCharacter.js";
+import {
+  BRP_DEFAULT_STARTING_AGE_MAXIMUM,
+  BRP_DEFAULT_STARTING_AGE_MINIMUM,
+  BRP_FIRST_SLICE_MAXIMUM_AGE,
+  calculateBrpProfessionalAgeAdjustment,
+  getBrpPowerLevelRules,
+} from "./powerLevel.js";
 import { BRP_UGE_ORC_1_05_SOURCE } from "./rulesSource.js";
+
+interface ValidatedRulesProfile {
+  powerLevel: BrpPowerLevel;
+  characteristicGeneration: BrpCharacteristicGeneration;
+}
 
 interface ValidatedCharacteristicGeneration {
   method: BrpCharacteristicGeneration;
@@ -40,9 +51,14 @@ interface ValidatedCharacteristicGeneration {
   redistribution: BrpCharacteristicRedistributionTransfer[];
 }
 
+interface ValidatedIdentity {
+  electives: Set<BrpDetectiveElectiveSkillKey>;
+  professionalSkillPoints: number;
+}
+
 export const brpUge105Adapter: RulesSystemAdapter = {
   adapterId: "brp-uge",
-  adapterVersion: "0.2.0",
+  adapterVersion: "0.3.0",
   systemId: "brp",
   editionId: "uge-2023",
   supportedRulesSources: [BRP_UGE_ORC_1_05_SOURCE],
@@ -78,19 +94,26 @@ function validateNativeState(state: NativeSystemState): RulesValidationResult {
     error(issues, "brp.payload.rules-source", "BRP first slice must retain exactly the UGE ORC 1.05 rules source.", "payload.rulesSourceIds");
   }
 
-  const characteristicMethod = validateRulesProfile(payload.rulesProfile, issues);
+  const rulesProfile = validateRulesProfile(payload.rulesProfile, issues);
   const generation = validateCharacteristicGenerationState(
     payload.characteristicGenerationState,
-    characteristicMethod,
+    rulesProfile?.characteristicGeneration ?? null,
     issues,
   );
-  const electives = validateIdentity(payload.identity, issues);
+  const identity = validateIdentity(payload.identity, rulesProfile?.powerLevel ?? null, issues);
   const characteristics = validateCharacteristics(payload.characteristics, generation, issues);
 
   if (characteristics) {
     validateCharacteristicRolls(payload.characteristicRolls, characteristics, issues);
     validateDerived(payload.derived, characteristics, issues);
-    validateSkills(payload.skillBudgets, payload.skills, characteristics, electives, issues);
+    validateSkills(
+      payload.skillBudgets,
+      payload.skills,
+      characteristics,
+      identity,
+      rulesProfile?.powerLevel ?? null,
+      issues,
+    );
   }
 
   if (!Array.isArray(payload.equipment) || !payload.equipment.every((entry) => typeof entry === "string")) {
@@ -103,13 +126,22 @@ function validateNativeState(state: NativeSystemState): RulesValidationResult {
 function validateRulesProfile(
   value: unknown,
   issues: RulesValidationIssue[],
-): BrpCharacteristicGeneration | null {
+): ValidatedRulesProfile | null {
   if (!isObject(value)) {
     error(issues, "brp.rules-profile.shape", "BRP rules profile must be retained as native state.", "payload.rulesProfile");
     return null;
   }
-  if (value.powerLevel !== "normal") {
-    error(issues, "brp.rules-profile.power-level", "BRP first slice supports Normal power level only.", "payload.rulesProfile.powerLevel");
+
+  let powerLevel: BrpPowerLevel | null = null;
+  if (value.powerLevel === "normal" || value.powerLevel === "heroic") {
+    powerLevel = value.powerLevel;
+  } else {
+    error(
+      issues,
+      "brp.rules-profile.power-level",
+      "BRP first slice supports Normal or Heroic power level.",
+      "payload.rulesProfile.powerLevel",
+    );
   }
 
   let characteristicGeneration: BrpCharacteristicGeneration | null = null;
@@ -130,7 +162,10 @@ function validateRulesProfile(
   if (!isEmptyStringArray(value.enabledPowerSystems)) {
     error(issues, "brp.rules-profile.powers", "BRP first slice is non-powered.", "payload.rulesProfile.enabledPowerSystems");
   }
-  return characteristicGeneration;
+
+  return powerLevel && characteristicGeneration
+    ? { powerLevel, characteristicGeneration }
+    : null;
 }
 
 function validateCharacteristicGenerationState(
@@ -255,13 +290,24 @@ function validateRedistributionState(
   return result;
 }
 
-function validateIdentity(value: unknown, issues: RulesValidationIssue[]): Set<BrpDetectiveElectiveSkillKey> | null {
+function validateIdentity(
+  value: unknown,
+  powerLevel: BrpPowerLevel | null,
+  issues: RulesValidationIssue[],
+): ValidatedIdentity | null {
   if (!isObject(value)) {
     error(issues, "brp.identity.shape", "BRP identity state is required.", "payload.identity");
     return null;
   }
-  if (!isInteger(value.age) || value.age < 18 || value.age > 49) {
-    error(issues, "brp.identity.age", "BRP first-slice age must be an integer from 18 through 49.", "payload.identity.age");
+
+  const age = value.age;
+  if (!isInteger(age) || age < BRP_DEFAULT_STARTING_AGE_MINIMUM || age > BRP_FIRST_SLICE_MAXIMUM_AGE) {
+    error(
+      issues,
+      "brp.identity.age",
+      `BRP first-slice age must be an integer from ${BRP_DEFAULT_STARTING_AGE_MINIMUM} through ${BRP_FIRST_SLICE_MAXIMUM_AGE}.`,
+      "payload.identity.age",
+    );
   }
   if (typeof value.gender !== "string" || !value.gender.trim()) {
     error(issues, "brp.identity.gender", "BRP first-slice gender must be non-empty.", "payload.identity.gender");
@@ -288,7 +334,98 @@ function validateIdentity(value: unknown, issues: RulesValidationIssue[]): Set<B
     error(issues, "brp.profession.electives", "Detective retains an unsupported elective skill ID.", "payload.identity.profession.selectedElectiveSkillIds");
     return null;
   }
-  return new Set(selected as BrpDetectiveElectiveSkillKey[]);
+
+  let professionalSkillPoints = powerLevel
+    ? getBrpPowerLevelRules(powerLevel).baseProfessionalSkillPoints
+    : 0;
+
+  if (powerLevel && isInteger(age)) {
+    professionalSkillPoints = validateAgeBasis(
+      value.ageBasis,
+      age,
+      powerLevel,
+      professionalSkillPoints,
+      issues,
+    );
+  }
+
+  return {
+    electives: new Set(selected as BrpDetectiveElectiveSkillKey[]),
+    professionalSkillPoints,
+  };
+}
+
+function validateAgeBasis(
+  value: unknown,
+  age: number,
+  powerLevel: BrpPowerLevel,
+  baseProfessionalSkillPoints: number,
+  issues: RulesValidationIssue[],
+): number {
+  if (value === undefined && powerLevel === "normal") {
+    return baseProfessionalSkillPoints;
+  }
+  if (!isObject(value)) {
+    error(
+      issues,
+      "brp.identity.age-basis",
+      "Heroic BRP characters must retain the default starting age used for professional-skill age adjustments.",
+      "payload.identity.ageBasis",
+    );
+    return baseProfessionalSkillPoints;
+  }
+  if (value.method !== "default-starting-age") {
+    error(
+      issues,
+      "brp.identity.age-basis",
+      "BRP first-slice age basis must use default-starting-age.",
+      "payload.identity.ageBasis.method",
+    );
+  }
+
+  const defaultStartingAge = value.defaultStartingAge;
+  if (!isInteger(defaultStartingAge)
+    || defaultStartingAge < BRP_DEFAULT_STARTING_AGE_MINIMUM
+    || defaultStartingAge > BRP_DEFAULT_STARTING_AGE_MAXIMUM) {
+    error(
+      issues,
+      "brp.identity.default-starting-age",
+      `BRP default starting age must be an integer from ${BRP_DEFAULT_STARTING_AGE_MINIMUM} through ${BRP_DEFAULT_STARTING_AGE_MAXIMUM}.`,
+      "payload.identity.ageBasis.defaultStartingAge",
+    );
+    return baseProfessionalSkillPoints;
+  }
+  if (age < defaultStartingAge) {
+    error(
+      issues,
+      "brp.identity.age-below-start",
+      "BRP first-slice age must not be below the retained default starting age.",
+      "payload.identity.age",
+    );
+    return baseProfessionalSkillPoints;
+  }
+
+  const expectedAddedYears = age - defaultStartingAge;
+  if (value.addedYears !== expectedAddedYears) {
+    error(
+      issues,
+      "brp.identity.age-added-years",
+      "BRP retained added years must match current age minus default starting age.",
+      "payload.identity.ageBasis.addedYears",
+    );
+  }
+
+  const expectedAdjustment = calculateBrpProfessionalAgeAdjustment(powerLevel, age, defaultStartingAge);
+  if (value.professionalSkillPointAdjustment !== expectedAdjustment) {
+    error(
+      issues,
+      "brp.identity.age-skill-adjustment",
+      "BRP professional skill-point age adjustment does not match the retained power level and starting age.",
+      "payload.identity.ageBasis.professionalSkillPointAdjustment",
+    );
+  }
+
+  return baseProfessionalSkillPoints + expectedAdjustment;
 }
 
 function validateCharacteristics(
@@ -422,16 +559,29 @@ function validateSkills(
   budgetsValue: unknown,
   skillsValue: unknown,
   characteristics: BrpCharacteristicValues,
-  electives: Set<BrpDetectiveElectiveSkillKey> | null,
+  identity: ValidatedIdentity | null,
+  powerLevel: BrpPowerLevel | null,
   issues: RulesValidationIssue[],
 ): void {
   if (!isObject(budgetsValue) || !isObject(budgetsValue.professional) || !isObject(budgetsValue.personal)) {
     error(issues, "brp.skill-budgets.shape", "BRP skill budgets are required.", "payload.skillBudgets");
     return;
   }
+
   const personalTotal = characteristics.INT * 10;
-  if (budgetsValue.professional.total !== BRP_NORMAL_PROFESSIONAL_SKILL_POINTS || budgetsValue.professional.spent !== BRP_NORMAL_PROFESSIONAL_SKILL_POINTS) {
-    error(issues, "brp.skill-budgets.professional", "Normal BRP professional budget must retain 250 points spent of 250.", "payload.skillBudgets.professional");
+  const expectedProfessionalTotal = identity?.professionalSkillPoints;
+  const startingSkillCap = powerLevel ? getBrpPowerLevelRules(powerLevel).startingSkillCap : null;
+  const powerLevelLabel = powerLevel === "heroic" ? "Heroic" : "Normal";
+
+  if (expectedProfessionalTotal !== undefined
+    && (budgetsValue.professional.total !== expectedProfessionalTotal
+      || budgetsValue.professional.spent !== expectedProfessionalTotal)) {
+    error(
+      issues,
+      "brp.skill-budgets.professional",
+      `${powerLevelLabel} BRP professional budget must retain ${expectedProfessionalTotal} points spent of ${expectedProfessionalTotal} for the retained age profile.`,
+      "payload.skillBudgets.professional",
+    );
   }
   if (budgetsValue.personal.total !== personalTotal || budgetsValue.personal.spent !== personalTotal) {
     error(issues, "brp.skill-budgets.personal", `BRP personal budget must retain INT x 10 (${personalTotal}) points spent.`, "payload.skillBudgets.personal");
@@ -442,7 +592,7 @@ function validateSkills(
   }
 
   const allowedProfessional = new Set<string>(BRP_DETECTIVE_REQUIRED_SKILL_KEYS);
-  if (electives) for (const elective of electives) allowedProfessional.add(elective);
+  if (identity) for (const elective of identity.electives) allowedProfessional.add(elective);
 
   const seen = new Set<BrpFirstSliceSkillKey>();
   let professionalSpent = 0;
@@ -481,8 +631,13 @@ function validateSkills(
     }
     const professionalRating = definition.baseChance + professional;
     const finalRating = professionalRating + personal;
-    if (professionalRating > BRP_NORMAL_STARTING_SKILL_CAP || finalRating > BRP_NORMAL_STARTING_SKILL_CAP) {
-      error(issues, "brp.skills.cap", `BRP skill ${skillKey} exceeds the Normal starting cap.`, path);
+    if (startingSkillCap !== null && (professionalRating > startingSkillCap || finalRating > startingSkillCap)) {
+      error(
+        issues,
+        "brp.skills.cap",
+        `BRP skill ${skillKey} exceeds the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
+        path,
+      );
     }
     if (skill.finalRating !== finalRating) {
       error(issues, "brp.skills.final", `BRP skill ${skillKey} final rating does not match its retained causal layers.`, `${path}.finalRating`);
@@ -491,8 +646,13 @@ function validateSkills(
     personalSpent += personal;
   }
 
-  if (professionalSpent !== BRP_NORMAL_PROFESSIONAL_SKILL_POINTS) {
-    error(issues, "brp.skills.professional-total", "Retained professional skill contributions do not total 250.", "payload.skills");
+  if (expectedProfessionalTotal !== undefined && professionalSpent !== expectedProfessionalTotal) {
+    error(
+      issues,
+      "brp.skills.professional-total",
+      `Retained professional skill contributions do not total ${expectedProfessionalTotal}.`,
+      "payload.skills",
+    );
   }
   if (personalSpent !== personalTotal) {
     error(issues, "brp.skills.personal-total", `Retained personal skill contributions do not total ${personalTotal}.`, "payload.skills");
