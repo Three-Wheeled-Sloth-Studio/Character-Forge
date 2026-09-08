@@ -22,14 +22,23 @@ first_system:
   id: dnd5e
   edition: "2024"
   initial_content_target: SRD 5.2.1
-  current_slice: Full SRD Level 1 class/background/species guided batch is automated-green on dev and awaiting owner runtime QA; Human-selected Magic Initiate remains the next breadth seam.
-second_system_candidate:
-  id: call-of-cthulhu
-  status: strongest-current-candidate
-  rationale: Provides a useful contrast in percentile skills, sanity and luck resources, advancement assumptions, and horror-oriented character state.
+  current_slice: Mechanical SRD Level 1 breadth is automated-green on dev; owner accumulated runtime QA remains the promotion gate.
+second_system:
+  id: brp-uge
+  name: Basic Roleplaying Universal Game Engine
+  status: selected
+  selected_date: 2026-09-08
+  rules_boundary: 2023 Universal Game Engine under the ORC License, with the exact current errata boundary to be pinned by the first adapter implementation.
+  rationale: Provides a strong contrast to D&D through percentile skills, profession-guided rather than class-bounded competence, open-ended skill specialties, modular optional rules and powers, use-driven advancement, and campaign-profile-dependent character construction.
+  architecture_spike: refs/architecture/brp-second-system-premortem.md
+  integration_boundary: refs/integration/brp-uge-orc.md
+  tracking_issue: 13
+  guardrail: Do not incorporate Call of Cthulhu-specific protected content without a separate license.
 later_system_candidates:
-  - pathfinder-2e
+  - forged-in-the-dark-family
   - fate-family
+  - cypher-system
+  - pathfinder-2e
   - traveller-family
   - gurps-family
 bridge_rpg_hypotheses:
@@ -51,6 +60,7 @@ repository_layout:
     - packages/character-model
     - packages/system-dnd5e
   planned_source_roots:
+    - packages/system-brp
     - packages/generator-core
     - packages/semantic-model
     - packages/translator
@@ -66,8 +76,8 @@ source_of_truth:
   okf_profile: refs/okfProfile.yaml
   okf_discovery_index: refs/index.md
 known_open_questions:
-  - Which non-D&D system should be the second semantic stress test after the first D&D vertical slices?
-  - What is the minimum semantic vocabulary justified by D&D without overfitting shared contracts to d20 mechanics?
+  - What is the minimum BRP rules-profile snapshot required for self-contained native validation and reopen?
+  - What is the minimum semantic vocabulary justified by D&D and BRP evidence without overfitting shared contracts to either system?
   - What should the standalone Character Forge web surface own versus the Parchment Worlds host?
   - Which Foundry integration boundary is safest across Foundry and system schema revisions?
   - How should imported native derived values be marked stale and recalculated during maintenance without losing the imported source state?
