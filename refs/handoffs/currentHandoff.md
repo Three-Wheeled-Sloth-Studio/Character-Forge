@@ -9,14 +9,14 @@ tags:
 
 Date: 2026-09-08
 Branch: `dev`
-Phase: BRP UGE second-system stress test, explicit and standard-rolled characteristic paths automated-green
+Phase: BRP UGE second-system stress test, Normal/Heroic profile-aware backend automated-green
 
 ## Promoted baseline
 
 The promoted Character Forge baseline is unchanged:
 
-- `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
-- `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
+- `qa`: `c7b64ac774b9f903f0ca1882812`
+- `main`: `c7b64ac774b9f903f0ca1882812`
 
 Do not implicitly promote the accumulated D&D Level 1 batch or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
@@ -46,7 +46,7 @@ The selected second system remains Basic Roleplaying: Universal Game Engine, 202
 - rules-source ID: `chaosium-brp-uge-orc-1.05`
 - edition ID: `uge-2023`
 - native schema: `brp-character/0.1`
-- current adapter: `0.2.0`
+- current adapter: `0.3.0`
 
 Branded Call of Cthulhu remains a separately licensed future product target. Do not import Call of Cthulhu-specific protected content into the BRP adapter.
 
@@ -59,121 +59,135 @@ Read:
 
 ## Architecture result so far
 
-Two materially different characteristic-generation paths now converge on the same BRP native ontology without requiring a shared CharacterDocument or RulesSystemAdapter schema change.
+BRP has now exercised two independent architecture axes without requiring a shared CharacterDocument or RulesSystemAdapter contract change:
 
-That is now cross-system evidence, not merely a D&D assumption: generation method belongs primarily in provenance while validated native play state can converge on one system-owned shape.
+1. explicit versus deterministic standard-rolled characteristic generation converges on one native play-state ontology;
+2. Normal versus Heroic power level changes legal construction budgets and caps while still using the same `brp-character/0.1` schema and builder/validator path.
 
-The BRP-specific pressure remains in mandatory native state:
+The second result confirms that retained rules-profile context is operational native state, not decorative metadata. The same skill allocation can be legal under Heroic and illegal under Normal, so validation must use the retained effective profile rather than infer rules from final numbers.
 
-- effective rules profile;
-- characteristic initial/adjustment/final causality;
-- retained construction provenance where rules require it;
-- profession and starting allocation eligibility;
-- professional versus personal skill construction;
-- open skill specialties;
-- derived values;
-- future optional-system and power-system context.
+The Heroic slice also exposed character-specific context that affects construction legality: starting age and current age can change the professional skill budget. Character Forge now retains the age basis needed to validate that causality instead of depending on ambient campaign configuration.
 
-Do not add shared semantic fields just to make BRP look more like D&D or vice versa.
+Do not promote a universal power-level or age schema from this one source system. Keep the confirmed behavior BRP-native until another system provides comparable evidence.
 
-## Current BRP profile
+## Current BRP supported profile
 
-The implemented profile remains intentionally narrow:
+The backend remains intentionally narrow but now spans these dimensions:
 
 - Human.
-- Normal power level.
-- Non-powered.
-- Age 18 through 49 so age-based characteristic changes remain out of scope.
+- Normal or Heroic power level.
+- Non-powered in both profiles.
+- Explicit or standard-rolled characteristics.
 - Detective profession.
 - Average or Affluent wealth.
+- Age 18 through 49.
 - No EDU, Sanity, Fatigue, hit locations, cultural modifiers, category bonuses, non-human rules, or powers.
 - No BRP creator UI yet.
 
-Both explicit and standard-rolled characteristic generation produce `brp-character/0.1`.
+Both characteristic-generation methods and both power levels produce `brp-character/0.1`.
 
-## Standard rolled characteristic generation
+## Characteristic generation
 
-The second BRP generation path is now implemented using the existing system-neutral seeded PRNG and dice-expression utilities.
+Explicit entry and deterministic standard rolling share one downstream construction path.
 
-Source-faithful roll formulas:
+Standard rolling retains:
 
-- STR, CON, POW, DEX, CHA: `3d6`.
-- INT, SIZ: `2d6+6`.
-
-Character Forge pins a deterministic internal replay order for those rolls so a retained seed reproduces the same raw dice. The order is implementation provenance, not a claim that BRP requires a particular rolling sequence.
-
-The native state retains:
-
-- generation method `standard-rolled`;
 - seed;
-- notation, raw die values, modifier, and total for each characteristic;
-- pre-redistribution characteristic values;
-- each explicit redistribution transfer with source characteristic, destination characteristic, and amount;
-- matching characteristic adjustment entries using source ID `characteristic-generation:standard-redistribution`;
-- final characteristic values after redistribution.
+- exact raw dice, notation, modifiers, and totals;
+- source roll slots through a deterministic internal replay order;
+- pre-redistribution values;
+- up to three explicit redistribution points;
+- source/destination/amount for each transfer;
+- matching source-aware characteristic adjustment layers;
+- final characteristic values.
 
-The standard path allows at most three redistributed points. The current first-slice implementation additionally rejects post-redistribution characteristic values outside its supported 1 through 21 range; the upper bound reflects the source rule while the lower bound is an implementation safety boundary, not a new BRP rule claim.
+The adapter replays the seed and independently checks dice and redistribution causality. Characteristic rolls, derived state, and personal skill budget are recomputed from final characteristics.
 
-Characteristic rolls, derived values, and the INT x 10 personal skill budget are recomputed from final characteristics.
+Generation recipe version is now `brp-uge-first-slice/0.3`.
 
-## Explicit path compatibility
+## Power-level profile
 
-The explicit builder still uses the same `brp-character/0.1` schema and now records `characteristicGenerationState: { method: "explicit" }`.
+The shared BRP construction path now resolves professional budget and starting cap from retained power level:
 
-Adapter 0.2.0 also accepts the already-generated first-slice explicit 0.1 payloads that predate that field, so this slice does not strand the prior checkpoint.
+- Normal: 250 professional skill points, 75% starting cap.
+- Heroic: 325 base professional skill points, 90% starting cap.
+- Personal skill points remain `INT x 10` in both profiles.
+- `enabledPowerSystems` remains empty; Heroic does not imply implemented powers.
+
+Normal remains backward-compatible with the prior first-slice documents and does not require age-basis state when no age adjustment is relevant.
+
+## Heroic age boundary
+
+The source age interaction is modeled rather than silently ignored.
+
+For this slice:
+
+- Heroic requires a retained default starting age from 18 through 23, corresponding to the source default `17+1d6` range;
+- current age must be at least that retained starting age and no greater than 49;
+- each full 10 years added after the retained starting age adds 20 Heroic professional skill points;
+- fractions of a decade do not add points;
+- native `identity.ageBasis` retains the starting age, added years, and professional-skill adjustment;
+- generation recipe/decisions retain the same causal information;
+- below-starting-age characteristic penalties and age-50+ aging remain explicitly out of scope.
+
+Example: a Heroic character with retained starting age 20 and current age 41 receives 40 additional professional skill points, for a 365-point professional budget.
 
 ## Independent validation
 
-`brpUge105Adapter` is now adapter version `0.2.0`.
+`brpUge105Adapter` is now adapter version `0.3.0`.
 
-In addition to the previous source/profile/profession/skills/derived validation, it now independently verifies standard rolled construction by:
+In addition to the prior source/version, characteristic generation, profession, skill, and derived-state validation, it now independently checks:
 
-- replaying the exact seeded dice stream through generator-core;
-- comparing retained notation, modifier, totals, and raw dice;
-- validating redistribution transfer shape and the three-point limit;
-- matching rolled initial values to retained characteristic `initial` values;
-- matching redistribution transfers to retained adjustment layers;
-- recomputing final characteristics from initial values plus adjustments;
-- recomputing characteristic rolls, derived values, and skill budgets from final values.
+- Normal versus Heroic rules-profile identity;
+- profile-derived professional budget;
+- 75% Normal versus 90% Heroic starting cap;
+- retained Heroic default starting age;
+- added-years arithmetic;
+- full-decade professional-skill adjustment;
+- consistency between age causality and professional budget;
+- profile tampering that would make retained allocations illegal.
 
-Tampering with raw dice or redistribution state is detected without trusting the builder that produced the character.
+## Automated-green Heroic checkpoint
 
-## Automated-green BRP checkpoint
+The Heroic power-level slice is automated-green at:
 
-The rolled-characteristic slice is automated-green at:
-
-- code checkpoint: `fab012deed4a0f795aee3d163112f7fafb357c7f`
-- Actions: `34230839209`
-- job: `102076260630`
+- code checkpoint: `a780f82378e1477d77cf1076cc769491dcb3043d`
+- Actions: `34237331940`
+- job: `102098319676`
 - refs validation: green, 11 required project-memory files
 - OKF: green, 17 concepts / 9 indexes
 - strict TypeScript: green
-- Vitest: 27 files / 129 tests / 0 failures
-- BRP tests: 12 total
+- Vitest: 28 files / 136 tests / 0 failures
+- BRP tests: 19 total
 - web build: green
-- build identity: `Character Forge build 0.0.1 fab012de`
-- BRP adapter: `0.2.0`
+- build identity: `Character Forge build 0.0.1 a780f823`
+- BRP adapter: `0.3.0`
 - BRP native schema: `brp-character/0.1`
 
-The six new rolled-generation tests cover deterministic raw dice, replay from the same seed, retained redistribution causality, three-point-limit rejection, independent dice/redistribution tamper detection, and CharacterDocument round trip.
+The seven new Heroic tests cover:
 
-## Next BRP stressor
+1. Heroic explicit construction with the 325-point pool and 90% cap.
+2. +20 professional points per full Heroic decade after retained starting age.
+3. Required Heroic starting-age provenance and rejection of below-starting-age cases.
+4. Heroic standard-rolled construction through the same native schema and profile-aware builder.
+5. Independent detection when a Heroic character is tampered to Normal.
+6. Independent detection of age-causality tampering.
+7. CharacterDocument round trip preserving Heroic profile and age provenance.
 
-The higher-value next architecture stress test is a second BRP power level, starting with Heroic, rather than adding another profession immediately.
+## Next BRP stressor: Scholar profession
 
-Reason: Detective already proves that profession is not class, while the retained `rulesProfile` boundary has only been exercised at Normal. Heroic directly tests whether one native ontology and validation path can scale when campaign configuration changes construction budgets and caps.
+The next high-value BRP slice is a second profession using Scholar, not another power level or an optional subsystem.
 
-The current ORC source specifies:
+Reason: Heroic has now validated the retained rules-profile boundary under a real behavior change. The next missing architecture pressure is profession choice shape.
 
-- Normal: 250 professional skill points, starting cap 75%.
-- Heroic: 325 professional skill points, starting cap 90%.
-- Personal skill points remain INT x 10.
+Scholar is materially different from Detective:
 
-Age also becomes mechanically relevant at Heroic because professional skill points can change with age relative to the default starting-age roll. Do not simply replace 250 with 325 and call the profile complete. Before implementing Heroic, isolate and test the age/budget interaction explicitly, while keeping powers themselves disabled for this stress test.
+- Detective has fixed professional skills plus four choices from a bounded elective list.
+- Scholar has five fixed skills and five Knowledge or Science skills chosen to fit the setting and field of study.
 
-The target should be one profile-aware construction path rather than separate Normal and Heroic builders.
+That makes Scholar a useful test of count-N open specialty selection, repeated parent skill IDs with distinct specialties, source-owned freeform specialty identity, and profession-specific validation without turning open BRP specialties into a universal enum.
 
-Do not add BRP creator UI yet. The backend should first prove that multiple generation methods and multiple power levels converge cleanly on the same native schema.
+Target the backend first. Do not add BRP creator UI until Detective and Scholar both work across the existing generation/profile matrix cleanly enough to expose honestly.
 
 ## Random-table companion remains ready
 
@@ -188,8 +202,9 @@ The random-table companion remains `ready_for_discovery`. BRP work is active bec
 - Do not map BRP profession to D&D class.
 - Do not map future BRP powers into D&D spell-state structures.
 - Preserve effective BRP rules-profile context natively.
+- Preserve character-specific context when it changes source-rule legality rather than depending on ambient campaign configuration.
 - Keep skill causality and specialty identity source-faithful.
 - Keep generation method provenance separate from runtime ontology unless a source system proves otherwise.
-- Do not promote a universal schema from two systems until the common concept and loss cases are actually understood.
+- Do not freeze a universal specialty or contribution schema from two systems alone.
 - Keep call-of-cthulhu as a separately licensed future product boundary; no protected CoC content in the BRP adapter.
 - D&D owner runtime QA remains a separate promotion gate.
