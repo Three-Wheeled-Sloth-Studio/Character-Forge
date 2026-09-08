@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green D&D 5E 2024 SRD 5.2.1 mechanical Level 1 closeout checkpoint.
+Continue Character Forge from the automated-green first BRP Universal Game Engine native slice.
 
 Repository:
 
@@ -15,42 +15,33 @@ Repository:
 
 Work directly on `dev`.
 
-## Promoted baseline
-
-Current promoted Character Forge branch heads remain:
+## Promoted baseline remains unchanged
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-The broad Level 1 generation batch remains dev-only pending explicit owner runtime acceptance. Do not promote it implicitly.
+Do not implicitly promote either the accumulated D&D Level 1 batch or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## Current automated-green code checkpoint
+## Current BRP automated-green checkpoint
 
-- Human Magic Initiate implementation: `732b0ad8c8c3469fd1edd1998ca5bbf2082dceef`
-- current code checkpoint: `55f79a1004c14eef1635e92c602e1fefa18cab15`
-- Actions: `34220401743`
-- job: `102041913356`
-- 25 test files / 117 tests / 0 failures
+- checkpoint: `da045ea71d9827ad756a706429399f2101f36498`
+- Actions: `34225597834`
+- job: `102058824469`
 - refs / OKF green
 - strict TypeScript green
+- 26 test files / 123 tests / 0 failures
+- BRP tests: 6
 - web build green
-- build identity: `Character Forge build 0.0.1 55f79a10`
-- native schema: `dnd5e-character/0.3`
-- adapter: `0.15.0`
+- build identity: `Character Forge build 0.0.1 da045ea7`
+- BRP native schema: `brp-character/0.1`
+- BRP adapter: `0.1.0`
+- rules source: `chaosium-brp-uge-orc-1.05`
 
-Read `refs/handoffs/currentHandoff.md` for detailed state and the owner QA checklist.
+## D&D gate is still open and separate
 
-## Mechanical SRD Level 1 status
+D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green on `dev` at `55f79a1004c14eef1635e92c602e1fefa18cab15`, with 12 classes, 4 backgrounds, 9 species, and all 108 class/species combinations covered.
 
-The targeted SRD Level 1 mechanical breadth is complete on `dev`:
-
-- Classes: 12 / 12
-- Backgrounds: 4 / 4
-- Species: 9 / 9
-- Automated class/species matrix: 108 combinations
-- Human Versatile general Magic Initiate path: complete
-
-Human Magic Initiate supports explicit Cleric/Druid/Wizard list choice, INT/WIS/CHA casting ability, two cantrips, one Level 1 spell, independent native feat spell-grant state, provenance, reopen validation, and the repeatable-feat requirement that a second Magic Initiate use a different spell list.
+Issue #11 remains open for the requested accumulated owner runtime QA and exact-SHA promotion. Starting BRP work does not waive that gate.
 
 ## Read first
 
@@ -59,97 +50,86 @@ Human Magic Initiate supports explicit Cleric/Druid/Wizard list choice, INT/WIS/
 3. `refs/project.yaml`
 4. `refs/handoffs/currentHandoff.md`
 5. `refs/architecture/character-architecture.md`
-6. `refs/architecture/translation-bridge-rpg-notes.md`
-7. `refs/architecture/dnd5e-spell-state-watch.md`
-8. `refs/integration/dnd5e-srd-5.2.1.md`
-9. `refs/product/generation-methods.md`
-10. `refs/product/choice-pools.md`
-11. `refs/product/creator-workspace.md`
-12. `refs/planning/roadmap.yaml`
-13. `refs/testing/validationCommands.yaml`
-14. GitHub issue #11
+6. `refs/architecture/brp-second-system-premortem.md`
+7. `refs/architecture/translation-bridge-rpg-notes.md`
+8. `refs/integration/brp-uge-orc.md`
+9. `refs/planning/roadmap.yaml`
+10. `refs/testing/validationCommands.yaml`
+11. `packages/system-brp/src/nativeCharacter.ts`
+12. `packages/system-brp/src/firstSlice.ts`
+13. `packages/system-brp/src/adapter.ts`
+14. `packages/system-brp/src/firstSlice.test.ts`
+15. GitHub issue #13
 
-## Spell-state distinctions to preserve
+## Source boundary
 
-- `spells.grants[]`: independent feat-style grants, including background and Human Magic Initiate.
-- `spells.speciesGrants[]`: species-owned magic and explicit future level-gated spell grants.
-- `spells.classCasting[]`: class-owned spellcasting, including ordinary standard-slot casters and Warlock Pact Magic with source-specific recharge semantics.
+Implement Basic Roleplaying: Universal Game Engine, 2023 ORC content, pinned to corrections `CHA2036 BRP UGE Corrections 1.05` for the current adapter version.
 
-Do not flatten those into one generic spell bucket.
+Do not use the older 2020 online BRP SRD as implementation authority.
 
-Preserve these source-owned distinctions:
+Do not import Call of Cthulhu-specific protected content. Keep call-of-cthulhu as a separately licensed future product target.
 
-- Druid `Speak with Animals` is always prepared through Druidic and excluded from ordinary prepared choices.
-- Ranger `Hunter's Mark` is always prepared through Favored Enemy and excluded from ordinary prepared choices.
-- Wizard owns six retained Level 1 spellbook spells; its four prepared spells must be a subset.
-- Warlock owns one Level 1 Pact Magic slot restored on Short or Long Rest.
-- Pact of the Tome owns three cantrips and two Level 1 rituals and excludes spells already prepared through Pact Magic, either Magic Initiate grant, or active species grants.
-- Elf/Gnome/Tiefling lineage/legacy magic retains source identity and future Level 3/5 grants without activating those future spells at Level 1.
+## Current first-slice profile
 
-## Immediate gate: owner accumulated QA
+The first BRP path is deliberately narrow:
 
-Do not promote before the requested accumulated runtime test.
+- Human.
+- Normal power level.
+- Non-powered.
+- Explicit characteristics.
+- Age 18 through 49.
+- Detective profession.
+- No EDU, Sanity, Fatigue, hit locations, cultural modifiers, category bonuses, non-human rules, or powers.
+- No BRP creator UI yet.
 
-Recommended QA:
+The existing shared CharacterDocument and RulesSystemAdapter contracts remain unchanged because the first BRP evidence did not require a shared-schema change.
 
-1. Confirm visible build badge/source SHA.
-2. Confirm all 12 classes and all 9 species appear in direct pickers regardless of old acceptable-pool state.
-3. Build representative Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, and Wizard characters and confirm `Native state valid`.
-4. Verify Warlock one-slot Short/Long-Rest Pact Magic semantics and all five Level 1 Invocations.
-5. Verify Pact of the Tome duplicate exclusion across class, feat, and species spell sources.
-6. Verify Druid `Speak with Animals`, Ranger `Hunter's Mark`, and Wizard spellbook/prepared distinctions.
-7. Exercise Drow, High Elf, and Wood Elf lineage state.
-8. Exercise Forest and Rock Gnome lineage state.
-9. Exercise Abyssal, Chthonic, and Infernal Tiefling legacies plus Small/Medium size.
-10. Build a Human Criminal or Soldier with Magic Initiate and verify the selected list, ability, spells, free cast, and reopen state.
-11. Build a Human Acolyte or Sage with Magic Initiate again; confirm the background list is not offered, both grants are retained independently, and reopen remains valid.
-12. Exercise random-from-checked across class, lineage/legacy, spell, feat, invocation, and Tome menus.
-13. Exercise a non-Standard-Array ability method.
-14. Save/reload/reopen representative new class/species combinations through Parchment.
-15. Retain sticky-pool/name/scrolling/equipment checks.
+## Immediate implementation slice: standard rolled characteristics
 
-## Next substantive work: random-table companion
+Add source-faithful standard BRP characteristic generation while converging on the same `brp-character/0.1` native state used by explicit entry.
 
-The prior SRD-closeout dependency is satisfied. Begin with a short contract/design pass before implementation.
+Required behavior:
 
-Use concrete first consumers to define the generic result shape. Likely consumers include:
+- use deterministic seeded randomness through existing system-neutral generator-core primitives where appropriate;
+- STR, CON, POW, DEX, and CHA: roll 3D6;
+- INT and SIZ: roll 2D6+6;
+- retain raw dice, pre-redistribution characteristic values, seed, and roll-slot provenance;
+- support the standard up-to-3-point redistribution step explicitly rather than silently normalizing rolls;
+- retain each redistribution decision with source/destination and amount;
+- independently validate that redistribution is legal and net-neutral;
+- preserve the supported characteristic bounds after redistribution;
+- recompute characteristic rolls and all derived values from final characteristics;
+- route the final values through shared first-slice native construction rather than forking a rolled-only character schema;
+- keep professional and personal skill allocation behavior unchanged;
+- add tests proving deterministic replay, retained raw rolls, legal redistribution, illegal redistribution rejection, derived-state recomputation, and CharacterDocument round trip.
 
-- traits;
-- ideals;
-- bonds;
-- flaws;
-- equipment and trinkets;
-- tags or native IDs;
-- weighted results;
-- subtable references.
+Do not add a second BRP native schema merely because the generation method differs. Generation method is provenance unless source rules prove otherwise.
 
-Target architecture:
+## After rolled characteristics
 
-- the evaluator and deterministic/provenance behavior belong in a system-neutral companion or reusable package;
-- D&D-specific tables, IDs, mappings, and source metadata remain D&D-owned;
-- table output feeds ordinary generation decisions or structured suggestions rather than directly mutating native character state;
-- deterministic seeds and table/source provenance must survive generation records;
-- support nested/subtable evaluation only when a concrete consumer needs it;
-- do not freeze a universal table schema from D&D personality tables alone.
+Choose the next BRP stressor from evidence:
 
-Before implementation, identify the smallest useful generic result contract and the first one or two D&D consumers that prove it.
+- second profession with a materially different or broader skill-choice shape; or
+- second power level to test whether retained rules-profile context scales cleanly across changed professional budgets and starting caps.
 
-## Later Level 1 product work
+Do not choose based only on catalog breadth.
 
-After owner acceptance, reassess:
-
-- consolidating Quick Generate into the creator workspace as a top-level creation mode rather than an ability method;
-- early guided narrative generation using the same catalogs and ordinary generation APIs;
-- structured naming rather than expanding the temporary flat name list.
+Keep BRP creator UI deferred until at least explicit and standard-rolled creation converge on the same native-state builder and validation path.
 
 ## Architecture rules
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
-- Independent feat grants, species grants, ordinary class spellcasting, and Pact Magic stay distinct where rules differ.
-- Direct menus show all supported options; acceptable pools constrain randomization only.
-- Sticky preferences are not authoritative state.
-- Do not silently invent nested choices to improve support counts.
-- Generator-core stays system-neutral; D&D content/rules stay `system-dnd5e`.
-- Parchment remains ignorant of D&D mechanics.
+- Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
+- BRP profession is not D&D class.
+- Preserve skill base chance, professional contribution, personal contribution, and final rating separately when causality matters.
+- Keep open specialties source-owned; do not freeze a universal specialty enum.
+- Preserve effective BRP rules-profile context in native state.
+- Do not model future BRP powers through D&D spell-state structures.
+- Generator-core remains system-neutral.
+- Parchment remains ignorant of system-specific mechanics.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
+
+## Parallel product work
+
+The system-neutral random-table companion remains `ready_for_discovery` and should not be forgotten. Its eventual first consumers remain traits, ideals, bonds, flaws, equipment/trinkets, tags/native IDs, weighted results, and provenance-bearing subtable references.
