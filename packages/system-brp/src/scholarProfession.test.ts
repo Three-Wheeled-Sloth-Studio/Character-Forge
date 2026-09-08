@@ -195,7 +195,9 @@ describe("BRP UGE Scholar profession", () => {
 
   it("rejects duplicate parent plus specialty identity while allowing the same parent with different specialties", () => {
     const input = normalExplicitInput();
-    input.scholarAcademicSkills[1] = structuredClone(input.scholarAcademicSkills[0]);
+    const firstAcademic = input.scholarAcademicSkills[0];
+    if (!firstAcademic) throw new Error("Expected Scholar academic fixture.");
+    input.scholarAcademicSkills[1] = structuredClone(firstAcademic);
 
     expect(() => buildBrpFirstSliceCharacter(input)).toThrow(/unique by parent skill and specialty ID/);
   });
@@ -246,7 +248,9 @@ describe("BRP UGE Scholar profession", () => {
     if (native.identity.profession.professionId !== "scholar") {
       throw new Error("Expected Scholar profession state.");
     }
-    native.identity.profession.selectedAcademicSkills[0].specialty.id = "history-tampered";
+    const firstAcademic = native.identity.profession.selectedAcademicSkills[0];
+    if (!firstAcademic) throw new Error("Expected retained Scholar academic skill.");
+    firstAcademic.specialty.id = "history-tampered";
 
     const validation = brpUge105Adapter.validateNativeState(state);
     expect(validation.valid).toBe(false);
