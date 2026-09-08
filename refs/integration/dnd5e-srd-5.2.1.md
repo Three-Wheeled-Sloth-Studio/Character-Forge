@@ -61,7 +61,7 @@ All four methods converge on the same guided native builder and retain method-sp
 - Warlock
 - Wizard
 
-All twelve are guided-supported on `dev`. Source-specific Level 1 mechanics remain explicit rather than being flattened into one class template. In particular, prepared casters, Wizard spellbook state, and Warlock Pact Magic retain distinct native semantics.
+All twelve are guided-supported on `dev`. Source-specific Level 1 mechanics remain explicit rather than being flattened into one class template. Prepared casters, Wizard spellbook state, and Warlock Pact Magic retain distinct native semantics.
 
 ### Backgrounds: 4 / 4
 
@@ -120,6 +120,18 @@ Gnome retains:
 - Forest Gnome Minor Illusion, always-prepared Speak with Animals, and proficiency-bonus free casts per Long Rest;
 - Rock Gnome Mending and Prestidigitation plus explicit three-device clockwork capacity.
 
+### Human
+
+Human retains:
+
+- Small or Medium size;
+- the Skillful proficiency choice;
+- the Versatile Origin feat choice;
+- explicit Skilled nested proficiencies when Skilled is selected;
+- explicit Magic Initiate nested choices when Magic Initiate is selected: Cleric/Druid/Wizard list, INT/WIS/CHA casting ability, two cantrips, and one Level 1 spell.
+
+Human Magic Initiate is retained as its own independent feat spell grant. If the background already grants Magic Initiate, Human may repeat the feat only with a different spell list. The background and Human grants remain separately identifiable and independently validated.
+
 ### Tiefling
 
 Tiefling retains:
@@ -135,31 +147,30 @@ Tiefling retains:
 
 Three distinct source concepts are intentionally retained:
 
-- `spells.grants[]`: independent feat-style grants such as Magic Initiate;
+- `spells.grants[]`: independent feat-style grants such as background or Human Magic Initiate;
 - `spells.speciesGrants[]`: species-owned magic and future level-gated species spells;
 - `spells.classCasting[]`: class-owned spellcasting, including ordinary standard-slot casters and Warlock Pact Magic.
 
 Do not reconstruct one source from another. Do not flatten them merely because all may eventually display in one spell list.
 
-Pact of the Tome duplicate exclusion considers currently active species spells as well as Pact Magic and Magic Initiate spells.
+Multiple independent Magic Initiate grants may coexist when the repeatable-feat rule is satisfied. Each grant retains its own source, list, casting ability, cantrips, prepared Level 1 spell, and Long-Rest free-cast resource.
+
+Pact of the Tome duplicate exclusion considers currently active species spells, class spellcasting, background Magic Initiate, and Human Magic Initiate.
 
 ## Current automated checkpoint
 
-The full species breadth checkpoint is:
+The mechanical SRD Level 1 closeout checkpoint is:
 
-- source SHA: `e8a0b1e778299a7ce0f4b2e6bfe1432c7cdd35cb`
-- Actions: `34215046544`
-- job: `102024717908`
-- 25 Vitest files / 114 tests / 0 failures
+- Human Magic Initiate implementation: `732b0ad8c8c3469fd1edd1998ca5bbf2082dceef`
+- current code checkpoint: `55f79a1004c14eef1635e92c602e1fefa18cab15`
+- Actions: `34220401743`
+- job: `102041913356`
+- 25 Vitest files / 117 tests / 0 failures
 - 108 class/species combinations validated through one native-state boundary
-- adapter version `0.14.0`
+- adapter version `0.15.0`
 - native schema `dnd5e-character/0.3`
 
-This remains `dev`-only pending owner runtime acceptance.
-
-## Remaining Level 1 breadth seam
-
-Human Versatile still needs the general Magic Initiate Origin-feat path. The implementation must support explicit Cleric/Druid/Wizard list selection, casting ability, cantrips, Level 1 spell, and source/provenance rather than reusing the background-fixed Acolyte/Sage path as a hidden default.
+Mechanical SRD Level 1 breadth is complete on `dev`. The remaining gate is owner accumulated runtime QA and exact-SHA promotion, not an unmodeled SRD Level 1 option.
 
 ## Public-repository rule
 
