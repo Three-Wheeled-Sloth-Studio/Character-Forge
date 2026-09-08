@@ -19,6 +19,8 @@ export * from "./quickGenerate.js";
 export * from "./randomGenerate.js";
 export * from "./rulesSource.js";
 export * from "./spellCatalog.js";
+export * from "./speciesCatalog.js";
+export * from "./speciesState.js";
 export * from "./srdCatalog.js";
 export * from "./standardArrayGenerate.js";
 export * from "./warlockCatalog.js";
