@@ -101,6 +101,40 @@ roadmap:
       full_srd_breadth_issue: 11
       workspace_qa_polish_issue: 12
 
+  - id: system-6-second-stress-test
+    horizon: now
+    status: in_progress
+    goal: Implement BRP Universal Game Engine as a structurally different second RPG and use implementation evidence to break D&D-shaped assumptions before expanding the shared semantic layer.
+    selected_system: Basic Roleplaying Universal Game Engine
+    rules_boundary: 2023 UGE ORC content with corrections 1.05
+    tracking_issue: 13
+    completed:
+      - Candidate SWOT/matrix reviewed and BRP UGE accepted over branded Call of Cthulhu as the public second-system implementation target.
+      - Architecture premortem completed without finding evidence that character-document/0.1 or the current RulesSystemAdapter contract requires a shared-schema change.
+      - BRP UGE ORC source and corrections 1.05 boundary recorded with source ID chaosium-brp-uge-orc-1.05.
+      - brp-character/0.1 native state introduced for a Normal-power, non-powered human profile.
+      - Representative Detective profession retains profession identity, wealth, and four selected professional electives without treating profession as D&D class.
+      - Explicit STR/CON/SIZ/INT/POW/DEX/CHA state retains initial/adjustment/final layers.
+      - Core BRP derived values and corrected Charisma Roll semantics implemented.
+      - Professional 250-point and personal INT x 10 skill budgets retained and validated separately.
+      - Open specialty identity proven through Firearm (Handgun), Knowledge (Law), and Science (Forensics).
+      - Independent adapter validation checks source/version/profile, profession eligibility, skill budgets, starting cap, causal skill math, characteristic rolls, derived values, and tampering.
+      - CharacterDocument JSON round trip preserves the BRP native payload without semantic reconstruction.
+      - Automated-green first BRP checkpoint da045ea71d9827ad756a706429399f2101f36498, Actions 34225597834, job 102058824469, 26 test files / 123 tests / 0 failures.
+    current_slice:
+      - Treat the first native vertical slice as architecture evidence, not a complete BRP creator.
+      - Add standard rolled characteristic generation with deterministic roll provenance and the UGE 3-point redistribution rule.
+      - Decide whether the next profession should maximize skill-choice branching or whether a second power level is the higher-value rules-profile stress test.
+      - Keep BRP creator UI deferred until at least two native generation paths converge on the same brp-character/0.1 state.
+    guardrails:
+      - Keep Call of Cthulhu-specific protected content out of the BRP adapter; branded Call of Cthulhu remains a separately licensed future product target.
+      - Preserve BRP rules-profile context natively rather than inferring optional rules from final numbers.
+      - Profession is not class; do not promote a universal class concept.
+      - Preserve skill base chance, allocation contributions, and final rating separately when causality matters.
+      - Keep specialties open-ended and source-owned rather than freezing a universal enum.
+      - Do not model BRP powers through D&D spell-state structures.
+      - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
+
   - id: companion-random-tables
     horizon: next
     status: ready_for_discovery
@@ -161,13 +195,6 @@ roadmap:
     horizon: after-evidence
     status: planned
     goal: Promote observed cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
-
-  - id: system-6-second-stress-test
-    horizon: after-first-dnd-and-persistence-slices
-    status: planned
-    goal: Implement a structurally different second RPG to break D&D-shaped assumptions in the semantic layer.
-    strongest_candidate: Call of Cthulhu
-    decision_note: Re-evaluate the candidate using evidence collected during D&D, persistence, and Foundry work rather than locking the choice now.
 
   - id: system-7-pathfinder
     horizon: later
