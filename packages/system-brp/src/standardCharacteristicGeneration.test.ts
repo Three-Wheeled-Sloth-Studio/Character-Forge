@@ -53,7 +53,7 @@ describe("BRP UGE standard characteristic generation", () => {
     expect(document.generation).toMatchObject({
       methodId: "brp-uge-first-slice-standard-rolled",
       mode: "mechanical",
-      recipeVersion: "brp-uge-first-slice/0.2",
+      recipeVersion: "brp-uge-first-slice/0.3",
       seed: "brp-standard-roll-test",
     });
     expect(native.rulesProfile.characteristicGeneration).toBe("standard-rolled");
