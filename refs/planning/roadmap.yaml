@@ -112,31 +112,36 @@ roadmap:
       - Candidate SWOT/matrix reviewed and BRP UGE accepted over branded Call of Cthulhu as the public second-system implementation target.
       - Architecture premortem completed without finding evidence that character-document/0.1 or the current RulesSystemAdapter contract requires a shared-schema change.
       - BRP UGE ORC source and corrections 1.05 boundary recorded with source ID chaosium-brp-uge-orc-1.05.
-      - brp-character/0.1 native state introduced for a Normal-power, non-powered human profile.
+      - brp-character/0.1 native state introduced for a non-powered human profile.
       - Representative Detective profession retains profession identity, wealth, and four selected professional electives without treating profession as D&D class.
       - Explicit STR/CON/SIZ/INT/POW/DEX/CHA state retains initial/adjustment/final layers.
       - Core BRP derived values and corrected Charisma Roll semantics implemented.
-      - Professional 250-point and personal INT x 10 skill budgets retained and validated separately.
+      - Professional and personal skill construction retain source base chance, professional contribution, personal contribution, and final rating separately.
       - Open specialty identity proven through Firearm (Handgun), Knowledge (Law), and Science (Forensics).
-      - Independent adapter validation checks source/version/profile, profession eligibility, skill budgets, starting cap, causal skill math, characteristic rolls, derived values, and tampering.
-      - CharacterDocument JSON round trip preserves the BRP native payload without semantic reconstruction.
+      - CharacterDocument JSON round trip preserves BRP native payloads without semantic reconstruction.
       - Automated-green first BRP checkpoint da045ea71d9827ad756a706429399f2101f36498, Actions 34225597834, job 102058824469, 26 test files / 123 tests / 0 failures.
       - Standard rolled characteristic generation implemented with deterministic seeded 3d6 and 2d6+6 rolls using system-neutral generator-core primitives.
-      - Raw characteristic dice, notation, modifiers, totals, seed, and pre-redistribution values are retained in BRP-native construction provenance.
-      - Standard up-to-three-point characteristic redistribution is retained as explicit source/destination/amount transfers and matching source-aware characteristic adjustment layers.
-      - Explicit and standard-rolled generation converge on the same brp-character/0.1 native ontology and shared downstream characteristic-roll, derived-value, and skill construction path.
-      - Adapter 0.2.0 independently replays the retained seed, validates exact raw dice and redistribution causality, and preserves compatibility with first-slice explicit 0.1 payloads.
+      - Raw characteristic dice, notation, modifiers, totals, seed, pre-redistribution values, and explicit up-to-three-point redistribution are retained as native construction provenance.
+      - Explicit and standard-rolled generation converge on the same brp-character/0.1 native ontology and shared downstream construction path.
       - Automated-green rolled-characteristic checkpoint fab012deed4a0f795aee3d163112f7fafb357c7f, Actions 34230839209, job 102076260630, 27 test files / 129 tests / 0 failures, 12 BRP tests.
+      - Normal and Heroic now share one profile-aware builder/validator rather than separate native ontologies.
+      - Normal retains a 250-point professional pool and 75% starting cap; Heroic retains a 325-point base professional pool and 90% starting cap; personal points remain INT x 10.
+      - Heroic retains default-starting-age causality and adds 20 professional points per full decade after the retained starting age within the implemented age boundary.
+      - Heroic explicit and Heroic standard-rolled characters both remain brp-character/0.1 and non-powered.
+      - Adapter 0.3.0 independently validates profile-derived budget/cap, Heroic starting-age provenance, full-decade age adjustments, and profile/age tampering.
+      - Automated-green Heroic checkpoint a780f82378e1477d77cf1076cc769491dcb3043d, Actions 34237331940, job 102098319676, 28 test files / 136 tests / 0 failures, 19 BRP tests.
     current_slice:
-      - Treat generation-method convergence as evidence that construction method can remain provenance rather than multiplying native ontologies.
-      - Add Heroic as the second retained BRP power-level profile while keeping powers themselves disabled.
-      - Parameterize professional skill budgets and starting caps from the retained power level instead of branching into separate Normal/Heroic builders.
-      - Model or deliberately constrain Heroic age interaction so the source's age-based professional-skill adjustments are not silently ignored.
-      - Preserve personal skill points at INT x 10 and keep Detective as the representative profession so the profile test is isolated.
-      - Keep BRP creator UI deferred until profile-aware backend construction and validation are stable.
+      - Treat Heroic as evidence that retained rules-profile context is operational native state, not decorative metadata.
+      - Add Scholar as the second profession architecture probe rather than ingesting the profession catalog broadly.
+      - Refactor the Detective-specific profession seam only far enough to support multiple profession choice shapes through the same construction pipeline.
+      - Model Scholar's five fixed skills plus five open Knowledge or Science specialties without freezing a universal specialty catalog.
+      - Allow repeated parent skill identities with distinct specialties while rejecting duplicate parent+specialty identity.
+      - Preserve Normal/Heroic and explicit/standard-rolled matrix behavior unchanged.
+      - Keep BRP creator UI deferred until the profession seam is stable enough to expose source-faithfully.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter; branded Call of Cthulhu remains a separately licensed future product target.
       - Preserve BRP rules-profile context natively rather than inferring optional rules from final numbers.
+      - Preserve character-specific age context when it changes construction legality.
       - Profession is not class; do not promote a universal class concept.
       - Preserve skill base chance, allocation contributions, and final rating separately when causality matters.
       - Keep specialties open-ended and source-owned rather than freezing a universal enum.
