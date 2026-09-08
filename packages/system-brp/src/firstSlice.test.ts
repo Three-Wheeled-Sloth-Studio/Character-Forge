@@ -115,7 +115,7 @@ describe("BRP UGE first slice", () => {
     const input = validInput();
     input.professionalAllocations[0] = { skillKey: "first-aid", points: 35 };
 
-    expect(() => buildBrpFirstSliceCharacter(input)).toThrow(/not available to the selected Detective profile/);
+    expect(() => buildBrpFirstSliceCharacter(input)).toThrow(/not available to the selected detective profile/i);
   });
 
   it("rejects a Normal starting skill above the 75 percent cap", () => {
