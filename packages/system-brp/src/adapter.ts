@@ -515,7 +515,7 @@ function identifySkill(value: JsonObject): BrpFirstSliceSkillKey | null {
 
 function adjustmentsEqual(
   actual: unknown[],
-  expected: readonly Array<{ sourceId: string; amount: number }>,
+  expected: ReadonlyArray<{ sourceId: string; amount: number }>,
 ): boolean {
   if (actual.length !== expected.length) return false;
   return actual.every((entry, index) => {
