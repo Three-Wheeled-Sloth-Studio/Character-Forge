@@ -6,6 +6,17 @@ import type {
   RulesValidationResult,
 } from "../../character-model/src/index.js";
 import {
+  createSeededRandom,
+  rollDiceExpression,
+} from "../../generator-core/src/index.js";
+import {
+  BRP_CHARACTERISTIC_IDS,
+  BRP_STANDARD_CHARACTERISTIC_EXPRESSIONS,
+  BRP_STANDARD_CHARACTERISTIC_ROLL_ORDER,
+  BRP_STANDARD_REDISTRIBUTION_POINT_LIMIT,
+  BRP_STANDARD_REDISTRIBUTION_SOURCE_ID,
+} from "./characteristicGeneration.js";
+import {
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
   BRP_FIRST_SLICE_SKILL_CATALOG,
@@ -15,12 +26,23 @@ import {
   type BrpDetectiveElectiveSkillKey,
   type BrpFirstSliceSkillKey,
 } from "./firstSlice.js";
-import type { BrpCharacteristicValues } from "./nativeCharacter.js";
+import type {
+  BrpCharacteristicGeneration,
+  BrpCharacteristicId,
+  BrpCharacteristicRedistributionTransfer,
+  BrpCharacteristicValues,
+} from "./nativeCharacter.js";
 import { BRP_UGE_ORC_1_05_SOURCE } from "./rulesSource.js";
+
+interface ValidatedCharacteristicGeneration {
+  method: BrpCharacteristicGeneration;
+  initial?: BrpCharacteristicValues;
+  redistribution: BrpCharacteristicRedistributionTransfer[];
+}
 
 export const brpUge105Adapter: RulesSystemAdapter = {
   adapterId: "brp-uge",
-  adapterVersion: "0.1.0",
+  adapterVersion: "0.2.0",
   systemId: "brp",
   editionId: "uge-2023",
   supportedRulesSources: [BRP_UGE_ORC_1_05_SOURCE],
@@ -56,9 +78,14 @@ function validateNativeState(state: NativeSystemState): RulesValidationResult {
     error(issues, "brp.payload.rules-source", "BRP first slice must retain exactly the UGE ORC 1.05 rules source.", "payload.rulesSourceIds");
   }
 
-  validateRulesProfile(payload.rulesProfile, issues);
+  const characteristicMethod = validateRulesProfile(payload.rulesProfile, issues);
+  const generation = validateCharacteristicGenerationState(
+    payload.characteristicGenerationState,
+    characteristicMethod,
+    issues,
+  );
   const electives = validateIdentity(payload.identity, issues);
-  const characteristics = validateCharacteristics(payload.characteristics, issues);
+  const characteristics = validateCharacteristics(payload.characteristics, generation, issues);
 
   if (characteristics) {
     validateCharacteristicRolls(payload.characteristicRolls, characteristics, issues);
@@ -73,23 +100,159 @@ function validateNativeState(state: NativeSystemState): RulesValidationResult {
   return result(issues);
 }
 
-function validateRulesProfile(value: unknown, issues: RulesValidationIssue[]): void {
+function validateRulesProfile(
+  value: unknown,
+  issues: RulesValidationIssue[],
+): BrpCharacteristicGeneration | null {
   if (!isObject(value)) {
     error(issues, "brp.rules-profile.shape", "BRP rules profile must be retained as native state.", "payload.rulesProfile");
-    return;
+    return null;
   }
   if (value.powerLevel !== "normal") {
     error(issues, "brp.rules-profile.power-level", "BRP first slice supports Normal power level only.", "payload.rulesProfile.powerLevel");
   }
-  if (value.characteristicGeneration !== "explicit") {
-    error(issues, "brp.rules-profile.characteristics", "BRP first slice supports explicit characteristic entry only.", "payload.rulesProfile.characteristicGeneration");
+
+  let characteristicGeneration: BrpCharacteristicGeneration | null = null;
+  if (value.characteristicGeneration === "explicit" || value.characteristicGeneration === "standard-rolled") {
+    characteristicGeneration = value.characteristicGeneration;
+  } else {
+    error(
+      issues,
+      "brp.rules-profile.characteristics",
+      "BRP first slice supports explicit or standard-rolled characteristic generation.",
+      "payload.rulesProfile.characteristicGeneration",
+    );
   }
+
   if (!isEmptyStringArray(value.enabledOptions)) {
     error(issues, "brp.rules-profile.options", "BRP first slice does not enable optional rules.", "payload.rulesProfile.enabledOptions");
   }
   if (!isEmptyStringArray(value.enabledPowerSystems)) {
     error(issues, "brp.rules-profile.powers", "BRP first slice is non-powered.", "payload.rulesProfile.enabledPowerSystems");
   }
+  return characteristicGeneration;
+}
+
+function validateCharacteristicGenerationState(
+  value: unknown,
+  method: BrpCharacteristicGeneration | null,
+  issues: RulesValidationIssue[],
+): ValidatedCharacteristicGeneration | null {
+  if (!method) return null;
+
+  if (method === "explicit") {
+    if (value === undefined) {
+      return { method: "explicit", redistribution: [] };
+    }
+    if (!isObject(value) || value.method !== "explicit") {
+      error(
+        issues,
+        "brp.characteristic-generation.explicit",
+        "Explicit BRP characteristic state must identify the explicit generation method.",
+        "payload.characteristicGenerationState",
+      );
+    }
+    return { method: "explicit", redistribution: [] };
+  }
+
+  if (!isObject(value) || value.method !== "standard-rolled") {
+    error(
+      issues,
+      "brp.characteristic-generation.shape",
+      "Standard rolled BRP characteristics must retain generation state.",
+      "payload.characteristicGenerationState",
+    );
+    return null;
+  }
+  if (typeof value.seed !== "string" || !value.seed.trim()) {
+    error(
+      issues,
+      "brp.characteristic-generation.seed",
+      "Standard rolled BRP characteristics must retain a non-empty seed.",
+      "payload.characteristicGenerationState.seed",
+    );
+    return null;
+  }
+  if (!isObject(value.rolls)) {
+    error(
+      issues,
+      "brp.characteristic-generation.rolls",
+      "Standard rolled BRP characteristics must retain raw dice for every characteristic.",
+      "payload.characteristicGenerationState.rolls",
+    );
+    return null;
+  }
+
+  const random = createSeededRandom(value.seed);
+  const initial = {} as BrpCharacteristicValues;
+  for (const id of BRP_STANDARD_CHARACTERISTIC_ROLL_ORDER) {
+    const expected = rollDiceExpression(BRP_STANDARD_CHARACTERISTIC_EXPRESSIONS[id], random);
+    initial[id] = expected.total;
+    const actual = value.rolls[id];
+    if (!isObject(actual)
+      || actual.notation !== expected.notation
+      || actual.modifier !== expected.modifier
+      || actual.total !== expected.total
+      || !numberArraysEqual(actual.rolls, expected.rolls)) {
+      error(
+        issues,
+        "brp.characteristic-generation.rolls",
+        `${id} raw dice do not match the retained BRP generation seed and recipe.`,
+        `payload.characteristicGenerationState.rolls.${id}`,
+      );
+    }
+  }
+
+  const redistribution = validateRedistributionState(value.redistribution, issues);
+  return { method: "standard-rolled", initial, redistribution };
+}
+
+function validateRedistributionState(
+  value: unknown,
+  issues: RulesValidationIssue[],
+): BrpCharacteristicRedistributionTransfer[] {
+  if (!Array.isArray(value)) {
+    error(
+      issues,
+      "brp.characteristic-generation.redistribution",
+      "Standard rolled BRP characteristics must retain redistribution transfers.",
+      "payload.characteristicGenerationState.redistribution",
+    );
+    return [];
+  }
+
+  const result: BrpCharacteristicRedistributionTransfer[] = [];
+  let totalPoints = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const transfer = value[index];
+    const path = `payload.characteristicGenerationState.redistribution.${index}`;
+    if (!isObject(transfer)
+      || !isCharacteristicId(transfer.from)
+      || !isCharacteristicId(transfer.to)
+      || transfer.from === transfer.to
+      || !isInteger(transfer.points)
+      || transfer.points <= 0) {
+      error(
+        issues,
+        "brp.characteristic-generation.redistribution",
+        "BRP redistribution transfers require different valid characteristics and positive integer points.",
+        path,
+      );
+      continue;
+    }
+    totalPoints += transfer.points;
+    result.push({ from: transfer.from, to: transfer.to, points: transfer.points });
+  }
+
+  if (totalPoints > BRP_STANDARD_REDISTRIBUTION_POINT_LIMIT) {
+    error(
+      issues,
+      "brp.characteristic-generation.redistribution-limit",
+      `Standard BRP redistribution may move at most ${BRP_STANDARD_REDISTRIBUTION_POINT_LIMIT} points.`,
+      "payload.characteristicGenerationState.redistribution",
+    );
+  }
+  return result;
 }
 
 function validateIdentity(value: unknown, issues: RulesValidationIssue[]): Set<BrpDetectiveElectiveSkillKey> | null {
@@ -128,38 +291,98 @@ function validateIdentity(value: unknown, issues: RulesValidationIssue[]): Set<B
   return new Set(selected as BrpDetectiveElectiveSkillKey[]);
 }
 
-function validateCharacteristics(value: unknown, issues: RulesValidationIssue[]): BrpCharacteristicValues | null {
+function validateCharacteristics(
+  value: unknown,
+  generation: ValidatedCharacteristicGeneration | null,
+  issues: RulesValidationIssue[],
+): BrpCharacteristicValues | null {
   if (!isObject(value)) {
     error(issues, "brp.characteristics.shape", "BRP characteristic state is required.", "payload.characteristics");
     return null;
   }
 
-  const ranges: Array<[keyof BrpCharacteristicValues, number, number]> = [
-    ["STR", 3, 21],
-    ["CON", 3, 21],
-    ["SIZ", 8, 21],
-    ["INT", 8, 21],
-    ["POW", 3, 21],
-    ["DEX", 3, 21],
-    ["CHA", 3, 21],
-  ];
+  const explicitRanges: Record<BrpCharacteristicId, [number, number]> = {
+    STR: [3, 21],
+    CON: [3, 21],
+    SIZ: [8, 21],
+    INT: [8, 21],
+    POW: [3, 21],
+    DEX: [3, 21],
+    CHA: [3, 21],
+  };
   const parsed = {} as BrpCharacteristicValues;
 
-  for (const [id, minimum, maximum] of ranges) {
+  for (const id of BRP_CHARACTERISTIC_IDS) {
     const state = value[id];
     if (!isObject(state) || !isInteger(state.initial) || !isInteger(state.final) || !Array.isArray(state.adjustments)) {
       error(issues, "brp.characteristics.entry", `${id} must retain initial, adjustments, and final state.`, `payload.characteristics.${id}`);
       return null;
     }
-    if (state.initial !== state.final || state.adjustments.length !== 0) {
-      error(issues, "brp.characteristics.adjustments", `BRP first-slice ${id} must have no characteristic adjustments.`, `payload.characteristics.${id}`);
-    }
-    if (state.final < minimum || state.final > maximum) {
-      error(issues, "brp.characteristics.range", `${id} is outside the supported first-slice range.`, `payload.characteristics.${id}.final`);
+
+    if (generation?.method === "standard-rolled" && generation.initial) {
+      const expectedInitial = generation.initial[id];
+      if (state.initial !== expectedInitial) {
+        error(
+          issues,
+          "brp.characteristics.roll-origin",
+          `${id} initial value does not match its retained standard roll.`,
+          `payload.characteristics.${id}.initial`,
+        );
+      }
+      const expectedAdjustments = expectedRedistributionAdjustments(id, generation.redistribution);
+      if (!adjustmentsEqual(state.adjustments, expectedAdjustments)) {
+        error(
+          issues,
+          "brp.characteristics.redistribution",
+          `${id} adjustments do not match retained standard redistribution transfers.`,
+          `payload.characteristics.${id}.adjustments`,
+        );
+      }
+      const expectedFinal = expectedInitial + expectedAdjustments.reduce((sum, adjustment) => sum + adjustment.amount, 0);
+      if (state.final !== expectedFinal) {
+        error(
+          issues,
+          "brp.characteristics.final",
+          `${id} final value does not match its rolled initial value and redistribution.`,
+          `payload.characteristics.${id}.final`,
+        );
+      }
+      if (state.final < 1 || state.final > 21) {
+        error(
+          issues,
+          "brp.characteristics.range",
+          `${id} is outside the supported standard-rolled starting range.`,
+          `payload.characteristics.${id}.final`,
+        );
+      }
+    } else {
+      const [minimum, maximum] = explicitRanges[id];
+      if (state.initial !== state.final || state.adjustments.length !== 0) {
+        error(issues, "brp.characteristics.adjustments", `Explicit BRP ${id} must have no characteristic adjustments.`, `payload.characteristics.${id}`);
+      }
+      if (state.final < minimum || state.final > maximum) {
+        error(issues, "brp.characteristics.range", `${id} is outside the supported explicit-entry range.`, `payload.characteristics.${id}.final`);
+      }
     }
     parsed[id] = state.final;
   }
   return parsed;
+}
+
+function expectedRedistributionAdjustments(
+  id: BrpCharacteristicId,
+  redistribution: readonly BrpCharacteristicRedistributionTransfer[],
+): Array<{ sourceId: string; amount: number }> {
+  const result: Array<{ sourceId: string; amount: number }> = [];
+  for (const transfer of redistribution) {
+    if (transfer.from === id) {
+      result.push({ sourceId: BRP_STANDARD_REDISTRIBUTION_SOURCE_ID, amount: -transfer.points });
+    }
+    if (transfer.to === id) {
+      result.push({ sourceId: BRP_STANDARD_REDISTRIBUTION_SOURCE_ID, amount: transfer.points });
+    }
+  }
+  return result;
 }
 
 function validateCharacteristicRolls(value: unknown, characteristics: BrpCharacteristicValues, issues: RulesValidationIssue[]): void {
@@ -288,6 +511,29 @@ function identifySkill(value: JsonObject): BrpFirstSliceSkillKey | null {
     }
   }
   return null;
+}
+
+function adjustmentsEqual(
+  actual: unknown[],
+  expected: readonly Array<{ sourceId: string; amount: number }>,
+): boolean {
+  if (actual.length !== expected.length) return false;
+  return actual.every((entry, index) => {
+    const expectedEntry = expected[index];
+    return isObject(entry)
+      && entry.sourceId === expectedEntry?.sourceId
+      && entry.amount === expectedEntry?.amount;
+  });
+}
+
+function numberArraysEqual(value: unknown, expected: readonly number[]): boolean {
+  return Array.isArray(value)
+    && value.length === expected.length
+    && value.every((entry, index) => entry === expected[index]);
+}
+
+function isCharacteristicId(value: unknown): value is BrpCharacteristicId {
+  return typeof value === "string" && (BRP_CHARACTERISTIC_IDS as readonly string[]).includes(value);
 }
 
 function result(issues: RulesValidationIssue[]): RulesValidationResult {
