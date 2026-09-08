@@ -59,7 +59,7 @@ roadmap:
       - Guided class support expanded to all twelve SRD classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard.
       - Cleric Divine Order, 3/4 cantrips, four prepared Level 1 spells, two Level 1 slots, Wisdom casting, Holy Symbol focus, Protector training, and Thaumaturge knowledge bonus retained natively and validated independently.
       - Druid Primal Order, Druidic language/focus, Herbalism Kit, Warden/Magician consequences, and class spellcasting retained natively.
-      - Druid Speak with Animals retained as always prepared through Druidic and excluded from ordinary four-spell preparation choices.
+      - Druid Speak with Animals retained as always prepared through Druidic and excluded from ordinary prepared choices.
       - Bard spellcasting, Bardic Inspiration, and three explicit musical instrument proficiency/focus choices retained and validated.
       - Paladin spellcasting, Lay on Hands, Martial/Heavy Armor training, and two Weapon Mastery choices retained and validated.
       - Ranger spellcasting, Favored Enemy, Hunter's Mark always-prepared/free-cast state, training, and two Weapon Mastery choices retained and validated.
@@ -121,11 +121,19 @@ roadmap:
       - Independent adapter validation checks source/version/profile, profession eligibility, skill budgets, starting cap, causal skill math, characteristic rolls, derived values, and tampering.
       - CharacterDocument JSON round trip preserves the BRP native payload without semantic reconstruction.
       - Automated-green first BRP checkpoint da045ea71d9827ad756a706429399f2101f36498, Actions 34225597834, job 102058824469, 26 test files / 123 tests / 0 failures.
+      - Standard rolled characteristic generation implemented with deterministic seeded 3d6 and 2d6+6 rolls using system-neutral generator-core primitives.
+      - Raw characteristic dice, notation, modifiers, totals, seed, and pre-redistribution values are retained in BRP-native construction provenance.
+      - Standard up-to-three-point characteristic redistribution is retained as explicit source/destination/amount transfers and matching source-aware characteristic adjustment layers.
+      - Explicit and standard-rolled generation converge on the same brp-character/0.1 native ontology and shared downstream characteristic-roll, derived-value, and skill construction path.
+      - Adapter 0.2.0 independently replays the retained seed, validates exact raw dice and redistribution causality, and preserves compatibility with first-slice explicit 0.1 payloads.
+      - Automated-green rolled-characteristic checkpoint fab012deed4a0f795aee3d163112f7fafb357c7f, Actions 34230839209, job 102076260630, 27 test files / 129 tests / 0 failures, 12 BRP tests.
     current_slice:
-      - Treat the first native vertical slice as architecture evidence, not a complete BRP creator.
-      - Add standard rolled characteristic generation with deterministic roll provenance and the UGE 3-point redistribution rule.
-      - Decide whether the next profession should maximize skill-choice branching or whether a second power level is the higher-value rules-profile stress test.
-      - Keep BRP creator UI deferred until at least two native generation paths converge on the same brp-character/0.1 state.
+      - Treat generation-method convergence as evidence that construction method can remain provenance rather than multiplying native ontologies.
+      - Add Heroic as the second retained BRP power-level profile while keeping powers themselves disabled.
+      - Parameterize professional skill budgets and starting caps from the retained power level instead of branching into separate Normal/Heroic builders.
+      - Model or deliberately constrain Heroic age interaction so the source's age-based professional-skill adjustments are not silently ignored.
+      - Preserve personal skill points at INT x 10 and keep Detective as the representative profession so the profile test is isolated.
+      - Keep BRP creator UI deferred until profile-aware backend construction and validation are stable.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter; branded Call of Cthulhu remains a separately licensed future product target.
       - Preserve BRP rules-profile context natively rather than inferring optional rules from final numbers.
@@ -133,6 +141,7 @@ roadmap:
       - Preserve skill base chance, allocation contributions, and final rating separately when causality matters.
       - Keep specialties open-ended and source-owned rather than freezing a universal enum.
       - Do not model BRP powers through D&D spell-state structures.
+      - Keep generation method provenance separate from runtime ontology unless source rules prove otherwise.
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 
   - id: companion-random-tables
