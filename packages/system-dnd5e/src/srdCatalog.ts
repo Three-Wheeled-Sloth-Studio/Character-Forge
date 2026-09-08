@@ -11,7 +11,7 @@ export type Dnd5eSrdSpeciesId =
 
 export type GuidedDnd5eClassId = Dnd5eSrdClassId;
 export type GuidedDnd5eBackgroundId = "acolyte" | "criminal" | "sage" | "soldier";
-export type GuidedDnd5eSpeciesId = "dragonborn" | "dwarf" | "goliath" | "halfling" | "human" | "orc";
+export type GuidedDnd5eSpeciesId = Dnd5eSrdSpeciesId;
 
 export interface Dnd5eSrdClassOption {
   id: Dnd5eSrdClassId;
@@ -64,13 +64,13 @@ export const DND5E_SRD_521_BACKGROUND_OPTIONS: readonly Dnd5eSrdBackgroundOption
 export const DND5E_SRD_521_SPECIES_OPTIONS: readonly Dnd5eSrdSpeciesOption[] = [
   { id: "dragonborn", label: "Dragonborn", guidedSupported: true },
   { id: "dwarf", label: "Dwarf", guidedSupported: true },
-  { id: "elf", label: "Elf", guidedSupported: false, blockedReason: "Elven Lineage and lineage spell choices are not implemented yet." },
-  { id: "gnome", label: "Gnome", guidedSupported: false, blockedReason: "Gnomish Lineage and spellcasting-ability choices are not implemented yet." },
+  { id: "elf", label: "Elf", guidedSupported: true },
+  { id: "gnome", label: "Gnome", guidedSupported: true },
   { id: "goliath", label: "Goliath", guidedSupported: true },
   { id: "halfling", label: "Halfling", guidedSupported: true },
   { id: "human", label: "Human", guidedSupported: true },
   { id: "orc", label: "Orc", guidedSupported: true },
-  { id: "tiefling", label: "Tiefling", guidedSupported: false, blockedReason: "Fiendish Legacy and lineage spell choices are not implemented yet." },
+  { id: "tiefling", label: "Tiefling", guidedSupported: true },
 ] as const;
 
 export const GUIDED_DND5E_CLASS_IDS = DND5E_SRD_521_CLASS_OPTIONS
