@@ -47,7 +47,7 @@ export function guidedGenerateDnd5eFirstSlice(input: GuidedGenerateDnd5eInput): 
     displayName, classId: input.classChoice.selectedId, backgroundId: input.backgroundChoice.selectedId, speciesId: input.speciesChoice.selectedId,
     backgroundEquipmentChoice: input.backgroundEquipmentChoice, coreChoices: input.coreChoices, abilities: methodResult.abilities,
     generation: {
-      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`, mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical", recipeVersion: "0.5",
+      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`, mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical", recipeVersion: "0.6",
       ...(methodResult.seed ? { seed: methodResult.seed } : {}), rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
       recipe: { sequence: ["class", "background", "species", "origin-details", "abilities", "alignment"], classId: input.classChoice.selectedId, backgroundId: input.backgroundChoice.selectedId, speciesId: input.speciesChoice.selectedId, abilityMethod: input.abilityMethod.method, backgroundEquipmentChoice: input.backgroundEquipmentChoice, classEquipmentChoice: input.coreChoices.classEquipmentChoice },
       decisions,
@@ -82,6 +82,9 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
   if (choices.dragonbornAncestryId) decisions.push({ stepId: "species.dragonborn.ancestry", choiceId: choices.dragonbornAncestryId });
   if (choices.goliathAncestryId) decisions.push({ stepId: "species.goliath.ancestry", choiceId: choices.goliathAncestryId });
   if (choices.human) { decisions.push({ stepId: "species.human.size", choiceId: choices.human.size }, { stepId: "species.human.skillful", choiceId: choices.human.skillId }, { stepId: "species.human.versatile", choiceId: choices.human.originFeatId }); if (choices.human.skilledProficiencyIds?.length) decisions.push({ stepId: "species.human.skilled", answer: choices.human.skilledProficiencyIds }); }
+  if (choices.elf) decisions.push({ stepId: "species.elf.lineage", choiceId: choices.elf.lineageId }, { stepId: "species.elf.spellcasting-ability", choiceId: choices.elf.spellcastingAbilityId }, { stepId: "species.elf.keen-senses", choiceId: choices.elf.keenSensesSkillId });
+  if (choices.gnome) decisions.push({ stepId: "species.gnome.lineage", choiceId: choices.gnome.lineageId }, { stepId: "species.gnome.spellcasting-ability", choiceId: choices.gnome.spellcastingAbilityId });
+  if (choices.tiefling) decisions.push({ stepId: "species.tiefling.size", choiceId: choices.tiefling.size }, { stepId: "species.tiefling.legacy", choiceId: choices.tiefling.legacyId }, { stepId: "species.tiefling.spellcasting-ability", choiceId: choices.tiefling.spellcastingAbilityId });
   return decisions;
 }
 function createAbilityMethodResult(method: GuidedAbilityMethodInput, backgroundAbilityIds: readonly ("strength" | "dexterity" | "constitution" | "intelligence" | "wisdom" | "charisma")[], backgroundIncreases: Dnd5eAbilityIncreasePlan): { abilities: ReturnType<typeof createStandardArrayAbilityState>; decisions: GenerationDecision[]; seed?: string } {
