@@ -16,21 +16,22 @@ import {
   BRP_STANDARD_REDISTRIBUTION_POINT_LIMIT,
   BRP_STANDARD_REDISTRIBUTION_SOURCE_ID,
 } from "./characteristicGeneration.js";
-import {
-  BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
-  BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
-  BRP_FIRST_SLICE_SKILL_CATALOG,
-  calculateBrpDerivedState,
-  type BrpDetectiveElectiveSkillKey,
-  type BrpFirstSliceSkillKey,
-} from "./firstSlice.js";
+import { calculateBrpDerivedState } from "./firstSlice.js";
 import type {
   BrpCharacteristicGeneration,
   BrpCharacteristicId,
   BrpCharacteristicRedistributionTransfer,
   BrpCharacteristicValues,
   BrpPowerLevel,
+  BrpProfessionId,
+  BrpSkillSpecialty,
 } from "./nativeCharacter.js";
+import {
+  BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
+  BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
+  BRP_SCHOLAR_FIXED_SKILL_KEYS,
+  type BrpDetectiveElectiveSkillKey,
+} from "./professions.js";
 import {
   BRP_DEFAULT_STARTING_AGE_MAXIMUM,
   BRP_DEFAULT_STARTING_AGE_MINIMUM,
@@ -39,6 +40,13 @@ import {
   getBrpPowerLevelRules,
 } from "./powerLevel.js";
 import { BRP_UGE_ORC_1_05_SOURCE } from "./rulesSource.js";
+import {
+  brpSkillIdentityKey,
+  identifyBrpSkillDefinition,
+  resolveBrpAcademicSkillDefinition,
+  resolveBrpStaticSkillDefinition,
+  type BrpResolvedSkillDefinition,
+} from "./skills.js";
 
 interface ValidatedRulesProfile {
   powerLevel: BrpPowerLevel;
@@ -52,13 +60,14 @@ interface ValidatedCharacteristicGeneration {
 }
 
 interface ValidatedIdentity {
-  electives: Set<BrpDetectiveElectiveSkillKey>;
+  professionId: BrpProfessionId;
+  allowedProfessionalSkills: Map<string, BrpResolvedSkillDefinition>;
   professionalSkillPoints: number;
 }
 
 export const brpUge105Adapter: RulesSystemAdapter = {
   adapterId: "brp-uge",
-  adapterVersion: "0.3.0",
+  adapterVersion: "0.4.0",
   systemId: "brp",
   editionId: "uge-2023",
   supportedRulesSources: [BRP_UGE_ORC_1_05_SOURCE],
@@ -100,8 +109,13 @@ function validateNativeState(state: NativeSystemState): RulesValidationResult {
     rulesProfile?.characteristicGeneration ?? null,
     issues,
   );
-  const identity = validateIdentity(payload.identity, rulesProfile?.powerLevel ?? null, issues);
   const characteristics = validateCharacteristics(payload.characteristics, generation, issues);
+  const identity = validateIdentity(
+    payload.identity,
+    rulesProfile?.powerLevel ?? null,
+    characteristics,
+    issues,
+  );
 
   if (characteristics) {
     validateCharacteristicRolls(payload.characteristicRolls, characteristics, issues);
@@ -293,6 +307,7 @@ function validateRedistributionState(
 function validateIdentity(
   value: unknown,
   powerLevel: BrpPowerLevel | null,
+  characteristics: BrpCharacteristicValues | null,
   issues: RulesValidationIssue[],
 ): ValidatedIdentity | null {
   if (!isObject(value)) {
@@ -316,24 +331,8 @@ function validateIdentity(
     error(issues, "brp.profession.shape", "BRP profession state is required.", "payload.identity.profession");
     return null;
   }
-  if (value.profession.professionId !== "detective") {
-    error(issues, "brp.profession.id", "BRP first slice supports Detective only.", "payload.identity.profession.professionId");
-  }
-  if (value.profession.wealth !== "average" && value.profession.wealth !== "affluent") {
-    error(issues, "brp.profession.wealth", "Detective wealth must be Average or Affluent.", "payload.identity.profession.wealth");
-  }
 
-  const selected = value.profession.selectedElectiveSkillIds;
-  if (!isStringArray(selected) || selected.length !== 4 || new Set(selected).size !== 4) {
-    error(issues, "brp.profession.electives", "Detective must retain exactly four unique elective skill IDs.", "payload.identity.profession.selectedElectiveSkillIds");
-    return null;
-  }
-
-  const allowed = new Set<string>(BRP_DETECTIVE_ELECTIVE_SKILL_KEYS);
-  if (selected.some((entry) => !allowed.has(entry))) {
-    error(issues, "brp.profession.electives", "Detective retains an unsupported elective skill ID.", "payload.identity.profession.selectedElectiveSkillIds");
-    return null;
-  }
+  const profession = validateProfession(value.profession, characteristics, issues);
 
   let professionalSkillPoints = powerLevel
     ? getBrpPowerLevelRules(powerLevel).baseProfessionalSkillPoints
@@ -349,10 +348,140 @@ function validateIdentity(
     );
   }
 
+  if (!profession) return null;
   return {
-    electives: new Set(selected as BrpDetectiveElectiveSkillKey[]),
+    professionId: profession.professionId,
+    allowedProfessionalSkills: profession.allowedProfessionalSkills,
     professionalSkillPoints,
   };
+}
+
+function validateProfession(
+  value: JsonObject,
+  characteristics: BrpCharacteristicValues | null,
+  issues: RulesValidationIssue[],
+): Pick<ValidatedIdentity, "professionId" | "allowedProfessionalSkills"> | null {
+  if (value.wealth !== "average" && value.wealth !== "affluent") {
+    error(
+      issues,
+      "brp.profession.wealth",
+      "Current BRP Detective and Scholar profiles require Average or Affluent wealth.",
+      "payload.identity.profession.wealth",
+    );
+  }
+
+  if (value.professionId === "detective") {
+    const selected = value.selectedElectiveSkillIds;
+    if (!isStringArray(selected) || selected.length !== 4 || new Set(selected).size !== 4) {
+      error(
+        issues,
+        "brp.profession.electives",
+        "Detective must retain exactly four unique elective skill IDs.",
+        "payload.identity.profession.selectedElectiveSkillIds",
+      );
+      return null;
+    }
+    const allowedElectives = new Set<string>(BRP_DETECTIVE_ELECTIVE_SKILL_KEYS);
+    if (selected.some((entry) => !allowedElectives.has(entry))) {
+      error(
+        issues,
+        "brp.profession.electives",
+        "Detective retains an unsupported elective skill ID.",
+        "payload.identity.profession.selectedElectiveSkillIds",
+      );
+      return null;
+    }
+
+    const allowedProfessionalSkills = new Map<string, BrpResolvedSkillDefinition>();
+    if (characteristics) {
+      for (const skillKey of [
+        ...BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
+        ...(selected as BrpDetectiveElectiveSkillKey[]),
+      ]) {
+        const definition = resolveBrpStaticSkillDefinition(skillKey, characteristics);
+        allowedProfessionalSkills.set(definition.key, definition);
+      }
+    }
+    return { professionId: "detective", allowedProfessionalSkills };
+  }
+
+  if (value.professionId === "scholar") {
+    const selected = value.selectedAcademicSkills;
+    if (!Array.isArray(selected) || selected.length !== 5) {
+      error(
+        issues,
+        "brp.profession.academic-skills",
+        "Scholar must retain exactly five Knowledge or Science specialty choices.",
+        "payload.identity.profession.selectedAcademicSkills",
+      );
+      return null;
+    }
+
+    const allowedProfessionalSkills = new Map<string, BrpResolvedSkillDefinition>();
+    if (characteristics) {
+      for (const skillKey of BRP_SCHOLAR_FIXED_SKILL_KEYS) {
+        const definition = resolveBrpStaticSkillDefinition(skillKey, characteristics);
+        allowedProfessionalSkills.set(definition.key, definition);
+      }
+    }
+
+    const seen = new Set<string>();
+    let validAcademicSelections = true;
+    for (let index = 0; index < selected.length; index += 1) {
+      const selection = selected[index];
+      const path = `payload.identity.profession.selectedAcademicSkills.${index}`;
+      if (!isObject(selection)
+        || (selection.skillId !== "knowledge" && selection.skillId !== "science")
+        || !isSpecialty(selection.specialty)
+        || !selection.specialty.id.trim()
+        || !selection.specialty.label.trim()) {
+        error(
+          issues,
+          "brp.profession.academic-skills",
+          "Scholar academic choices require a Knowledge or Science parent and non-empty specialty ID and label.",
+          path,
+        );
+        validAcademicSelections = false;
+        continue;
+      }
+
+      const specialty = {
+        id: selection.specialty.id.trim(),
+        label: selection.specialty.label.trim(),
+      };
+      const key = brpSkillIdentityKey(selection.skillId, specialty);
+      if (seen.has(key)) {
+        error(
+          issues,
+          "brp.profession.academic-duplicate",
+          "Scholar academic specialty choices must be unique by parent skill and specialty ID.",
+          path,
+        );
+        validAcademicSelections = false;
+        continue;
+      }
+      seen.add(key);
+
+      if (characteristics) {
+        const definition = resolveBrpAcademicSkillDefinition({
+          skillId: selection.skillId,
+          specialty,
+        });
+        allowedProfessionalSkills.set(definition.key, definition);
+      }
+    }
+
+    if (!validAcademicSelections) return null;
+    return { professionId: "scholar", allowedProfessionalSkills };
+  }
+
+  error(
+    issues,
+    "brp.profession.id",
+    "BRP first slice supports Detective or Scholar.",
+    "payload.identity.profession.professionId",
+  );
+  return null;
 }
 
 function validateAgeBasis(
@@ -450,15 +579,23 @@ function validateCharacteristics(
   const parsed = {} as BrpCharacteristicValues;
 
   for (const id of BRP_CHARACTERISTIC_IDS) {
-    const state = value[id];
-    if (!isObject(state) || !isInteger(state.initial) || !isInteger(state.final) || !Array.isArray(state.adjustments)) {
-      error(issues, "brp.characteristics.entry", `${id} must retain initial, adjustments, and final state.`, `payload.characteristics.${id}`);
+    const characteristic = value[id];
+    if (!isObject(characteristic)
+      || !isInteger(characteristic.initial)
+      || !isInteger(characteristic.final)
+      || !Array.isArray(characteristic.adjustments)) {
+      error(
+        issues,
+        "brp.characteristics.entry",
+        `${id} must retain initial, adjustments, and final state.`,
+        `payload.characteristics.${id}`,
+      );
       return null;
     }
 
     if (generation?.method === "standard-rolled" && generation.initial) {
       const expectedInitial = generation.initial[id];
-      if (state.initial !== expectedInitial) {
+      if (characteristic.initial !== expectedInitial) {
         error(
           issues,
           "brp.characteristics.roll-origin",
@@ -467,7 +604,7 @@ function validateCharacteristics(
         );
       }
       const expectedAdjustments = expectedRedistributionAdjustments(id, generation.redistribution);
-      if (!adjustmentsEqual(state.adjustments, expectedAdjustments)) {
+      if (!adjustmentsEqual(characteristic.adjustments, expectedAdjustments)) {
         error(
           issues,
           "brp.characteristics.redistribution",
@@ -476,7 +613,7 @@ function validateCharacteristics(
         );
       }
       const expectedFinal = expectedInitial + expectedAdjustments.reduce((sum, adjustment) => sum + adjustment.amount, 0);
-      if (state.final !== expectedFinal) {
+      if (characteristic.final !== expectedFinal) {
         error(
           issues,
           "brp.characteristics.final",
@@ -484,7 +621,7 @@ function validateCharacteristics(
           `payload.characteristics.${id}.final`,
         );
       }
-      if (state.final < 1 || state.final > 21) {
+      if (characteristic.final < 1 || characteristic.final > 21) {
         error(
           issues,
           "brp.characteristics.range",
@@ -494,14 +631,24 @@ function validateCharacteristics(
       }
     } else {
       const [minimum, maximum] = explicitRanges[id];
-      if (state.initial !== state.final || state.adjustments.length !== 0) {
-        error(issues, "brp.characteristics.adjustments", `Explicit BRP ${id} must have no characteristic adjustments.`, `payload.characteristics.${id}`);
+      if (characteristic.initial !== characteristic.final || characteristic.adjustments.length !== 0) {
+        error(
+          issues,
+          "brp.characteristics.adjustments",
+          `Explicit BRP ${id} must have no characteristic adjustments.`,
+          `payload.characteristics.${id}`,
+        );
       }
-      if (state.final < minimum || state.final > maximum) {
-        error(issues, "brp.characteristics.range", `${id} is outside the supported explicit-entry range.`, `payload.characteristics.${id}.final`);
+      if (characteristic.final < minimum || characteristic.final > maximum) {
+        error(
+          issues,
+          "brp.characteristics.range",
+          `${id} is outside the supported explicit-entry range.`,
+          `payload.characteristics.${id}.final`,
+        );
       }
     }
-    parsed[id] = state.final;
+    parsed[id] = characteristic.final;
   }
   return parsed;
 }
@@ -510,19 +657,23 @@ function expectedRedistributionAdjustments(
   id: BrpCharacteristicId,
   redistribution: readonly BrpCharacteristicRedistributionTransfer[],
 ): Array<{ sourceId: string; amount: number }> {
-  const result: Array<{ sourceId: string; amount: number }> = [];
+  const expected: Array<{ sourceId: string; amount: number }> = [];
   for (const transfer of redistribution) {
     if (transfer.from === id) {
-      result.push({ sourceId: BRP_STANDARD_REDISTRIBUTION_SOURCE_ID, amount: -transfer.points });
+      expected.push({ sourceId: BRP_STANDARD_REDISTRIBUTION_SOURCE_ID, amount: -transfer.points });
     }
     if (transfer.to === id) {
-      result.push({ sourceId: BRP_STANDARD_REDISTRIBUTION_SOURCE_ID, amount: transfer.points });
+      expected.push({ sourceId: BRP_STANDARD_REDISTRIBUTION_SOURCE_ID, amount: transfer.points });
     }
   }
-  return result;
+  return expected;
 }
 
-function validateCharacteristicRolls(value: unknown, characteristics: BrpCharacteristicValues, issues: RulesValidationIssue[]): void {
+function validateCharacteristicRolls(
+  value: unknown,
+  characteristics: BrpCharacteristicValues,
+  issues: RulesValidationIssue[],
+): void {
   if (!isObject(value)) {
     error(issues, "brp.characteristic-rolls.shape", "BRP characteristic rolls are required.", "payload.characteristicRolls");
     return;
@@ -542,7 +693,11 @@ function validateCharacteristicRolls(value: unknown, characteristics: BrpCharact
   }
 }
 
-function validateDerived(value: unknown, characteristics: BrpCharacteristicValues, issues: RulesValidationIssue[]): void {
+function validateDerived(
+  value: unknown,
+  characteristics: BrpCharacteristicValues,
+  issues: RulesValidationIssue[],
+): void {
   if (!isObject(value)) {
     error(issues, "brp.derived.shape", "BRP derived state is required.", "payload.derived");
     return;
@@ -591,10 +746,7 @@ function validateSkills(
     return;
   }
 
-  const allowedProfessional = new Set<string>(BRP_DETECTIVE_REQUIRED_SKILL_KEYS);
-  if (identity) for (const elective of identity.electives) allowedProfessional.add(elective);
-
-  const seen = new Set<BrpFirstSliceSkillKey>();
+  const seen = new Set<string>();
   let professionalSpent = 0;
   let personalSpent = 0;
 
@@ -605,42 +757,54 @@ function validateSkills(
       error(issues, "brp.skills.entry", "BRP skill entries must retain contribution state.", path);
       continue;
     }
-    const skillKey = identifySkill(skill);
-    if (!skillKey) {
+
+    const definition = identifyBrpSkillDefinition(skill.skillId, skill.specialty, characteristics);
+    if (!definition) {
       error(issues, "brp.skills.identity", "BRP first slice contains an unknown or malformed skill identity.", path);
       continue;
     }
-    if (seen.has(skillKey)) {
-      error(issues, "brp.skills.duplicate", `BRP skill ${skillKey} is duplicated.`, path);
+    if (seen.has(definition.key)) {
+      error(issues, "brp.skills.duplicate", `BRP skill ${definition.label} is duplicated.`, path);
       continue;
     }
-    seen.add(skillKey);
+    seen.add(definition.key);
 
-    const definition = BRP_FIRST_SLICE_SKILL_CATALOG[skillKey];
     if (skill.label !== definition.label || skill.baseChance !== definition.baseChance) {
-      error(issues, "brp.skills.base", `BRP skill ${skillKey} has incorrect source identity or base chance.`, path);
+      error(issues, "brp.skills.base", `BRP skill ${definition.label} has incorrect source identity or base chance.`, path);
     }
+
     const professional = skill.contributions.professional;
     const personal = skill.contributions.personal;
     if (!isNonNegativeInteger(professional) || !isNonNegativeInteger(personal)) {
-      error(issues, "brp.skills.contributions", `BRP skill ${skillKey} contributions must be non-negative integers.`, `${path}.contributions`);
+      error(issues, "brp.skills.contributions", `BRP skill ${definition.label} contributions must be non-negative integers.`, `${path}.contributions`);
       continue;
     }
-    if (professional > 0 && !allowedProfessional.has(skillKey)) {
-      error(issues, "brp.skills.profession", `BRP skill ${skillKey} is not eligible for the selected Detective professional allocation.`, `${path}.contributions.professional`);
+
+    if (professional > 0) {
+      const allowed = identity?.allowedProfessionalSkills.get(definition.key);
+      if (!allowed || !skillDefinitionsEqual(allowed, definition)) {
+        const professionLabel = identity?.professionId ?? "retained";
+        error(
+          issues,
+          "brp.skills.profession",
+          `BRP skill ${definition.label} is not eligible for the selected ${professionLabel} professional allocation.`,
+          `${path}.contributions.professional`,
+        );
+      }
     }
+
     const professionalRating = definition.baseChance + professional;
     const finalRating = professionalRating + personal;
     if (startingSkillCap !== null && (professionalRating > startingSkillCap || finalRating > startingSkillCap)) {
       error(
         issues,
         "brp.skills.cap",
-        `BRP skill ${skillKey} exceeds the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
+        `BRP skill ${definition.label} exceeds the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
         path,
       );
     }
     if (skill.finalRating !== finalRating) {
-      error(issues, "brp.skills.final", `BRP skill ${skillKey} final rating does not match its retained causal layers.`, `${path}.finalRating`);
+      error(issues, "brp.skills.final", `BRP skill ${definition.label} final rating does not match its retained causal layers.`, `${path}.finalRating`);
     }
     professionalSpent += professional;
     personalSpent += personal;
@@ -659,18 +823,16 @@ function validateSkills(
   }
 }
 
-function identifySkill(value: JsonObject): BrpFirstSliceSkillKey | null {
-  for (const [skillKey, definition] of Object.entries(BRP_FIRST_SLICE_SKILL_CATALOG) as Array<[BrpFirstSliceSkillKey, (typeof BRP_FIRST_SLICE_SKILL_CATALOG)[BrpFirstSliceSkillKey]]>) {
-    if (value.skillId !== definition.skillId) continue;
-    if (definition.specialty === null) {
-      if (value.specialty === null) return skillKey;
-      continue;
-    }
-    if (isObject(value.specialty) && value.specialty.id === definition.specialty.id && value.specialty.label === definition.specialty.label) {
-      return skillKey;
-    }
-  }
-  return null;
+function skillDefinitionsEqual(
+  left: BrpResolvedSkillDefinition,
+  right: BrpResolvedSkillDefinition,
+): boolean {
+  return left.key === right.key
+    && left.skillId === right.skillId
+    && left.label === right.label
+    && left.baseChance === right.baseChance
+    && left.specialty?.id === right.specialty?.id
+    && left.specialty?.label === right.specialty?.label;
 }
 
 function adjustmentsEqual(
@@ -694,6 +856,12 @@ function numberArraysEqual(value: unknown, expected: readonly number[]): boolean
 
 function isCharacteristicId(value: unknown): value is BrpCharacteristicId {
   return typeof value === "string" && (BRP_CHARACTERISTIC_IDS as readonly string[]).includes(value);
+}
+
+function isSpecialty(value: unknown): value is BrpSkillSpecialty {
+  return isObject(value)
+    && typeof value.id === "string"
+    && typeof value.label === "string";
 }
 
 function result(issues: RulesValidationIssue[]): RulesValidationResult {
