@@ -148,9 +148,26 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
       bindStickySelect("human-skill", humanSkills, defaults.human?.skillId ?? humanSkills[0]!, prefix);
       const feats = DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported && o.id !== background.originFeatId).map((o) => o.id);
       bindStickySelect("human-feat", feats, defaults.human?.originFeatId ?? feats[0]!, prefix, true);
-      if (readStickySelect(root, "human-feat") === "skilled") {
-        const host = root.querySelector<HTMLElement>("#creator-human-skilled-host"); if (host) host.innerHTML = multiChoiceHtml("Skilled proficiencies", "human-skilled", DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), 3);
+      const humanFeat = readStickySelect(root, "human-feat");
+      const host = root.querySelector<HTMLElement>("#creator-human-feat-host");
+      if (humanFeat === "skilled") {
+        if (host) host.innerHTML = multiChoiceHtml("Skilled proficiencies", "human-skilled", DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), 3);
         bindMultiChoice(`${prefix}.skilled`, "human-skilled", DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), defaults.human?.skilledProficiencyIds ?? DND5E_SKILLED_PROFICIENCY_OPTIONS.slice(0, 3).map((o) => o.id), 3);
+      } else if (humanFeat === "magic-initiate" && host) {
+        const listIds = humanMagicInitiateListIds(backgroundState.selectedId);
+        const defaultListId = defaults.human?.magicInitiate && listIds.includes(defaults.human.magicInitiate.spellListId) ? defaults.human.magicInitiate.spellListId : listIds[0]!;
+        const listState = loadStickyChoicePool(localStorage, `${prefix}.human-magic-initiate-list`, listIds, listIds, defaultListId);
+        const listId = listState.selectedId;
+        const list = magicInitiateSpellList(listId);
+        const savedDefaults = defaults.human?.magicInitiate?.spellListId === listId ? defaults.human.magicInitiate : undefined;
+        const ability = savedDefaults?.spellcastingAbilityId ?? defaultMagicInitiateAbility(listId);
+        const cantrips = savedDefaults?.cantripIds ?? [list.cantrips[0]!.id, list.cantrips[1]!.id];
+        const levelOne = savedDefaults?.levelOneSpellId ?? list.levelOneSpells[0]!.id;
+        host.innerHTML = humanMagicInitiateControlsHtml(backgroundState.selectedId, listId, ability, cantrips, levelOne);
+        bindStickySelect("human-magic-initiate-list", listIds, listId, prefix, true);
+        bindStickySelect("human-magic-initiate-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), ability, prefix);
+        bindMultiChoice(`${prefix}.human-magic-initiate.${listId}.cantrips`, "human-magic-initiate-cantrips", list.cantrips.map((o) => o.id), cantrips, 2);
+        bindStickySelect("human-magic-initiate-level-one", list.levelOneSpells.map((o) => o.id), levelOne, prefix);
       }
     }
     if (speciesState.selectedId === "elf" && defaults.elf) {
@@ -185,8 +202,11 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
         const magicLevelOne = defaults.magicInitiate && magicList
           ? loadStickyChoicePool(localStorage, `${prefix}.magic-initiate-level-one`, magicList.levelOneSpells.map((o) => o.id), magicList.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId).selectedId
           : undefined;
+        const humanMagic = speciesState.selectedId === "human" && readStickySelect(root, "human-feat") === "magic-initiate";
+        const humanMagicCantrips = humanMagic ? readMultiSelected(root, "human-magic-initiate-cantrips", 2) : [];
+        const humanMagicLevelOne = humanMagic ? readStickySelect(root, "human-magic-initiate-level-one") : undefined;
         const speciesSpells = currentSpeciesSpellIdsFromControls(root, speciesState.selectedId);
-        const alreadyPrepared = [...classCantrips, ...classPrepared, ...magicCantrips, ...(magicLevelOne ? [magicLevelOne] : []), ...speciesSpells];
+        const alreadyPrepared = [...classCantrips, ...classPrepared, ...magicCantrips, ...(magicLevelOne ? [magicLevelOne] : []), ...humanMagicCantrips, ...(humanMagicLevelOne ? [humanMagicLevelOne] : []), ...speciesSpells];
         const tomeCantripIds = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
         const ritualIds = pactTomeRitualSpellOptionsExcluding(alreadyPrepared).map((o) => o.id);
         host.innerHTML = `<p class="muted">Book of Shadows choices are current native state and may change when the book is conjured after a rest. Spells already prepared from Pact Magic, Magic Initiate, or species grants are excluded.</p>${multiChoiceHtml("Book of Shadows cantrips", "warlock-tome-cantrips", tomeCantripIds, 3)}${multiChoiceHtml("Book of Shadows Level 1 rituals", "warlock-tome-rituals", ritualIds, 2)}`;
@@ -283,10 +303,15 @@ function coreControlsHtml(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5e
   return `<details class="choice-pool-details" open><summary>Class details</summary><div class="method-controls">${classDetails.join("")}</div></details><details class="choice-pool-details" open><summary>Origin details</summary><div class="method-controls">${selectPoolRow("Alignment", "alignment", DND5E_ALIGNMENT_OPTIONS, defaults.alignmentId)}${selectPoolRow("Language 1", "language-1", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[0])}${selectPoolRow("Language 2", "language-2", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[1])}${magicDetails}${speciesDetails}</div></details>`;
 }
 function magicInitiateControlsHtml(listId: Dnd5eMagicInitiateSpellListId, defaults: GuidedDnd5eCoreChoices): string { const selection = defaults.magicInitiate!; const list = magicInitiateSpellList(listId); return `<div class="choice-section"><strong>Magic Initiate · ${list.label}</strong><p class="muted">Choose the feat's casting ability, two ${list.label} cantrips, and one ${list.label} Level 1 spell.</p>${selectPoolRow("Spellcasting ability", "magic-initiate-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, selection.spellcastingAbilityId)}${multiChoiceHtml("Cantrips", "magic-initiate-cantrips", list.cantrips.map((o) => o.id), 2)}${selectPoolRow("Level 1 spell", "magic-initiate-level-one", list.levelOneSpells, selection.levelOneSpellId)}</div>`; }
+function humanMagicInitiateControlsHtml(backgroundId: GuidedDnd5eBackgroundId, listId: Dnd5eMagicInitiateSpellListId, abilityId: Dnd5eSpellcastingAbilityId, cantripIds: readonly string[], levelOneSpellId: string): string {
+  const list = magicInitiateSpellList(listId);
+  const listOptions = humanMagicInitiateListIds(backgroundId).map((id) => ({ id, label: magicInitiateSpellList(id).label }));
+  return `<div class="choice-section"><strong>Human Versatile · Magic Initiate</strong><p class="muted">Magic Initiate is repeatable only with a different spell list. If your background already grants it, that list is excluded here.</p>${selectPoolRow("Spell list", "human-magic-initiate-list", listOptions, listId)}${selectPoolRow("Spellcasting ability", "human-magic-initiate-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, abilityId)}${multiChoiceHtml("Cantrips", "human-magic-initiate-cantrips", list.cantrips.map((o) => o.id), 2)}${selectPoolRow("Level 1 spell", "human-magic-initiate-level-one", list.levelOneSpells, levelOneSpellId)}</div>`;
+}
 function speciesControlsHtml(speciesId: GuidedDnd5eSpeciesId, defaults: GuidedDnd5eCoreChoices): string {
   if (speciesId === "dragonborn") return selectPoolRow("Draconic Ancestry", "dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS, defaults.dragonbornAncestryId ?? "red");
   if (speciesId === "goliath") return selectPoolRow("Giant Ancestry", "goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS, defaults.goliathAncestryId ?? "stone");
-  if (speciesId === "human") return `${selectPoolRow("Human size", "human-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.human?.size ?? "medium")}${selectPoolRow("Skillful", "human-skill", DND5E_SKILL_OPTIONS, defaults.human?.skillId ?? "perception")}${selectPoolRow("Versatile Origin feat", "human-feat", DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported), defaults.human?.originFeatId ?? "alert")}<div id="creator-human-skilled-host"></div>`;
+  if (speciesId === "human") return `${selectPoolRow("Human size", "human-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.human?.size ?? "medium")}${selectPoolRow("Skillful", "human-skill", DND5E_SKILL_OPTIONS, defaults.human?.skillId ?? "perception")}${selectPoolRow("Versatile Origin feat", "human-feat", DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported), defaults.human?.originFeatId ?? "alert")}<div id="creator-human-feat-host"></div>`;
   if (speciesId === "elf" && defaults.elf) return `${selectPoolRow("Elven Lineage", "elf-lineage", DND5E_ELF_LINEAGE_OPTIONS, defaults.elf.lineageId)}${selectPoolRow("Lineage spellcasting ability", "elf-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, defaults.elf.spellcastingAbilityId)}${selectPoolRow("Keen Senses", "elf-keen-senses", DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS, defaults.elf.keenSensesSkillId)}<p class="muted">Level 3 and 5 lineage spells are retained as future-gated native grants. High Elf also retains its Long-Rest Wizard-cantrip replacement rule.</p>`;
   if (speciesId === "gnome" && defaults.gnome) return `${selectPoolRow("Gnomish Lineage", "gnome-lineage", DND5E_GNOME_LINEAGE_OPTIONS, defaults.gnome.lineageId)}${selectPoolRow("Lineage spellcasting ability", "gnome-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, defaults.gnome.spellcastingAbilityId)}<p class="muted">Forest Gnome retains proficiency-bonus free Speak with Animals casts. Rock Gnome retains its three-device clockwork capacity.</p>`;
   if (speciesId === "tiefling" && defaults.tiefling) return `${selectPoolRow("Tiefling size", "tiefling-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.tiefling.size)}${selectPoolRow("Fiendish Legacy", "tiefling-legacy", DND5E_TIEFLING_LEGACY_OPTIONS, defaults.tiefling.legacyId)}${selectPoolRow("Legacy spellcasting ability", "tiefling-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, defaults.tiefling.spellcastingAbilityId)}<p class="muted">Legacy resistance and Level 1 cantrips apply now; Level 3 and 5 spells are retained as future-gated native grants.</p>`;
@@ -309,7 +334,17 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
   if (magicListId) { const cantrips = readMultiSelected(root, "magic-initiate-cantrips", 2); choices.magicInitiate = { spellListId: magicListId, spellcastingAbilityId: readStickySelect(root, "magic-initiate-ability") as Dnd5eSpellcastingAbilityId, cantripIds: [cantrips[0]!, cantrips[1]!], levelOneSpellId: readStickySelect(root, "magic-initiate-level-one") }; }
   if (speciesId === "dragonborn") choices.dragonbornAncestryId = readStickySelect(root, "dragonborn-ancestry") as GuidedDnd5eCoreChoices["dragonbornAncestryId"];
   if (speciesId === "goliath") choices.goliathAncestryId = readStickySelect(root, "goliath-ancestry") as GuidedDnd5eCoreChoices["goliathAncestryId"];
-  if (speciesId === "human") { const feat = readStickySelect(root, "human-feat") as "alert" | "savage-attacker" | "skilled"; choices.human = { size: readStickySelect(root, "human-size") as "small" | "medium", skillId: readStickySelect(root, "human-skill"), originFeatId: feat, ...(feat === "skilled" ? { skilledProficiencyIds: readMultiSelected(root, "human-skilled", 3) } : {}) }; }
+  if (speciesId === "human") {
+    const feat = readStickySelect(root, "human-feat") as "alert" | "magic-initiate" | "savage-attacker" | "skilled";
+    const human = { size: readStickySelect(root, "human-size") as "small" | "medium", skillId: readStickySelect(root, "human-skill"), originFeatId: feat } as NonNullable<GuidedDnd5eCoreChoices["human"]>;
+    if (feat === "skilled") human.skilledProficiencyIds = readMultiSelected(root, "human-skilled", 3);
+    if (feat === "magic-initiate") {
+      const listId = readStickySelect(root, "human-magic-initiate-list") as Dnd5eMagicInitiateSpellListId;
+      const cantrips = readMultiSelected(root, "human-magic-initiate-cantrips", 2);
+      human.magicInitiate = { spellListId: listId, spellcastingAbilityId: readStickySelect(root, "human-magic-initiate-ability") as Dnd5eSpellcastingAbilityId, cantripIds: [cantrips[0]!, cantrips[1]!], levelOneSpellId: readStickySelect(root, "human-magic-initiate-level-one") };
+    }
+    choices.human = human;
+  }
   if (speciesId === "elf") choices.elf = { lineageId: readStickySelect(root, "elf-lineage") as Dnd5eElfLineageId, spellcastingAbilityId: readStickySelect(root, "elf-spellcasting-ability") as Dnd5eSpellcastingAbilityId, keenSensesSkillId: readStickySelect(root, "elf-keen-senses") as "insight" | "perception" | "survival" };
   if (speciesId === "gnome") choices.gnome = { lineageId: readStickySelect(root, "gnome-lineage") as Dnd5eGnomeLineageId, spellcastingAbilityId: readStickySelect(root, "gnome-spellcasting-ability") as Dnd5eSpellcastingAbilityId };
   if (speciesId === "tiefling") choices.tiefling = { size: readStickySelect(root, "tiefling-size") as "small" | "medium", legacyId: readStickySelect(root, "tiefling-legacy") as Dnd5eTieflingLegacyId, spellcastingAbilityId: readStickySelect(root, "tiefling-spellcasting-ability") as Dnd5eSpellcastingAbilityId };
@@ -330,6 +365,8 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
       ...(choices.preparedCaster?.preparedSpellIds ?? []),
       ...(choices.magicInitiate?.cantripIds ?? []),
       ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+      ...(choices.human?.magicInitiate?.cantripIds ?? []),
+      ...(choices.human?.magicInitiate ? [choices.human.magicInitiate.levelOneSpellId] : []),
       ...currentGuidedDnd5eSpeciesSpellIds(speciesId, choices),
     ];
     const tomeCantripAllowed = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
@@ -341,6 +378,20 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
   if (choices.magicInitiate) { const list = magicInitiateSpellList(choices.magicInitiate.spellListId); provenance.push(poolEvidence(`${prefix}.magic-initiate-cantrips`, "background.magic-initiate.cantrips.acceptable-pool", list.cantrips.map((o) => o.id), choices.magicInitiate.cantripIds, 2)); }
   if (classId === "rogue") { const options = [...new Set([...choices.classSkillIds, ...background.skillProficiencies, ...(choices.human?.skillId ? [choices.human.skillId] : []), ...(choices.elf?.keenSensesSkillId ? [choices.elf.keenSensesSkillId] : [])])]; provenance.push(poolEvidence(`${prefix}.expertise`, "class.expertise.acceptable-pool", options, choices.expertiseSkillIds ?? [], 2)); }
   if (speciesId === "human" && choices.human?.originFeatId === "skilled") provenance.push(poolEvidence(`${prefix}.skilled`, "species.human.skilled.acceptable-pool", DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), choices.human.skilledProficiencyIds ?? [], 3));
+  if (speciesId === "human" && choices.human?.originFeatId === "magic-initiate" && choices.human.magicInitiate) {
+    const selection = choices.human.magicInitiate;
+    const listIds = humanMagicInitiateListIds(backgroundId);
+    const list = magicInitiateSpellList(selection.spellListId);
+    const listState = loadStickyChoicePool(localStorage, `${prefix}.human-magic-initiate-list`, listIds, listIds, selection.spellListId);
+    provenance.push({ stepId: "species.human.magic-initiate.spell-list.acceptable-pool", answer: listState.acceptableIds });
+    const abilityIds = DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id);
+    const abilityState = loadStickyChoicePool(localStorage, `${prefix}.human-magic-initiate-ability`, abilityIds, abilityIds, selection.spellcastingAbilityId);
+    provenance.push({ stepId: "species.human.magic-initiate.spellcasting-ability.acceptable-pool", answer: abilityState.acceptableIds });
+    provenance.push(poolEvidence(`${prefix}.human-magic-initiate.${selection.spellListId}.cantrips`, "species.human.magic-initiate.cantrips.acceptable-pool", list.cantrips.map((o) => o.id), selection.cantripIds, 2));
+    const levelOneIds = list.levelOneSpells.map((o) => o.id);
+    const levelOneState = loadStickyChoicePool(localStorage, `${prefix}.human-magic-initiate-level-one`, levelOneIds, levelOneIds, selection.levelOneSpellId);
+    provenance.push({ stepId: "species.human.magic-initiate.level-one-spell.acceptable-pool", answer: levelOneState.acceptableIds });
+  }
   for (const field of coreSingleFields(classId, backgroundId, speciesId)) { const options = field.allowed(background); const selected = coreSingleValue(field.id, choices); const state = loadStickyChoicePool(localStorage, `${prefix}.${field.id}`, options, options, options.includes(selected) ? selected : options[0]!); provenance.push({ stepId: `${field.stepId}.acceptable-pool`, answer: state.acceptableIds }); }
   return { choices, provenance };
 }
@@ -373,6 +424,8 @@ function currentSpeciesSpellIdsFromControls(root: HTMLElement, speciesId: Guided
   return [];
 }
 function magicInitiateListForBackground(backgroundId: GuidedDnd5eBackgroundId): Dnd5eMagicInitiateSpellListId | undefined { return backgroundId === "acolyte" ? "cleric" : backgroundId === "sage" ? "wizard" : undefined; }
+function humanMagicInitiateListIds(backgroundId: GuidedDnd5eBackgroundId): Dnd5eMagicInitiateSpellListId[] { const blocked = magicInitiateListForBackground(backgroundId); return (["cleric", "druid", "wizard"] as Dnd5eMagicInitiateSpellListId[]).filter((id) => id !== blocked); }
+function defaultMagicInitiateAbility(listId: Dnd5eMagicInitiateSpellListId): Dnd5eSpellcastingAbilityId { return listId === "wizard" ? "intelligence" : "wisdom"; }
 function choiceSectionHtml<TId extends string>(label: string, poolName: string, options: readonly { id: string; label: string; guidedSupported: boolean; blockedReason?: string }[], state: StickyChoicePoolState<TId>): string { const direct = options.filter((o) => o.guidedSupported); return `<div class="choice-section"><div class="choice-pick-row"><label>${label}<select id="creator-${poolName}-selected">${selectedOptions(direct, state)}</select></label><button id="creator-${poolName}-random" type="button" class="icon-button" title="Randomly choose from checked ${poolName} options" aria-label="Randomly choose from checked ${poolName} options">↻</button></div><details class="choice-pool-details"><summary>Acceptable ${label.toLowerCase()} options</summary><div class="choice-pool-grid">${options.map((o) => `<label class="choice-pool-option${o.guidedSupported ? "" : " unsupported"}" title="${escapeAttribute(o.blockedReason ?? "")}"><input type="checkbox" data-choice-pool="${poolName}" value="${o.id}" ${state.acceptableIds.includes(o.id as TId) ? "checked" : ""} ${o.guidedSupported ? "" : "disabled"} /><span>${o.label}${o.guidedSupported ? "" : " · later"}</span></label>`).join("")}</div></details></div>`; }
 function multiChoiceHtml(label: string, field: string, allowedIds: readonly string[], count: number): string { return `<div class="choice-section"><div class="choice-pick-row"><div><strong>${label}</strong><div class="ability-input-grid">${Array.from({ length: count }, (_, i) => `<label>Choice ${i + 1}<select id="creator-${field}-${i}"></select></label>`).join("")}</div></div><button id="creator-${field}-random" type="button" class="icon-button" title="Randomly choose from checked options" aria-label="Randomly choose ${label}">↻</button></div><details class="choice-pool-details"><summary>Acceptable ${label.toLowerCase()}</summary><div class="choice-pool-grid">${allowedIds.map((id) => `<label class="choice-pool-option"><input type="checkbox" data-multi-pool="${field}" value="${escapeAttribute(id)}" checked /><span>${labelFor(id)}</span></label>`).join("")}</div></details></div>`; }
 function selectPoolRow(label: string, field: string, options: readonly { id: string; label: string }[], selected: string): string { return `<div class="choice-section"><div class="choice-pick-row"><label>${label}<select id="creator-${field}">${options.map((o) => `<option value="${escapeAttribute(o.id)}"${o.id === selected ? " selected" : ""}>${o.label}</option>`).join("")}</select></label><button id="creator-${field}-random" type="button" class="icon-button" title="Random from checked" aria-label="Random ${label}">↻</button></div><details class="choice-pool-details"><summary>Acceptable ${label.toLowerCase()} options</summary><div class="choice-pool-grid">${options.map((o) => `<label class="choice-pool-option"><input type="checkbox" data-core-pool="${field}" value="${escapeAttribute(o.id)}" checked /><span>${o.label}</span></label>`).join("")}</div></details></div>`; }

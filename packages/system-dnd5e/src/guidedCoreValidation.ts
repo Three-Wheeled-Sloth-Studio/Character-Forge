@@ -3,7 +3,7 @@ import {
   DND5E_FIGHTING_STYLE_OPTIONS, DND5E_GOLIATH_ANCESTRY_OPTIONS, DND5E_GUIDED_CLASS_CHOICE_RULES,
   DND5E_HUMAN_ORIGIN_FEAT_OPTIONS, DND5E_MONK_TOOL_OPTIONS, DND5E_MUSICAL_INSTRUMENT_OPTIONS,
   DND5E_SKILL_OPTIONS, DND5E_SKILLED_PROFICIENCY_OPTIONS, DND5E_SPELLCASTING_ABILITY_OPTIONS,
-  DND5E_STANDARD_LANGUAGE_OPTIONS, type GuidedDnd5eCoreChoices,
+  DND5E_STANDARD_LANGUAGE_OPTIONS, type GuidedDnd5eCoreChoices, type GuidedDnd5eMagicInitiateChoices,
 } from "./guidedChoices.js";
 import { clericCantripCount, DND5E_CLERIC_CANTRIP_OPTIONS, DND5E_CLERIC_DIVINE_ORDER_OPTIONS, DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS } from "./clericCatalog.js";
 import { druidCantripCount, DND5E_DRUID_CANTRIP_OPTIONS, DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS, DND5E_DRUID_PRIMAL_ORDER_OPTIONS } from "./druidCatalog.js";
@@ -129,6 +129,8 @@ function assertWarlockChoices(classId: GuidedDnd5eClassId, speciesId: GuidedDnd5
     ...(choices.preparedCaster?.preparedSpellIds ?? []),
     ...(choices.magicInitiate?.cantripIds ?? []),
     ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+    ...(choices.human?.magicInitiate?.cantripIds ?? []),
+    ...(choices.human?.magicInitiate ? [choices.human.magicInitiate.levelOneSpellId] : []),
     ...currentGuidedDnd5eSpeciesSpellIds(speciesId, choices),
   ]);
   if ([...tomeCantrips, ...tomeRituals].some((id) => alreadyPrepared.has(id))) throw new Error("Pact of the Tome spells must not duplicate spells the Warlock already has prepared from any source.");
@@ -140,9 +142,15 @@ function assertMagicInitiate(backgroundId: GuidedDnd5eBackgroundId, choices: Gui
   const selection = choices.magicInitiate;
   if (!selection) throw new Error(`${backgroundId} requires Magic Initiate spell choices.`);
   if (selection.spellListId !== required) throw new Error(`${backgroundId} must use the ${required} Magic Initiate spell list.`);
-  assertOneOf(selection.spellcastingAbilityId, DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), "Magic Initiate spellcasting ability");
-  const list = magicInitiateSpellList(required);
-  assertExactUnique(selection.cantripIds, 2, "Magic Initiate cantrips");
+  assertMagicInitiateSelection(selection, required, "Magic Initiate");
+}
+
+function assertMagicInitiateSelection(selection: GuidedDnd5eMagicInitiateChoices, required: Dnd5eMagicInitiateSpellListId | undefined, label: string): void {
+  if (required && selection.spellListId !== required) throw new Error(`${label} must use the ${required} spell list.`);
+  assertOneOf(selection.spellListId, ["cleric", "druid", "wizard"], `${label} spell list`);
+  assertOneOf(selection.spellcastingAbilityId, DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), `${label} spellcasting ability`);
+  const list = magicInitiateSpellList(selection.spellListId);
+  assertExactUnique(selection.cantripIds, 2, `${label} cantrips`);
   for (const id of selection.cantripIds) assertOneOf(id, list.cantrips.map((o) => o.id), `${list.label} cantrip`);
   assertOneOf(selection.levelOneSpellId, list.levelOneSpells.map((o) => o.id), `${list.label} level 1 spell`);
 }
@@ -169,6 +177,13 @@ function assertSpeciesChoices(speciesId: GuidedDnd5eSpeciesId, background: (type
       assertExactUnique(skilled, 3, "Skilled feat proficiencies");
       for (const id of skilled) assertOneOf(id, DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), "Skilled proficiency");
     } else if (skilled.length) throw new Error("Skilled proficiency choices require the Skilled Origin feat.");
+    if (choices.human.originFeatId === "magic-initiate") {
+      const magic = choices.human.magicInitiate;
+      if (!magic) throw new Error("Human Versatile Magic Initiate requires spell-list, casting ability, cantrip, and Level 1 spell choices.");
+      assertMagicInitiateSelection(magic, undefined, "Human Versatile Magic Initiate");
+      const backgroundList = background.originFeatId === "magic-initiate:cleric" ? "cleric" : background.originFeatId === "magic-initiate:wizard" ? "wizard" : undefined;
+      if (backgroundList && magic.spellListId === backgroundList) throw new Error("A repeated Magic Initiate feat must choose a different spell list.");
+    } else if (choices.human.magicInitiate) throw new Error("Human Magic Initiate choices require the Magic Initiate Versatile feat.");
   } else if (choices.human) throw new Error("Human-only choices were supplied to a non-Human character.");
 }
 

@@ -92,6 +92,46 @@ describe("guided D&D generation", () => {
     }));
   });
 
+  it("builds Human Versatile Magic Initiate as an independent spell grant", () => {
+    const coreChoices = defaultGuidedDnd5eCoreChoices("fighter", "criminal", "human");
+    coreChoices.human = {
+      size: "medium", skillId: "perception", originFeatId: "magic-initiate",
+      magicInitiate: { spellListId: "druid", spellcastingAbilityId: "wisdom", cantripIds: ["druidcraft", "guidance"], levelOneSpellId: "goodberry" },
+    };
+    const character = guidedGenerateDnd5eFirstSlice({ ...baseInput("criminal"), name: "Versatile Caster", coreChoices });
+    const payload = payloadOf(character);
+    expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0]!)).toEqual({ valid: true, issues: [] });
+    expect(payload.origin.speciesOriginFeatId).toBe("magic-initiate");
+    expect(payload.spells?.grants).toEqual([
+      expect.objectContaining({
+        grantId: "species:human:versatile:magic-initiate:druid",
+        sourceId: "feat:magic-initiate",
+        spellListId: "druid",
+        spellcastingAbilityId: "wisdom",
+        cantripIds: ["druidcraft", "guidance"],
+        alwaysPreparedSpellIds: ["goodberry"],
+        freeCastSpellId: "goodberry",
+      }),
+    ]);
+    expect(character.generation?.decisions).toContainEqual(expect.objectContaining({ stepId: "species.human.magic-initiate.spell-list", choiceId: "druid" }));
+  });
+
+  it("allows Human to repeat Magic Initiate only with a different spell list", () => {
+    const coreChoices = defaultGuidedDnd5eCoreChoices("fighter", "acolyte", "human");
+    coreChoices.human = {
+      size: "medium", skillId: "perception", originFeatId: "magic-initiate",
+      magicInitiate: { spellListId: "wizard", spellcastingAbilityId: "intelligence", cantripIds: ["light", "mage-hand"], levelOneSpellId: "magic-missile" },
+    };
+    const character = guidedGenerateDnd5eFirstSlice({ ...baseInput("acolyte"), name: "Double Initiate", coreChoices });
+    const payload = payloadOf(character);
+    expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0]!)).toEqual({ valid: true, issues: [] });
+    expect(payload.spells?.grants).toHaveLength(2);
+    expect(payload.spells?.grants.map((grant) => grant.spellListId)).toEqual(["cleric", "wizard"]);
+
+    coreChoices.human.magicInitiate = { spellListId: "cleric", spellcastingAbilityId: "wisdom", cantripIds: ["guidance", "sacred-flame"], levelOneSpellId: "bless" };
+    expect(() => guidedGenerateDnd5eFirstSlice({ ...baseInput("acolyte"), name: "Illegal Repeat", coreChoices })).toThrow("different spell list");
+  });
+
   it("rejects a Magic Initiate spell from the wrong source list", () => {
     const coreChoices = defaultGuidedDnd5eCoreChoices("fighter", "acolyte", "human");
     coreChoices.magicInitiate!.levelOneSpellId = "magic-missile";
@@ -106,6 +146,21 @@ describe("guided D&D generation", () => {
     const result = dnd5eSrd521Adapter.validateNativeState(nativeState);
     expect(result.valid).toBe(false);
     expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.magic-initiate.level-one");
+  });
+
+  it("adapter rejects a tampered Human Magic Initiate spell list", () => {
+    const coreChoices = defaultGuidedDnd5eCoreChoices("fighter", "criminal", "human");
+    coreChoices.human = {
+      size: "medium", skillId: "perception", originFeatId: "magic-initiate",
+      magicInitiate: { spellListId: "druid", spellcastingAbilityId: "wisdom", cantripIds: ["druidcraft", "guidance"], levelOneSpellId: "goodberry" },
+    };
+    const character = guidedGenerateDnd5eFirstSlice({ ...baseInput("criminal"), name: "Tampered Human", coreChoices });
+    const nativeState = JSON.parse(JSON.stringify(character.nativeStates[0]!)) as typeof character.nativeStates[0];
+    const payload = nativeState.payload as Dnd5eNativeCharacter;
+    payload.spells!.grants[0]!.cantripIds[0] = "fire-bolt";
+    const result = dnd5eSrd521Adapter.validateNativeState(nativeState);
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.code)).toContain("dnd5e.human.magic-initiate.cantrips");
   });
 
   it("uses Fighter equipment and Fighting Style choices to derive Armor Class", () => {

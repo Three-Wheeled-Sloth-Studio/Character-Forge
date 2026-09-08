@@ -81,7 +81,16 @@ function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
   if (choices.magicInitiate) decisions.push({ stepId: "background.magic-initiate.spell-list", choiceId: choices.magicInitiate.spellListId }, { stepId: "background.magic-initiate.spellcasting-ability", choiceId: choices.magicInitiate.spellcastingAbilityId }, { stepId: "background.magic-initiate.cantrips", answer: choices.magicInitiate.cantripIds }, { stepId: "background.magic-initiate.level-one-spell", choiceId: choices.magicInitiate.levelOneSpellId });
   if (choices.dragonbornAncestryId) decisions.push({ stepId: "species.dragonborn.ancestry", choiceId: choices.dragonbornAncestryId });
   if (choices.goliathAncestryId) decisions.push({ stepId: "species.goliath.ancestry", choiceId: choices.goliathAncestryId });
-  if (choices.human) { decisions.push({ stepId: "species.human.size", choiceId: choices.human.size }, { stepId: "species.human.skillful", choiceId: choices.human.skillId }, { stepId: "species.human.versatile", choiceId: choices.human.originFeatId }); if (choices.human.skilledProficiencyIds?.length) decisions.push({ stepId: "species.human.skilled", answer: choices.human.skilledProficiencyIds }); }
+  if (choices.human) {
+    decisions.push({ stepId: "species.human.size", choiceId: choices.human.size }, { stepId: "species.human.skillful", choiceId: choices.human.skillId }, { stepId: "species.human.versatile", choiceId: choices.human.originFeatId });
+    if (choices.human.skilledProficiencyIds?.length) decisions.push({ stepId: "species.human.skilled", answer: choices.human.skilledProficiencyIds });
+    if (choices.human.magicInitiate) decisions.push(
+      { stepId: "species.human.magic-initiate.spell-list", choiceId: choices.human.magicInitiate.spellListId },
+      { stepId: "species.human.magic-initiate.spellcasting-ability", choiceId: choices.human.magicInitiate.spellcastingAbilityId },
+      { stepId: "species.human.magic-initiate.cantrips", answer: choices.human.magicInitiate.cantripIds },
+      { stepId: "species.human.magic-initiate.level-one-spell", choiceId: choices.human.magicInitiate.levelOneSpellId },
+    );
+  }
   if (choices.elf) decisions.push({ stepId: "species.elf.lineage", choiceId: choices.elf.lineageId }, { stepId: "species.elf.spellcasting-ability", choiceId: choices.elf.spellcastingAbilityId }, { stepId: "species.elf.keen-senses", choiceId: choices.elf.keenSensesSkillId });
   if (choices.gnome) decisions.push({ stepId: "species.gnome.lineage", choiceId: choices.gnome.lineageId }, { stepId: "species.gnome.spellcasting-ability", choiceId: choices.gnome.spellcastingAbilityId });
   if (choices.tiefling) decisions.push({ stepId: "species.tiefling.size", choiceId: choices.tiefling.size }, { stepId: "species.tiefling.legacy", choiceId: choices.tiefling.legacyId }, { stepId: "species.tiefling.spellcasting-ability", choiceId: choices.tiefling.spellcastingAbilityId });

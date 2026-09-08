@@ -6,7 +6,7 @@ import { validateGuidedDnd5eLineageSpeciesNativeState } from "./speciesAdapterVa
 
 export const dnd5eSrd521Adapter: RulesSystemAdapter = {
   adapterId: "character-forge:dnd5e-2024",
-  adapterVersion: "0.14.0",
+  adapterVersion: "0.15.0",
   systemId: "dnd5e",
   editionId: "2024",
   supportedRulesSources: [DND5E_SRD_5_2_1_SOURCE],

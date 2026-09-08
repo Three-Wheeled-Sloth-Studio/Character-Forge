@@ -32,8 +32,9 @@ export interface GuidedDnd5eWarlockChoices {
 export interface GuidedDnd5eHumanChoices {
   size: "small" | "medium";
   skillId: string;
-  originFeatId: "alert" | "savage-attacker" | "skilled";
+  originFeatId: "alert" | "magic-initiate" | "savage-attacker" | "skilled";
   skilledProficiencyIds?: string[];
+  magicInitiate?: GuidedDnd5eMagicInitiateChoices;
 }
 export interface GuidedDnd5eCoreChoices {
   alignmentId: string;
@@ -76,8 +77,7 @@ export const DND5E_FIGHTING_STYLE_OPTIONS = [
 ] as const;
 export const DND5E_HUMAN_ORIGIN_FEAT_OPTIONS = [
   { id: "alert", label: "Alert", supported: true }, { id: "savage-attacker", label: "Savage Attacker", supported: true },
-  { id: "skilled", label: "Skilled", supported: true },
-  { id: "magic-initiate", label: "Magic Initiate", supported: false, blockedReason: "Human-selected Magic Initiate still needs its spell-list and spell choices wired into Human guided state." },
+  { id: "skilled", label: "Skilled", supported: true }, { id: "magic-initiate", label: "Magic Initiate", supported: true },
 ] as const;
 export const DND5E_DRAGONBORN_ANCESTRY_OPTIONS = [
   { id: "black", label: "Black · Acid", damageType: "acid" }, { id: "blue", label: "Blue · Lightning", damageType: "lightning" },

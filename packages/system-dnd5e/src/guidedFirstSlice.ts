@@ -171,6 +171,11 @@ function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBac
     if (!selection) throw new Error(`${backgroundId} requires Magic Initiate choices.`);
     grants.push({ grantId: `origin:magic-initiate:${selection.spellListId}`, sourceId: "feat:magic-initiate", spellListId: selection.spellListId, spellcastingAbilityId: selection.spellcastingAbilityId, cantripIds: [...selection.cantripIds], preparedSpellIds: [selection.levelOneSpellId], alwaysPreparedSpellIds: [selection.levelOneSpellId], freeCastSpellId: selection.levelOneSpellId, freeCastMaximum: 1, freeCastCurrent: 1, freeCastRecharge: "long-rest" });
   }
+  if (choices.human?.originFeatId === "magic-initiate") {
+    const selection = choices.human.magicInitiate;
+    if (!selection) throw new Error("Human Versatile Magic Initiate requires spell choices.");
+    grants.push({ grantId: `species:human:versatile:magic-initiate:${selection.spellListId}`, sourceId: "feat:magic-initiate", spellListId: selection.spellListId, spellcastingAbilityId: selection.spellcastingAbilityId, cantripIds: [...selection.cantripIds], preparedSpellIds: [selection.levelOneSpellId], alwaysPreparedSpellIds: [selection.levelOneSpellId], freeCastSpellId: selection.levelOneSpellId, freeCastMaximum: 1, freeCastCurrent: 1, freeCastRecharge: "long-rest" });
+  }
   const classCasting: Dnd5eClassSpellcastingState[] = [];
   if (classId === "cleric") { if (!choices.cleric) throw new Error("Cleric requires class spellcasting choices."); classCasting.push(createLevelOneClericSpellcasting(choices.cleric)); }
   else if (classId === "druid") { if (!choices.druid) throw new Error("Druid requires class spellcasting choices."); classCasting.push(createLevelOneDruidSpellcasting(choices.druid)); }
