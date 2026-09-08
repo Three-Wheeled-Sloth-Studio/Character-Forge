@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge D&D 5E 2024 work from the automated-green full-class guided Level 1 checkpoint.
+Continue Character Forge D&D 5E 2024 work from the automated-green full SRD Level 1 class/background/species breadth checkpoint.
 
 Repository:
 
@@ -22,19 +22,19 @@ Current promoted Character Forge branch heads remain:
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Those branches include the accepted persistence seam and direct-choice/acceptable-pool visibility correction. The current broad generation batch remains **dev-only** pending explicit owner runtime acceptance.
+Those branches include the accepted persistence seam and direct-choice/acceptable-pool visibility correction. The broad generation batch remains **dev-only** pending explicit owner runtime acceptance.
 
 ## Current automated-green code checkpoint
 
-- code: `ede93e159a03beb51c077b4bd610a21d2bdaf56b`
-- Actions: `34125730424`
-- job: `101753835916`
-- **24 test files / 107 tests / 0 failures**
+- code: `e8a0b1e778299a7ce0f4b2e6bfe1432c7cdd35cb`
+- Actions: `34215046544`
+- job: `102024717908`
+- **25 test files / 114 tests / 0 failures**
 - refs / OKF green
 - strict TypeScript green
 - web build green
 - native schema `dnd5e-character/0.3`
-- adapter `0.13.0`
+- adapter `0.14.0`
 
 Read `refs/handoffs/currentHandoff.md` for detailed state and the owner QA checklist.
 
@@ -57,9 +57,9 @@ Classes **12 / 12**:
 
 Backgrounds **4 / 4**: Acolyte, Criminal, Sage, Soldier.
 
-Species **6 / 9**: Dragonborn, Dwarf, Goliath, Halfling, Human, Orc.
+Species **9 / 9**: Dragonborn, Dwarf, Elf, Gnome, Goliath, Halfling, Human, Orc, Tiefling.
 
-Remaining species: Elf, Gnome, Tiefling.
+The automated matrix now covers **108 class/species combinations** through one native-state boundary.
 
 ## Read first
 
@@ -78,11 +78,13 @@ Remaining species: Elf, Gnome, Tiefling.
 13. `refs/testing/validationCommands.yaml`
 14. GitHub issue #11
 
-Relevant code seams:
+Relevant code seams now include:
 
+- `packages/system-dnd5e/src/speciesCatalog.ts`
+- `packages/system-dnd5e/src/speciesState.ts`
+- `packages/system-dnd5e/src/speciesAdapterValidation.ts`
+- `packages/system-dnd5e/src/speciesGenerate.test.ts`
 - `packages/system-dnd5e/src/spellCatalog.ts`
-- `packages/system-dnd5e/src/clericCatalog.ts`
-- `packages/system-dnd5e/src/druidCatalog.ts`
 - `packages/system-dnd5e/src/preparedCasterCatalog.ts`
 - `packages/system-dnd5e/src/warlockCatalog.ts`
 - `packages/system-dnd5e/src/classSpellcasting.ts`
@@ -98,65 +100,59 @@ Relevant code seams:
 - `apps/web/src/guidedCreationPanel.ts`
 - `apps/web/src/main.ts`
 
-## Proven spellcasting distinctions
+## Spell-state distinctions to preserve
 
-`spells.grants[]` remains for independent sources such as Magic Initiate.
+- `spells.grants[]`: independent feat-style grants such as Magic Initiate.
+- `spells.speciesGrants[]`: species-owned magic and explicit future level-gated spell grants.
+- `spells.classCasting[]`: class-owned spellcasting, including ordinary standard-slot casters and Warlock Pact Magic with source-specific recharge semantics.
 
-Standard Long-Rest class slots remain distinct from Warlock Pact Magic.
+Do not flatten those into one generic spell bucket.
 
 Preserve these source-owned distinctions:
 
 - Druid `Speak with Animals` is always prepared through Druidic and excluded from ordinary prepared choices.
 - Ranger `Hunter's Mark` is always prepared through Favored Enemy and excluded from ordinary prepared choices.
 - Wizard owns six retained Level 1 spellbook spells; its four prepared spells must be a subset.
-- Bard owns three explicit musical instrument proficiencies/foci and Bardic Inspiration.
-- Paladin owns Lay on Hands and Weapon Mastery.
-- Ranger owns Favored Enemy and Weapon Mastery.
-- Sorcerer owns Innate Sorcery.
-- Wizard owns Arcane Recovery.
-- Warlock owns one Level 1 Pact Magic slot at Level 1, restored on Short or Long Rest.
-- Warlock chooses one genuinely Level-1-legal Eldritch Invocation; use-time choices are not frozen prematurely.
-- Pact of the Tome owns three cantrips and two Level 1 ritual spells, all of which must exclude spells already prepared through Pact Magic or Magic Initiate.
+- Warlock owns one Level 1 Pact Magic slot restored on Short or Long Rest.
+- Pact of the Tome owns three cantrips and two Level 1 rituals and excludes spells already prepared through Pact Magic, Magic Initiate, or species grants.
+- Elf/Gnome/Tiefling lineage/legacy magic retains source identity and future Level 3/5 grants without activating those future spells at Level 1.
 
-## Immediate gate: owner batch QA
+## Immediate gate: owner accumulated QA
 
 Do not promote before the requested accumulated runtime test.
 
 Recommended QA:
 
 1. confirm visible build badge/source SHA;
-2. confirm all 12 SRD classes appear in the direct Class picker regardless of old acceptable-pool state;
-3. build representative Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard characters and confirm `Native state valid`;
-4. verify Warlock one-slot Short/Long-Rest Pact Magic semantics;
-5. verify all five Level 1 Warlock Invocations and Pact-of-the-Tome-only nested choices;
-6. combine Warlock with Acolyte/Sage and verify Tome options exclude already-prepared Magic Initiate spells;
-7. verify Druid `Speak with Animals` separation;
-8. verify Ranger `Hunter's Mark` separation;
-9. verify Wizard six-spell spellbook -> four prepared subset behavior;
-10. exercise random-from-checked across several spell/invocation/Tome menus;
-11. exercise a non-Standard-Array method;
-12. save/reload/reopen representative new classes through Parchment;
+2. confirm all 12 classes and all 9 species appear in direct pickers regardless of old acceptable-pool state;
+3. build representative Bard, Druid, Paladin, Ranger, Sorcerer, Warlock, and Wizard characters and confirm `Native state valid`;
+4. verify Warlock one-slot Short/Long-Rest Pact Magic semantics and all five Level 1 Invocations;
+5. verify Pact of the Tome duplicate exclusion across class, feat, and species spell sources;
+6. verify Druid `Speak with Animals`, Ranger `Hunter's Mark`, and Wizard spellbook/prepared distinctions;
+7. exercise Drow, High Elf, and Wood Elf lineage state;
+8. exercise Forest and Rock Gnome lineage state;
+9. exercise Abyssal, Chthonic, and Infernal Tiefling legacies plus Small/Medium size;
+10. exercise random-from-checked across class, lineage/legacy, spell, invocation, and Tome menus;
+11. exercise a non-Standard-Array ability method;
+12. save/reload/reopen representative new class/species combinations through Parchment;
 13. retain sticky-pool/name/scrolling/equipment checks.
 
 ## Next substantive work after QA
 
-### Elf / Gnome / Tiefling
-
-This is now the largest remaining SRD Level 1 breadth seam. Audit the exact SRD 5.2.1 species text before implementation and model each species' lineage/legacy decision faithfully. Requirements:
-
-- explicit lineage/legacy selection where the source requires it;
-- Level 1 spell grants through native `spells.grants[]` where appropriate;
-- future level-gated grants retained as explicit future capability metadata rather than activated early;
-- source-owned spellcasting ability semantics;
-- sticky direct/random acceptable-pool behavior for source menus;
-- independent reopen/tamper validation;
-- do not broaden generic character state just to fit D&D lineage mechanics.
-
-Do not enable a species until all required Level 1 decisions are represented and validated.
-
 ### Human-selected Magic Initiate
 
-Human Versatile still needs a full general Origin-feat state/provenance path before Magic Initiate is enabled there. Unlike Acolyte/Sage, the Human path must support selection of the Cleric, Druid, or Wizard list as an explicit choice, plus casting ability and spell selections. Do not treat a background-fixed Magic Initiate grant as a substitute for this general feat contract.
+This is the remaining important SRD Level 1 breadth seam tracked by issue #11.
+
+Human Versatile needs a full general Origin-feat state/provenance path before Magic Initiate is enabled there. Unlike Acolyte/Sage, the Human path must support explicit selection of the Cleric, Druid, or Wizard list, casting ability, two cantrips, and one Level 1 spell while preserving the general feat source rather than pretending it came from a background.
+
+Requirements:
+
+- model a reusable general Origin-feat choice seam rather than a Human-only spell hack;
+- preserve source/provenance separately from feat-derived spell state;
+- avoid duplicating the selected background's fixed Origin feat;
+- keep direct menus fully visible and acceptable pools randomization-only;
+- independently validate reopen/tamper behavior;
+- do not silently select nested Magic Initiate choices.
 
 ### Later Level 1 product work
 
@@ -171,7 +167,7 @@ After catalog breadth and owner acceptance, reassess:
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
-- Independent grants, ordinary class spellcasting, and Pact Magic stay distinct where rules differ.
+- Independent feat grants, species grants, ordinary class spellcasting, and Pact Magic stay distinct where rules differ.
 - Direct menus show all supported options; acceptable pools constrain randomization only.
 - Sticky preferences are not authoritative state.
 - Do not silently invent nested choices to improve support counts.
