@@ -17,15 +17,18 @@ import {
 import {
   DND5E_SRD_521_BACKGROUND_OPTIONS,
   isGuidedDnd5eSpeciesId,
-  type GuidedDnd5eSpeciesId,
 } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
 type LegacyGuidedDnd5eBackgroundId = "criminal" | "soldier";
 type LegacyGuidedDnd5eClassId = "barbarian" | "fighter" | "monk" | "rogue";
+type LegacyGuidedDnd5eSpeciesId = "dwarf" | "halfling" | "human" | "orc";
 
 function isLegacyGuidedDnd5eClassId(value: string): value is LegacyGuidedDnd5eClassId {
   return value === "barbarian" || value === "fighter" || value === "monk" || value === "rogue";
+}
+function isLegacyGuidedDnd5eSpeciesId(value: string): value is LegacyGuidedDnd5eSpeciesId {
+  return value === "dwarf" || value === "halfling" || value === "human" || value === "orc";
 }
 
 function isJsonObject(value: unknown): value is JsonObject {
@@ -186,7 +189,7 @@ function validateLegacyFirstSliceRules(payload: JsonObject, issues: RulesValidat
 }
 
 const GUIDED_CLASS_HIT_DIE: Record<LegacyGuidedDnd5eClassId, number> = { barbarian: 12, fighter: 10, monk: 8, rogue: 8 };
-const GUIDED_SPECIES_SIZE: Record<GuidedDnd5eSpeciesId, "small" | "medium"> = { dragonborn: "medium", dwarf: "medium", goliath: "medium", halfling: "small", human: "medium", orc: "medium" };
+const GUIDED_SPECIES_SIZE: Record<LegacyGuidedDnd5eSpeciesId, "small" | "medium"> = { dwarf: "medium", halfling: "small", human: "medium", orc: "medium" };
 const GUIDED_BACKGROUND_EXPECTED: Record<LegacyGuidedDnd5eBackgroundId, { featId: string; skills: readonly string[]; toolId: string }> = {
   criminal: { featId: "alert", skills: ["sleight-of-hand", "stealth"], toolId: "thieves-tools" },
   soldier: { featId: "savage-attacker", skills: ["athletics", "intimidation"], toolId: "gaming-set:dice" },
@@ -210,8 +213,8 @@ function validateGuidedFirstSliceRules(payload: JsonObject, issues: RulesValidat
     pushError(issues, "dnd5e.guided.species", "Unsupported retained guided species.", "origin.speciesId");
     return;
   }
-  if (speciesId === "dragonborn" || speciesId === "goliath") {
-    pushError(issues, "dnd5e.guided.legacy-species", "This retained dnd5e-character/0.2 validator predates Dragonborn and Goliath guided support.", "origin.speciesId");
+  if (!isLegacyGuidedDnd5eSpeciesId(speciesId)) {
+    pushError(issues, "dnd5e.guided.legacy-species", "This retained dnd5e-character/0.2 validator predates later guided species support.", "origin.speciesId");
     return;
   }
   const backgroundExpected = GUIDED_BACKGROUND_EXPECTED[backgroundId];
