@@ -2,8 +2,9 @@ import { createCharacterDocument, createCharacterId, createNativeStateId, type C
 import { createLevelOneClericSpellcasting, createLevelOneDruidSpellcasting, createLevelOnePreparedCasterSpellcasting, createLevelOneWarlockPactMagic } from "./classSpellcasting.js";
 import { DND5E_DRAGONBORN_ANCESTRY_OPTIONS, DND5E_SKILL_OPTIONS, type GuidedDnd5eCoreChoices } from "./guidedChoices.js";
 import { assertGuidedDnd5eCoreChoices } from "./guidedCoreValidation.js";
-import { abilityModifier, type Dnd5eAbilityState, type Dnd5eClassSpellcastingState, type Dnd5eClassState, type Dnd5eEldritchInvocationState, type Dnd5eEquipmentEntry, type Dnd5eNativeCharacter, type Dnd5eOriginState, type Dnd5eResourcesState, type Dnd5eSpellGrantState, type Dnd5eSpellState } from "./nativeCharacter.js";
+import { abilityModifier, type Dnd5eAbilityState, type Dnd5eClassSpellcastingState, type Dnd5eClassState, type Dnd5eEldritchInvocationState, type Dnd5eEquipmentEntry, type Dnd5eNativeCharacter, type Dnd5eOriginState, type Dnd5eResourcesState, type Dnd5eSpeciesSpellGrantState, type Dnd5eSpellGrantState, type Dnd5eSpellState } from "./nativeCharacter.js";
 import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
+import { createGuidedDnd5eLineageSpeciesState } from "./speciesState.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
@@ -41,10 +42,13 @@ interface GuidedSpeciesProfile { size: "small" | "medium"; speedFeet: number; fe
 const SPECIES_PROFILES: Record<GuidedDnd5eSpeciesId, GuidedSpeciesProfile> = {
   dragonborn: { size: "medium", speedFeet: 30, featureIds: ["dragonborn:breath-weapon", "dragonborn:damage-resistance", "dragonborn:darkvision-60", "dragonborn:draconic-flight:level-5"], hitPointBonus: 0, resources: (pb) => ({ breathWeaponMaximum: pb, breathWeaponCurrent: pb }) },
   dwarf: { size: "medium", speedFeet: 30, featureIds: ["dwarf:darkvision-120", "dwarf:dwarven-resilience", "dwarf:dwarven-toughness", "dwarf:stonecunning"], hitPointBonus: 1, resources: (pb) => ({ stonecunningMaximum: pb, stonecunningCurrent: pb }) },
+  elf: { size: "medium", speedFeet: 30, featureIds: [], hitPointBonus: 0, resources: () => ({}) },
+  gnome: { size: "small", speedFeet: 30, featureIds: [], hitPointBonus: 0, resources: () => ({}) },
   goliath: { size: "medium", speedFeet: 35, featureIds: ["goliath:giant-ancestry", "goliath:large-form:level-5", "goliath:powerful-build"], hitPointBonus: 0, resources: (pb) => ({ giantAncestryMaximum: pb, giantAncestryCurrent: pb }) },
   halfling: { size: "small", speedFeet: 30, featureIds: ["halfling:brave", "halfling:nimbleness", "halfling:luck", "halfling:naturally-stealthy"], hitPointBonus: 0, resources: () => ({}) },
   human: { size: "medium", speedFeet: 30, featureIds: ["human:resourceful", "human:skillful", "human:versatile"], hitPointBonus: 0, resources: () => ({}) },
   orc: { size: "medium", speedFeet: 30, featureIds: ["orc:adrenaline-rush", "orc:darkvision-120", "orc:relentless-endurance"], hitPointBonus: 0, resources: (pb) => ({ adrenalineRushMaximum: pb, adrenalineRushCurrent: pb, relentlessEnduranceMaximum: 1, relentlessEnduranceCurrent: 1 }) },
+  tiefling: { size: "medium", speedFeet: 30, featureIds: [], hitPointBonus: 0, resources: () => ({}) },
 };
 
 export interface GuidedDnd5eFirstSliceInput { displayName: string; classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; backgroundEquipmentChoice: "A" | "B:50-gp"; coreChoices: GuidedDnd5eCoreChoices; abilities: Dnd5eAbilityState; generation: GenerationRecord; }
@@ -66,6 +70,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const backgroundProfile = BACKGROUND_PROFILES[input.backgroundId];
   const speciesProfile = SPECIES_PROFILES[input.speciesId];
   const proficiencyBonus = 2;
+  const lineageSpecies = createGuidedDnd5eLineageSpeciesState(input.speciesId, input.coreChoices, proficiencyBonus);
   const human = input.speciesId === "human" ? input.coreChoices.human : undefined;
   const cleric = input.classId === "cleric" ? input.coreChoices.cleric : undefined;
   const druid = input.classId === "druid" ? input.coreChoices.druid : undefined;
@@ -73,7 +78,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const dragonbornAncestryId = input.speciesId === "dragonborn" ? input.coreChoices.dragonbornAncestryId : undefined;
   const dragonbornAncestry = DND5E_DRAGONBORN_ANCESTRY_OPTIONS.find((o) => o.id === dragonbornAncestryId);
   const goliathAncestryId = input.speciesId === "goliath" ? input.coreChoices.goliathAncestryId : undefined;
-  const speciesSkillId = human?.skillId;
+  const speciesSkillId = human?.skillId ?? lineageSpecies.speciesSkillId;
   const speciesOriginFeatId = human?.originFeatId;
   const skilled = human?.originFeatId === "skilled" ? (human.skilledProficiencyIds ?? []) : [];
   const allSkills = new Set([...input.coreChoices.classSkillIds, ...backgroundProfile.skillProficiencies, ...(speciesSkillId ? [speciesSkillId] : []), ...skilled.filter((id) => DND5E_SKILL_OPTIONS.some((o) => o.id === id))]);
@@ -82,14 +87,21 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
   const passivePerception = 10 + abilityModifier(input.abilities.final.wisdom) + (allSkills.has("perception") ? proficiencyBonus : 0);
   const classEquipment = classEquipmentFor(input.classId, input.coreChoices);
   const armorClass = armorClassFor(input.classId, input.coreChoices.classEquipmentChoice, input.coreChoices.fightingStyleFeatId, input.abilities);
+  const lineageAncestryId = lineageSpecies.speciesAncestryId;
 
   const origin: Dnd5eOriginState = {
-    backgroundId: input.backgroundId, speciesId: input.speciesId, size: human?.size ?? speciesProfile.size, speedFeet: speciesProfile.speedFeet,
+    backgroundId: input.backgroundId, speciesId: input.speciesId,
+    size: human?.size ?? lineageSpecies.size ?? speciesProfile.size,
+    speedFeet: lineageSpecies.speedFeet ?? speciesProfile.speedFeet,
     languages: ["common", ...input.coreChoices.originLanguageIds], backgroundOriginFeatId: backgroundProfile.originFeatId,
     backgroundSkillProficiencies: [...backgroundProfile.skillProficiencies], ...(speciesOriginFeatId ? { speciesOriginFeatId } : {}),
     ...(skilled.length ? { speciesOriginFeatProficiencyIds: [...skilled] } : {}), ...(speciesSkillId ? { speciesSkillId } : {}),
     ...(dragonbornAncestryId ? { speciesAncestryId: dragonbornAncestryId } : {}), ...(dragonbornAncestry ? { speciesDamageType: dragonbornAncestry.damageType } : {}),
-    ...(goliathAncestryId ? { speciesAncestryId: goliathAncestryId } : {}), toolProficiencyId: backgroundProfile.toolProficiencyId,
+    ...(goliathAncestryId ? { speciesAncestryId: goliathAncestryId } : {}),
+    ...(!dragonbornAncestryId && !goliathAncestryId && lineageAncestryId ? { speciesAncestryId: lineageAncestryId } : {}),
+    ...(lineageSpecies.speciesResistanceDamageType ? { speciesResistanceDamageType: lineageSpecies.speciesResistanceDamageType } : {}),
+    ...(lineageSpecies.speciesDarkvisionFeet ? { speciesDarkvisionFeet: lineageSpecies.speciesDarkvisionFeet } : {}),
+    toolProficiencyId: backgroundProfile.toolProficiencyId,
     backgroundEquipmentChoice: input.backgroundEquipmentChoice,
   };
 
@@ -108,8 +120,8 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     ...training, ...(cleric ? clericOrderState(cleric.divineOrderId, input.abilities.final.wisdom) : {}), ...(druid ? druidOrderState(druid.primalOrderId, input.abilities.final.wisdom) : {}),
     weaponMasteryIds: [...input.coreChoices.weaponMasteryIds], classEquipmentChoice: input.coreChoices.classEquipmentChoice,
   };
-  const resources: Dnd5eResourcesState = { hitPointsMaximum: hitPoints, hitPointsCurrent: hitPoints, hitDiceTotal: 1, hitDiceSpent: 0, ...classResourcesFor(input.classId, input.abilities), ...speciesProfile.resources(proficiencyBonus) };
-  const spellState = spellStateFor(input.classId, input.backgroundId, input.coreChoices, classState.spellcastingFocusIds);
+  const resources: Dnd5eResourcesState = { hitPointsMaximum: hitPoints, hitPointsCurrent: hitPoints, hitDiceTotal: 1, hitDiceSpent: 0, ...classResourcesFor(input.classId, input.abilities), ...speciesProfile.resources(proficiencyBonus), ...lineageSpecies.resources };
+  const spellState = spellStateFor(input.classId, input.backgroundId, input.coreChoices, classState.spellcastingFocusIds, lineageSpecies.spellGrant);
   const backgroundEquipment = input.backgroundEquipmentChoice === "A" ? backgroundProfile.packageEquipment.map((entry) => ({ ...entry })) : [];
   const backgroundGold = input.backgroundEquipmentChoice === "A" ? backgroundProfile.packageGold : 50;
 
@@ -117,7 +129,7 @@ export function createGuidedDnd5eFirstSlicePayload(input: GuidedDnd5eFirstSliceI
     schemaVersion: "dnd5e-character/0.3", rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
     identity: { name: input.displayName, level: 1, experiencePoints: 0, alignment: input.coreChoices.alignmentId }, origin, abilities: input.abilities, class: classState,
     ...(spellState ? { spells: spellState } : {}),
-    featureIds: [...speciesProfile.featureIds, ...(dragonbornAncestryId ? [`dragonborn:draconic-ancestry:${dragonbornAncestryId}`] : []), ...(dragonbornAncestry ? [`dragonborn:damage-type:${dragonbornAncestry.damageType}`] : []), ...(goliathAncestryId ? [`goliath:giant-ancestry:${goliathAncestryId}`] : []), `feat:${backgroundProfile.originFeatId}`, ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []), ...classProfile.featureIds, ...(cleric ? [`cleric:divine-order:${cleric.divineOrderId}`] : []), ...(druid ? [`druid:primal-order:${druid.primalOrderId}`] : []), ...(warlock ? [`warlock:invocation:${warlock.invocationId}`] : []), ...(input.coreChoices.fightingStyleFeatId ? [`fighting-style:${input.coreChoices.fightingStyleFeatId}`] : [])],
+    featureIds: [...speciesProfile.featureIds, ...lineageSpecies.featureIds, ...(dragonbornAncestryId ? [`dragonborn:draconic-ancestry:${dragonbornAncestryId}`] : []), ...(dragonbornAncestry ? [`dragonborn:damage-type:${dragonbornAncestry.damageType}`] : []), ...(goliathAncestryId ? [`goliath:giant-ancestry:${goliathAncestryId}`] : []), `feat:${backgroundProfile.originFeatId}`, ...(speciesOriginFeatId ? [`feat:${speciesOriginFeatId}`] : []), ...classProfile.featureIds, ...(cleric ? [`cleric:divine-order:${cleric.divineOrderId}`] : []), ...(druid ? [`druid:primal-order:${druid.primalOrderId}`] : []), ...(warlock ? [`warlock:invocation:${warlock.invocationId}`] : []), ...(input.coreChoices.fightingStyleFeatId ? [`fighting-style:${input.coreChoices.fightingStyleFeatId}`] : [])],
     equipment: [...classEquipment.equipment, ...backgroundEquipment], currencyGp: classEquipment.gold + backgroundGold, resources,
     derived: { armorClass, initiativeModifier, passivePerception },
   };
@@ -152,7 +164,7 @@ function classResourcesFor(classId: GuidedDnd5eClassId, abilities: Dnd5eAbilityS
   if (classId === "wizard") return { arcaneRecoveryMaximum: 1, arcaneRecoveryCurrent: 1, arcaneRecoverySpellLevelBudget: 1 };
   return {};
 }
-function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices, focusIds?: readonly string[]): Dnd5eSpellState | undefined {
+function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, choices: GuidedDnd5eCoreChoices, focusIds?: readonly string[], speciesGrant?: Dnd5eSpeciesSpellGrantState): Dnd5eSpellState | undefined {
   const grants: Dnd5eSpellGrantState[] = [];
   if (backgroundId === "acolyte" || backgroundId === "sage") {
     const selection = choices.magicInitiate;
@@ -164,8 +176,8 @@ function spellStateFor(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBac
   else if (classId === "druid") { if (!choices.druid) throw new Error("Druid requires class spellcasting choices."); classCasting.push(createLevelOneDruidSpellcasting(choices.druid)); }
   else if (classId === "warlock") { if (!choices.preparedCaster) throw new Error("Warlock requires Pact Magic spell choices."); classCasting.push(createLevelOneWarlockPactMagic(choices.preparedCaster)); }
   else if (preparedCasterCatalog(classId)) { if (!choices.preparedCaster) throw new Error(`${classId} requires class spellcasting choices.`); classCasting.push(createLevelOnePreparedCasterSpellcasting(choices.preparedCaster, focusIds)); }
-  if (!grants.length && !classCasting.length) return undefined;
-  return { grants, ...(classCasting.length ? { classCasting } : {}) };
+  if (!grants.length && !classCasting.length && !speciesGrant) return undefined;
+  return { grants, ...(speciesGrant ? { speciesGrants: [speciesGrant] } : {}), ...(classCasting.length ? { classCasting } : {}) };
 }
 
 export function guidedBackgroundAbilityIds(backgroundId: GuidedDnd5eBackgroundId) {
