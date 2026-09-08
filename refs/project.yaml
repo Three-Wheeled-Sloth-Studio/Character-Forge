@@ -28,12 +28,12 @@ second_system:
   name: Basic Roleplaying Universal Game Engine
   status: selected
   selected_date: 2026-09-08
-  rules_boundary: 2023 Universal Game Engine under the ORC License, with the exact current errata boundary to be pinned by the first adapter implementation.
+  rules_boundary: 2023 Universal Game Engine under the ORC License, with the exact current errata boundary pinned by the first adapter implementation.
   rationale: Provides a strong contrast to D&D through percentile skills, profession-guided rather than class-bounded competence, open-ended skill specialties, modular optional rules and powers, use-driven advancement, and campaign-profile-dependent character construction.
   architecture_spike: refs/architecture/brp-second-system-premortem.md
   integration_boundary: refs/integration/brp-uge-orc.md
   tracking_issue: 13
-  guardrail: Do not incorporate Call of Cthulhu-specific protected content without a separate license.
+  guardrail: Keep call-of-cthulhu as a separately licensed future product target; do not incorporate Call of Cthulhu-specific protected content into the BRP UGE adapter.
 later_system_candidates:
   - forged-in-the-dark-family
   - fate-family
@@ -59,8 +59,8 @@ repository_layout:
   current_source_roots:
     - packages/character-model
     - packages/system-dnd5e
-  planned_source_roots:
     - packages/system-brp
+  planned_source_roots:
     - packages/generator-core
     - packages/semantic-model
     - packages/translator
