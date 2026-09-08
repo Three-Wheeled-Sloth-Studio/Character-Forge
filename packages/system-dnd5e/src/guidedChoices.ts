@@ -2,6 +2,7 @@ import type { Dnd5eSpellcastingAbilityId } from "./nativeCharacter.js";
 import type { Dnd5eClericDivineOrderId } from "./clericCatalog.js";
 import type { Dnd5eDruidPrimalOrderId } from "./druidCatalog.js";
 import type { Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
+import type { GuidedDnd5eElfChoices, GuidedDnd5eGnomeChoices, GuidedDnd5eTieflingChoices } from "./speciesCatalog.js";
 import type { Dnd5eSrdClassId, GuidedDnd5eClassId } from "./srdCatalog.js";
 import type { Dnd5eLevelOneEldritchInvocationId } from "./warlockCatalog.js";
 
@@ -53,6 +54,9 @@ export interface GuidedDnd5eCoreChoices {
   goliathAncestryId?: Dnd5eGoliathAncestryId | undefined;
   magicInitiate?: GuidedDnd5eMagicInitiateChoices;
   human?: GuidedDnd5eHumanChoices;
+  elf?: GuidedDnd5eElfChoices;
+  gnome?: GuidedDnd5eGnomeChoices;
+  tiefling?: GuidedDnd5eTieflingChoices;
 }
 
 export const DND5E_SPELLCASTING_ABILITY_OPTIONS = [
