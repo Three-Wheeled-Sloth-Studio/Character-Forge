@@ -16,11 +16,20 @@ import type {
   BrpDamageModifier,
   BrpDerivedState,
   BrpNativeCharacter,
+  BrpPowerLevel,
   BrpSkillSpecialty,
   BrpSkillState,
   BrpWealthLevel,
 } from "./nativeCharacter.js";
+import { resolveBrpPowerLevelProfile } from "./powerLevel.js";
 import { BRP_UGE_ORC_1_05_SOURCE } from "./rulesSource.js";
+
+export {
+  BRP_HEROIC_PROFESSIONAL_SKILL_POINTS,
+  BRP_HEROIC_STARTING_SKILL_CAP,
+  BRP_NORMAL_PROFESSIONAL_SKILL_POINTS,
+  BRP_NORMAL_STARTING_SKILL_CAP,
+} from "./powerLevel.js";
 
 export interface BrpSkillAllocationInput {
   skillKey: BrpFirstSliceSkillKey;
@@ -34,6 +43,8 @@ export interface BrpFirstSliceBaseInput {
   age: number;
   gender: string;
   wealth: BrpWealthLevel;
+  powerLevel?: BrpPowerLevel;
+  defaultStartingAge?: number;
   detectiveElectiveSkillKeys: BrpDetectiveElectiveSkillKey[];
   professionalAllocations: BrpSkillAllocationInput[];
   personalAllocations: BrpSkillAllocationInput[];
@@ -120,9 +131,6 @@ export const BRP_DETECTIVE_ELECTIVE_SKILL_KEYS = [
 
 export type BrpDetectiveElectiveSkillKey = (typeof BRP_DETECTIVE_ELECTIVE_SKILL_KEYS)[number];
 
-export const BRP_NORMAL_PROFESSIONAL_SKILL_POINTS = 250;
-export const BRP_NORMAL_STARTING_SKILL_CAP = 75;
-
 export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): CharacterDocument {
   validateCharacteristics(input.characteristics);
   return buildBrpFirstSliceCharacterFromConstruction(input, {
@@ -157,6 +165,13 @@ function buildBrpFirstSliceCharacterFromConstruction(
   validateIdentity(input);
   validateDetectiveElectives(input.detectiveElectiveSkillKeys);
 
+  const powerProfile = resolveBrpPowerLevelProfile(
+    input.powerLevel ?? "normal",
+    input.age,
+    input.defaultStartingAge,
+  );
+  const powerLevelLabel = powerProfile.powerLevel === "heroic" ? "Heroic" : "Normal";
+
   const professional = allocationMap(input.professionalAllocations, "professional");
   const personal = allocationMap(input.personalAllocations, "personal");
   const allowedProfessionalSkills = new Set<BrpFirstSliceSkillKey>([
@@ -171,8 +186,10 @@ function buildBrpFirstSliceCharacterFromConstruction(
   }
 
   const professionalSpent = sumAllocations(professional);
-  if (professionalSpent !== BRP_NORMAL_PROFESSIONAL_SKILL_POINTS) {
-    throw new Error(`Normal BRP characters must allocate exactly ${BRP_NORMAL_PROFESSIONAL_SKILL_POINTS} professional skill points.`);
+  if (professionalSpent !== powerProfile.professionalSkillPoints) {
+    throw new Error(
+      `${powerLevelLabel} BRP characters must allocate exactly ${powerProfile.professionalSkillPoints} professional skill points for the retained age profile.`,
+    );
   }
 
   const personalTotal = construction.values.INT * 10;
@@ -186,14 +203,20 @@ function buildBrpFirstSliceCharacterFromConstruction(
     ...personal.keys(),
   ])].sort();
 
-  const skills = allSkillKeys.map((skillKey) => buildSkillState(skillKey, professional, personal));
+  const skills = allSkillKeys.map((skillKey) => buildSkillState(
+    skillKey,
+    professional,
+    personal,
+    powerProfile.startingSkillCap,
+    powerLevelLabel,
+  ));
   const derived = calculateBrpDerivedState(construction.values);
 
   const nativeCharacter: BrpNativeCharacter = {
     schemaVersion: "brp-character/0.1",
     rulesSourceIds: [BRP_UGE_ORC_1_05_SOURCE.id],
     rulesProfile: {
-      powerLevel: "normal",
+      powerLevel: powerProfile.powerLevel,
       characteristicGeneration: construction.method,
       enabledOptions: [],
       enabledPowerSystems: [],
@@ -206,6 +229,7 @@ function buildBrpFirstSliceCharacterFromConstruction(
         wealth: input.wealth,
         selectedElectiveSkillIds: [...input.detectiveElectiveSkillKeys],
       },
+      ...(powerProfile.ageBasis ? { ageBasis: powerProfile.ageBasis } : {}),
     },
     characteristics: construction.state,
     characteristicGenerationState: construction.generationState,
@@ -220,7 +244,7 @@ function buildBrpFirstSliceCharacterFromConstruction(
     derived,
     skillBudgets: {
       professional: {
-        total: BRP_NORMAL_PROFESSIONAL_SKILL_POINTS,
+        total: powerProfile.professionalSkillPoints,
         spent: professionalSpent,
       },
       personal: {
@@ -242,9 +266,7 @@ function buildBrpFirstSliceCharacterFromConstruction(
     provenance: {
       origin: "generated",
       sourceId: BRP_UGE_ORC_1_05_SOURCE.id,
-      notes: construction.method === "standard-rolled"
-        ? "BRP UGE first-slice standard rolled-characteristics builder"
-        : "BRP UGE first-slice explicit-characteristics builder",
+      notes: `BRP UGE first-slice ${powerProfile.powerLevel} ${construction.method} characteristics builder`,
     },
   };
 
@@ -256,19 +278,27 @@ function buildBrpFirstSliceCharacterFromConstruction(
     generation: {
       methodId: construction.methodId,
       mode: construction.generationMode,
-      recipeVersion: "brp-uge-first-slice/0.2",
+      recipeVersion: "brp-uge-first-slice/0.3",
       ...(construction.seed ? { seed: construction.seed } : {}),
       rulesSourceIds: [BRP_UGE_ORC_1_05_SOURCE.id],
       recipe: {
-        powerLevel: "normal",
+        powerLevel: powerProfile.powerLevel,
         characteristicGeneration: construction.method,
         professionId: "detective",
         enabledOptions: [],
         enabledPowerSystems: [],
+        ...(powerProfile.ageBasis ? { ageBasis: powerProfile.ageBasis } : {}),
       },
       decisions: [
+        { stepId: "rules.power-level", choiceId: powerProfile.powerLevel },
         { stepId: "identity.profession", choiceId: "detective" },
         { stepId: "identity.wealth", choiceId: input.wealth },
+        ...(powerProfile.ageBasis
+          ? [
+            { stepId: "identity.default-starting-age", answer: powerProfile.ageBasis.defaultStartingAge },
+            { stepId: "identity.age-professional-adjustment", answer: powerProfile.ageBasis.professionalSkillPointAdjustment },
+          ]
+          : []),
         { stepId: "characteristics.method", choiceId: construction.method },
         ...(construction.method === "standard-rolled"
           ? [{
@@ -310,6 +340,8 @@ function buildSkillState(
   skillKey: BrpFirstSliceSkillKey,
   professional: ReadonlyMap<BrpFirstSliceSkillKey, number>,
   personal: ReadonlyMap<BrpFirstSliceSkillKey, number>,
+  startingSkillCap: number,
+  powerLevelLabel: string,
 ): BrpSkillState {
   const definition = BRP_FIRST_SLICE_SKILL_CATALOG[skillKey];
   const professionalPoints = professional.get(skillKey) ?? 0;
@@ -317,11 +349,13 @@ function buildSkillState(
   const professionalRating = definition.baseChance + professionalPoints;
   const finalRating = professionalRating + personalPoints;
 
-  if (professionalRating > BRP_NORMAL_STARTING_SKILL_CAP) {
-    throw new Error(`Professional allocation raises ${skillKey} above the Normal starting cap of ${BRP_NORMAL_STARTING_SKILL_CAP}%.`);
+  if (professionalRating > startingSkillCap) {
+    throw new Error(
+      `Professional allocation raises ${skillKey} above the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
+    );
   }
-  if (finalRating > BRP_NORMAL_STARTING_SKILL_CAP) {
-    throw new Error(`Starting skill ${skillKey} exceeds the Normal cap of ${BRP_NORMAL_STARTING_SKILL_CAP}%.`);
+  if (finalRating > startingSkillCap) {
+    throw new Error(`Starting skill ${skillKey} exceeds the ${powerLevelLabel} cap of ${startingSkillCap}%.`);
   }
 
   return {
@@ -357,7 +391,7 @@ function validateIdentity(input: BrpFirstSliceBaseInput): void {
     throw new Error("BRP first-slice gender must be non-empty.");
   }
   if (!Number.isInteger(input.age) || input.age < 18 || input.age > 49) {
-    throw new Error("BRP first-slice age must be an integer from 18 through 49 so age adjustments remain out of scope.");
+    throw new Error("BRP first-slice age must be an integer from 18 through 49 so age-50+ characteristic adjustments remain out of scope.");
   }
 }
 
