@@ -1,8 +1,9 @@
 import type { JsonObject } from "../../character-model/src/index.js";
 
 export type BrpPowerLevel = "normal";
-export type BrpCharacteristicGeneration = "explicit";
+export type BrpCharacteristicGeneration = "explicit" | "standard-rolled";
 export type BrpWealthLevel = "average" | "affluent";
+export type BrpCharacteristicId = "STR" | "CON" | "SIZ" | "INT" | "POW" | "DEX" | "CHA";
 
 export interface BrpRulesProfile extends JsonObject {
   powerLevel: BrpPowerLevel;
@@ -31,6 +32,44 @@ export interface BrpCharacteristics extends JsonObject {
   DEX: BrpCharacteristicState;
   CHA: BrpCharacteristicState;
 }
+
+export interface BrpCharacteristicDiceRoll extends JsonObject {
+  notation: string;
+  rolls: number[];
+  modifier: number;
+  total: number;
+}
+
+export interface BrpCharacteristicDiceRollSet extends JsonObject {
+  STR: BrpCharacteristicDiceRoll;
+  CON: BrpCharacteristicDiceRoll;
+  SIZ: BrpCharacteristicDiceRoll;
+  INT: BrpCharacteristicDiceRoll;
+  POW: BrpCharacteristicDiceRoll;
+  DEX: BrpCharacteristicDiceRoll;
+  CHA: BrpCharacteristicDiceRoll;
+}
+
+export interface BrpCharacteristicRedistributionTransfer extends JsonObject {
+  from: BrpCharacteristicId;
+  to: BrpCharacteristicId;
+  points: number;
+}
+
+export interface BrpExplicitCharacteristicGenerationState extends JsonObject {
+  method: "explicit";
+}
+
+export interface BrpStandardRolledCharacteristicGenerationState extends JsonObject {
+  method: "standard-rolled";
+  seed: string;
+  rolls: BrpCharacteristicDiceRollSet;
+  redistribution: BrpCharacteristicRedistributionTransfer[];
+}
+
+export type BrpCharacteristicGenerationState =
+  | BrpExplicitCharacteristicGenerationState
+  | BrpStandardRolledCharacteristicGenerationState;
 
 export interface BrpCharacteristicRolls extends JsonObject {
   effort: number;
@@ -99,6 +138,7 @@ export interface BrpNativeCharacter extends JsonObject {
   rulesProfile: BrpRulesProfile;
   identity: BrpIdentityState;
   characteristics: BrpCharacteristics;
+  characteristicGenerationState: BrpCharacteristicGenerationState;
   characteristicRolls: BrpCharacteristicRolls;
   derived: BrpDerivedState;
   skillBudgets: BrpSkillBudgets;
