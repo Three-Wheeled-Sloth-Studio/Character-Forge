@@ -130,21 +130,30 @@ roadmap:
       - Heroic explicit and Heroic standard-rolled characters both remain brp-character/0.1 and non-powered.
       - Adapter 0.3.0 independently validates profile-derived budget/cap, Heroic starting-age provenance, full-decade age adjustments, and profile/age tampering.
       - Automated-green Heroic checkpoint a780f82378e1477d77cf1076cc769491dcb3043d, Actions 34237331940, job 102098319676, 28 test files / 136 tests / 0 failures, 19 BRP tests.
+      - Detective and Scholar now share one profession-aware construction and validation pipeline rather than separate builders or native schemas.
+      - Scholar retains five fixed professional skills plus exactly five open Knowledge or Science specialty identities without freezing an academic subject catalog.
+      - Multiple Knowledge or Science specialties under the same parent are supported while duplicate parent-plus-specialty identity is rejected.
+      - Professional allocation is validated against the exact retained Scholar academic choices while personal learning remains profession-independent.
+      - Scholar works across Normal/Heroic and explicit/standard-rolled generation without changing brp-character/0.1.
+      - Scholar exposed and corrected an identity collision between Language (Own) and Language (Other) by retaining them as distinct BRP source skill variants; named-language identity remains a deliberate follow-on seam.
+      - Adapter 0.4.0 independently validates Scholar profession shape, specialty identity, exact professional eligibility, source bases, budget/cap, and specialty-choice tampering.
+      - Automated-green Scholar checkpoint 96846485016c4b3082217db8de0b11a143d9e9e2, Actions 34254069939, job 102155313610, 29 test files / 145 tests / 0 failures, 28 BRP tests including 9 Scholar tests.
     current_slice:
-      - Treat Heroic as evidence that retained rules-profile context is operational native state, not decorative metadata.
-      - Add Scholar as the second profession architecture probe rather than ingesting the profession catalog broadly.
-      - Refactor the Detective-specific profession seam only far enough to support multiple profession choice shapes through the same construction pipeline.
-      - Model Scholar's five fixed skills plus five open Knowledge or Science specialties without freezing a universal specialty catalog.
-      - Allow repeated parent skill identities with distinct specialties while rejecting duplicate parent+specialty identity.
-      - Preserve Normal/Heroic and explicit/standard-rolled matrix behavior unchanged.
-      - Keep BRP creator UI deferred until the profession seam is stable enough to expose source-faithfully.
+      - Treat Scholar as evidence that BRP professions can own different choice grammars while converging on one native ontology.
+      - Close the named-language identity seam exposed by Scholar before exposing BRP creator UI.
+      - Retain open language ID/label plus Own versus Other source role rather than relying on generic placeholder language skills.
+      - Preserve Language (Own) INT x 5 and Language (Other) 0% source semantics in the current EDU-disabled profile.
+      - Tie Scholar professional eligibility to the exact retained Own and Other language identities and validate them independently.
+      - Preserve the full Detective/Scholar x Normal/Heroic x explicit/standard-rolled matrix unchanged.
+      - Reassess BRP creator UI immediately after the language identity closure instead of expanding backend catalog breadth by default.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter; branded Call of Cthulhu remains a separately licensed future product target.
       - Preserve BRP rules-profile context natively rather than inferring optional rules from final numbers.
       - Preserve character-specific age context when it changes construction legality.
       - Profession is not class; do not promote a universal class concept.
       - Preserve skill base chance, allocation contributions, and final rating separately when causality matters.
-      - Keep specialties open-ended and source-owned rather than freezing a universal enum.
+      - Keep specialties and language identities open-ended and source-owned rather than freezing universal enums.
+      - Preserve source skill variant/role when parent identity alone is insufficient.
       - Do not model BRP powers through D&D spell-state structures.
       - Keep generation method provenance separate from runtime ontology unless source rules prove otherwise.
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
