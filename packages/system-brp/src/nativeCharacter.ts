@@ -4,6 +4,7 @@ export type BrpPowerLevel = "normal" | "heroic";
 export type BrpCharacteristicGeneration = "explicit" | "standard-rolled";
 export type BrpWealthLevel = "average" | "affluent";
 export type BrpCharacteristicId = "STR" | "CON" | "SIZ" | "INT" | "POW" | "DEX" | "CHA";
+export type BrpProfessionId = "detective" | "scholar";
 
 export interface BrpRulesProfile extends JsonObject {
   powerLevel: BrpPowerLevel;
@@ -96,6 +97,11 @@ export interface BrpSkillSpecialty extends JsonObject {
   label: string;
 }
 
+export interface BrpAcademicSkillSelection extends JsonObject {
+  skillId: "knowledge" | "science";
+  specialty: BrpSkillSpecialty;
+}
+
 export interface BrpSkillContributions extends JsonObject {
   professional: number;
   personal: number;
@@ -120,11 +126,19 @@ export interface BrpSkillBudgets extends JsonObject {
   personal: BrpSkillBudget;
 }
 
-export interface BrpProfessionState extends JsonObject {
+export interface BrpDetectiveProfessionState extends JsonObject {
   professionId: "detective";
   wealth: BrpWealthLevel;
   selectedElectiveSkillIds: string[];
 }
+
+export interface BrpScholarProfessionState extends JsonObject {
+  professionId: "scholar";
+  wealth: BrpWealthLevel;
+  selectedAcademicSkills: BrpAcademicSkillSelection[];
+}
+
+export type BrpProfessionState = BrpDetectiveProfessionState | BrpScholarProfessionState;
 
 export interface BrpAgeBasisState extends JsonObject {
   method: "default-starting-age";
