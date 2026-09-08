@@ -2,15 +2,19 @@ import type { NativeSystemState, RulesSystemAdapter } from "../../character-mode
 import { dnd5eSrd521Adapter as legacyAdapter } from "./adapterLegacy.js";
 import { validateGuidedCoreNativeState } from "./guidedAdapterValidation.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
+import { validateGuidedDnd5eLineageSpeciesNativeState } from "./speciesAdapterValidation.js";
 
 export const dnd5eSrd521Adapter: RulesSystemAdapter = {
   adapterId: "character-forge:dnd5e-2024",
-  adapterVersion: "0.13.0",
+  adapterVersion: "0.14.0",
   systemId: "dnd5e",
   editionId: "2024",
   supportedRulesSources: [DND5E_SRD_5_2_1_SOURCE],
   validateNativeState(state: NativeSystemState) {
     if (state.schemaVersion === "dnd5e-character/0.1" || state.schemaVersion === "dnd5e-character/0.2") return legacyAdapter.validateNativeState(state);
-    return validateGuidedCoreNativeState(state);
+    const core = validateGuidedCoreNativeState(state);
+    const species = validateGuidedDnd5eLineageSpeciesNativeState(state);
+    const issues = [...core.issues, ...species.issues];
+    return { valid: !issues.some((issue) => issue.severity === "error"), issues };
   },
 };
