@@ -5,11 +5,15 @@ import {
   buildBrpFirstSliceCharacter,
   buildBrpStandardRolledFirstSliceCharacter,
   type BrpAcademicSkillSelection,
+  type BrpLanguageIdentity,
   type BrpNativeCharacter,
   type BrpScholarFirstSliceInput,
   type BrpScholarStandardRolledFirstSliceInput,
   type BrpSkillAllocationInput,
 } from "./index.js";
+
+const OWN_LANGUAGE: BrpLanguageIdentity = { id: "english", label: "English" };
+const OTHER_LANGUAGE: BrpLanguageIdentity = { id: "latin", label: "Latin" };
 
 const ACADEMIC_SKILLS: BrpAcademicSkillSelection[] = [
   { skillId: "knowledge", specialty: { id: "history", label: "History" } },
@@ -31,10 +35,22 @@ function academicAllocation(
   };
 }
 
+function languageAllocation(
+  role: "own" | "other",
+  id: string,
+  label: string,
+  points: number,
+): BrpSkillAllocationInput {
+  return {
+    language: { role, language: { id, label } },
+    points,
+  };
+}
+
 function normalProfessionalAllocations(): BrpSkillAllocationInput[] {
   return [
-    { skillKey: "language:other", points: 20 },
-    { skillKey: "language:own", points: 5 },
+    languageAllocation("other", OTHER_LANGUAGE.id, OTHER_LANGUAGE.label, 20),
+    languageAllocation("own", OWN_LANGUAGE.id, OWN_LANGUAGE.label, 5),
     { skillKey: "persuade", points: 20 },
     { skillKey: "research", points: 25 },
     { skillKey: "teach", points: 20 },
@@ -48,8 +64,8 @@ function normalProfessionalAllocations(): BrpSkillAllocationInput[] {
 
 function heroicProfessionalAllocations(): BrpSkillAllocationInput[] {
   return [
-    { skillKey: "language:other", points: 30 },
-    { skillKey: "language:own", points: 10 },
+    languageAllocation("other", OTHER_LANGUAGE.id, OTHER_LANGUAGE.label, 30),
+    languageAllocation("own", OWN_LANGUAGE.id, OWN_LANGUAGE.label, 10),
     { skillKey: "persuade", points: 30 },
     { skillKey: "research", points: 55 },
     { skillKey: "teach", points: 30 },
@@ -80,6 +96,8 @@ function normalExplicitInput(): BrpScholarFirstSliceInput {
     gender: "woman",
     wealth: "average",
     professionId: "scholar",
+    scholarOwnLanguage: { ...OWN_LANGUAGE },
+    scholarOtherLanguage: { ...OTHER_LANGUAGE },
     characteristics: {
       STR: 12,
       CON: 12,
@@ -104,6 +122,8 @@ function normalRolledInput(): BrpScholarStandardRolledFirstSliceInput {
     gender: "nonbinary",
     wealth: "average",
     professionId: "scholar",
+    scholarOwnLanguage: { ...OWN_LANGUAGE },
+    scholarOtherLanguage: { ...OTHER_LANGUAGE },
     seed: "brp-standard-roll-test",
     redistribution: [
       { from: "SIZ", to: "INT", points: 2 },
@@ -180,17 +200,25 @@ describe("BRP UGE Scholar profession", () => {
     expect(native.identity.profession).toEqual({
       professionId: "scholar",
       wealth: "average",
+      ownLanguage: OWN_LANGUAGE,
+      otherLanguage: OTHER_LANGUAGE,
       selectedAcademicSkills: ACADEMIC_SKILLS,
     });
     const history = native.skills.find((skill) => skill.skillId === "knowledge" && skill.specialty?.id === "history");
     const linguistics = native.skills.find((skill) => skill.skillId === "knowledge" && skill.specialty?.id === "linguistics");
     const biology = native.skills.find((skill) => skill.skillId === "science" && skill.specialty?.id === "biology");
-    const languageOwn = native.skills.find((skill) => skill.label === "Language (Own)");
+    const languageOwn = native.skills.find((skill) => skill.skillId === "language-own");
 
     expect(history).toMatchObject({ baseChance: 5, contributions: { professional: 35, personal: 25 }, finalRating: 65 });
     expect(linguistics).toMatchObject({ baseChance: 5, contributions: { professional: 30, personal: 0 }, finalRating: 35 });
     expect(biology).toMatchObject({ baseChance: 1, contributions: { professional: 35, personal: 0 }, finalRating: 36 });
-    expect(languageOwn).toMatchObject({ baseChance: 65, contributions: { professional: 5, personal: 0 }, finalRating: 70 });
+    expect(languageOwn).toMatchObject({
+      label: "Language (Own)",
+      specialty: OWN_LANGUAGE,
+      baseChance: 65,
+      contributions: { professional: 5, personal: 0 },
+      finalRating: 70,
+    });
   });
 
   it("rejects duplicate parent plus specialty identity while allowing the same parent with different specialties", () => {
@@ -257,17 +285,21 @@ describe("BRP UGE Scholar profession", () => {
     expect(validation.issues.map((issue) => issue.code)).toContain("brp.skills.profession");
   });
 
-  it("round-trips Scholar specialty identities and generation provenance without reconstruction", () => {
+  it("round-trips Scholar specialty and language identities with generation provenance", () => {
     const document = buildBrpFirstSliceCharacter(normalExplicitInput());
     const parsed = parseCharacterDocument(JSON.parse(JSON.stringify(document)));
-    const decision = parsed?.generation?.decisions.find((entry) => entry.stepId === "identity.profession-academic-skills");
+    const academicDecision = parsed?.generation?.decisions.find((entry) => entry.stepId === "identity.profession-academic-skills");
+    const ownLanguageDecision = parsed?.generation?.decisions.find((entry) => entry.stepId === "identity.language-own");
+    const otherLanguageDecision = parsed?.generation?.decisions.find((entry) => entry.stepId === "identity.language-other");
 
     expect(parsed).toEqual(document);
     expect(parsed?.nativeStates[0].payload).toEqual(document.nativeStates[0].payload);
     expect(parsed?.generation).toMatchObject({
-      recipeVersion: "brp-uge-first-slice/0.4",
+      recipeVersion: "brp-uge-first-slice/0.5",
       recipe: { professionId: "scholar" },
     });
-    expect(decision?.answer).toEqual(ACADEMIC_SKILLS);
+    expect(academicDecision?.answer).toEqual(ACADEMIC_SKILLS);
+    expect(ownLanguageDecision?.answer).toEqual(OWN_LANGUAGE);
+    expect(otherLanguageDecision?.answer).toEqual(OTHER_LANGUAGE);
   });
 });

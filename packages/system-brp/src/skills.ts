@@ -1,6 +1,8 @@
 import type {
   BrpAcademicSkillSelection,
   BrpCharacteristicValues,
+  BrpLanguageIdentity,
+  BrpLanguageSkillSelection,
   BrpSkillSpecialty,
 } from "./nativeCharacter.js";
 
@@ -49,8 +51,6 @@ export const BRP_FIRST_SLICE_SKILL_CATALOG = {
   stealth: { skillId: "stealth", label: "Stealth", baseChance: 10, specialty: null },
   track: { skillId: "track", label: "Track", baseChance: 10, specialty: null },
   "first-aid": { skillId: "first-aid", label: "First Aid", baseChance: 30, specialty: null },
-  "language:other": { skillId: "language-other", label: "Language (Other)", baseChance: 0, specialty: null },
-  "language:own": { skillId: "language-own", label: "Language (Own)", baseChance: "int-x5", specialty: null },
   teach: { skillId: "teach", label: "Teach", baseChance: 10, specialty: null },
 } as const satisfies Record<string, BrpStaticSkillDefinitionTemplate>;
 
@@ -60,15 +60,27 @@ export interface BrpStaticSkillAllocationInput {
   skillKey: BrpFirstSliceSkillKey;
   points: number;
   skill?: never;
+  language?: never;
 }
 
 export interface BrpAcademicSkillAllocationInput {
   skill: BrpAcademicSkillSelection;
   points: number;
   skillKey?: never;
+  language?: never;
 }
 
-export type BrpSkillAllocationInput = BrpStaticSkillAllocationInput | BrpAcademicSkillAllocationInput;
+export interface BrpLanguageSkillAllocationInput {
+  language: BrpLanguageSkillSelection;
+  points: number;
+  skillKey?: never;
+  skill?: never;
+}
+
+export type BrpSkillAllocationInput =
+  | BrpStaticSkillAllocationInput
+  | BrpAcademicSkillAllocationInput
+  | BrpLanguageSkillAllocationInput;
 
 export function brpSkillIdentityKey(skillId: string, specialty: BrpSkillSpecialty | null): string {
   return JSON.stringify([skillId, specialty?.id ?? null]);
@@ -108,12 +120,32 @@ export function resolveBrpAcademicSkillDefinition(
   };
 }
 
+export function resolveBrpLanguageSkillDefinition(
+  selection: BrpLanguageSkillSelection,
+  characteristics: BrpCharacteristicValues,
+): BrpResolvedSkillDefinition {
+  const normalized = normalizeBrpLanguageSkillSelection(selection);
+  const skillId = normalized.role === "own" ? "language-own" : "language-other";
+  const label = normalized.role === "own" ? "Language (Own)" : "Language (Other)";
+  const specialty = { ...normalized.language };
+  return {
+    key: brpSkillIdentityKey(skillId, specialty),
+    skillId,
+    label,
+    baseChance: normalized.role === "own" ? characteristics.INT * 5 : 0,
+    specialty,
+  };
+}
+
 export function resolveBrpAllocationSkillDefinition(
   allocation: BrpSkillAllocationInput,
   characteristics: BrpCharacteristicValues,
 ): BrpResolvedSkillDefinition {
   if ("skillKey" in allocation && allocation.skillKey !== undefined) {
     return resolveBrpStaticSkillDefinition(allocation.skillKey, characteristics);
+  }
+  if ("language" in allocation && allocation.language !== undefined) {
+    return resolveBrpLanguageSkillDefinition(allocation.language, characteristics);
   }
   return resolveBrpAcademicSkillDefinition(normalizeBrpAcademicSkillSelection(allocation.skill));
 }
@@ -135,6 +167,16 @@ export function identifyBrpSkillDefinition(
       && specialty.label === candidate.specialty.label) {
       return candidate;
     }
+  }
+
+  if ((skillId === "language-own" || skillId === "language-other") && isSpecialty(specialty)) {
+    const id = specialty.id.trim();
+    const label = specialty.label.trim();
+    if (!id || !label) return null;
+    return resolveBrpLanguageSkillDefinition({
+      role: skillId === "language-own" ? "own" : "other",
+      language: { id, label },
+    }, characteristics);
   }
 
   if ((skillId === "knowledge" || skillId === "science") && isSpecialty(specialty)) {
@@ -162,6 +204,27 @@ export function normalizeBrpAcademicSkillSelection(value: BrpAcademicSkillSelect
   return {
     skillId: value.skillId,
     specialty: { id, label },
+  };
+}
+
+export function normalizeBrpLanguageIdentity(value: BrpLanguageIdentity): BrpLanguageIdentity {
+  const id = value?.id?.trim();
+  const label = value?.label?.trim();
+  if (!id || !label) {
+    throw new Error("BRP language identities must retain non-empty IDs and labels.");
+  }
+  return { id, label };
+}
+
+export function normalizeBrpLanguageSkillSelection(
+  value: BrpLanguageSkillSelection,
+): BrpLanguageSkillSelection {
+  if (value.role !== "own" && value.role !== "other") {
+    throw new Error("BRP language skills must retain an Own or Other source role.");
+  }
+  return {
+    role: value.role,
+    language: normalizeBrpLanguageIdentity(value.language),
   };
 }
 

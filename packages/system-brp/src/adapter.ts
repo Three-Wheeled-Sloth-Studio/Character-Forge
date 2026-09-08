@@ -44,6 +44,7 @@ import {
   brpSkillIdentityKey,
   identifyBrpSkillDefinition,
   resolveBrpAcademicSkillDefinition,
+  resolveBrpLanguageSkillDefinition,
   resolveBrpStaticSkillDefinition,
   type BrpResolvedSkillDefinition,
 } from "./skills.js";
@@ -67,7 +68,7 @@ interface ValidatedIdentity {
 
 export const brpUge105Adapter: RulesSystemAdapter = {
   adapterId: "brp-uge",
-  adapterVersion: "0.4.0",
+  adapterVersion: "0.5.0",
   systemId: "brp",
   editionId: "uge-2023",
   supportedRulesSources: [BRP_UGE_ORC_1_05_SOURCE],
@@ -417,10 +418,47 @@ function validateProfession(
       return null;
     }
 
+    const ownLanguage = validateLanguageIdentity(
+      value.ownLanguage,
+      "own",
+      "payload.identity.profession.ownLanguage",
+      issues,
+    );
+    const otherLanguage = validateLanguageIdentity(
+      value.otherLanguage,
+      "other",
+      "payload.identity.profession.otherLanguage",
+      issues,
+    );
+    let validLanguageSelections = ownLanguage !== null && otherLanguage !== null;
+    if (ownLanguage && otherLanguage && ownLanguage.id === otherLanguage.id) {
+      error(
+        issues,
+        "brp.profession.language-conflict",
+        "Scholar Own and Other language identities must be different languages.",
+        "payload.identity.profession",
+      );
+      validLanguageSelections = false;
+    }
+
     const allowedProfessionalSkills = new Map<string, BrpResolvedSkillDefinition>();
     if (characteristics) {
       for (const skillKey of BRP_SCHOLAR_FIXED_SKILL_KEYS) {
         const definition = resolveBrpStaticSkillDefinition(skillKey, characteristics);
+        allowedProfessionalSkills.set(definition.key, definition);
+      }
+      if (ownLanguage) {
+        const definition = resolveBrpLanguageSkillDefinition({
+          role: "own",
+          language: ownLanguage,
+        }, characteristics);
+        allowedProfessionalSkills.set(definition.key, definition);
+      }
+      if (otherLanguage) {
+        const definition = resolveBrpLanguageSkillDefinition({
+          role: "other",
+          language: otherLanguage,
+        }, characteristics);
         allowedProfessionalSkills.set(definition.key, definition);
       }
     }
@@ -471,7 +509,7 @@ function validateProfession(
       }
     }
 
-    if (!validAcademicSelections) return null;
+    if (!validAcademicSelections || !validLanguageSelections) return null;
     return { professionId: "scholar", allowedProfessionalSkills };
   }
 
@@ -482,6 +520,24 @@ function validateProfession(
     "payload.identity.profession.professionId",
   );
   return null;
+}
+
+function validateLanguageIdentity(
+  value: unknown,
+  role: "own" | "other",
+  path: string,
+  issues: RulesValidationIssue[],
+): BrpSkillSpecialty | null {
+  if (!isSpecialty(value) || !value.id.trim() || !value.label.trim()) {
+    error(
+      issues,
+      "brp.profession.language",
+      `Scholar ${role === "own" ? "Own" : "Other"} language must retain a non-empty language ID and label.`,
+      path,
+    );
+    return null;
+  }
+  return { id: value.id.trim(), label: value.label.trim() };
 }
 
 function validateAgeBasis(

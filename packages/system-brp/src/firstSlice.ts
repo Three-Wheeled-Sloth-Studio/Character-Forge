@@ -16,6 +16,7 @@ import type {
   BrpCharacteristics,
   BrpDamageModifier,
   BrpDerivedState,
+  BrpLanguageIdentity,
   BrpNativeCharacter,
   BrpPowerLevel,
   BrpSkillState,
@@ -70,6 +71,8 @@ export interface BrpFirstSliceBaseInput extends BrpFirstSliceCommonInput {
 
 export interface BrpScholarFirstSliceBaseInput extends BrpFirstSliceCommonInput {
   professionId: "scholar";
+  scholarOwnLanguage: BrpLanguageIdentity;
+  scholarOtherLanguage: BrpLanguageIdentity;
   scholarAcademicSkills: BrpAcademicSkillSelection[];
 }
 
@@ -273,6 +276,18 @@ function buildBrpFirstSliceCharacterFromConstruction(
     },
   };
 
+  const scholarLanguageDecisions = profession.state.professionId === "scholar"
+    ? [
+      {
+        stepId: "identity.language-own",
+        answer: { ...profession.state.ownLanguage },
+      },
+      {
+        stepId: "identity.language-other",
+        answer: { ...profession.state.otherLanguage },
+      },
+    ]
+    : [];
   const scholarAcademicDecision = profession.state.professionId === "scholar"
     ? [{
       stepId: "identity.profession-academic-skills",
@@ -292,7 +307,7 @@ function buildBrpFirstSliceCharacterFromConstruction(
       methodId: construction.methodId,
       mode: construction.generationMode,
       recipeVersion: profession.professionId === "scholar"
-        ? "brp-uge-first-slice/0.4"
+        ? "brp-uge-first-slice/0.5"
         : "brp-uge-first-slice/0.3",
       ...(construction.seed ? { seed: construction.seed } : {}),
       rulesSourceIds: [BRP_UGE_ORC_1_05_SOURCE.id],
@@ -308,6 +323,7 @@ function buildBrpFirstSliceCharacterFromConstruction(
         { stepId: "rules.power-level", choiceId: powerProfile.powerLevel },
         { stepId: "identity.profession", choiceId: profession.professionId },
         { stepId: "identity.wealth", choiceId: input.wealth },
+        ...scholarLanguageDecisions,
         ...scholarAcademicDecision,
         ...(powerProfile.ageBasis
           ? [
@@ -357,7 +373,13 @@ function resolveProfession(
   characteristics: BrpCharacteristicValues,
 ): BrpResolvedProfession {
   if (input.professionId === "scholar") {
-    return resolveBrpScholarProfession(input.wealth, input.scholarAcademicSkills, characteristics);
+    return resolveBrpScholarProfession(
+      input.wealth,
+      input.scholarOwnLanguage,
+      input.scholarOtherLanguage,
+      input.scholarAcademicSkills,
+      characteristics,
+    );
   }
   return resolveBrpDetectiveProfession(input.wealth, input.detectiveElectiveSkillKeys, characteristics);
 }

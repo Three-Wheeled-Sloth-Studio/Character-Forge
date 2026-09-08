@@ -5,6 +5,7 @@ export type BrpCharacteristicGeneration = "explicit" | "standard-rolled";
 export type BrpWealthLevel = "average" | "affluent";
 export type BrpCharacteristicId = "STR" | "CON" | "SIZ" | "INT" | "POW" | "DEX" | "CHA";
 export type BrpProfessionId = "detective" | "scholar";
+export type BrpLanguageRole = "own" | "other";
 
 export interface BrpRulesProfile extends JsonObject {
   powerLevel: BrpPowerLevel;
@@ -97,6 +98,16 @@ export interface BrpSkillSpecialty extends JsonObject {
   label: string;
 }
 
+export interface BrpLanguageIdentity extends JsonObject {
+  id: string;
+  label: string;
+}
+
+export interface BrpLanguageSkillSelection extends JsonObject {
+  role: BrpLanguageRole;
+  language: BrpLanguageIdentity;
+}
+
 export interface BrpAcademicSkillSelection extends JsonObject {
   skillId: "knowledge" | "science";
   specialty: BrpSkillSpecialty;
@@ -135,6 +146,8 @@ export interface BrpDetectiveProfessionState extends JsonObject {
 export interface BrpScholarProfessionState extends JsonObject {
   professionId: "scholar";
   wealth: BrpWealthLevel;
+  ownLanguage: BrpLanguageIdentity;
+  otherLanguage: BrpLanguageIdentity;
   selectedAcademicSkills: BrpAcademicSkillSelection[];
 }
 
