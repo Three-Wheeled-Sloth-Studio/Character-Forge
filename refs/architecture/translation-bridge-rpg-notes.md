@@ -271,3 +271,15 @@ Bridge-RPG implication: A controlled open-specialty mechanism may be more extens
 Confidence: high for native retention; medium for future shared or original-system design.
 
 Follow-up: Compare with another system's specialization/tag mechanics before promoting a universal specialty concept.
+
+### 2026-09-08 - BRP confirms generation method can remain provenance
+
+Observation: BRP explicit characteristic entry and deterministic standard rolled characteristics now converge on the same `brp-character/0.1` characteristic, derived-value, and skill-state pipeline. Standard rolling retains additional source-required construction evidence such as seed, raw dice, and redistribution transfers, but those details do not require a second play-state ontology. This independently confirms the convergence pattern already observed across D&D Standard Array, manual, point-cost, and rolled creation.
+
+Translator implication: There is now two-system evidence that generation method should generally remain provenance or source-owned construction state rather than becoming a universal character-type distinction. A translator can operate on authoritative native results while retaining construction evidence for audit or replay where meaningful.
+
+Bridge-RPG implication: The original RPG can support multiple creation experiences without multiplying runtime character schemas. Random, purchased, manual, and guided creation can converge if the system retains any construction details that remain rules-relevant.
+
+Confidence: high across D&D and BRP.
+
+Follow-up: Keep this as an architectural principle, but still allow exceptions when a future source system makes creation path itself a persistent in-play mechanic.
