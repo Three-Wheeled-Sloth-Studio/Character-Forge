@@ -73,11 +73,60 @@ The current `brp-character/0.1` backend uses these source rules:
 - Heroic power level with 325 base professional skill points and 90% starting cap;
 - personal skill budget of INT x 10 in both implemented profiles;
 - profession-constrained professional allocation kept distinct from personal allocation;
-- Detective as the first representative profession;
-- specialty-bearing skills including Firearm (Handgun), Knowledge (Law), and Science (Forensics);
+- Detective and Scholar as the implemented profession probes;
+- specialty-bearing skills with source-owned parent plus specialty identity;
 - core derived state including Hit Points, Major Wound level, Power Points, Experience Bonus, Move, and Damage Modifier;
 - characteristic rolls using the corrections-1.05 `Charisma Roll` terminology and CHA x 5 calculation;
 - Track in the supported skill catalog, consistent with corrections 1.05.
+
+## Detective profession evidence
+
+Detective remains the bounded-choice profession probe.
+
+The current adapter retains and validates its required professional skills plus exactly four selected electives from the supported Detective elective set. Personal allocation can cross the profession boundary.
+
+Detective remains evidence that BRP profession is a starting-training constraint, not a D&D-style class.
+
+## Scholar profession evidence
+
+Scholar is implemented as the open-choice profession probe.
+
+The selected ORC source defines Scholar with:
+
+- wealth Average or Affluent, usually Average;
+- fixed professional skills Language (Other), Language (Own), Persuade, Research, and Teach;
+- five Knowledge or Science skills appropriate to the setting and field of study.
+
+Character Forge retains exactly five open academic specialty identities rather than a fixed subject catalog. The native state can therefore carry several Knowledge specialties and several Science specialties simultaneously.
+
+Current source behavior used by this slice includes:
+
+- Knowledge academic specialties use the current source base chance represented by the adapter separately from allocations;
+- Science academic specialties begin from their source base chance separately from allocations;
+- Persuade uses its source base chance before allocation;
+- Research uses its source base chance before allocation;
+- Teach uses its source base chance before allocation;
+- Language (Own) currently uses INT x 5 because EDU is disabled in this profile;
+- Language (Other) currently uses the 0% base represented by the selected source boundary.
+
+The important implementation contract is not the example subjects. Knowledge (History), Knowledge (Linguistics), Science (Biology), and similar test fixtures are examples only. The adapter accepts open source-owned specialty IDs and labels.
+
+Scholar professional points may be spent only on its five fixed skills and the exact five retained academic specialty identities. Personal learning remains independent from that eligibility boundary.
+
+## Language identity limitation exposed by Scholar
+
+Scholar exposed that Language (Own) and Language (Other) cannot safely collapse to one undifferentiated `language` skill identity.
+
+The current implementation therefore keeps them distinct as BRP-native source variants:
+
+- `language-own`, displayed as `Language (Own)`;
+- `language-other`, displayed as `Language (Other)`.
+
+This is a narrow source-fidelity fix, not complete language support.
+
+The backend does not yet retain the actual named language associated with either role. It can currently distinguish that a skill is the character's own language versus another language, but it cannot yet distinguish, for example, one particular own-language identity from another or one other-language identity from another.
+
+Do not present this as complete language modeling in BRP UI. The next source probe is to retain open named-language identity while preserving Own/Other role semantics and source base chances.
 
 ## Implemented age boundary
 
@@ -101,34 +150,46 @@ The backend currently supports:
 - non-powered `enabledPowerSystems: []`;
 - explicit or standard-rolled characteristics;
 - ages within the implemented boundary above;
-- Detective profession;
+- Detective or Scholar profession;
+- Average or Affluent wealth;
+- open Scholar Knowledge/Science specialty identities;
+- distinct Language (Own) versus Language (Other) source variants, without actual named-language identity yet;
 - no EDU, Sanity, Fatigue, hit locations, cultural modifiers, non-human modifiers, or optional skill-category bonuses.
 
-The native state preserves the effective rules profile and any character-specific age causality needed for validation/reopen.
-
-## Next source probe: Scholar
-
-Scholar is selected as the second profession architecture probe because its skill-choice shape differs materially from Detective.
-
-The ORC content defines Scholar with:
-
-- wealth Average or Affluent, usually Average;
-- Language (Other), Language (Own), Persuade, Research, and Teach;
-- five Knowledge or Science skills appropriate to setting and field of study.
-
-The implementation target is source-faithful open specialty identity, not a fixed Character Forge catalog of academic subjects.
+The native state preserves the effective rules profile, profession choices, open academic specialties, and any character-specific age causality needed for validation/reopen.
 
 ## Current code milestone status
 
-The Heroic profile checkpoint is automated-green on `dev`:
+The Scholar profession checkpoint is automated-green on `dev`:
 
-- code checkpoint `a780f82378e1477d77cf1076cc769491dcb3043d`;
-- Actions `34237331940`;
-- job `102098319676`;
-- 28 test files / 136 tests / 0 failures;
-- 19 BRP tests;
-- adapter `0.3.0`;
-- native schema `brp-character/0.1`.
+- code checkpoint `96846485016c4b3082217db8de0b11a143d9e9e2`;
+- Actions `34254069939`;
+- job `102155313610`;
+- 29 test files / 145 tests / 0 failures;
+- 28 BRP tests;
+- 9 Scholar tests;
+- adapter `0.4.0`;
+- native schema `brp-character/0.1`;
+- web build green with build identity `Character Forge build 0.0.1 96846485`.
+
+The Scholar matrix proves Normal/Heroic and explicit/standard-rolled construction, repeated parent skills with distinct specialties, duplicate rejection, professional eligibility, personal-learning independence, independent tamper detection, and CharacterDocument round trip.
+
+## Next source probe: named language identity
+
+Before BRP creator UI, close the language identity seam exposed by Scholar.
+
+Target the smallest BRP-native representation that can retain:
+
+- open language ID and display label;
+- Own versus Other source role;
+- source base chance for that role;
+- exact profession eligibility;
+- contribution/final-rating causality;
+- generation provenance.
+
+Do not create a global Character Forge language catalog or shared language schema from this one source system.
+
+Verify the exact UGE 1.05 source behavior before expanding into bilingual characters, multiple native languages, or additional personal-language rules.
 
 Before any public BRP release, the ORC attribution/notice text must still be checked against the then-current Chaosium instructions and added in the legally required location.
 
