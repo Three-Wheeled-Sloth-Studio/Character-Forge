@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green BRP Universal Game Engine Normal/Heroic profile-aware backend checkpoint.
+Continue Character Forge from the automated-green BRP Universal Game Engine Scholar profession checkpoint.
 
 Repository:
 
@@ -24,17 +24,18 @@ Do not implicitly promote either the accumulated D&D Level 1 batch or BRP work. 
 
 ## Current BRP automated-green code checkpoint
 
-- code checkpoint: `a780f82378e1477d77cf1076cc769491dcb3043d`
-- Actions: `34237331940`
-- job: `102098319676`
+- code checkpoint: `96846485016c4b3082217db8de0b11a143d9e9e2`
+- Actions: `34254069939`
+- job: `102155313610`
 - refs / OKF green
 - strict TypeScript green
-- 28 test files / 136 tests / 0 failures
-- BRP tests: 19
+- 29 test files / 145 tests / 0 failures
+- BRP tests: 28
+- Scholar tests: 9
 - web build green
-- build identity: `Character Forge build 0.0.1 a780f823`
+- build identity: `Character Forge build 0.0.1 96846485`
 - BRP native schema: `brp-character/0.1`
-- BRP adapter: `0.3.0`
+- BRP adapter: `0.4.0`
 - rules source: `chaosium-brp-uge-orc-1.05`
 
 ## D&D gate is still open and separate
@@ -56,13 +57,13 @@ Issue #11 remains open for the requested accumulated owner runtime QA and exact-
 9. `refs/planning/roadmap.yaml`
 10. `refs/testing/validationCommands.yaml`
 11. `packages/system-brp/src/nativeCharacter.ts`
-12. `packages/system-brp/src/powerLevel.ts`
-13. `packages/system-brp/src/characteristicGeneration.ts`
-14. `packages/system-brp/src/firstSlice.ts`
-15. `packages/system-brp/src/adapter.ts`
-16. `packages/system-brp/src/firstSlice.test.ts`
-17. `packages/system-brp/src/standardCharacteristicGeneration.test.ts`
-18. `packages/system-brp/src/heroicPowerLevel.test.ts`
+12. `packages/system-brp/src/skills.ts`
+13. `packages/system-brp/src/professions.ts`
+14. `packages/system-brp/src/powerLevel.ts`
+15. `packages/system-brp/src/characteristicGeneration.ts`
+16. `packages/system-brp/src/firstSlice.ts`
+17. `packages/system-brp/src/adapter.ts`
+18. `packages/system-brp/src/scholarProfession.test.ts`
 19. GitHub issue #13
 
 ## Source boundary
@@ -75,104 +76,120 @@ Do not import Call of Cthulhu-specific protected content. Keep call-of-cthulhu a
 
 ## What is now proven
 
-Two characteristic-generation methods and two power levels converge on the same `brp-character/0.1` native ontology:
+The current backend supports one BRP native ontology across:
 
-- explicit characteristics;
-- deterministic standard-rolled characteristics;
-- Normal power level;
-- Heroic power level.
+- explicit and deterministic standard-rolled characteristics;
+- Normal and Heroic power levels;
+- Detective and Scholar professions.
 
-The retained rules profile is operational state. Normal uses a 250-point professional pool and 75% starting cap. Heroic uses a 325-point base professional pool and 90% starting cap. Personal skill points remain INT x 10.
+Scholar proves a second materially different profession choice shape:
 
-Heroic also retains the default starting age used for its age-based professional-skill adjustment. The current first-slice boundary accepts retained starting age 18 through 23, current age from that starting age through 49, and +20 professional skill points per full decade added after the retained starting age. Below-starting-age characteristic penalties and age-50+ aging remain out of scope.
+- Detective uses fixed skills plus four bounded electives;
+- Scholar uses five fixed skills plus five open Knowledge or Science specialty choices.
 
-No shared CharacterDocument or semantic schema change was required.
+Scholar's open academic skills preserve exact parent plus specialty identity. Multiple Knowledge specialties or multiple Science specialties are legal, while duplicate identical parent+specialty choices are rejected. Personal learning remains independent from profession eligibility.
 
-## Immediate implementation slice: Scholar profession
+No shared CharacterDocument or semantic schema change was required. `brp-character/0.1` remains sufficient.
 
-Add Scholar as the second BRP profession and use it to pressure-test open count-N specialty choice rather than merely expanding catalog breadth.
+## Immediate implementation slice: named language identity closure
 
-The selected ORC source defines Scholar as:
+Scholar exposed a concrete source-fidelity gap that should be closed before BRP creator UI.
 
-- wealth Average or Affluent, usually Average;
-- fixed professional skills: Language (Other), Language (Own), Persuade, Research, Teach;
-- choose five Knowledge or Science skills appropriate to the setting and related to the field of study.
+The source distinguishes Language (Own) from Language (Other), but the current backend only retains those role labels as distinct BRP skill IDs. It does not yet retain which actual language is the character's own language or which other language is being trained.
 
-This is materially different from Detective's bounded four-of-seven elective shape.
+Do not hide that gap behind a generic `language` skill, a hardcoded list of languages, or a UI default.
 
 ### Target architecture
 
-Do not build a separate Scholar character pipeline.
+Keep language identity BRP-native and open-ended.
 
-Refactor the current Detective-specific profession seam only as far as needed so both professions can use the same characteristic, power-level, budget, skill-contribution, derived-state, CharacterDocument, and adapter infrastructure.
+The native model should be able to retain at least:
 
-The profession layer should own:
+- a stable open ID and display label for the character's own language;
+- a stable open ID and display label for the Scholar profession's selected other-language skill;
+- the source role of each skill: Own versus Other;
+- source base semantics for that role;
+- professional/personal contribution layers and final rating;
+- generation provenance for the language choices.
 
-- profession ID;
-- allowed wealth range/default metadata where useful;
-- fixed professional skills;
-- profession-specific choice requirements;
-- selected specialty identities needed to validate those choices.
+The exact representation may extend current skill specialty/variant state or add a small BRP-native language identity seam. Choose the smallest source-faithful representation. Do not add a shared CharacterDocument language contract.
 
-Do not promote `profession`, `specialty`, or the BRP profession-choice shape into shared CharacterDocument semantics.
+### Source behavior to preserve
 
-### Open specialty requirements
+Within the current supported profile:
 
-Scholar should prove real open specialty identity, not a hidden fixed catalog of academic subjects.
+- Language (Own) uses `INT x 5` because EDU remains disabled;
+- Language (Other) begins at 0%;
+- Scholar includes both Language (Own) and Language (Other) as professional skills;
+- language identity must remain open-ended rather than coming from a Character Forge global catalog.
+
+Verify exact UGE 1.05 source wording before making any stronger claims about bilingual characters, multiple native languages, or additional personal languages. Do not infer those rules from another BRP-family game.
+
+### Identity and legality requirements
 
 At minimum:
 
-- represent Knowledge and Science as parent skill identities with explicit specialty ID/label;
-- allow five unique selected Knowledge/Science specialty skill identities;
-- allow more than one selected specialty under the same parent skill, such as multiple Knowledge specialties or multiple Science specialties;
-- retain the exact selected specialties natively and in generation provenance;
-- prevent duplicate identical parent+specialty selections;
-- keep source base chance separate from professional/personal contributions and final rating;
-- ensure professional allocation is legal only for Scholar fixed skills and the five selected academic specialties;
-- retain personal learning independence from profession eligibility;
-- keep specialty validation source-owned and avoid inventing a universal specialty enum.
+- retain non-empty language ID and label;
+- distinguish source role Own versus Other independently from the language identity itself;
+- prevent a single identical language identity from occupying contradictory Own and Other roles on the same character unless source verification shows that is legal and meaningful;
+- Scholar professional eligibility must point to the exact retained Own and Other language skill identities, not generic placeholder skills;
+- adapter must independently derive/validate Language (Own) base chance from final INT;
+- adapter must independently validate Language (Other) base chance at 0 in the current profile;
+- changing retained language identity must invalidate any professional skill entry that no longer matches it;
+- personal allocations must not accidentally become profession-restricted merely because they use language skills;
+- preserve exact language choices through CharacterDocument JSON round trip and generation provenance.
 
-Use a small test fixture set of specialty strings if necessary, but the implementation contract must accept source-faithful open identities rather than make that fixture set authoritative.
+### Existing matrix must remain green
 
-### Existing matrix must continue to work
+Language identity closure must continue to support:
 
-Scholar must work with:
+- Detective Normal explicit;
+- Detective Normal standard-rolled;
+- Detective Heroic explicit;
+- Detective Heroic standard-rolled;
+- Scholar Normal explicit;
+- Scholar Normal standard-rolled;
+- Scholar Heroic explicit;
+- Scholar Heroic standard-rolled.
 
-- Normal explicit;
-- Normal standard-rolled;
-- Heroic explicit;
-- Heroic standard-rolled.
+Do not change characteristic generation, Heroic age behavior, power-level budgets/caps, academic-specialty semantics, or power-system state except where source-faithful language identity genuinely requires it.
 
-Heroic age-basis behavior must remain unchanged. Powers remain disabled.
+Powers remain disabled.
 
 ### Validation target
 
 The automated gate should prove at minimum:
 
-- all existing Detective tests remain green;
-- Scholar fixed skill eligibility;
-- exactly five unique Knowledge/Science specialty choices;
-- repeated parent skills with distinct specialties are accepted;
-- duplicate parent+specialty identity is rejected;
-- non-Knowledge/Science academic elective identity is rejected;
-- professional allocations cannot escape the selected Scholar skill set;
-- personal allocations remain independent from profession eligibility;
-- profile-derived budgets/caps work for Scholar under Normal and Heroic;
-- explicit and rolled characteristic generation remain unchanged;
-- adapter detects specialty/profession-choice tampering independently of the builder;
-- CharacterDocument round trip preserves Scholar specialty identities and provenance;
+- all existing Detective and Scholar tests remain green;
+- Scholar retains exact Own and Other language identities;
+- Language (Own) is independently validated at INT x 5;
+- Language (Other) is independently validated at 0% in the current profile;
+- duplicate/contradictory Own/Other language identity is rejected according to verified source behavior;
+- Scholar professional allocation remains tied to exact retained language identities;
+- personal allocation independence remains intact;
+- adapter detects language identity/base/profession tampering independently of the builder;
+- CharacterDocument round trip preserves language identity and provenance;
 - native schema remains `brp-character/0.1` if sufficient.
 
-## After Scholar
+## After language identity closure
 
-Reassess from evidence. Leading follow-ons are:
+Reassess BRP creator UI immediately.
 
-- a profession such as Student or Teacher with an even broader mixed-domain choice set if Scholar exposes useful profession-schema pressure;
-- age/experience expansion if we need below-starting-age or age-50+ causality for a concrete consumer;
-- one optional BRP subsystem only if the retained rules-profile boundary still needs another architecture test;
-- BRP creator UI once the profession seam is stable enough to expose without lying about supported choices.
+If the language seam closes without revealing another mandatory backend fidelity gap, the backend will have demonstrated:
 
-Do not jump into broad profession ingestion yet. Scholar is an architecture probe first.
+- two characteristic-generation methods;
+- two power levels;
+- retained age causality;
+- two materially different profession choice shapes;
+- open academic specialties;
+- open source-owned language identity;
+- independent adapter validation across the matrix.
+
+At that point the next useful slice is likely the first BRP creator UI rather than another backend catalog expansion.
+
+The UI should follow the established Character Forge standard: generation options left, character details right, universal controls at top, dynamic method/profile/profession-specific controls, and no system-specific assumptions leaked into Parchment.
+
+Do not ingest the full BRP profession catalog just to make the UI look broad.
 
 ## Architecture rules
 
@@ -181,7 +198,7 @@ Do not jump into broad profession ingestion yet. Scholar is an architecture prob
 - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 - BRP profession is not D&D class.
 - Preserve skill base chance, professional contribution, personal contribution, and final rating separately when causality matters.
-- Keep open specialties source-owned; do not freeze a universal specialty enum.
+- Keep open specialties and language identities source-owned; do not freeze universal enums.
 - Preserve effective BRP rules-profile context in native state.
 - Preserve character-specific age causality when it affects source-rule construction legality.
 - Do not model future BRP powers through D&D spell-state structures.
