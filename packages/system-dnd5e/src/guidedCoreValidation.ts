@@ -9,6 +9,7 @@ import { clericCantripCount, DND5E_CLERIC_CANTRIP_OPTIONS, DND5E_CLERIC_DIVINE_O
 import { druidCantripCount, DND5E_DRUID_CANTRIP_OPTIONS, DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS, DND5E_DRUID_PRIMAL_ORDER_OPTIONS } from "./druidCatalog.js";
 import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
 import { magicInitiateSpellList, type Dnd5eMagicInitiateSpellListId } from "./spellCatalog.js";
+import { assertGuidedDnd5eLineageSpeciesChoices, currentGuidedDnd5eSpeciesSpellIds } from "./speciesState.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 import { DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS, DND5E_PACT_TOME_CANTRIP_OPTIONS, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS } from "./warlockCatalog.js";
 
@@ -30,7 +31,7 @@ export function assertGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backgr
   assertClericChoices(classId, choices);
   assertDruidChoices(classId, choices);
   assertPreparedCasterChoices(classId, choices);
-  assertWarlockChoices(classId, choices);
+  assertWarlockChoices(classId, speciesId, choices);
 
   if (classId === "bard") {
     const ids = choices.bardInstrumentIds ?? [];
@@ -55,6 +56,7 @@ export function assertGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backgr
       ...choices.classSkillIds, ...background.skillProficiencies,
       ...(speciesId === "human" && choices.human ? [choices.human.skillId] : []),
       ...(speciesId === "human" && choices.human?.originFeatId === "skilled" ? (choices.human.skilledProficiencyIds ?? []).filter((id) => DND5E_SKILL_OPTIONS.some((o) => o.id === id)) : []),
+      ...(speciesId === "elf" && choices.elf ? [choices.elf.keenSensesSkillId] : []),
     ]);
     if (expertise.some((id) => !proficient.has(id))) throw new Error("Rogue Expertise choices must be skills in which the character is proficient.");
     if (!choices.rogueBonusLanguageId) throw new Error("Rogue Thieves' Cant requires one additional language choice.");
@@ -63,6 +65,7 @@ export function assertGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backgr
 
   assertMagicInitiate(backgroundId, choices);
   assertSpeciesChoices(speciesId, background, choices);
+  assertGuidedDnd5eLineageSpeciesChoices(speciesId, choices);
 }
 
 function assertClericChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreChoices): void {
@@ -106,7 +109,7 @@ function assertPreparedCasterChoices(classId: GuidedDnd5eClassId, choices: Guide
   } else if (casting.spellbookSpellIds?.length) throw new Error("Only the current Wizard slice owns a Level 1 spellbook selection.");
 }
 
-function assertWarlockChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eCoreChoices): void {
+function assertWarlockChoices(classId: GuidedDnd5eClassId, speciesId: GuidedDnd5eSpeciesId, choices: GuidedDnd5eCoreChoices): void {
   if (classId !== "warlock") { if (choices.warlock) throw new Error("Warlock-only choices were supplied to another class."); return; }
   const warlock = choices.warlock;
   if (!warlock) throw new Error("Warlock requires one Level 1 Eldritch Invocation choice.");
@@ -126,6 +129,7 @@ function assertWarlockChoices(classId: GuidedDnd5eClassId, choices: GuidedDnd5eC
     ...(choices.preparedCaster?.preparedSpellIds ?? []),
     ...(choices.magicInitiate?.cantripIds ?? []),
     ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+    ...currentGuidedDnd5eSpeciesSpellIds(speciesId, choices),
   ]);
   if ([...tomeCantrips, ...tomeRituals].some((id) => alreadyPrepared.has(id))) throw new Error("Pact of the Tome spells must not duplicate spells the Warlock already has prepared from any source.");
 }
