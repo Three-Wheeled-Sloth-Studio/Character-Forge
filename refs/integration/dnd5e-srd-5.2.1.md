@@ -30,7 +30,7 @@ The default guided D&D 2024 path follows the SRD sequence rather than a Characte
 3. determine ability scores;
 4. continue remaining character details.
 
-Character Forge may later support common table variations, but should identify them as alternate generation workflows rather than silently changing the adapter's default sequence.
+Character Forge may support common table variations, but identifies them as alternate generation workflows rather than silently changing the adapter's default sequence.
 
 ## Ability generation evidence used
 
@@ -40,14 +40,13 @@ The current implementation supports:
 - Point Cost: 27-point budget, scores 8 through 15, costs 0/1/2/3/4/5/7/9 respectively.
 - Random Generation: roll 4d6, keep the highest 3, six times, then assign the six results.
 - 2024 background ability increases using +2/+1 on two listed abilities or +1/+1/+1 on all three listed abilities.
+- Manual Ability Entry as a Character Forge input/validation path rather than a separate SRD generation rule.
 
-Manual Ability Entry is a Character Forge input/validation path rather than a separate SRD generation rule.
+All four methods converge on the same guided native builder and retain method-specific provenance separately from authoritative character state.
 
-All four explicit ability methods now run through the generalized guided native builder. The selected background supplies the three legal abilities for the background increase step.
+## Current SRD Level 1 guided catalog
 
-## SRD class catalog
-
-The SRD 5.2.1 class catalog represented by Character Forge contains:
+### Classes: 12 / 12
 
 - Barbarian
 - Bard
@@ -62,20 +61,18 @@ The SRD 5.2.1 class catalog represented by Character Forge contains:
 - Warlock
 - Wizard
 
-Cataloging an SRD class does not mean the current generator can faithfully produce it.
+All twelve are guided-supported on `dev`. Source-specific Level 1 mechanics remain explicit rather than being flattened into one class template. In particular, prepared casters, Wizard spellbook state, and Warlock Pact Magic retain distinct native semantics.
 
-The guided-enabled class subset is:
+### Backgrounds: 4 / 4
 
-- Barbarian
-- Fighter
-- Monk
-- Rogue
+- Acolyte: INT/WIS/CHA; Magic Initiate (Cleric); Insight and Religion; Calligrapher's Supplies; equipment package or 50 GP.
+- Criminal: DEX/CON/INT; Alert; Sleight of Hand and Stealth; Thieves' Tools; equipment package or 50 GP.
+- Sage: CON/INT/WIS; Magic Initiate (Wizard); Arcana and History; Calligrapher's Supplies; equipment package or 50 GP.
+- Soldier: STR/DEX/CON; Savage Attacker; Athletics and Intimidation; Gaming Set; equipment package or 50 GP.
 
-These classes can currently be represented at Level 1 without a spell-state implementation. The remaining classes stay disabled until Character Forge has enough native spell/choice state to generate them faithfully.
+Acolyte and Sage retain Magic Initiate spell choices and spell grants explicitly rather than hiding them behind fixture defaults.
 
-## SRD species catalog
-
-The SRD 5.2.1 species catalog represented by Character Forge contains:
+### Species: 9 / 9
 
 - Dragonborn
 - Dwarf
@@ -87,53 +84,82 @@ The SRD 5.2.1 species catalog represented by Character Forge contains:
 - Orc
 - Tiefling
 
-The guided-enabled species subset is:
+All nine are guided-supported on `dev` only after their required Level 1 decisions were modeled explicitly.
 
-- Dwarf
-- Halfling
-- Human
-- Orc
+## Species nested-choice boundary
 
-Dragonborn, Elf, Gnome, Goliath, and Tiefling remain disabled until their required ancestry/lineage/legacy decisions are modeled explicitly. Do not silently choose those nested options merely to broaden the support list.
+Character Forge stores identifiers and mechanical state rather than copying descriptive rules prose.
 
-## SRD backgrounds
+### Dragonborn
 
-The SRD 5.2.1 backgrounds represented in the guided catalog are:
+Dragonborn retains explicit Draconic Ancestry, ancestry damage type, Breath Weapon uses, resistance identity, Darkvision, and future Level 5 Draconic Flight capability identity.
 
-- Acolyte: INT/WIS/CHA; Magic Initiate (Cleric); Insight and Religion; Calligrapher's Supplies; equipment package or 50 GP.
-- Criminal: DEX/CON/INT; Alert; Sleight of Hand and Stealth; Thieves' Tools; equipment package or 50 GP.
-- Sage: CON/INT/WIS; Magic Initiate (Wizard); Arcana and History; Calligrapher's Supplies; equipment package or 50 GP.
-- Soldier: STR/DEX/CON; Savage Attacker; Athletics and Intimidation; Gaming Set; equipment package or 50 GP.
+### Goliath
 
-Current guided support enables Criminal and Soldier.
+Goliath retains explicit Giant Ancestry, ancestry uses, Speed 35, Powerful Build, and future Level 5 Large Form capability identity.
 
-Acolyte and Sage remain cataloged but disabled because their fixed Magic Initiate Origin feats require spell choices that the current native spell model cannot yet represent faithfully. Do not silently select those spells to mark the backgrounds supported.
+### Elf
 
-For enabled backgrounds, generated native state retains:
+Elf retains:
 
-- the background ID;
-- its fixed Origin feat;
-- its two skill proficiencies;
-- its tool proficiency;
-- package-A versus 50-GP equipment choice;
-- its three eligible ability IDs through the D&D catalog and generation/validation path.
+- Elven Lineage: Drow, High Elf, or Wood Elf;
+- Keen Senses selection from Insight, Perception, or Survival;
+- Intelligence, Wisdom, or Charisma lineage spellcasting ability;
+- lineage-specific Speed and Darkvision;
+- Level 1 lineage cantrip;
+- High Elf Wizard-cantrip replacement semantics after a Long Rest;
+- future Level 3 and Level 5 lineage spell grants as inactive future capability metadata.
 
-The adapter verifies background-owned ability increases against the selected background rather than a Soldier-specific rule.
+### Gnome
 
-## First guided native slice
+Gnome retains:
 
-The current guided builder uses a deliberately small subset of SRD mechanics while opening real class/background/species variance:
+- Gnomish Lineage: Forest or Rock;
+- Intelligence, Wisdom, or Charisma lineage spellcasting ability;
+- Small size, Speed 30, Darkvision 60, and Gnomish Cunning identity;
+- Forest Gnome Minor Illusion, always-prepared Speak with Animals, and proficiency-bonus free casts per Long Rest;
+- Rock Gnome Mending and Prestidigitation plus explicit three-device clockwork capacity.
 
-- Level 1 XP and Proficiency Bonus.
-- Barbarian Level 1 including Rage, Unarmored Defense, Weapon Mastery, and the starting profile used by the generated fixture.
-- Fighter Level 1 including Fighting Style, Second Wind, Weapon Mastery, and the starting profile used by the generated fixture.
-- Monk Level 1 including Martial Arts, Unarmored Defense, and the starting profile used by the generated fixture.
-- Rogue Level 1 including Expertise, Sneak Attack, Thieves' Cant, Weapon Mastery, and the starting profile used by the generated fixture.
-- Criminal and Soldier background mechanics listed above.
-- Dwarf, Halfling, Human, and Orc Level 1 species traits needed by generated state.
-- Human Versatile currently selects a non-duplicating supported Origin feat: Soldier/Savage Attacker pairs with Alert; Criminal/Alert pairs with Savage Attacker.
+### Tiefling
 
-Implementation stores identifiers and mechanical state rather than copying descriptive rules prose.
+Tiefling retains:
+
+- Small or Medium size;
+- Fiendish Legacy: Abyssal, Chthonic, or Infernal;
+- Intelligence, Wisdom, or Charisma legacy spellcasting ability;
+- legacy-specific damage resistance and Level 1 cantrip;
+- Thaumaturgy from Otherworldly Presence;
+- future Level 3 and Level 5 legacy spell grants as inactive future capability metadata.
+
+## Spell source boundary
+
+Three distinct source concepts are intentionally retained:
+
+- `spells.grants[]`: independent feat-style grants such as Magic Initiate;
+- `spells.speciesGrants[]`: species-owned magic and future level-gated species spells;
+- `spells.classCasting[]`: class-owned spellcasting, including ordinary standard-slot casters and Warlock Pact Magic.
+
+Do not reconstruct one source from another. Do not flatten them merely because all may eventually display in one spell list.
+
+Pact of the Tome duplicate exclusion considers currently active species spells as well as Pact Magic and Magic Initiate spells.
+
+## Current automated checkpoint
+
+The full species breadth checkpoint is:
+
+- source SHA: `e8a0b1e778299a7ce0f4b2e6bfe1432c7cdd35cb`
+- Actions: `34215046544`
+- job: `102024717908`
+- 25 Vitest files / 114 tests / 0 failures
+- 108 class/species combinations validated through one native-state boundary
+- adapter version `0.14.0`
+- native schema `dnd5e-character/0.3`
+
+This remains `dev`-only pending owner runtime acceptance.
+
+## Remaining Level 1 breadth seam
+
+Human Versatile still needs the general Magic Initiate Origin-feat path. The implementation must support explicit Cleric/Druid/Wizard list selection, casting ability, cantrips, Level 1 spell, and source/provenance rather than reusing the background-fixed Acolyte/Sage path as a hidden default.
 
 ## Public-repository rule
 
