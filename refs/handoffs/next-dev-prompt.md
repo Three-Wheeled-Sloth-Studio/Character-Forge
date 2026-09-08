@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green BRP Universal Game Engine Scholar profession checkpoint.
+Continue Character Forge from the automated-green BRP UGE named-language backend checkpoint.
 
 Repository:
 
@@ -17,32 +17,34 @@ Work directly on `dev`.
 
 ## Promoted baseline remains unchanged
 
-- `qa`: `c7b64ac774b9f903f0ca1882812`
-- `main`: `c7b64ac774b9f903f0ca1882812`
+- `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
+- `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Do not implicitly promote either the accumulated D&D Level 1 batch or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
+Do not implicitly promote accumulated D&D or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## Current BRP automated-green code checkpoint
+## Current BRP automated-green checkpoint
 
-- code checkpoint: `96846485016c4b3082217db8de0b11a143d9e9e2`
-- Actions: `34254069939`
-- job: `102155313610`
+- code checkpoint: `1ce3387491ccf859f56d7a0e92217c7737a56bf0`
+- Actions: `34291613617`
+- job: `102279178820`
 - refs / OKF green
 - strict TypeScript green
-- 29 test files / 145 tests / 0 failures
-- BRP tests: 28
-- Scholar tests: 9
+- 30 test files / 152 tests / 0 failures
+- BRP tests: 35
+- named-language tests: 7
 - web build green
-- build identity: `Character Forge build 0.0.1 96846485`
-- BRP native schema: `brp-character/0.1`
-- BRP adapter: `0.4.0`
+- build identity: `Character Forge build 0.0.1 1ce33874`
+- native schema: `brp-character/0.1`
+- adapter: `0.5.0`
 - rules source: `chaosium-brp-uge-orc-1.05`
+
+The first feature commit `6e70083a8cc033b59ec2953e642dc3a44d5ba64e` failed only because a stale impossible TypeScript branch remained after language base calculation moved out of the static skill catalog. `1ce338...` removes that stale branch and is the accepted automated-green code checkpoint.
 
 ## D&D gate is still open and separate
 
 D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green on `dev` at `55f79a1004c14eef1635e92c602e1fefa18cab15`, with 12 classes, 4 backgrounds, 9 species, and all 108 class/species combinations covered.
 
-Issue #11 remains open for the requested accumulated owner runtime QA and exact-SHA promotion. BRP work does not waive that gate.
+Issue #11 remains open for accumulated owner runtime QA and exact-SHA promotion. BRP work does not waive that gate.
 
 ## Read first
 
@@ -57,139 +59,139 @@ Issue #11 remains open for the requested accumulated owner runtime QA and exact-
 9. `refs/planning/roadmap.yaml`
 10. `refs/testing/validationCommands.yaml`
 11. `packages/system-brp/src/nativeCharacter.ts`
-12. `packages/system-brp/src/skills.ts`
-13. `packages/system-brp/src/professions.ts`
-14. `packages/system-brp/src/powerLevel.ts`
-15. `packages/system-brp/src/characteristicGeneration.ts`
+12. `packages/system-brp/src/powerLevel.ts`
+13. `packages/system-brp/src/characteristicGeneration.ts`
+14. `packages/system-brp/src/skills.ts`
+15. `packages/system-brp/src/professions.ts`
 16. `packages/system-brp/src/firstSlice.ts`
 17. `packages/system-brp/src/adapter.ts`
-18. `packages/system-brp/src/scholarProfession.test.ts`
-19. GitHub issue #13
+18. `packages/system-brp/src/firstSlice.test.ts`
+19. `packages/system-brp/src/standardCharacteristicGeneration.test.ts`
+20. `packages/system-brp/src/heroicPowerLevel.test.ts`
+21. `packages/system-brp/src/scholarProfession.test.ts`
+22. `packages/system-brp/src/languageIdentity.test.ts`
+23. GitHub issue #13
 
 ## Source boundary
 
-Implement Basic Roleplaying: Universal Game Engine, 2023 ORC content, pinned to corrections `CHA2036 BRP UGE Corrections 1.05` for the current adapter family.
+Implement Basic Roleplaying: Universal Game Engine, 2023 ORC content, pinned to corrections `CHA2036 BRP UGE Corrections 1.05` for this adapter family.
 
-Do not use the older 2020 online BRP SRD as implementation authority.
-
-Do not import Call of Cthulhu-specific protected content. Keep call-of-cthulhu as a separately licensed future product target.
+Do not use the older 2020 online BRP SRD as implementation authority. Do not import Call of Cthulhu-specific protected content.
 
 ## What is now proven
 
-The current backend supports one BRP native ontology across:
+The same `brp-character/0.1` native ontology supports:
 
 - explicit and deterministic standard-rolled characteristics;
 - Normal and Heroic power levels;
-- Detective and Scholar professions.
+- Detective and Scholar professions;
+- bounded and open profession choice grammars;
+- open Knowledge/Science specialties;
+- named language identity with Own/Other role semantics;
+- character-specific Heroic age causality.
 
-Scholar proves a second materially different profession choice shape:
+Scholar retains exact open `{ id, label }` values for its Own and Other languages. `Language (Own)` uses `INT x 5` in the current EDU-disabled profile; `Language (Other)` starts at 0. The same language ID cannot occupy both Scholar roles. Additional `Language (Other)` identities may be learned through personal allocation without becoming professionally eligible.
 
-- Detective uses fixed skills plus four bounded electives;
-- Scholar uses five fixed skills plus five open Knowledge or Science specialty choices.
+The adapter independently derives exact legal Scholar language skills from retained profession state and detects identity/base tampering.
 
-Scholar's open academic skills preserve exact parent plus specialty identity. Multiple Knowledge specialties or multiple Science specialties are legal, while duplicate identical parent+specialty choices are rejected. Personal learning remains independent from profession eligibility.
+No shared CharacterDocument or semantic schema change has been required.
 
-No shared CharacterDocument or semantic schema change was required. `brp-character/0.1` remains sufficient.
+## Immediate implementation slice: first BRP creator UI
 
-## Immediate implementation slice: named language identity closure
+Expose the narrow supported BRP backend through the Character Forge creator without broadening the rules surface.
 
-Scholar exposed a concrete source-fidelity gap that should be closed before BRP creator UI.
+### UX architecture
 
-The source distinguishes Language (Own) from Language (Other), but the current backend only retains those role labels as distinct BRP skill IDs. It does not yet retain which actual language is the character's own language or which other language is being trained.
+Follow the established creator standard:
 
-Do not hide that gap behind a generic `language` skill, a hardcoded list of languages, or a UI default.
+- generation options in the left panel;
+- character details/review in the right panel;
+- universal character fields and rules-system selection at the top;
+- one generation-method selector with method-specific controls appearing dynamically;
+- independent desktop scrolling for long controls and review;
+- direct selection must remain independent from any future sticky/random acceptable pools;
+- make actions easy to do and easy to undo rather than interrupting with validation popups where inline feedback is sufficient.
 
-### Target architecture
+Do not create a second disconnected BRP page if the existing creator workspace can host a system-specific control surface cleanly.
 
-Keep language identity BRP-native and open-ended.
+### Supported BRP controls
 
-The native model should be able to retain at least:
+At minimum expose:
 
-- a stable open ID and display label for the character's own language;
-- a stable open ID and display label for the Scholar profession's selected other-language skill;
-- the source role of each skill: Own versus Other;
-- source base semantics for that role;
-- professional/personal contribution layers and final rating;
-- generation provenance for the language choices.
+- rules system: BRP UGE;
+- display name;
+- age and gender;
+- wealth: Average/Affluent;
+- power level: Normal/Heroic;
+- Heroic retained default starting age when required by the system layer;
+- profession: Detective/Scholar;
+- characteristic generation: Explicit/Standard Rolled;
+- explicit STR/CON/SIZ/INT/POW/DEX/CHA entry;
+- standard-rolled seed/re-roll and legal up-to-three-point redistribution controls;
+- Detective four-of-supported-electives selection;
+- Scholar Own language ID/label;
+- Scholar Other language ID/label;
+- Scholar five open Knowledge/Science specialty selections;
+- professional and personal skill allocation controls sufficient to build a legal supported character;
+- current budget, remaining points, and starting-cap feedback;
+- generated/reviewed native values including derived state and skill causal layers where useful.
 
-The exact representation may extend current skill specialty/variant state or add a small BRP-native language identity seam. Choose the smallest source-faithful representation. Do not add a shared CharacterDocument language contract.
+Do not expose unsupported EDU, Sanity, Fatigue, hit locations, powers, non-human rules, age-50+ rules, cultural modifiers, skill-category bonuses, or broad profession ingestion.
 
-### Source behavior to preserve
+### System ownership
 
-Within the current supported profile:
-
-- Language (Own) uses `INT x 5` because EDU remains disabled;
-- Language (Other) begins at 0%;
-- Scholar includes both Language (Own) and Language (Other) as professional skills;
-- language identity must remain open-ended rather than coming from a Character Forge global catalog.
-
-Verify exact UGE 1.05 source wording before making any stronger claims about bilingual characters, multiple native languages, or additional personal languages. Do not infer those rules from another BRP-family game.
-
-### Identity and legality requirements
+The UI must call BRP-owned construction/validation seams rather than reimplementing BRP rules in React/browser code.
 
 At minimum:
 
-- retain non-empty language ID and label;
-- distinguish source role Own versus Other independently from the language identity itself;
-- prevent a single identical language identity from occupying contradictory Own and Other roles on the same character unless source verification shows that is legal and meaningful;
-- Scholar professional eligibility must point to the exact retained Own and Other language skill identities, not generic placeholder skills;
-- adapter must independently derive/validate Language (Own) base chance from final INT;
-- adapter must independently validate Language (Other) base chance at 0 in the current profile;
-- changing retained language identity must invalidate any professional skill entry that no longer matches it;
-- personal allocations must not accidentally become profession-restricted merely because they use language skills;
-- preserve exact language choices through CharacterDocument JSON round trip and generation provenance.
+- source budgets/caps come from BRP system functions;
+- language bases and profession eligibility remain BRP-owned;
+- characteristic generation remains deterministic through generator-core/BRP APIs;
+- browser code may present validation but must not become a second rules engine;
+- native state and generation provenance produced by the backend remain authoritative.
 
-### Existing matrix must remain green
+If the current builders are too all-at-once for good UI feedback, introduce narrow BRP-owned preview/query helpers rather than duplicating formulas in the UI.
 
-Language identity closure must continue to support:
+### Persistence / reopen
 
-- Detective Normal explicit;
-- Detective Normal standard-rolled;
-- Detective Heroic explicit;
-- Detective Heroic standard-rolled;
-- Scholar Normal explicit;
-- Scholar Normal standard-rolled;
-- Scholar Heroic explicit;
-- Scholar Heroic standard-rolled.
+The first UI slice must preserve existing CharacterDocument behavior:
 
-Do not change characteristic generation, Heroic age behavior, power-level budgets/caps, academic-specialty semantics, or power-system state except where source-faithful language identity genuinely requires it.
+- generated BRP character is a normal CharacterDocument with primary BRP native state;
+- JSON round trip remains lossless;
+- generation provenance survives;
+- reopening a BRP CharacterDocument restores enough UI state to inspect/edit supported choices without reconstructing authoritative native state from semantic projection.
 
-Powers remain disabled.
+Do not make Parchment understand BRP mechanics. If host integration needs a generic system identifier/display capability, keep that boundary system-agnostic.
 
 ### Validation target
 
 The automated gate should prove at minimum:
 
-- all existing Detective and Scholar tests remain green;
-- Scholar retains exact Own and Other language identities;
-- Language (Own) is independently validated at INT x 5;
-- Language (Other) is independently validated at 0% in the current profile;
-- duplicate/contradictory Own/Other language identity is rejected according to verified source behavior;
-- Scholar professional allocation remains tied to exact retained language identities;
-- personal allocation independence remains intact;
-- adapter detects language identity/base/profession tampering independently of the builder;
-- CharacterDocument round trip preserves language identity and provenance;
-- native schema remains `brp-character/0.1` if sufficient.
+- existing D&D browser tests remain green;
+- BRP system selection does not alter D&D creator defaults or sticky preference behavior;
+- explicit BRP creator path can produce a valid Detective and Scholar;
+- standard-rolled BRP creator path can produce a valid Detective and Scholar;
+- Normal/Heroic controls feed the retained BRP rules profile correctly;
+- Scholar named Own/Other languages reach native state/provenance exactly;
+- open Scholar academic specialty identities reach native state/provenance exactly;
+- budget/cap feedback agrees with system-layer validation;
+- invalid professional-language or specialty allocations cannot be presented as a valid character;
+- generated CharacterDocument can be reopened without losing BRP native state;
+- build identity remains visible for runtime QA.
 
-## After language identity closure
+Use targeted browser/unit tests; do not add broad end-to-end infrastructure unless the existing test seams cannot cover the risk.
 
-Reassess BRP creator UI immediately.
+## After the first BRP UI
 
-If the language seam closes without revealing another mandatory backend fidelity gap, the backend will have demonstrated:
+Reassess from actual creator friction. Likely next candidates are:
 
-- two characteristic-generation methods;
-- two power levels;
-- retained age causality;
-- two materially different profession choice shapes;
-- open academic specialties;
-- open source-owned language identity;
-- independent adapter validation across the matrix.
+- BRP UI polish and owner runtime QA;
+- a third profession only if UI experience reveals a profession-shape gap;
+- one optional BRP subsystem only if rules-profile architecture still needs pressure;
+- age/experience expansion when a concrete user path needs it;
+- the system-neutral random-table companion in parallel.
 
-At that point the next useful slice is likely the first BRP creator UI rather than another backend catalog expansion.
-
-The UI should follow the established Character Forge standard: generation options left, character details right, universal controls at top, dynamic method/profile/profession-specific controls, and no system-specific assumptions leaked into Parchment.
-
-Do not ingest the full BRP profession catalog just to make the UI look broad.
+Do not automatically ingest the whole BRP profession catalog after the first UI.
 
 ## Architecture rules
 
@@ -197,15 +199,15 @@ Do not ingest the full BRP profession catalog just to make the UI look broad.
 - Never reconstruct retained native state from semantic projection.
 - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 - BRP profession is not D&D class.
-- Preserve skill base chance, professional contribution, personal contribution, and final rating separately when causality matters.
-- Keep open specialties and language identities source-owned; do not freeze universal enums.
-- Preserve effective BRP rules-profile context in native state.
-- Preserve character-specific age causality when it affects source-rule construction legality.
-- Do not model future BRP powers through D&D spell-state structures.
+- Preserve skill base chance, professional contribution, personal contribution, and final rating separately.
+- Keep open specialties and language identities source-owned.
+- Preserve both language subject identity and Own/Other role when they affect source semantics.
+- Preserve effective rules-profile and character-specific age causality.
+- Do not model future BRP powers through D&D spell structures.
 - Generator-core remains system-neutral.
 - Parchment remains ignorant of system-specific mechanics.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Parallel product work
 
-The system-neutral random-table companion remains `ready_for_discovery` and should not be forgotten. Its eventual first consumers remain traits, ideals, bonds, flaws, equipment/trinkets, tags/native IDs, weighted results, and provenance-bearing subtable references.
+The system-neutral random-table companion remains `ready_for_discovery`; do not let BRP UI work erase that product thread.

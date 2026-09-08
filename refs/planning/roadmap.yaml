@@ -6,95 +6,48 @@ principles:
   - Add universal concepts only when concrete system mappings justify them.
   - Make guided narrative generation a first-class path early.
   - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
-  - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface rather than multiplying full-width method panels.
+  - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface.
   - On desktop, long creator-control and character-review columns should scroll independently.
+
 roadmap:
   - id: foundation-0-repository-baseline
     horizon: completed
     status: completed
     goal: Establish development workflow, durable guidance, validation, and the minimum character contract.
-    exit_criteria:
-      - dev, qa, and main branches exist with exact-SHA promotion guidance.
-      - CI verifies dev, qa, and main.
-      - CharacterDocument requires retained native system state.
-      - Tests prove native payload survives JSON round trip without requiring semantic projection.
-      - Translator and bridge-RPG evidence ledger exists and is required agent reading.
-    validation:
-      local_windows_gate: green 2026-08-26
+    completed:
+      - dev, qa, and main exact-SHA workflow established.
+      - CharacterDocument requires complete retained native system state.
+      - JSON round-trip tests prove native payload preservation.
+      - RulesSystemAdapter boundary established.
+      - Translation/bridge-RPG evidence ledger established.
+      - CI verifies refs, OKF profile, strict TypeScript, tests, and web build.
 
   - id: dnd5e-1-level-one-generation
     horizon: now
     status: in_progress
-    goal: Deliver a usable D&D 5E 2024 SRD Level 1 character generation path and broaden it to the public SRD catalog without losing native fidelity.
+    goal: Deliver a usable D&D 5E 2024 SRD Level 1 generation path without losing native fidelity.
     completed:
-      - Versioned rules-system adapter contract separated from D&D implementation.
-      - SRD 5.2.1 source, version, creator, and CC-BY-4.0 license metadata.
-      - Typed D&D-native character schemas with legacy reopen support.
-      - Owner-accepted Human Soldier Fighter Quick Generate plus Parchment save/reopen seam.
-      - Shared 2024 background adjustment and final-score behavior.
-      - Standard Array, Manual Ability Entry, SRD Point Cost, and SRD Random Generation.
-      - Reusable deterministic system-neutral seeded-random and dice-expression generator core.
-      - Random 4d6 keep-highest-3 generation retaining raw dice, kept dice, roll slots, seed, and assignment provenance.
-      - All twelve SRD 5.2.1 classes, all four backgrounds, and all nine species cataloged and guided-supported on dev.
-      - Reusable sticky acceptable-option choice-pool behavior with direct or random-from-checked selection.
-      - Direct dropdowns expose all supported options while acceptable pools constrain randomization only.
-      - Reusable sticky count-N acceptable-option behavior for multi-choice decisions.
-      - Guided class-first creation using sticky Class, Background, and Species pools.
-      - Standard Array, Point Cost, Random, and Manual routed through one guided native builder.
-      - Creator workspace consolidated to generation controls left and character details right, with independent desktop scrolling and one dynamic ability-generation dropdown.
-      - dnd5e-character/0.3 guided native state while preserving 0.1 and 0.2 reopen/validation semantics.
-      - Explicit class skills, Fighter Fighting Style, class starting equipment, Weapon Mastery, Monk tool/instrument, Rogue Expertise/bonus language, origin languages, alignment, and Human size/Skillful/Versatile/Skilled choices.
-      - Blank-name generation restored through shared D&D system-layer name generation plus explicit Name randomize action/provenance.
-      - Descriptive starting-equipment presentation and compact generation-method help.
-      - Guided species support for all nine SRD species: Dragonborn, Dwarf, Elf, Gnome, Goliath, Halfling, Human, Orc, and Tiefling.
-      - Dragonborn and Goliath retain explicit ancestry choices and ancestry-derived mechanical state.
-      - Elf retains Drow/High/Wood lineage, Keen Senses, spellcasting ability, lineage Speed/Darkvision, Level 1 cantrip state, High Elf replacement semantics, and explicit future Level 3/5 spell grants.
-      - Gnome retains Forest/Rock lineage, spellcasting ability, Forest Speak with Animals free-cast state, and Rock Gnome clockwork-device capacity.
-      - Tiefling retains Small/Medium size, Abyssal/Chthonic/Infernal legacy, spellcasting ability, legacy resistance/cantrip state, Thaumaturgy, and explicit future Level 3/5 spell grants.
-      - Species-owned magic retained separately in spells.speciesGrants with independent adapter validation and Pact of the Tome duplicate exclusion across class, feat, and species sources.
-      - All four SRD backgrounds enabled: Acolyte, Criminal, Sage, Soldier.
-      - D&D-native Magic Initiate spell-grant state for Acolyte and Sage with explicit casting ability, cantrips, Level 1 spell, free-cast resource, provenance, and independent validation.
-      - Human Versatile supports selected Magic Initiate with Cleric/Druid/Wizard list, casting ability, two cantrips, one Level 1 spell, independent retained feat spell-grant state, provenance, reopen validation, and different-list enforcement when Magic Initiate is repeated.
-      - Class-owned standard-slot spellcasting state proven separately from independent spell grants.
-      - Guided class support expanded to all twelve SRD classes: Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard.
-      - Cleric Divine Order, 3/4 cantrips, four prepared Level 1 spells, two Level 1 slots, Wisdom casting, Holy Symbol focus, Protector training, and Thaumaturge knowledge bonus retained natively and validated independently.
-      - Druid Primal Order, Druidic language/focus, Herbalism Kit, Warden/Magician consequences, and class spellcasting retained natively.
-      - Druid Speak with Animals retained as always prepared through Druidic and excluded from ordinary prepared choices.
-      - Bard spellcasting, Bardic Inspiration, and three explicit musical instrument proficiency/focus choices retained and validated.
-      - Paladin spellcasting, Lay on Hands, Martial/Heavy Armor training, and two Weapon Mastery choices retained and validated.
-      - Ranger spellcasting, Favored Enemy, Hunter's Mark always-prepared/free-cast state, training, and two Weapon Mastery choices retained and validated.
-      - Ranger Hunter's Mark excluded from the two ordinary prepared-spell choices.
-      - Sorcerer spellcasting and Innate Sorcery resource state retained and validated.
-      - Wizard six-spell Level 1 spellbook, four-spell prepared subset, Arcane Recovery, slots, and focus/spellbook capability retained and validated.
-      - Wizard adapter validation rejects prepared spells outside the retained spellbook.
-      - Warlock Pact Magic retained separately from ordinary Long-Rest slot semantics with one Level 1 slot restored on Short or Long Rest.
-      - Warlock Level 1 retains two cantrips, two prepared Level 1 spells, Arcane Focus capability, training, and one explicit Eldritch Invocation.
-      - Five genuinely Level-1-legal Warlock Invocations supported: Armor of Shadows, Eldritch Mind, Pact of the Blade, Pact of the Chain, Pact of the Tome.
-      - Pact of the Tome retains three cantrips and two Level 1 ritual spells while excluding spells already prepared through Pact Magic, background Magic Initiate, Human Magic Initiate, or currently active species grants.
-      - Pact of the Tome browser menus and sticky provenance use the same filtered legal option set rather than deferring duplicate detection to submit time.
-      - Class spellcasting, species spell grants, and multiple legal independent Magic Initiate grants coexist as separate native source capabilities.
-      - Legacy dnd5e-character/0.2 class validation isolated from the expanding current guided class union.
-      - Visible Character Forge runtime build/source badge and Parchment local rebuild seam added for QA provenance.
-      - Automated-green full SRD species checkpoint e8a0b1e778299a7ce0f4b2e6bfe1432c7cdd35cb, Actions 34215046544, 25 test files / 114 tests, including all 108 class/species combinations.
-      - Automated-green mechanical SRD Level 1 closeout 55f79a1004c14eef1635e92c602e1fefa18cab15, Actions 34220401743, 25 test files / 117 tests, adapter 0.15.0.
+      - WotC SRD 5.2.1 source/version/license boundary.
+      - dnd5e-character/0.3 current native state with legacy reopen support.
+      - Standard Array, Manual, Point Cost, Random, Quick, and guided generation converge on shared native construction.
+      - Shared deterministic seeded-random and dice-expression generator core.
+      - Creator workspace uses controls left/details right with independent scrolling and dynamic generation-method controls.
+      - Sticky direct/random-from-acceptable choice pools implemented.
+      - All 12 SRD classes, 4 backgrounds, and 9 species mechanically supported at Level 1.
+      - 108 class/species matrix covered.
+      - Nested class/background/species choices, species magic, class casting, Magic Initiate grants, Warlock Pact Magic/Invocations/Tome, Wizard spellbook, Druid/Ranger always-prepared source spells, equipment/training, and derived state retained natively.
+      - Visible runtime build/source badge and Parchment local rebuild seam available for QA provenance.
+      - Mechanical closeout checkpoint 55f79a1004c14eef1635e92c602e1fefa18cab15, Actions 34220401743, 25 test files / 117 tests, adapter 0.15.0.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
-      - The user requested that the broad Level 1 expansion be tested as an accumulated runtime batch before promotion.
-      - Current generation/guided work stays on dev and is not promoted until the accumulated pass is explicitly accepted.
-    current_slice:
-      - Complete owner batch QA across representative classes and all enabled species lineage or legacy paths.
-      - Verify Human Criminal/Soldier Magic Initiate list, ability, spell, free-cast, and reopen behavior.
-      - Verify Human Acolyte/Sage repeated Magic Initiate excludes the background list, retains two independent grants, and survives reopen.
-      - Verify Warlock one-slot Short/Long-Rest Pact Magic semantics and all five Level 1 Invocations.
-      - Verify Pact of the Tome excludes spells already prepared through Pact Magic, either Magic Initiate grant, or the selected species.
-      - Verify Druid Speak with Animals and Ranger Hunter's Mark remain always-prepared source features rather than ordinary prepared choices.
-      - Verify Wizard spellbook-to-prepared subset behavior survives Parchment save/reopen.
-      - Verify Elf lineage Speed/Darkvision/spell state, Forest versus Rock Gnome state, and all three Tiefling legacy resistance/cantrip/future-grant paths survive generation and reopen.
+      - Accumulated owner runtime QA remains required before exact-SHA promotion.
+      - Issue 11 tracks that gate.
     remaining_scope:
-      - Replace the temporary six-name D&D list with a future structured naming architecture informed by culture/species/language consumers rather than a giant flat list.
-      - Consolidate Quick Generate into the creator workspace as a top-level creation mode, not an ability method.
-      - Add early guided narrative generation through the same catalogs and ordinary generation APIs.
-      - Introduce the system-neutral random-table companion now that mechanical SRD Level 1 breadth is closed, using concrete personality/flavor consumers to define its output contract before implementation.
+      - Owner runtime QA of representative classes/species and reopen behavior.
+      - Structured naming architecture later; do not scale the temporary flat name list.
+      - Consolidate Quick Generate as a top-level creator mode.
+      - Add guided narrative generation through ordinary system APIs.
+      - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
       guided_workspace_issue: 9
       core_choices_issue: 10
@@ -104,58 +57,50 @@ roadmap:
   - id: system-6-second-stress-test
     horizon: now
     status: in_progress
-    goal: Implement BRP Universal Game Engine as a structurally different second RPG and use implementation evidence to break D&D-shaped assumptions before expanding the shared semantic layer.
+    goal: Implement BRP Universal Game Engine as a structurally different second RPG and use evidence to break D&D-shaped assumptions before expanding shared semantics.
     selected_system: Basic Roleplaying Universal Game Engine
     rules_boundary: 2023 UGE ORC content with corrections 1.05
     tracking_issue: 13
     completed:
-      - Candidate SWOT/matrix reviewed and BRP UGE accepted over branded Call of Cthulhu as the public second-system implementation target.
-      - Architecture premortem completed without finding evidence that character-document/0.1 or the current RulesSystemAdapter contract requires a shared-schema change.
-      - BRP UGE ORC source and corrections 1.05 boundary recorded with source ID chaosium-brp-uge-orc-1.05.
-      - brp-character/0.1 native state introduced for a non-powered human profile.
-      - Representative Detective profession retains profession identity, wealth, and four selected professional electives without treating profession as D&D class.
-      - Explicit STR/CON/SIZ/INT/POW/DEX/CHA state retains initial/adjustment/final layers.
-      - Core BRP derived values and corrected Charisma Roll semantics implemented.
-      - Professional and personal skill construction retain source base chance, professional contribution, personal contribution, and final rating separately.
-      - Open specialty identity proven through Firearm (Handgun), Knowledge (Law), and Science (Forensics).
-      - CharacterDocument JSON round trip preserves BRP native payloads without semantic reconstruction.
-      - Automated-green first BRP checkpoint da045ea71d9827ad756a706429399f2101f36498, Actions 34225597834, job 102058824469, 26 test files / 123 tests / 0 failures.
-      - Standard rolled characteristic generation implemented with deterministic seeded 3d6 and 2d6+6 rolls using system-neutral generator-core primitives.
-      - Raw characteristic dice, notation, modifiers, totals, seed, pre-redistribution values, and explicit up-to-three-point redistribution are retained as native construction provenance.
-      - Explicit and standard-rolled generation converge on the same brp-character/0.1 native ontology and shared downstream construction path.
-      - Automated-green rolled-characteristic checkpoint fab012deed4a0f795aee3d163112f7fafb357c7f, Actions 34230839209, job 102076260630, 27 test files / 129 tests / 0 failures, 12 BRP tests.
-      - Normal and Heroic now share one profile-aware builder/validator rather than separate native ontologies.
-      - Normal retains a 250-point professional pool and 75% starting cap; Heroic retains a 325-point base professional pool and 90% starting cap; personal points remain INT x 10.
-      - Heroic retains default-starting-age causality and adds 20 professional points per full decade after the retained starting age within the implemented age boundary.
-      - Heroic explicit and Heroic standard-rolled characters both remain brp-character/0.1 and non-powered.
-      - Adapter 0.3.0 independently validates profile-derived budget/cap, Heroic starting-age provenance, full-decade age adjustments, and profile/age tampering.
-      - Automated-green Heroic checkpoint a780f82378e1477d77cf1076cc769491dcb3043d, Actions 34237331940, job 102098319676, 28 test files / 136 tests / 0 failures, 19 BRP tests.
-      - Detective and Scholar now share one profession-aware construction and validation pipeline rather than separate builders or native schemas.
-      - Scholar retains five fixed professional skills plus exactly five open Knowledge or Science specialty identities without freezing an academic subject catalog.
-      - Multiple Knowledge or Science specialties under the same parent are supported while duplicate parent-plus-specialty identity is rejected.
-      - Professional allocation is validated against the exact retained Scholar academic choices while personal learning remains profession-independent.
-      - Scholar works across Normal/Heroic and explicit/standard-rolled generation without changing brp-character/0.1.
-      - Scholar exposed and corrected an identity collision between Language (Own) and Language (Other) by retaining them as distinct BRP source skill variants; named-language identity remains a deliberate follow-on seam.
-      - Adapter 0.4.0 independently validates Scholar profession shape, specialty identity, exact professional eligibility, source bases, budget/cap, and specialty-choice tampering.
-      - Automated-green Scholar checkpoint 96846485016c4b3082217db8de0b11a143d9e9e2, Actions 34254069939, job 102155313610, 29 test files / 145 tests / 0 failures, 28 BRP tests including 9 Scholar tests.
+      - BRP selected over branded Call of Cthulhu as the public second-system implementation target.
+      - Architecture premortem found no need to change character-document/0.1 or RulesSystemAdapter.
+      - Source ID chaosium-brp-uge-orc-1.05 and ORC boundary recorded.
+      - brp-character/0.1 introduced for a non-powered human profile.
+      - Explicit STR/CON/SIZ/INT/POW/DEX/CHA with base/adjustment/final causality.
+      - Deterministic standard-rolled 3d6 / 2d6+6 generation with seed, raw dice, and up-to-three-point redistribution provenance.
+      - Core derived state and corrected Charisma Roll semantics.
+      - Professional/personal skill contributions retained separately from source base and final rating.
+      - Detective profession proves bounded professional electives without class semantics.
+      - Normal and Heroic share one profile-aware builder/validator; Normal 250/75, Heroic 325/90, personal INT x 10.
+      - Heroic default-starting-age causality retained with +20 professional points per full decade inside the current age boundary.
+      - Scholar profession proves a second profession-choice grammar through five open Knowledge/Science specialties.
+      - Repeated parent skills with distinct specialties accepted; exact parent+specialty duplicates rejected.
+      - Scholar professional eligibility reconstructed independently from retained profession choices.
+      - Named language identity closure retains open Own and Other language IDs/labels.
+      - Language Own uses INT x 5 in the current EDU-disabled profile; Language Other uses 0 base.
+      - Exact same language ID cannot occupy both Scholar Own and Other roles.
+      - Personal allocation may learn additional named Language Other identities outside Scholar professional choices.
+      - Adapter 0.5.0 independently validates language role/identity, source bases, exact professional eligibility, and tampering.
+      - Scholar generation recipe 0.5 retains exact Own/Other language decisions and academic choices.
+      - Native schema remains brp-character/0.1 across explicit/rolled, Normal/Heroic, Detective/Scholar, open specialty, and named-language slices.
+      - Automated-green named-language checkpoint 1ce3387491ccf859f56d7a0e92217c7737a56bf0, Actions 34291613617, job 102279178820, 30 test files / 152 tests / 0 failures, 35 BRP tests.
     current_slice:
-      - Treat Scholar as evidence that BRP professions can own different choice grammars while converging on one native ontology.
-      - Close the named-language identity seam exposed by Scholar before exposing BRP creator UI.
-      - Retain open language ID/label plus Own versus Other source role rather than relying on generic placeholder language skills.
-      - Preserve Language (Own) INT x 5 and Language (Other) 0% source semantics in the current EDU-disabled profile.
-      - Tie Scholar professional eligibility to the exact retained Own and Other language identities and validate them independently.
-      - Preserve the full Detective/Scholar x Normal/Heroic x explicit/standard-rolled matrix unchanged.
-      - Reassess BRP creator UI immediately after the language identity closure instead of expanding backend catalog breadth by default.
+      - Add the first narrow BRP creator UI instead of expanding backend catalog breadth by default.
+      - Preserve the existing creator standard: controls left, character review right, universal controls first, dynamic system/method-specific controls.
+      - Expose only implemented BRP rules: Human, Normal/Heroic, explicit/rolled, Detective/Scholar, current age boundary, Average/Affluent wealth, open Scholar academic specialties, named Own/Other languages, and professional/personal allocation.
+      - Reuse BRP-owned builders/validators or narrow BRP-owned preview helpers; browser code must not become a second rules engine.
+      - Preserve D&D creator behavior and sticky preferences unchanged.
+      - Preserve BRP CharacterDocument/native/provenance round trip and reopen behavior.
+      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out of this UI slice.
     guardrails:
-      - Keep Call of Cthulhu-specific protected content out of the BRP adapter; branded Call of Cthulhu remains a separately licensed future product target.
-      - Preserve BRP rules-profile context natively rather than inferring optional rules from final numbers.
-      - Preserve character-specific age context when it changes construction legality.
-      - Profession is not class; do not promote a universal class concept.
-      - Preserve skill base chance, allocation contributions, and final rating separately when causality matters.
-      - Keep specialties and language identities open-ended and source-owned rather than freezing universal enums.
-      - Preserve source skill variant/role when parent identity alone is insufficient.
-      - Do not model BRP powers through D&D spell-state structures.
-      - Keep generation method provenance separate from runtime ontology unless source rules prove otherwise.
+      - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
+      - Preserve effective rules-profile and character-specific age context natively.
+      - Profession is not class.
+      - Preserve base chance, professional contribution, personal contribution, and final rating separately.
+      - Keep specialties and language identities open-ended and source-owned.
+      - Preserve both language subject identity and Own/Other role when source meaning depends on them.
+      - Do not model future BRP powers through D&D spell-state structures.
+      - Keep generation method provenance separate from runtime ontology unless a source proves otherwise.
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 
   - id: companion-random-tables
@@ -163,43 +108,33 @@ roadmap:
     status: ready_for_discovery
     goal: Provide reusable provenance-bearing random-table evaluation for character flavor and structured suggestions without patching native character state directly.
     trigger:
-      - Mechanical SRD Level 1 breadth is automated-green, satisfying the prior closeout dependency.
-      - Use concrete consumers such as traits, ideals, bonds, flaws, equipment/trinkets, tags, native IDs, weighted results, and subtable references to define the output contract.
-      - Start before guided narrative grows large enough to invent separate randomization infrastructure.
+      - D&D mechanical Level 1 breadth is automated-green.
+      - Concrete consumers include traits, ideals, bonds, flaws, equipment/trinkets, tags/native IDs, weighted results, and subtable references.
     guardrails:
       - Generic table engine remains system-neutral.
-      - D&D datasets and mappings remain D&D-owned.
-      - Table results feed ordinary generation decisions or structured suggestions and retain provenance.
-      - Deterministic seed and source/table provenance survive generation records.
-      - Do not freeze a universal table schema from D&D flavor tables alone.
-      - Add nesting or subtable mechanics only when a concrete consumer requires them.
+      - System datasets/mappings remain system-owned.
+      - Results feed ordinary generation decisions or structured suggestions and retain seed/source/table provenance.
+      - Add nesting only when a concrete consumer requires it.
 
   - id: naming-system-watch
     horizon: watch
     status: discovery_triggered_later
-    goal: Replace temporary flat generated-name lists with structured, provenance-bearing name generation that can eventually interoperate with Worldbuilding culture and language systems.
-    current_state:
-      - D&D currently chooses from six hardcoded full names using the shared seeded PRNG.
-      - Explicit typed names override generation.
-      - Blank-name generation reuses a generation seed when available or creates a separate name seed.
+    goal: Replace temporary flat generated-name lists with structured, provenance-bearing naming informed by culture/species/language consumers.
     guardrails:
-      - Do not scale by merely adding hundreds of flat full-name strings.
-      - Let concrete culture, species, language, gender/style, and setting needs define the eventual schema.
+      - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.
-      - Keep system- or setting-specific datasets separate from a reusable generation mechanism.
+      - Keep system/setting datasets separate from the reusable mechanism.
 
   - id: parchment-2-character-persistence
     horizon: completed
     status: completed
-    goal: Make generated CharacterDocuments first-class durable Parchment project assets before broadening generation further.
+    goal: Make generated CharacterDocuments durable Parchment project assets without teaching Parchment system mechanics.
     completed:
-      - Full CharacterDocument persisted losslessly without teaching Parchment D&D mechanics.
-      - Explicit project ownership and stable Parchment character asset identity.
-      - Project-level character inventory.
-      - Browser reload durability.
-      - Parchment -> Character Forge reopen preserving native state and generation provenance.
-      - Owner runtime QA accepted on 2026-08-26.
-      - Accepted checkpoints promoted to qa and main.
+      - Full CharacterDocument persisted losslessly.
+      - Stable project ownership and character asset identity.
+      - Project-level inventory and browser reload durability.
+      - Parchment -> Character Forge reopen preserves native state and generation provenance.
+      - Owner runtime QA accepted 2026-08-26 and accepted checkpoints promoted.
     tracking:
       parchment_issue: 24
       status: closed
@@ -207,7 +142,7 @@ roadmap:
   - id: foundry-3-dnd5e-integration
     horizon: near
     status: planned
-    goal: Prove a Foundry D&D 5E adapter boundary without making Foundry Actor JSON the canonical Character Forge format.
+    goal: Prove a Foundry D&D 5E adapter boundary without making Foundry Actor JSON canonical Character Forge state.
 
   - id: maintenance-4-advancement
     horizon: near
@@ -217,7 +152,7 @@ roadmap:
   - id: semantic-5-cross-system-language
     horizon: after-evidence
     status: planned
-    goal: Promote observed cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
+    goal: Promote sufficiently repeated cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
 
   - id: system-7-pathfinder
     horizon: later
@@ -227,7 +162,7 @@ roadmap:
   - id: bridge-rpg-8-design-synthesis
     horizon: later
     status: planned
-    goal: Use accumulated cross-system evidence to inform the original non-d20 RPG without making Character Forge depend on that system.
+    goal: Use accumulated cross-system evidence to inform the original non-d20 RPG without making Character Forge depend on it.
 
   - id: identity-9-hosted-maintenance
     horizon: later
