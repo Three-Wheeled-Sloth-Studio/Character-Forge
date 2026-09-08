@@ -1,5 +1,6 @@
 import { DND5E_MUSICAL_INSTRUMENT_OPTIONS, DND5E_SKILL_OPTIONS, type GuidedDnd5eCoreChoices } from "./guidedChoices.js";
 import { preparedCasterCatalog } from "./preparedCasterCatalog.js";
+import { DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS } from "./speciesCatalog.js";
 import { DND5E_SRD_521_BACKGROUND_OPTIONS, type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eSpeciesId } from "./srdCatalog.js";
 import { DND5E_PACT_TOME_CANTRIP_OPTIONS, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS } from "./warlockCatalog.js";
 
@@ -75,5 +76,12 @@ export function defaultGuidedDnd5eCoreChoices(classId: GuidedDnd5eClassId, backg
     const skillId = DND5E_SKILL_OPTIONS.map((option) => option.id).find((id) => !taken.has(id)) ?? "performance";
     choices.human = { size: "medium", skillId, originFeatId: background.originFeatId === "alert" ? "savage-attacker" : "alert" };
   }
+  if (speciesId === "elf") {
+    const taken = new Set([...classSkillIds, ...background.skillProficiencies]);
+    const keenSensesSkillId = (DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS.map((option) => option.id).find((id) => !taken.has(id)) ?? "perception") as "insight" | "perception" | "survival";
+    choices.elf = { lineageId: "high", spellcastingAbilityId: "intelligence", keenSensesSkillId };
+  }
+  if (speciesId === "gnome") choices.gnome = { lineageId: "forest", spellcastingAbilityId: "intelligence" };
+  if (speciesId === "tiefling") choices.tiefling = { size: "medium", legacyId: "infernal", spellcastingAbilityId: "charisma" };
   return choices;
 }
