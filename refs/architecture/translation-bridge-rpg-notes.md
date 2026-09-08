@@ -307,3 +307,27 @@ Bridge-RPG implication: Lifepath, aging, training-time, augmentation history, or
 Confidence: high for this BRP case; medium as a general design rule.
 
 Follow-up: Watch Scholar and later lifepath-heavy systems for whether character-specific historical context recurs before promoting a universal history schema.
+
+### 2026-09-08 - BRP professions can own different choice grammars
+
+Observation: Detective and Scholar now share one BRP character pipeline while exposing materially different profession construction grammar. Detective has required skills plus four choices from a bounded elective set. Scholar has five fixed skills plus five open Knowledge or Science specialty identities. Neither shape required a new native character ontology or a shared `CharacterDocument` change.
+
+Translator implication: A source profession or career label should not imply one universal menu structure. Translation should preserve the resulting training and source provenance while allowing each source system to define how that training was selected. A future semantic layer should not encode D&D class-choice or BRP profession-choice grammar as though either were universal.
+
+Bridge-RPG implication: The original RPG can support heterogeneous profession/lifepath templates whose construction choices differ by profession while converging on one runtime capability model. That makes fixed packages, bounded electives, open specialties, and later lifepath steps composable without multiplying character schemas.
+
+Confidence: high for BRP native architecture; medium as a cross-system design principle.
+
+Follow-up: Compare with a playbook-based and a lifepath-heavy system before promoting any shared profession-choice contract.
+
+### 2026-09-08 - Open skill identity can require parent, variant, and specialty together
+
+Observation: Scholar proves that parent skill alone is insufficient identity. Multiple Knowledge and Science skills coexist legally when their specialty identities differ, while duplicate parent-plus-specialty identity is illegal. The same refactor also exposed that Language (Own) and Language (Other) collided when both were represented only as generic `language` with no specialty, even though the source gives those variants different starting semantics.
+
+Translator implication: Translators should preserve enough source identity to distinguish a capability's parent family, source variant or role, and open specialty when those dimensions affect meaning or base value. Mapping only a display label or only a parent skill ID can silently merge distinct source capabilities.
+
+Bridge-RPG implication: A flexible specialization model should separate stable identity from display label and allow source-role/variant semantics where the same broad skill family has different rules. This is useful for languages, weapon families, technical specialties, disciplines, and similar open taxonomies.
+
+Confidence: high for BRP native retention; medium for a future universal representation.
+
+Follow-up: Close BRP named-language identity next, then compare with at least one third system before promoting any shared specialty or language schema.
