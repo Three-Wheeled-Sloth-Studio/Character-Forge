@@ -29,6 +29,8 @@ export interface Dnd5eOriginState extends JsonObject {
   speciesSkillId?: string;
   speciesAncestryId?: string;
   speciesDamageType?: string;
+  speciesResistanceDamageType?: string;
+  speciesDarkvisionFeet?: number;
   toolProficiencyId: string;
   backgroundEquipmentChoice: string;
 }
@@ -73,6 +75,32 @@ export interface Dnd5eSpellGrantState extends JsonObject {
   freeCastCurrent: number;
   freeCastRecharge: "long-rest";
 }
+export interface Dnd5eFreeSpellCastState extends JsonObject {
+  spellId: string;
+  maximum: number;
+  current: number;
+  recharge: "long-rest";
+}
+export interface Dnd5eFutureSpellGrantState extends JsonObject {
+  characterLevel: number;
+  spellId: string;
+  alwaysPrepared: boolean;
+  freeCastMaximum: number;
+  freeCastRecharge: "long-rest";
+}
+export interface Dnd5eSpeciesSpellGrantState extends JsonObject {
+  sourceSpeciesId: string;
+  featureId: string;
+  lineageId: string;
+  spellcastingAbilityId: Dnd5eSpellcastingAbilityId;
+  cantripIds: string[];
+  preparedSpellIds: string[];
+  alwaysPreparedSpellIds: string[];
+  freeCasts: Dnd5eFreeSpellCastState[];
+  futureSpellGrants: Dnd5eFutureSpellGrantState[];
+  cantripReplacementListId?: string;
+  cantripReplacementRecharge?: "long-rest";
+}
 export interface Dnd5eSpellSlotState extends JsonObject {
   level: number;
   maximum: number;
@@ -95,6 +123,7 @@ export interface Dnd5eClassSpellcastingState extends JsonObject {
 }
 export interface Dnd5eSpellState extends JsonObject {
   grants: Dnd5eSpellGrantState[];
+  speciesGrants?: Dnd5eSpeciesSpellGrantState[];
   classCasting?: Dnd5eClassSpellcastingState[];
 }
 export interface Dnd5eEquipmentEntry extends JsonObject { itemId: string; quantity: number; }
@@ -115,6 +144,7 @@ export interface Dnd5eResourcesState extends JsonObject {
   relentlessEnduranceMaximum?: number; relentlessEnduranceCurrent?: number;
   breathWeaponMaximum?: number; breathWeaponCurrent?: number;
   giantAncestryMaximum?: number; giantAncestryCurrent?: number;
+  rockGnomeClockworkDevicesMaximum?: number; rockGnomeClockworkDevicesCurrent?: number;
 }
 export interface Dnd5eDerivedState extends JsonObject { armorClass: number; initiativeModifier: number; passivePerception: number; }
 export interface Dnd5eNativeCharacter extends JsonObject {
