@@ -1,21 +1,22 @@
 import type { CharacterDocument, GenerationDecision } from "../../../packages/character-model/src/index.js";
 import {
-  calculateDnd5ePointCost, classChoiceRules, clericCantripCount, defaultGuidedDnd5eCoreChoices, druidCantripCount,
+  calculateDnd5ePointCost, classChoiceRules, clericCantripCount, currentGuidedDnd5eSpeciesSpellIds, defaultGuidedDnd5eCoreChoices, druidCantripCount,
   DND5E_ALIGNMENT_OPTIONS, DND5E_BONUS_LANGUAGE_OPTIONS, DND5E_CLERIC_CANTRIP_OPTIONS, DND5E_CLERIC_DIVINE_ORDER_OPTIONS,
   DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS, DND5E_DRAGONBORN_ANCESTRY_OPTIONS, DND5E_DRUID_CANTRIP_OPTIONS,
-  DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS, DND5E_DRUID_PRIMAL_ORDER_OPTIONS, DND5E_FIGHTING_STYLE_OPTIONS,
-  DND5E_GOLIATH_ANCESTRY_OPTIONS, DND5E_HUMAN_ORIGIN_FEAT_OPTIONS, DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS,
-  DND5E_MONK_TOOL_OPTIONS, DND5E_MUSICAL_INSTRUMENT_OPTIONS, DND5E_PACT_TOME_CANTRIP_OPTIONS,
-  DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS, DND5E_POINT_COST_BUDGET, DND5E_SKILL_OPTIONS,
-  DND5E_SKILLED_PROFICIENCY_OPTIONS, DND5E_SPELLCASTING_ABILITY_OPTIONS, DND5E_SRD_521_BACKGROUND_OPTIONS,
-  DND5E_SRD_521_CLASS_OPTIONS, DND5E_SRD_521_SPECIES_OPTIONS, DND5E_STANDARD_ARRAY, DND5E_STANDARD_LANGUAGE_OPTIONS,
-  DND5E_WEAPON_OPTIONS, GUIDED_DND5E_BACKGROUND_IDS, GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_SPECIES_IDS,
-  guidedGenerateDnd5eFirstSlice, magicInitiateSpellList, pactTomeCantripOptionsExcluding, pactTomeRitualSpellOptionsExcluding,
-  preparedCasterCatalog, resolveDnd5eCharacterName,
-  rollDnd5eRandomAbilitySet, type Dnd5eAbilityId, type Dnd5eAbilityIncreasePlan, type Dnd5eAbilityScores,
-  type Dnd5eClericDivineOrderId, type Dnd5eDruidPrimalOrderId, type Dnd5eLevelOneEldritchInvocationId,
+  DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS, DND5E_DRUID_PRIMAL_ORDER_OPTIONS, DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS,
+  DND5E_ELF_LINEAGE_OPTIONS, DND5E_FIGHTING_STYLE_OPTIONS, DND5E_GNOME_LINEAGE_OPTIONS, DND5E_GOLIATH_ANCESTRY_OPTIONS,
+  DND5E_HUMAN_ORIGIN_FEAT_OPTIONS, DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS, DND5E_MONK_TOOL_OPTIONS,
+  DND5E_MUSICAL_INSTRUMENT_OPTIONS, DND5E_PACT_TOME_CANTRIP_OPTIONS, DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS,
+  DND5E_POINT_COST_BUDGET, DND5E_SKILL_OPTIONS, DND5E_SKILLED_PROFICIENCY_OPTIONS, DND5E_SPELLCASTING_ABILITY_OPTIONS,
+  DND5E_SRD_521_BACKGROUND_OPTIONS, DND5E_SRD_521_CLASS_OPTIONS, DND5E_SRD_521_SPECIES_OPTIONS, DND5E_STANDARD_ARRAY,
+  DND5E_STANDARD_LANGUAGE_OPTIONS, DND5E_TIEFLING_LEGACY_OPTIONS, DND5E_WEAPON_OPTIONS, GUIDED_DND5E_BACKGROUND_IDS,
+  GUIDED_DND5E_CLASS_IDS, GUIDED_DND5E_SPECIES_IDS, elfLineage, gnomeLineage, guidedGenerateDnd5eFirstSlice,
+  magicInitiateSpellList, pactTomeCantripOptionsExcluding, pactTomeRitualSpellOptionsExcluding, preparedCasterCatalog,
+  resolveDnd5eCharacterName, rollDnd5eRandomAbilitySet, tieflingLegacy,
+  type Dnd5eAbilityId, type Dnd5eAbilityIncreasePlan, type Dnd5eAbilityScores, type Dnd5eClericDivineOrderId,
+  type Dnd5eDruidPrimalOrderId, type Dnd5eElfLineageId, type Dnd5eGnomeLineageId, type Dnd5eLevelOneEldritchInvocationId,
   type Dnd5eMagicInitiateSpellListId, type Dnd5eRandomAbilityAssignment, type Dnd5eRandomAbilitySet,
-  type Dnd5eSpellcastingAbilityId, type GuidedAbilityMethodInput, type GuidedChoiceSelectionMode,
+  type Dnd5eSpellcastingAbilityId, type Dnd5eTieflingLegacyId, type GuidedAbilityMethodInput, type GuidedChoiceSelectionMode,
   type GuidedDnd5eBackgroundId, type GuidedDnd5eClassId, type GuidedDnd5eCoreChoices, type GuidedDnd5eSpeciesId,
 } from "../../../packages/system-dnd5e/src/index.js";
 import { loadStickyMultiChoicePool, pickManyFromAcceptablePool, saveStickyMultiChoicePool, type StickyMultiChoicePoolState } from "./stickyMultiChoicePool.js";
@@ -127,29 +128,6 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
       } else bindMultiChoice(`${prefix}.${caster.classId}-prepared`, "class-prepared", caster.preparedSpellOptions.map((o) => o.id), defaults.preparedCaster.preparedSpellIds, caster.preparedSpellCount);
     }
 
-    if (classState.selectedId === "warlock" && defaults.warlock) {
-      bindStickySelect("warlock-invocation", DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS.map((o) => o.id), defaults.warlock.invocationId, prefix, true);
-      const invocation = readStickySelect(root, "warlock-invocation") as Dnd5eLevelOneEldritchInvocationId;
-      const host = root.querySelector<HTMLElement>("#creator-warlock-invocation-host");
-      if (host && invocation === "pact-of-the-tome") {
-        const classCantrips = caster?.cantripCount ? readMultiSelected(root, "class-cantrips", caster.cantripCount) : [];
-        const classPrepared = caster ? readMultiSelected(root, "class-prepared", caster.preparedSpellCount) : [];
-        const magicList = defaults.magicInitiate ? magicInitiateSpellList(defaults.magicInitiate.spellListId) : undefined;
-        const magicCantrips = defaults.magicInitiate && magicList
-          ? loadStickyMultiChoicePool(localStorage, `${prefix}.magic-initiate-cantrips`, magicList.cantrips.map((o) => o.id), magicList.cantrips.map((o) => o.id), defaults.magicInitiate.cantripIds, 2).selectedIds
-          : [];
-        const magicLevelOne = defaults.magicInitiate && magicList
-          ? loadStickyChoicePool(localStorage, `${prefix}.magic-initiate-level-one`, magicList.levelOneSpells.map((o) => o.id), magicList.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId).selectedId
-          : undefined;
-        const alreadyPrepared = [...classCantrips, ...classPrepared, ...magicCantrips, ...(magicLevelOne ? [magicLevelOne] : [])];
-        const tomeCantripIds = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
-        const ritualIds = pactTomeRitualSpellOptionsExcluding(alreadyPrepared).map((o) => o.id);
-        host.innerHTML = `<p class="muted">Book of Shadows choices are current native state and may change when the book is conjured after a rest. Spells already prepared from Pact Magic or Magic Initiate are excluded.</p>${multiChoiceHtml("Book of Shadows cantrips", "warlock-tome-cantrips", tomeCantripIds, 3)}${multiChoiceHtml("Book of Shadows Level 1 rituals", "warlock-tome-rituals", ritualIds, 2)}`;
-        bindMultiChoice(`${prefix}.warlock-tome-cantrips`, "warlock-tome-cantrips", tomeCantripIds, fillDefaults(defaults.warlock.pactTomeCantripIds ?? [], tomeCantripIds, 3), 3);
-        bindMultiChoice(`${prefix}.warlock-tome-rituals`, "warlock-tome-rituals", ritualIds, fillDefaults(defaults.warlock.pactTomeRitualSpellIds ?? [], ritualIds, 2), 2);
-      }
-    }
-
     if (classState.selectedId === "bard") bindMultiChoice(`${prefix}.bard-instruments`, "bard-instruments", DND5E_MUSICAL_INSTRUMENT_OPTIONS.map((o) => o.id), defaults.bardInstrumentIds ?? DND5E_MUSICAL_INSTRUMENT_OPTIONS.slice(0, 3).map((o) => o.id), 3);
     if (classState.selectedId === "fighter") bindStickySelect("fighting-style", DND5E_FIGHTING_STYLE_OPTIONS.map((o) => o.id), defaults.fightingStyleFeatId ?? "defense", prefix);
     if (classState.selectedId === "monk") bindStickySelect("monk-tool", DND5E_MONK_TOOL_OPTIONS.map((o) => o.id), defaults.monkToolProficiencyId ?? DND5E_MONK_TOOL_OPTIONS[0]!.id, prefix);
@@ -160,6 +138,7 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
       bindMultiChoice(`${prefix}.magic-initiate-cantrips`, "magic-initiate-cantrips", list.cantrips.map((o) => o.id), defaults.magicInitiate.cantripIds, 2);
       bindStickySelect("magic-initiate-level-one", list.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId, prefix, true);
     }
+
     if (speciesState.selectedId === "dragonborn") bindStickySelect("dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((o) => o.id), defaults.dragonbornAncestryId ?? "red", prefix);
     if (speciesState.selectedId === "goliath") bindStickySelect("goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS.map((o) => o.id), defaults.goliathAncestryId ?? "stone", prefix);
     if (speciesState.selectedId === "human") {
@@ -174,9 +153,53 @@ export function mountGuidedCreationPanel(root: HTMLElement, onCharacter: (charac
         bindMultiChoice(`${prefix}.skilled`, "human-skilled", DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), defaults.human?.skilledProficiencyIds ?? DND5E_SKILLED_PROFICIENCY_OPTIONS.slice(0, 3).map((o) => o.id), 3);
       }
     }
+    if (speciesState.selectedId === "elf" && defaults.elf) {
+      bindStickySelect("elf-lineage", DND5E_ELF_LINEAGE_OPTIONS.map((o) => o.id), defaults.elf.lineageId, prefix, true);
+      bindStickySelect("elf-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), defaults.elf.spellcastingAbilityId, prefix);
+      const taken = new Set([...readMultiSelected(root, "class-skills", rules.skillCount), ...background.skillProficiencies]);
+      const remaining = DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS.map((o) => o.id).filter((id) => !taken.has(id));
+      const keenOptions = remaining.length ? remaining : DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS.map((o) => o.id);
+      bindStickySelect("elf-keen-senses", keenOptions, defaults.elf.keenSensesSkillId, prefix);
+    }
+    if (speciesState.selectedId === "gnome" && defaults.gnome) {
+      bindStickySelect("gnome-lineage", DND5E_GNOME_LINEAGE_OPTIONS.map((o) => o.id), defaults.gnome.lineageId, prefix, true);
+      bindStickySelect("gnome-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), defaults.gnome.spellcastingAbilityId, prefix);
+    }
+    if (speciesState.selectedId === "tiefling" && defaults.tiefling) {
+      bindStickySelect("tiefling-size", ["small", "medium"], defaults.tiefling.size, prefix);
+      bindStickySelect("tiefling-legacy", DND5E_TIEFLING_LEGACY_OPTIONS.map((o) => o.id), defaults.tiefling.legacyId, prefix, true);
+      bindStickySelect("tiefling-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id), defaults.tiefling.spellcastingAbilityId, prefix);
+    }
+
+    if (classState.selectedId === "warlock" && defaults.warlock) {
+      bindStickySelect("warlock-invocation", DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS.map((o) => o.id), defaults.warlock.invocationId, prefix, true);
+      const invocation = readStickySelect(root, "warlock-invocation") as Dnd5eLevelOneEldritchInvocationId;
+      const host = root.querySelector<HTMLElement>("#creator-warlock-invocation-host");
+      if (host && invocation === "pact-of-the-tome") {
+        const classCantrips = caster?.cantripCount ? readMultiSelected(root, "class-cantrips", caster.cantripCount) : [];
+        const classPrepared = caster ? readMultiSelected(root, "class-prepared", caster.preparedSpellCount) : [];
+        const magicList = defaults.magicInitiate ? magicInitiateSpellList(defaults.magicInitiate.spellListId) : undefined;
+        const magicCantrips = defaults.magicInitiate && magicList
+          ? loadStickyMultiChoicePool(localStorage, `${prefix}.magic-initiate-cantrips`, magicList.cantrips.map((o) => o.id), magicList.cantrips.map((o) => o.id), defaults.magicInitiate.cantripIds, 2).selectedIds
+          : [];
+        const magicLevelOne = defaults.magicInitiate && magicList
+          ? loadStickyChoicePool(localStorage, `${prefix}.magic-initiate-level-one`, magicList.levelOneSpells.map((o) => o.id), magicList.levelOneSpells.map((o) => o.id), defaults.magicInitiate.levelOneSpellId).selectedId
+          : undefined;
+        const speciesSpells = currentSpeciesSpellIdsFromControls(root, speciesState.selectedId);
+        const alreadyPrepared = [...classCantrips, ...classPrepared, ...magicCantrips, ...(magicLevelOne ? [magicLevelOne] : []), ...speciesSpells];
+        const tomeCantripIds = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
+        const ritualIds = pactTomeRitualSpellOptionsExcluding(alreadyPrepared).map((o) => o.id);
+        host.innerHTML = `<p class="muted">Book of Shadows choices are current native state and may change when the book is conjured after a rest. Spells already prepared from Pact Magic, Magic Initiate, or species grants are excluded.</p>${multiChoiceHtml("Book of Shadows cantrips", "warlock-tome-cantrips", tomeCantripIds, 3)}${multiChoiceHtml("Book of Shadows Level 1 rituals", "warlock-tome-rituals", ritualIds, 2)}`;
+        bindMultiChoice(`${prefix}.warlock-tome-cantrips`, "warlock-tome-cantrips", tomeCantripIds, fillDefaults(defaults.warlock.pactTomeCantripIds ?? [], tomeCantripIds, 3), 3);
+        bindMultiChoice(`${prefix}.warlock-tome-rituals`, "warlock-tome-rituals", ritualIds, fillDefaults(defaults.warlock.pactTomeRitualSpellIds ?? [], ritualIds, 2), 2);
+      }
+    }
+
     if (classState.selectedId === "rogue") {
-      const selectedSkills = readMultiSelected(root, "class-skills", rules.skillCount); const humanSkill = speciesState.selectedId === "human" ? root.querySelector<HTMLSelectElement>("#creator-human-skill")?.value : undefined;
-      const options = [...new Set([...selectedSkills, ...background.skillProficiencies, ...(humanSkill ? [humanSkill] : [])])];
+      const selectedSkills = readMultiSelected(root, "class-skills", rules.skillCount);
+      const humanSkill = speciesState.selectedId === "human" ? root.querySelector<HTMLSelectElement>("#creator-human-skill")?.value : undefined;
+      const elfSkill = speciesState.selectedId === "elf" ? root.querySelector<HTMLSelectElement>("#creator-elf-keen-senses")?.value : undefined;
+      const options = [...new Set([...selectedSkills, ...background.skillProficiencies, ...(humanSkill ? [humanSkill] : []), ...(elfSkill ? [elfSkill] : [])])];
       const host = root.querySelector<HTMLElement>("#creator-expertise-host"); if (host) host.innerHTML = multiChoiceHtml("Expertise", "expertise", options, 2);
       bindMultiChoice(`${prefix}.expertise`, "expertise", options, defaults.expertiseSkillIds ?? options.slice(0, 2), 2);
       bindStickySelect("rogue-language", DND5E_BONUS_LANGUAGE_OPTIONS.map((o) => o.id), defaults.rogueBonusLanguageId ?? "giant", prefix);
@@ -256,10 +279,19 @@ function coreControlsHtml(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5e
   if (classId === "monk") classDetails.push(selectPoolRow("Tool or instrument", "monk-tool", DND5E_MONK_TOOL_OPTIONS, defaults.monkToolProficiencyId ?? DND5E_MONK_TOOL_OPTIONS[0]!.id));
   if (classId === "rogue") classDetails.push('<div id="creator-expertise-host"></div>', selectPoolRow("Thieves' Cant bonus language", "rogue-language", DND5E_BONUS_LANGUAGE_OPTIONS, defaults.rogueBonusLanguageId ?? "giant"));
   const magicDetails = defaults.magicInitiate ? magicInitiateControlsHtml(defaults.magicInitiate.spellListId, defaults) : "";
-  const speciesDetails = speciesId === "dragonborn" ? selectPoolRow("Draconic Ancestry", "dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS, defaults.dragonbornAncestryId ?? "red") : speciesId === "goliath" ? selectPoolRow("Giant Ancestry", "goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS, defaults.goliathAncestryId ?? "stone") : speciesId === "human" ? `${selectPoolRow("Human size", "human-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.human?.size ?? "medium")}${selectPoolRow("Skillful", "human-skill", DND5E_SKILL_OPTIONS, defaults.human?.skillId ?? "perception")}${selectPoolRow("Versatile Origin feat", "human-feat", DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported), defaults.human?.originFeatId ?? "alert")}<div id="creator-human-skilled-host"></div>` : "";
+  const speciesDetails = speciesControlsHtml(speciesId, defaults);
   return `<details class="choice-pool-details" open><summary>Class details</summary><div class="method-controls">${classDetails.join("")}</div></details><details class="choice-pool-details" open><summary>Origin details</summary><div class="method-controls">${selectPoolRow("Alignment", "alignment", DND5E_ALIGNMENT_OPTIONS, defaults.alignmentId)}${selectPoolRow("Language 1", "language-1", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[0])}${selectPoolRow("Language 2", "language-2", DND5E_STANDARD_LANGUAGE_OPTIONS, defaults.originLanguageIds[1])}${magicDetails}${speciesDetails}</div></details>`;
 }
 function magicInitiateControlsHtml(listId: Dnd5eMagicInitiateSpellListId, defaults: GuidedDnd5eCoreChoices): string { const selection = defaults.magicInitiate!; const list = magicInitiateSpellList(listId); return `<div class="choice-section"><strong>Magic Initiate · ${list.label}</strong><p class="muted">Choose the feat's casting ability, two ${list.label} cantrips, and one ${list.label} Level 1 spell.</p>${selectPoolRow("Spellcasting ability", "magic-initiate-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, selection.spellcastingAbilityId)}${multiChoiceHtml("Cantrips", "magic-initiate-cantrips", list.cantrips.map((o) => o.id), 2)}${selectPoolRow("Level 1 spell", "magic-initiate-level-one", list.levelOneSpells, selection.levelOneSpellId)}</div>`; }
+function speciesControlsHtml(speciesId: GuidedDnd5eSpeciesId, defaults: GuidedDnd5eCoreChoices): string {
+  if (speciesId === "dragonborn") return selectPoolRow("Draconic Ancestry", "dragonborn-ancestry", DND5E_DRAGONBORN_ANCESTRY_OPTIONS, defaults.dragonbornAncestryId ?? "red");
+  if (speciesId === "goliath") return selectPoolRow("Giant Ancestry", "goliath-ancestry", DND5E_GOLIATH_ANCESTRY_OPTIONS, defaults.goliathAncestryId ?? "stone");
+  if (speciesId === "human") return `${selectPoolRow("Human size", "human-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.human?.size ?? "medium")}${selectPoolRow("Skillful", "human-skill", DND5E_SKILL_OPTIONS, defaults.human?.skillId ?? "perception")}${selectPoolRow("Versatile Origin feat", "human-feat", DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported), defaults.human?.originFeatId ?? "alert")}<div id="creator-human-skilled-host"></div>`;
+  if (speciesId === "elf" && defaults.elf) return `${selectPoolRow("Elven Lineage", "elf-lineage", DND5E_ELF_LINEAGE_OPTIONS, defaults.elf.lineageId)}${selectPoolRow("Lineage spellcasting ability", "elf-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, defaults.elf.spellcastingAbilityId)}${selectPoolRow("Keen Senses", "elf-keen-senses", DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS, defaults.elf.keenSensesSkillId)}<p class="muted">Level 3 and 5 lineage spells are retained as future-gated native grants. High Elf also retains its Long-Rest Wizard-cantrip replacement rule.</p>`;
+  if (speciesId === "gnome" && defaults.gnome) return `${selectPoolRow("Gnomish Lineage", "gnome-lineage", DND5E_GNOME_LINEAGE_OPTIONS, defaults.gnome.lineageId)}${selectPoolRow("Lineage spellcasting ability", "gnome-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, defaults.gnome.spellcastingAbilityId)}<p class="muted">Forest Gnome retains proficiency-bonus free Speak with Animals casts. Rock Gnome retains its three-device clockwork capacity.</p>`;
+  if (speciesId === "tiefling" && defaults.tiefling) return `${selectPoolRow("Tiefling size", "tiefling-size", [{ id: "small", label: "Small" }, { id: "medium", label: "Medium" }], defaults.tiefling.size)}${selectPoolRow("Fiendish Legacy", "tiefling-legacy", DND5E_TIEFLING_LEGACY_OPTIONS, defaults.tiefling.legacyId)}${selectPoolRow("Legacy spellcasting ability", "tiefling-spellcasting-ability", DND5E_SPELLCASTING_ABILITY_OPTIONS, defaults.tiefling.spellcastingAbilityId)}<p class="muted">Legacy resistance and Level 1 cantrips apply now; Level 3 and 5 spells are retained as future-gated native grants.</p>`;
+  return "";
+}
 
 function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5eBackgroundId, speciesId: GuidedDnd5eSpeciesId): { choices: GuidedDnd5eCoreChoices; provenance: GenerationDecision[] } {
   const rules = classChoiceRules(classId); const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((o) => o.id === backgroundId)!; const legalClassSkills = rules.skillIds.filter((id) => !(background.skillProficiencies as readonly string[]).includes(id));
@@ -278,6 +310,9 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
   if (speciesId === "dragonborn") choices.dragonbornAncestryId = readStickySelect(root, "dragonborn-ancestry") as GuidedDnd5eCoreChoices["dragonbornAncestryId"];
   if (speciesId === "goliath") choices.goliathAncestryId = readStickySelect(root, "goliath-ancestry") as GuidedDnd5eCoreChoices["goliathAncestryId"];
   if (speciesId === "human") { const feat = readStickySelect(root, "human-feat") as "alert" | "savage-attacker" | "skilled"; choices.human = { size: readStickySelect(root, "human-size") as "small" | "medium", skillId: readStickySelect(root, "human-skill"), originFeatId: feat, ...(feat === "skilled" ? { skilledProficiencyIds: readMultiSelected(root, "human-skilled", 3) } : {}) }; }
+  if (speciesId === "elf") choices.elf = { lineageId: readStickySelect(root, "elf-lineage") as Dnd5eElfLineageId, spellcastingAbilityId: readStickySelect(root, "elf-spellcasting-ability") as Dnd5eSpellcastingAbilityId, keenSensesSkillId: readStickySelect(root, "elf-keen-senses") as "insight" | "perception" | "survival" };
+  if (speciesId === "gnome") choices.gnome = { lineageId: readStickySelect(root, "gnome-lineage") as Dnd5eGnomeLineageId, spellcastingAbilityId: readStickySelect(root, "gnome-spellcasting-ability") as Dnd5eSpellcastingAbilityId };
+  if (speciesId === "tiefling") choices.tiefling = { size: readStickySelect(root, "tiefling-size") as "small" | "medium", legacyId: readStickySelect(root, "tiefling-legacy") as Dnd5eTieflingLegacyId, spellcastingAbilityId: readStickySelect(root, "tiefling-spellcasting-ability") as Dnd5eSpellcastingAbilityId };
 
   const prefix = coreKey(classId, backgroundId, speciesId); const provenance: GenerationDecision[] = [];
   const skillState = loadStickyMultiChoicePool(localStorage, `${prefix}.skills`, legalClassSkills, legalClassSkills, choices.classSkillIds, rules.skillCount); provenance.push({ stepId: "class.skills.acceptable-pool", answer: skillState.acceptableIds });
@@ -295,6 +330,7 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
       ...(choices.preparedCaster?.preparedSpellIds ?? []),
       ...(choices.magicInitiate?.cantripIds ?? []),
       ...(choices.magicInitiate ? [choices.magicInitiate.levelOneSpellId] : []),
+      ...currentGuidedDnd5eSpeciesSpellIds(speciesId, choices),
     ];
     const tomeCantripAllowed = pactTomeCantripOptionsExcluding(alreadyPrepared).map((o) => o.id);
     const ritualAllowed = pactTomeRitualSpellOptionsExcluding(alreadyPrepared).map((o) => o.id);
@@ -303,7 +339,7 @@ function readCoreChoices(root: HTMLElement, classId: GuidedDnd5eClassId, backgro
   }
   if (choices.bardInstrumentIds) provenance.push(poolEvidence(`${prefix}.bard-instruments`, "class.bard.instruments.acceptable-pool", DND5E_MUSICAL_INSTRUMENT_OPTIONS.map((o) => o.id), choices.bardInstrumentIds, 3));
   if (choices.magicInitiate) { const list = magicInitiateSpellList(choices.magicInitiate.spellListId); provenance.push(poolEvidence(`${prefix}.magic-initiate-cantrips`, "background.magic-initiate.cantrips.acceptable-pool", list.cantrips.map((o) => o.id), choices.magicInitiate.cantripIds, 2)); }
-  if (classId === "rogue") { const options = [...new Set([...choices.classSkillIds, ...background.skillProficiencies, ...(choices.human?.skillId ? [choices.human.skillId] : [])])]; provenance.push(poolEvidence(`${prefix}.expertise`, "class.expertise.acceptable-pool", options, choices.expertiseSkillIds ?? [], 2)); }
+  if (classId === "rogue") { const options = [...new Set([...choices.classSkillIds, ...background.skillProficiencies, ...(choices.human?.skillId ? [choices.human.skillId] : []), ...(choices.elf?.keenSensesSkillId ? [choices.elf.keenSensesSkillId] : [])])]; provenance.push(poolEvidence(`${prefix}.expertise`, "class.expertise.acceptable-pool", options, choices.expertiseSkillIds ?? [], 2)); }
   if (speciesId === "human" && choices.human?.originFeatId === "skilled") provenance.push(poolEvidence(`${prefix}.skilled`, "species.human.skilled.acceptable-pool", DND5E_SKILLED_PROFICIENCY_OPTIONS.map((o) => o.id), choices.human.skilledProficiencyIds ?? [], 3));
   for (const field of coreSingleFields(classId, backgroundId, speciesId)) { const options = field.allowed(background); const selected = coreSingleValue(field.id, choices); const state = loadStickyChoicePool(localStorage, `${prefix}.${field.id}`, options, options, options.includes(selected) ? selected : options[0]!); provenance.push({ stepId: `${field.stepId}.acceptable-pool`, answer: state.acceptableIds }); }
   return { choices, provenance };
@@ -323,10 +359,19 @@ function coreSingleFields(classId: GuidedDnd5eClassId, backgroundId: GuidedDnd5e
   if (speciesId === "dragonborn") fields.push({ id: "dragonborn-ancestry", stepId: "species.dragonborn.ancestry", allowed: () => DND5E_DRAGONBORN_ANCESTRY_OPTIONS.map((o) => o.id) });
   if (speciesId === "goliath") fields.push({ id: "goliath-ancestry", stepId: "species.goliath.ancestry", allowed: () => DND5E_GOLIATH_ANCESTRY_OPTIONS.map((o) => o.id) });
   if (speciesId === "human") fields.push({ id: "human-size", stepId: "species.human.size", allowed: () => ["small", "medium"] }, { id: "human-skill", stepId: "species.human.skillful", allowed: (bg) => DND5E_SKILL_OPTIONS.map((o) => o.id).filter((id) => !(bg.skillProficiencies as readonly string[]).includes(id)) }, { id: "human-feat", stepId: "species.human.versatile", allowed: (bg) => DND5E_HUMAN_ORIGIN_FEAT_OPTIONS.filter((o) => o.supported && o.id !== bg.originFeatId).map((o) => o.id) });
+  if (speciesId === "elf") fields.push({ id: "elf-lineage", stepId: "species.elf.lineage", allowed: () => DND5E_ELF_LINEAGE_OPTIONS.map((o) => o.id) }, { id: "elf-spellcasting-ability", stepId: "species.elf.spellcasting-ability", allowed: () => DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id) }, { id: "elf-keen-senses", stepId: "species.elf.keen-senses", allowed: () => DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS.map((o) => o.id) });
+  if (speciesId === "gnome") fields.push({ id: "gnome-lineage", stepId: "species.gnome.lineage", allowed: () => DND5E_GNOME_LINEAGE_OPTIONS.map((o) => o.id) }, { id: "gnome-spellcasting-ability", stepId: "species.gnome.spellcasting-ability", allowed: () => DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id) });
+  if (speciesId === "tiefling") fields.push({ id: "tiefling-size", stepId: "species.tiefling.size", allowed: () => ["small", "medium"] }, { id: "tiefling-legacy", stepId: "species.tiefling.legacy", allowed: () => DND5E_TIEFLING_LEGACY_OPTIONS.map((o) => o.id) }, { id: "tiefling-spellcasting-ability", stepId: "species.tiefling.spellcasting-ability", allowed: () => DND5E_SPELLCASTING_ABILITY_OPTIONS.map((o) => o.id) });
   return fields;
 }
-function coreSingleValue(field: string, choices: GuidedDnd5eCoreChoices): string { if (field === "alignment") return choices.alignmentId; if (field === "language-1") return choices.originLanguageIds[0]; if (field === "language-2") return choices.originLanguageIds[1]; if (field === "class-equipment") return choices.classEquipmentChoice; if (field === "cleric-order") return choices.cleric?.divineOrderId ?? ""; if (field === "druid-order") return choices.druid?.primalOrderId ?? ""; if (field === "warlock-invocation") return choices.warlock?.invocationId ?? ""; if (field === "fighting-style") return choices.fightingStyleFeatId ?? ""; if (field === "monk-tool") return choices.monkToolProficiencyId ?? ""; if (field === "rogue-language") return choices.rogueBonusLanguageId ?? ""; if (field === "magic-initiate-ability") return choices.magicInitiate?.spellcastingAbilityId ?? ""; if (field === "magic-initiate-level-one") return choices.magicInitiate?.levelOneSpellId ?? ""; if (field === "dragonborn-ancestry") return choices.dragonbornAncestryId ?? ""; if (field === "goliath-ancestry") return choices.goliathAncestryId ?? ""; if (field === "human-size") return choices.human?.size ?? ""; if (field === "human-skill") return choices.human?.skillId ?? ""; if (field === "human-feat") return choices.human?.originFeatId ?? ""; return ""; }
+function coreSingleValue(field: string, choices: GuidedDnd5eCoreChoices): string { if (field === "alignment") return choices.alignmentId; if (field === "language-1") return choices.originLanguageIds[0]; if (field === "language-2") return choices.originLanguageIds[1]; if (field === "class-equipment") return choices.classEquipmentChoice; if (field === "cleric-order") return choices.cleric?.divineOrderId ?? ""; if (field === "druid-order") return choices.druid?.primalOrderId ?? ""; if (field === "warlock-invocation") return choices.warlock?.invocationId ?? ""; if (field === "fighting-style") return choices.fightingStyleFeatId ?? ""; if (field === "monk-tool") return choices.monkToolProficiencyId ?? ""; if (field === "rogue-language") return choices.rogueBonusLanguageId ?? ""; if (field === "magic-initiate-ability") return choices.magicInitiate?.spellcastingAbilityId ?? ""; if (field === "magic-initiate-level-one") return choices.magicInitiate?.levelOneSpellId ?? ""; if (field === "dragonborn-ancestry") return choices.dragonbornAncestryId ?? ""; if (field === "goliath-ancestry") return choices.goliathAncestryId ?? ""; if (field === "human-size") return choices.human?.size ?? ""; if (field === "human-skill") return choices.human?.skillId ?? ""; if (field === "human-feat") return choices.human?.originFeatId ?? ""; if (field === "elf-lineage") return choices.elf?.lineageId ?? ""; if (field === "elf-spellcasting-ability") return choices.elf?.spellcastingAbilityId ?? ""; if (field === "elf-keen-senses") return choices.elf?.keenSensesSkillId ?? ""; if (field === "gnome-lineage") return choices.gnome?.lineageId ?? ""; if (field === "gnome-spellcasting-ability") return choices.gnome?.spellcastingAbilityId ?? ""; if (field === "tiefling-size") return choices.tiefling?.size ?? ""; if (field === "tiefling-legacy") return choices.tiefling?.legacyId ?? ""; if (field === "tiefling-spellcasting-ability") return choices.tiefling?.spellcastingAbilityId ?? ""; return ""; }
 
+function currentSpeciesSpellIdsFromControls(root: HTMLElement, speciesId: GuidedDnd5eSpeciesId): string[] {
+  if (speciesId === "elf") { const lineage = elfLineage(readStickySelect(root, "elf-lineage") as Dnd5eElfLineageId); return [lineage.initialCantripId]; }
+  if (speciesId === "gnome") { const lineage = gnomeLineage(readStickySelect(root, "gnome-lineage") as Dnd5eGnomeLineageId); return [...lineage.cantripIds, ...lineage.alwaysPreparedSpellIds]; }
+  if (speciesId === "tiefling") { const legacy = tieflingLegacy(readStickySelect(root, "tiefling-legacy") as Dnd5eTieflingLegacyId); return [legacy.legacyCantripId, "thaumaturgy"]; }
+  return [];
+}
 function magicInitiateListForBackground(backgroundId: GuidedDnd5eBackgroundId): Dnd5eMagicInitiateSpellListId | undefined { return backgroundId === "acolyte" ? "cleric" : backgroundId === "sage" ? "wizard" : undefined; }
 function choiceSectionHtml<TId extends string>(label: string, poolName: string, options: readonly { id: string; label: string; guidedSupported: boolean; blockedReason?: string }[], state: StickyChoicePoolState<TId>): string { const direct = options.filter((o) => o.guidedSupported); return `<div class="choice-section"><div class="choice-pick-row"><label>${label}<select id="creator-${poolName}-selected">${selectedOptions(direct, state)}</select></label><button id="creator-${poolName}-random" type="button" class="icon-button" title="Randomly choose from checked ${poolName} options" aria-label="Randomly choose from checked ${poolName} options">↻</button></div><details class="choice-pool-details"><summary>Acceptable ${label.toLowerCase()} options</summary><div class="choice-pool-grid">${options.map((o) => `<label class="choice-pool-option${o.guidedSupported ? "" : " unsupported"}" title="${escapeAttribute(o.blockedReason ?? "")}"><input type="checkbox" data-choice-pool="${poolName}" value="${o.id}" ${state.acceptableIds.includes(o.id as TId) ? "checked" : ""} ${o.guidedSupported ? "" : "disabled"} /><span>${o.label}${o.guidedSupported ? "" : " · later"}</span></label>`).join("")}</div></details></div>`; }
 function multiChoiceHtml(label: string, field: string, allowedIds: readonly string[], count: number): string { return `<div class="choice-section"><div class="choice-pick-row"><div><strong>${label}</strong><div class="ability-input-grid">${Array.from({ length: count }, (_, i) => `<label>Choice ${i + 1}<select id="creator-${field}-${i}"></select></label>`).join("")}</div></div><button id="creator-${field}-random" type="button" class="icon-button" title="Randomly choose from checked options" aria-label="Randomly choose ${label}">↻</button></div><details class="choice-pool-details"><summary>Acceptable ${label.toLowerCase()}</summary><div class="choice-pool-grid">${allowedIds.map((id) => `<label class="choice-pool-option"><input type="checkbox" data-multi-pool="${field}" value="${escapeAttribute(id)}" checked /><span>${labelFor(id)}</span></label>`).join("")}</div></details></div>`; }
@@ -357,7 +402,7 @@ function randomAssignmentSelect(label:string,id:string,index:number): string { r
 function abilityInput(prefix:string,label:string,id:string,value:number,min:number,max:number,extra=""): string { return `<label>${label}<input id="${prefix}-${id}" type="number" min="${min}" max="${max}" step="1" required value="${value}" ${extra} /></label>`; }
 function abilityLabel(id:Dnd5eAbilityId): string { return ({strength:"STR",dexterity:"DEX",constitution:"CON",intelligence:"INT",wisdom:"WIS",charisma:"CHA"} as const)[id]; }
 function coreKey(classId:GuidedDnd5eClassId,backgroundId:GuidedDnd5eBackgroundId,speciesId:GuidedDnd5eSpeciesId): string { return `${CORE_STORAGE_PREFIX}.${classId}.${backgroundId}.${speciesId}`; }
-function labelFor(id:string): string { const weapon = DND5E_WEAPON_OPTIONS.find((o) => o.id === id); const option = [...DND5E_SKILL_OPTIONS,...DND5E_MONK_TOOL_OPTIONS,...DND5E_SKILLED_PROFICIENCY_OPTIONS,...DND5E_STANDARD_LANGUAGE_OPTIONS,...DND5E_BONUS_LANGUAGE_OPTIONS,...DND5E_ALIGNMENT_OPTIONS,...DND5E_FIGHTING_STYLE_OPTIONS,...DND5E_CLERIC_DIVINE_ORDER_OPTIONS,...DND5E_CLERIC_CANTRIP_OPTIONS,...DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRUID_PRIMAL_ORDER_OPTIONS,...DND5E_DRUID_CANTRIP_OPTIONS,...DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRAGONBORN_ANCESTRY_OPTIONS,...DND5E_GOLIATH_ANCESTRY_OPTIONS,...DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS,...DND5E_PACT_TOME_CANTRIP_OPTIONS,...DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS].find((o) => o.id === id); return weapon?.label ?? option?.label ?? id.split(":").at(-1)!.split("-").map((p) => p ? p[0]!.toUpperCase()+p.slice(1) : p).join(" "); }
+function labelFor(id:string): string { const weapon = DND5E_WEAPON_OPTIONS.find((o) => o.id === id); const option = [...DND5E_SKILL_OPTIONS,...DND5E_MONK_TOOL_OPTIONS,...DND5E_SKILLED_PROFICIENCY_OPTIONS,...DND5E_STANDARD_LANGUAGE_OPTIONS,...DND5E_BONUS_LANGUAGE_OPTIONS,...DND5E_ALIGNMENT_OPTIONS,...DND5E_FIGHTING_STYLE_OPTIONS,...DND5E_CLERIC_DIVINE_ORDER_OPTIONS,...DND5E_CLERIC_CANTRIP_OPTIONS,...DND5E_CLERIC_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRUID_PRIMAL_ORDER_OPTIONS,...DND5E_DRUID_CANTRIP_OPTIONS,...DND5E_DRUID_PREPARED_LEVEL_ONE_SPELL_OPTIONS,...DND5E_DRAGONBORN_ANCESTRY_OPTIONS,...DND5E_GOLIATH_ANCESTRY_OPTIONS,...DND5E_ELF_LINEAGE_OPTIONS,...DND5E_ELF_KEEN_SENSES_SKILL_OPTIONS,...DND5E_GNOME_LINEAGE_OPTIONS,...DND5E_TIEFLING_LEGACY_OPTIONS,...DND5E_LEVEL_ONE_ELDRITCH_INVOCATION_OPTIONS,...DND5E_PACT_TOME_CANTRIP_OPTIONS,...DND5E_PACT_TOME_LEVEL_ONE_RITUAL_OPTIONS].find((o) => o.id === id); return weapon?.label ?? option?.label ?? id.split(":").at(-1)!.split("-").map((p) => p ? p[0]!.toUpperCase()+p.slice(1) : p).join(" "); }
 function requiredElement<T extends HTMLElement>(root:HTMLElement,selector:string,ctor:{new():T}): T { const el=root.querySelector<T>(selector); if (!el || !(el instanceof ctor)) throw new Error(`Character Forge control ${selector} is missing.`); return el; }
 function clearError(target:HTMLElement|null):void { if(target) target.textContent=""; }
 function showError(target:HTMLElement|null,error:unknown,fallback:string):void { if(target) target.textContent=error instanceof Error?error.message:fallback; }
