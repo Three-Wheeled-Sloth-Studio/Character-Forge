@@ -1,6 +1,6 @@
 import type { JsonObject } from "../../character-model/src/index.js";
 
-export type BrpPowerLevel = "normal";
+export type BrpPowerLevel = "normal" | "heroic";
 export type BrpCharacteristicGeneration = "explicit" | "standard-rolled";
 export type BrpWealthLevel = "average" | "affluent";
 export type BrpCharacteristicId = "STR" | "CON" | "SIZ" | "INT" | "POW" | "DEX" | "CHA";
@@ -126,10 +126,18 @@ export interface BrpProfessionState extends JsonObject {
   selectedElectiveSkillIds: string[];
 }
 
+export interface BrpAgeBasisState extends JsonObject {
+  method: "default-starting-age";
+  defaultStartingAge: number;
+  addedYears: number;
+  professionalSkillPointAdjustment: number;
+}
+
 export interface BrpIdentityState extends JsonObject {
   age: number;
   gender: string;
   profession: BrpProfessionState;
+  ageBasis?: BrpAgeBasisState;
 }
 
 export interface BrpNativeCharacter extends JsonObject {
