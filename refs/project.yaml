@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-03
+updated: 2026-09-08
 identity:
   name: Character Forge
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge
@@ -22,7 +22,7 @@ first_system:
   id: dnd5e
   edition: "2024"
   initial_content_target: SRD 5.2.1
-  current_slice: Human Soldier Fighter Level 1 native path
+  current_slice: Full SRD Level 1 class/background/species guided batch is automated-green on dev and awaiting owner runtime QA; Human-selected Magic Initiate remains the next breadth seam.
 second_system_candidate:
   id: call-of-cthulhu
   status: strongest-current-candidate
