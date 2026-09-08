@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green BRP Universal Game Engine explicit plus standard-rolled characteristic checkpoint.
+Continue Character Forge from the automated-green BRP Universal Game Engine Normal/Heroic profile-aware backend checkpoint.
 
 Repository:
 
@@ -17,24 +17,24 @@ Work directly on `dev`.
 
 ## Promoted baseline remains unchanged
 
-- `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
-- `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
+- `qa`: `c7b64ac774b9f903f0ca1882812`
+- `main`: `c7b64ac774b9f903f0ca1882812`
 
 Do not implicitly promote either the accumulated D&D Level 1 batch or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Current BRP automated-green code checkpoint
 
-- code checkpoint: `fab012deed4a0f795aee3d163112f7fafb357c7f`
-- Actions: `34230839209`
-- job: `102076260630`
+- code checkpoint: `a780f82378e1477d77cf1076cc769491dcb3043d`
+- Actions: `34237331940`
+- job: `102098319676`
 - refs / OKF green
 - strict TypeScript green
-- 27 test files / 129 tests / 0 failures
-- BRP tests: 12
+- 28 test files / 136 tests / 0 failures
+- BRP tests: 19
 - web build green
-- build identity: `Character Forge build 0.0.1 fab012de`
+- build identity: `Character Forge build 0.0.1 a780f823`
 - BRP native schema: `brp-character/0.1`
-- BRP adapter: `0.2.0`
+- BRP adapter: `0.3.0`
 - rules source: `chaosium-brp-uge-orc-1.05`
 
 ## D&D gate is still open and separate
@@ -56,12 +56,14 @@ Issue #11 remains open for the requested accumulated owner runtime QA and exact-
 9. `refs/planning/roadmap.yaml`
 10. `refs/testing/validationCommands.yaml`
 11. `packages/system-brp/src/nativeCharacter.ts`
-12. `packages/system-brp/src/characteristicGeneration.ts`
-13. `packages/system-brp/src/firstSlice.ts`
-14. `packages/system-brp/src/adapter.ts`
-15. `packages/system-brp/src/firstSlice.test.ts`
-16. `packages/system-brp/src/standardCharacteristicGeneration.test.ts`
-17. GitHub issue #13
+12. `packages/system-brp/src/powerLevel.ts`
+13. `packages/system-brp/src/characteristicGeneration.ts`
+14. `packages/system-brp/src/firstSlice.ts`
+15. `packages/system-brp/src/adapter.ts`
+16. `packages/system-brp/src/firstSlice.test.ts`
+17. `packages/system-brp/src/standardCharacteristicGeneration.test.ts`
+18. `packages/system-brp/src/heroicPowerLevel.test.ts`
+19. GitHub issue #13
 
 ## Source boundary
 
@@ -73,80 +75,104 @@ Do not import Call of Cthulhu-specific protected content. Keep call-of-cthulhu a
 
 ## What is now proven
 
-Two characteristic-generation methods converge on one native schema:
+Two characteristic-generation methods and two power levels converge on the same `brp-character/0.1` native ontology:
 
-- explicit entry;
-- deterministic standard rolling.
+- explicit characteristics;
+- deterministic standard-rolled characteristics;
+- Normal power level;
+- Heroic power level.
 
-Standard rolling retains the seed, raw dice, notation, modifiers, initial characteristic values, explicit up-to-three-point redistribution transfers, matching native adjustment layers, and final values. Adapter validation replays the seed-derived dice and independently checks redistribution causality.
+The retained rules profile is operational state. Normal uses a 250-point professional pool and 75% starting cap. Heroic uses a 325-point base professional pool and 90% starting cap. Personal skill points remain INT x 10.
 
-This second RPG now confirms a principle previously observed in D&D: generation method can remain primarily provenance while multiple construction paths converge on one validated native ontology.
+Heroic also retains the default starting age used for its age-based professional-skill adjustment. The current first-slice boundary accepts retained starting age 18 through 23, current age from that starting age through 49, and +20 professional skill points per full decade added after the retained starting age. Below-starting-age characteristic penalties and age-50+ aging remain out of scope.
 
-Do not create a new BRP native schema for the next generation method or power level unless source rules actually require one.
+No shared CharacterDocument or semantic schema change was required.
 
-## Immediate implementation slice: Heroic power-level profile
+## Immediate implementation slice: Scholar profession
 
-Use Heroic as the next BRP architecture stress test. Keep powers themselves disabled; this slice is about campaign power-level context changing character construction, not about implementing a BRP power system yet.
+Add Scholar as the second BRP profession and use it to pressure-test open count-N specialty choice rather than merely expanding catalog breadth.
 
-The selected ORC source specifies:
+The selected ORC source defines Scholar as:
 
-- Normal: 250 professional skill points, starting skill cap 75%.
-- Heroic: 325 professional skill points, starting skill cap 90%.
-- Personal skill points remain INT x 10.
+- wealth Average or Affluent, usually Average;
+- fixed professional skills: Language (Other), Language (Own), Persuade, Research, Teach;
+- choose five Knowledge or Science skills appropriate to the setting and related to the field of study.
 
-The target is profile-aware construction and validation, not a duplicate Heroic builder.
+This is materially different from Detective's bounded four-of-seven elective shape.
 
-Required behavior:
+### Target architecture
 
-- expand the BRP native rules profile to support Normal and Heroic;
-- parameterize professional skill budget and starting cap from the retained power level;
-- route both explicit and standard-rolled characteristics through the same profile-aware first-slice construction path;
-- preserve the same `brp-character/0.1` schema if it remains sufficient;
-- independently validate that budget totals, skill caps, and downstream skill ratings match the retained power level;
-- retain the selected power level in generation recipe/provenance;
-- add cross-profile tests proving the same skill allocation can be legal or illegal depending on the retained profile where source rules say so;
-- keep personal skill points at INT x 10;
-- keep Detective as the representative profession for this slice so profession breadth does not confound the power-level test;
-- preserve non-powered `enabledPowerSystems: []` state;
-- keep explicit and standard-rolled characteristic-generation behavior unchanged except where the power profile legitimately affects it.
+Do not build a separate Scholar character pipeline.
 
-## Age interaction must not be skipped
+Refactor the current Detective-specific profession seam only as far as needed so both professions can use the same characteristic, power-level, budget, skill-contribution, derived-state, CharacterDocument, and adapter infrastructure.
 
-Heroic exposes an important source interaction that Normal largely hid: age can alter professional skill points.
+The profession layer should own:
 
-The UGE default starting age is `17+1d6`. For each full 10 years added beyond the rolled starting age, Heroic adds 20 professional skill points. The source also defines below-minimum-age effects and later characteristic aging rules.
+- profession ID;
+- allowed wealth range/default metadata where useful;
+- fixed professional skills;
+- profession-specific choice requirements;
+- selected specialty identities needed to validate those choices.
 
-Do not simply change 250 to 325 while continuing to accept arbitrary ages as mechanically inert.
+Do not promote `profession`, `specialty`, or the BRP profession-choice shape into shared CharacterDocument semantics.
 
-For this slice, first choose and document the narrowest source-faithful age boundary that isolates the Heroic profile test. Good options include retaining the rolled/default starting-age provenance or explicitly constraining the fixture age so no age-based professional bonus applies. Do not silently ignore age rules while claiming general Heroic support.
+### Open specialty requirements
 
-Age 50+ characteristic aging and EDU remain out of scope unless the chosen test profile forces them in.
+Scholar should prove real open specialty identity, not a hidden fixed catalog of academic subjects.
 
-## Validation target
+At minimum:
+
+- represent Knowledge and Science as parent skill identities with explicit specialty ID/label;
+- allow five unique selected Knowledge/Science specialty skill identities;
+- allow more than one selected specialty under the same parent skill, such as multiple Knowledge specialties or multiple Science specialties;
+- retain the exact selected specialties natively and in generation provenance;
+- prevent duplicate identical parent+specialty selections;
+- keep source base chance separate from professional/personal contributions and final rating;
+- ensure professional allocation is legal only for Scholar fixed skills and the five selected academic specialties;
+- retain personal learning independence from profession eligibility;
+- keep specialty validation source-owned and avoid inventing a universal specialty enum.
+
+Use a small test fixture set of specialty strings if necessary, but the implementation contract must accept source-faithful open identities rather than make that fixture set authoritative.
+
+### Existing matrix must continue to work
+
+Scholar must work with:
+
+- Normal explicit;
+- Normal standard-rolled;
+- Heroic explicit;
+- Heroic standard-rolled.
+
+Heroic age-basis behavior must remain unchanged. Powers remain disabled.
+
+### Validation target
 
 The automated gate should prove at minimum:
 
-- existing Normal explicit and standard-rolled characters still validate;
-- Heroic explicit and standard-rolled characters use the retained Heroic rules profile;
-- Heroic professional budget is source-correct for the chosen age boundary;
-- Heroic starting cap is 90%;
-- Normal remains 75%;
-- personal budget remains INT x 10 in both profiles;
-- adapter rejects profile/budget/cap mismatches independently of the builder;
-- CharacterDocument round trip preserves power-level context and generation provenance;
-- no shared CharacterDocument or semantic schema change is introduced without evidence.
+- all existing Detective tests remain green;
+- Scholar fixed skill eligibility;
+- exactly five unique Knowledge/Science specialty choices;
+- repeated parent skills with distinct specialties are accepted;
+- duplicate parent+specialty identity is rejected;
+- non-Knowledge/Science academic elective identity is rejected;
+- professional allocations cannot escape the selected Scholar skill set;
+- personal allocations remain independent from profession eligibility;
+- profile-derived budgets/caps work for Scholar under Normal and Heroic;
+- explicit and rolled characteristic generation remain unchanged;
+- adapter detects specialty/profession-choice tampering independently of the builder;
+- CharacterDocument round trip preserves Scholar specialty identities and provenance;
+- native schema remains `brp-character/0.1` if sufficient.
 
-## After Heroic
+## After Scholar
 
-Reassess the next BRP stressor from evidence. Strong candidates are:
+Reassess from evidence. Leading follow-ons are:
 
-- a second profession with materially different skill-choice branching;
-- age/experience expansion if Heroic exposes a reusable native age-provenance seam;
-- the first optional BRP subsystem only if rules-profile validation still needs a stronger test.
+- a profession such as Student or Teacher with an even broader mixed-domain choice set if Scholar exposes useful profession-schema pressure;
+- age/experience expansion if we need below-starting-age or age-50+ causality for a concrete consumer;
+- one optional BRP subsystem only if the retained rules-profile boundary still needs another architecture test;
+- BRP creator UI once the profession seam is stable enough to expose without lying about supported choices.
 
-Do not choose based only on catalog breadth.
-
-Keep BRP creator UI deferred until the backend profile and generation paths are stable enough to expose honestly.
+Do not jump into broad profession ingestion yet. Scholar is an architecture probe first.
 
 ## Architecture rules
 
@@ -157,6 +183,7 @@ Keep BRP creator UI deferred until the backend profile and generation paths are 
 - Preserve skill base chance, professional contribution, personal contribution, and final rating separately when causality matters.
 - Keep open specialties source-owned; do not freeze a universal specialty enum.
 - Preserve effective BRP rules-profile context in native state.
+- Preserve character-specific age causality when it affects source-rule construction legality.
 - Do not model future BRP powers through D&D spell-state structures.
 - Generator-core remains system-neutral.
 - Parchment remains ignorant of system-specific mechanics.
