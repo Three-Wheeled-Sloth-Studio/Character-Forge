@@ -283,3 +283,27 @@ Bridge-RPG implication: The original RPG can support multiple creation experienc
 Confidence: high across D&D and BRP.
 
 Follow-up: Keep this as an architectural principle, but still allow exceptions when a future source system makes creation path itself a persistent in-play mechanic.
+
+### 2026-09-08 - BRP Heroic confirms rules profile changes character legality
+
+Observation: The same BRP native character shape now supports both Normal and Heroic construction, but the retained power level changes the legal professional skill budget and starting skill cap. A skill allocation that is legal at Heroic can be illegal at Normal without any change to the shared `brp-character/0.1` ontology. Adapter validation therefore cannot treat power level as display metadata or infer it reliably from final values.
+
+Translator implication: Rules-profile context may be required to interpret whether source-native state is valid even when the target translator only consumes the resulting capabilities. Translation should preserve source profile identity long enough to explain why a value or allocation exists, but should not assume that another system has an equivalent power-level label.
+
+Bridge-RPG implication: If the original RPG supports campaign modes, power tiers, optional modules, or variant construction rules, the effective profile that shaped a character should be retained with the character rather than relying entirely on the campaign's current configuration.
+
+Confidence: high for BRP native interpretability; medium as a cross-system semantic principle.
+
+Follow-up: Compare with another configurable rules system before promoting any shared rules-profile contract beyond the existing native-state boundary.
+
+### 2026-09-08 - Character-specific history can be required beside campaign profile
+
+Observation: Heroic professional skill points can increase with full decades added after the character's default starting age. Current age alone is insufficient to reconstruct that construction budget because the source calculation also depends on the starting-age value. Character Forge therefore retains the default starting age, years added, and resulting professional-skill adjustment as BRP-native character causality.
+
+Translator implication: Ambient campaign rules and current character values are not always enough to validate or explain a character. Some source systems require retained historical or construction context that is character-specific. Translation should not discard that context merely because it is not a current-play statistic.
+
+Bridge-RPG implication: Lifepath, aging, training-time, augmentation history, or other historical construction effects may need explicit provenance if they change legal capabilities. A modular original RPG should avoid making old characters uninterpretable when campaign defaults later change.
+
+Confidence: high for this BRP case; medium as a general design rule.
+
+Follow-up: Watch Scholar and later lifepath-heavy systems for whether character-specific historical context recurs before promoting a universal history schema.
