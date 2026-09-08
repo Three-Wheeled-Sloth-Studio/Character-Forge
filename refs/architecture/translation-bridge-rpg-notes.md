@@ -207,3 +207,15 @@ Bridge-RPG implication: If the original RPG uses backgrounds/origins, prefer the
 Confidence: high for D&D source attribution; medium as a cross-system design lesson until another RPG supplies a contrasting background/lifepath model.
 
 Follow-up: Class-owned skill/mastery choices and a second RPG should test whether a generalized source-aware grant/choice concept is justified. Do not promote a universal `background` schema from D&D alone.
+
+### 2026-09-08 - Species-owned magic and future capability are distinct source state
+
+Observation: Implementing Elf, Gnome, and Tiefling showed that species-owned spell capability does not fit cleanly into either class spellcasting or general feat grants. A species can own current spells, a source-specific casting-ability choice, replacement or free-cast semantics, and future level-gated spells that must be retained without becoming active early. Character Forge therefore retains species magic in `spells.speciesGrants[]` separately from `spells.grants[]` and `spells.classCasting[]`.
+
+Translator implication: A future bridge should not assume that all known or prepared spells are equivalent capabilities. Source, activation level, replacement cadence, and free-cast semantics can affect whether a target system maps a D&D spell to innate talent, learned magic, class training, supernatural trait, or no exact equivalent.
+
+Bridge-RPG implication: Capability source and unlock timing are useful independent design axes. The original RPG may benefit from modeling where a capability comes from and when it becomes available without requiring species or lineage to be the only innate source.
+
+Confidence: high for the D&D source separation; medium as a cross-system semantic claim until a second RPG tests it.
+
+Follow-up: Use Foundry mapping and the second RPG stress test to determine whether a generalized source-aware capability grant is justified. Do not promote the current spell-specific schema directly into the universal semantic layer.
