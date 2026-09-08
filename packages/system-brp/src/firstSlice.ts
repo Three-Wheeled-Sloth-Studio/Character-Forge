@@ -9,6 +9,7 @@ import {
   type BrpCharacteristicRedistributionInput,
 } from "./characteristicGeneration.js";
 import type {
+  BrpAcademicSkillSelection,
   BrpCharacteristicGeneration,
   BrpCharacteristicGenerationState,
   BrpCharacteristicValues,
@@ -17,12 +18,22 @@ import type {
   BrpDerivedState,
   BrpNativeCharacter,
   BrpPowerLevel,
-  BrpSkillSpecialty,
   BrpSkillState,
   BrpWealthLevel,
 } from "./nativeCharacter.js";
+import {
+  resolveBrpDetectiveProfession,
+  resolveBrpScholarProfession,
+  type BrpDetectiveElectiveSkillKey,
+  type BrpResolvedProfession,
+} from "./professions.js";
 import { resolveBrpPowerLevelProfile } from "./powerLevel.js";
 import { BRP_UGE_ORC_1_05_SOURCE } from "./rulesSource.js";
+import {
+  resolveBrpAllocationSkillDefinition,
+  type BrpResolvedSkillDefinition,
+  type BrpSkillAllocationInput,
+} from "./skills.js";
 
 export {
   BRP_HEROIC_PROFESSIONAL_SKILL_POINTS,
@@ -30,13 +41,16 @@ export {
   BRP_NORMAL_PROFESSIONAL_SKILL_POINTS,
   BRP_NORMAL_STARTING_SKILL_CAP,
 } from "./powerLevel.js";
+export {
+  BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
+  BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
+  BRP_SCHOLAR_FIXED_SKILL_KEYS,
+} from "./professions.js";
+export { BRP_FIRST_SLICE_SKILL_CATALOG } from "./skills.js";
+export type { BrpDetectiveElectiveSkillKey } from "./professions.js";
+export type { BrpFirstSliceSkillKey, BrpSkillAllocationInput } from "./skills.js";
 
-export interface BrpSkillAllocationInput {
-  skillKey: BrpFirstSliceSkillKey;
-  points: number;
-}
-
-export interface BrpFirstSliceBaseInput {
+export interface BrpFirstSliceCommonInput {
   characterId: string;
   nativeStateId: string;
   displayName: string;
@@ -45,12 +59,25 @@ export interface BrpFirstSliceBaseInput {
   wealth: BrpWealthLevel;
   powerLevel?: BrpPowerLevel;
   defaultStartingAge?: number;
-  detectiveElectiveSkillKeys: BrpDetectiveElectiveSkillKey[];
   professionalAllocations: BrpSkillAllocationInput[];
   personalAllocations: BrpSkillAllocationInput[];
 }
 
+export interface BrpFirstSliceBaseInput extends BrpFirstSliceCommonInput {
+  professionId?: "detective";
+  detectiveElectiveSkillKeys: BrpDetectiveElectiveSkillKey[];
+}
+
+export interface BrpScholarFirstSliceBaseInput extends BrpFirstSliceCommonInput {
+  professionId: "scholar";
+  scholarAcademicSkills: BrpAcademicSkillSelection[];
+}
+
 export interface BrpFirstSliceInput extends BrpFirstSliceBaseInput {
+  characteristics: BrpCharacteristicValues;
+}
+
+export interface BrpScholarFirstSliceInput extends BrpScholarFirstSliceBaseInput {
   characteristics: BrpCharacteristicValues;
 }
 
@@ -59,11 +86,9 @@ export interface BrpStandardRolledFirstSliceInput extends BrpFirstSliceBaseInput
   redistribution?: BrpCharacteristicRedistributionInput[];
 }
 
-interface BrpSkillDefinition {
-  skillId: string;
-  label: string;
-  baseChance: number;
-  specialty: BrpSkillSpecialty | null;
+export interface BrpScholarStandardRolledFirstSliceInput extends BrpScholarFirstSliceBaseInput {
+  seed: string;
+  redistribution?: BrpCharacteristicRedistributionInput[];
 }
 
 interface BrpCharacteristicConstruction {
@@ -76,62 +101,16 @@ interface BrpCharacteristicConstruction {
   seed?: string;
 }
 
-export const BRP_FIRST_SLICE_SKILL_CATALOG = {
-  "firearm:handgun": {
-    skillId: "firearm",
-    label: "Firearm (Handgun)",
-    baseChance: 20,
-    specialty: { id: "handgun", label: "Handgun" },
-  },
-  "knowledge:law": {
-    skillId: "knowledge",
-    label: "Knowledge (Law)",
-    baseChance: 5,
-    specialty: { id: "law", label: "Law" },
-  },
-  listen: { skillId: "listen", label: "Listen", baseChance: 25, specialty: null },
-  persuade: { skillId: "persuade", label: "Persuade", baseChance: 15, specialty: null },
-  spot: { skillId: "spot", label: "Spot", baseChance: 25, specialty: null },
-  research: { skillId: "research", label: "Research", baseChance: 25, specialty: null },
-  brawl: { skillId: "brawl", label: "Brawl", baseChance: 25, specialty: null },
-  "fast-talk": { skillId: "fast-talk", label: "Fast Talk", baseChance: 5, specialty: null },
-  hide: { skillId: "hide", label: "Hide", baseChance: 10, specialty: null },
-  insight: { skillId: "insight", label: "Insight", baseChance: 5, specialty: null },
-  "science:forensics": {
-    skillId: "science",
-    label: "Science (Forensics)",
-    baseChance: 1,
-    specialty: { id: "forensics", label: "Forensics" },
-  },
-  stealth: { skillId: "stealth", label: "Stealth", baseChance: 10, specialty: null },
-  track: { skillId: "track", label: "Track", baseChance: 10, specialty: null },
-  "first-aid": { skillId: "first-aid", label: "First Aid", baseChance: 30, specialty: null },
-} as const satisfies Record<string, BrpSkillDefinition>;
+interface BrpResolvedAllocation {
+  definition: BrpResolvedSkillDefinition;
+  points: number;
+}
 
-export type BrpFirstSliceSkillKey = keyof typeof BRP_FIRST_SLICE_SKILL_CATALOG;
-
-export const BRP_DETECTIVE_REQUIRED_SKILL_KEYS = [
-  "firearm:handgun",
-  "knowledge:law",
-  "listen",
-  "persuade",
-  "spot",
-  "research",
-] as const satisfies readonly BrpFirstSliceSkillKey[];
-
-export const BRP_DETECTIVE_ELECTIVE_SKILL_KEYS = [
-  "brawl",
-  "fast-talk",
-  "hide",
-  "insight",
-  "science:forensics",
-  "stealth",
-  "track",
-] as const satisfies readonly BrpFirstSliceSkillKey[];
-
-export type BrpDetectiveElectiveSkillKey = (typeof BRP_DETECTIVE_ELECTIVE_SKILL_KEYS)[number];
-
-export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): CharacterDocument {
+export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): CharacterDocument;
+export function buildBrpFirstSliceCharacter(input: BrpScholarFirstSliceInput): CharacterDocument;
+export function buildBrpFirstSliceCharacter(
+  input: BrpFirstSliceInput | BrpScholarFirstSliceInput,
+): CharacterDocument {
   validateCharacteristics(input.characteristics);
   return buildBrpFirstSliceCharacterFromConstruction(input, {
     values: input.characteristics,
@@ -145,6 +124,12 @@ export function buildBrpFirstSliceCharacter(input: BrpFirstSliceInput): Characte
 
 export function buildBrpStandardRolledFirstSliceCharacter(
   input: BrpStandardRolledFirstSliceInput,
+): CharacterDocument;
+export function buildBrpStandardRolledFirstSliceCharacter(
+  input: BrpScholarStandardRolledFirstSliceInput,
+): CharacterDocument;
+export function buildBrpStandardRolledFirstSliceCharacter(
+  input: BrpStandardRolledFirstSliceInput | BrpScholarStandardRolledFirstSliceInput,
 ): CharacterDocument {
   const generated = generateBrpStandardRolledCharacteristics(input.seed, input.redistribution ?? []);
   return buildBrpFirstSliceCharacterFromConstruction(input, {
@@ -159,12 +144,14 @@ export function buildBrpStandardRolledFirstSliceCharacter(
 }
 
 function buildBrpFirstSliceCharacterFromConstruction(
-  input: BrpFirstSliceBaseInput,
+  input:
+    | BrpFirstSliceBaseInput
+    | BrpScholarFirstSliceBaseInput,
   construction: BrpCharacteristicConstruction,
 ): CharacterDocument {
   validateIdentity(input);
-  validateDetectiveElectives(input.detectiveElectiveSkillKeys);
 
+  const profession = resolveProfession(input, construction.values);
   const powerProfile = resolveBrpPowerLevelProfile(
     input.powerLevel ?? "normal",
     input.age,
@@ -172,16 +159,23 @@ function buildBrpFirstSliceCharacterFromConstruction(
   );
   const powerLevelLabel = powerProfile.powerLevel === "heroic" ? "Heroic" : "Normal";
 
-  const professional = allocationMap(input.professionalAllocations, "professional");
-  const personal = allocationMap(input.personalAllocations, "personal");
-  const allowedProfessionalSkills = new Set<BrpFirstSliceSkillKey>([
-    ...BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
-    ...input.detectiveElectiveSkillKeys,
-  ]);
+  const professional = allocationMap(
+    input.professionalAllocations,
+    "professional",
+    construction.values,
+  );
+  const personal = allocationMap(
+    input.personalAllocations,
+    "personal",
+    construction.values,
+  );
 
-  for (const skillKey of professional.keys()) {
-    if (!allowedProfessionalSkills.has(skillKey)) {
-      throw new Error(`Professional skill ${skillKey} is not available to the selected Detective profile.`);
+  for (const allocation of professional.values()) {
+    const allowed = profession.allowedProfessionalSkills.get(allocation.definition.key);
+    if (!allowed || !skillDefinitionsEqual(allowed, allocation.definition)) {
+      throw new Error(
+        `Professional skill ${allocation.definition.label} is not available to the selected ${profession.professionId} profile.`,
+      );
     }
   }
 
@@ -198,18 +192,31 @@ function buildBrpFirstSliceCharacterFromConstruction(
     throw new Error(`BRP personal skill points must total INT x 10 (${personalTotal}).`);
   }
 
-  const allSkillKeys = [...new Set<BrpFirstSliceSkillKey>([
+  const allSkillKeys = [...new Set<string>([
     ...professional.keys(),
     ...personal.keys(),
   ])].sort();
 
-  const skills = allSkillKeys.map((skillKey) => buildSkillState(
-    skillKey,
-    professional,
-    personal,
-    powerProfile.startingSkillCap,
-    powerLevelLabel,
-  ));
+  const skills = allSkillKeys.map((skillKey) => {
+    const professionalAllocation = professional.get(skillKey);
+    const personalAllocation = personal.get(skillKey);
+    const definition = professionalAllocation?.definition ?? personalAllocation?.definition;
+    if (!definition) {
+      throw new Error(`Missing resolved BRP skill definition for ${skillKey}.`);
+    }
+    if (professionalAllocation
+      && personalAllocation
+      && !skillDefinitionsEqual(professionalAllocation.definition, personalAllocation.definition)) {
+      throw new Error(`BRP skill identity ${skillKey} has conflicting specialty labels across allocation sources.`);
+    }
+    return buildSkillState(
+      definition,
+      professionalAllocation?.points ?? 0,
+      personalAllocation?.points ?? 0,
+      powerProfile.startingSkillCap,
+      powerLevelLabel,
+    );
+  });
   const derived = calculateBrpDerivedState(construction.values);
 
   const nativeCharacter: BrpNativeCharacter = {
@@ -224,11 +231,7 @@ function buildBrpFirstSliceCharacterFromConstruction(
     identity: {
       age: input.age,
       gender: input.gender.trim(),
-      profession: {
-        professionId: "detective",
-        wealth: input.wealth,
-        selectedElectiveSkillIds: [...input.detectiveElectiveSkillKeys],
-      },
+      profession: profession.state,
       ...(powerProfile.ageBasis ? { ageBasis: powerProfile.ageBasis } : {}),
     },
     characteristics: construction.state,
@@ -266,9 +269,19 @@ function buildBrpFirstSliceCharacterFromConstruction(
     provenance: {
       origin: "generated",
       sourceId: BRP_UGE_ORC_1_05_SOURCE.id,
-      notes: `BRP UGE first-slice ${powerProfile.powerLevel} ${construction.method} characteristics builder`,
+      notes: `BRP UGE first-slice ${powerProfile.powerLevel} ${profession.professionId} ${construction.method} characteristics builder`,
     },
   };
+
+  const scholarAcademicDecision = profession.state.professionId === "scholar"
+    ? [{
+      stepId: "identity.profession-academic-skills",
+      answer: profession.state.selectedAcademicSkills.map((selection) => ({
+        skillId: selection.skillId,
+        specialty: { ...selection.specialty },
+      })),
+    }]
+    : [];
 
   return createCharacterDocument({
     characterId: input.characterId,
@@ -278,21 +291,24 @@ function buildBrpFirstSliceCharacterFromConstruction(
     generation: {
       methodId: construction.methodId,
       mode: construction.generationMode,
-      recipeVersion: "brp-uge-first-slice/0.3",
+      recipeVersion: profession.professionId === "scholar"
+        ? "brp-uge-first-slice/0.4"
+        : "brp-uge-first-slice/0.3",
       ...(construction.seed ? { seed: construction.seed } : {}),
       rulesSourceIds: [BRP_UGE_ORC_1_05_SOURCE.id],
       recipe: {
         powerLevel: powerProfile.powerLevel,
         characteristicGeneration: construction.method,
-        professionId: "detective",
+        professionId: profession.professionId,
         enabledOptions: [],
         enabledPowerSystems: [],
         ...(powerProfile.ageBasis ? { ageBasis: powerProfile.ageBasis } : {}),
       },
       decisions: [
         { stepId: "rules.power-level", choiceId: powerProfile.powerLevel },
-        { stepId: "identity.profession", choiceId: "detective" },
+        { stepId: "identity.profession", choiceId: profession.professionId },
         { stepId: "identity.wealth", choiceId: input.wealth },
+        ...scholarAcademicDecision,
         ...(powerProfile.ageBasis
           ? [
             { stepId: "identity.default-starting-age", answer: powerProfile.ageBasis.defaultStartingAge },
@@ -336,26 +352,33 @@ export function calculateBrpDamageModifier(strPlusSiz: number): BrpDamageModifie
   return "+2D6";
 }
 
+function resolveProfession(
+  input: BrpFirstSliceBaseInput | BrpScholarFirstSliceBaseInput,
+  characteristics: BrpCharacteristicValues,
+): BrpResolvedProfession {
+  if (input.professionId === "scholar") {
+    return resolveBrpScholarProfession(input.wealth, input.scholarAcademicSkills, characteristics);
+  }
+  return resolveBrpDetectiveProfession(input.wealth, input.detectiveElectiveSkillKeys, characteristics);
+}
+
 function buildSkillState(
-  skillKey: BrpFirstSliceSkillKey,
-  professional: ReadonlyMap<BrpFirstSliceSkillKey, number>,
-  personal: ReadonlyMap<BrpFirstSliceSkillKey, number>,
+  definition: BrpResolvedSkillDefinition,
+  professionalPoints: number,
+  personalPoints: number,
   startingSkillCap: number,
   powerLevelLabel: string,
 ): BrpSkillState {
-  const definition = BRP_FIRST_SLICE_SKILL_CATALOG[skillKey];
-  const professionalPoints = professional.get(skillKey) ?? 0;
-  const personalPoints = personal.get(skillKey) ?? 0;
   const professionalRating = definition.baseChance + professionalPoints;
   const finalRating = professionalRating + personalPoints;
 
   if (professionalRating > startingSkillCap) {
     throw new Error(
-      `Professional allocation raises ${skillKey} above the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
+      `Professional allocation raises ${definition.label} above the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
     );
   }
   if (finalRating > startingSkillCap) {
-    throw new Error(`Starting skill ${skillKey} exceeds the ${powerLevelLabel} cap of ${startingSkillCap}%.`);
+    throw new Error(`Starting skill ${definition.label} exceeds the ${powerLevelLabel} cap of ${startingSkillCap}%.`);
   }
 
   return {
@@ -383,7 +406,7 @@ function buildExplicitCharacteristicState(values: BrpCharacteristicValues): BrpC
   };
 }
 
-function validateIdentity(input: BrpFirstSliceBaseInput): void {
+function validateIdentity(input: BrpFirstSliceCommonInput): void {
   if (!input.characterId.trim() || !input.nativeStateId.trim() || !input.displayName.trim()) {
     throw new Error("BRP first-slice identifiers and display name must be non-empty.");
   }
@@ -414,37 +437,39 @@ function validateCharacteristics(values: BrpCharacteristicValues): void {
   }
 }
 
-function validateDetectiveElectives(electives: readonly BrpDetectiveElectiveSkillKey[]): void {
-  if (electives.length !== 4 || new Set(electives).size !== 4) {
-    throw new Error("Detective must select exactly four unique elective professional skills.");
-  }
-  const supported = new Set<BrpDetectiveElectiveSkillKey>(BRP_DETECTIVE_ELECTIVE_SKILL_KEYS);
-  for (const skillKey of electives) {
-    if (!supported.has(skillKey)) {
-      throw new Error(`Unsupported Detective elective ${skillKey}.`);
-    }
-  }
-}
-
 function allocationMap(
   allocations: readonly BrpSkillAllocationInput[],
   source: "professional" | "personal",
-): Map<BrpFirstSliceSkillKey, number> {
-  const result = new Map<BrpFirstSliceSkillKey, number>();
+  characteristics: BrpCharacteristicValues,
+): Map<string, BrpResolvedAllocation> {
+  const result = new Map<string, BrpResolvedAllocation>();
   for (const allocation of allocations) {
     if (!Number.isInteger(allocation.points) || allocation.points <= 0) {
       throw new Error(`${source} skill allocations must use positive integer points.`);
     }
-    if (result.has(allocation.skillKey)) {
-      throw new Error(`${source} skill allocations must not repeat ${allocation.skillKey}.`);
+    const definition = resolveBrpAllocationSkillDefinition(allocation, characteristics);
+    if (result.has(definition.key)) {
+      throw new Error(`${source} skill allocations must not repeat ${definition.label}.`);
     }
-    result.set(allocation.skillKey, allocation.points);
+    result.set(definition.key, { definition, points: allocation.points });
   }
   return result;
 }
 
-function sumAllocations(allocations: ReadonlyMap<BrpFirstSliceSkillKey, number>): number {
+function sumAllocations(allocations: ReadonlyMap<string, BrpResolvedAllocation>): number {
   let total = 0;
-  for (const points of allocations.values()) total += points;
+  for (const allocation of allocations.values()) total += allocation.points;
   return total;
+}
+
+function skillDefinitionsEqual(
+  left: BrpResolvedSkillDefinition,
+  right: BrpResolvedSkillDefinition,
+): boolean {
+  return left.key === right.key
+    && left.skillId === right.skillId
+    && left.label === right.label
+    && left.baseChance === right.baseChance
+    && left.specialty?.id === right.specialty?.id
+    && left.specialty?.label === right.specialty?.label;
 }
