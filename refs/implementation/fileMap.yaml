@@ -49,7 +49,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. Top-level Guided Mechanical, Guided Narrative, and Quick modes now exist. guidedNarrative.ts owns the first three-question mapping contract, deterministic Choose-for-me resolution, Class/Background/Species recommendations, override provenance, and ordinary guided/native construction.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. Top-level Guided Mechanical, Guided Narrative, and Quick modes exist. guidedNarrative.ts owns the first three-question mapping contract, deterministic Choose-for-me resolution, a target of about 3 and hard maximum of 5 presented Narrative choices, narrowed Class/Background/Species candidate sets, in-branch override validation, provenance, and ordinary guided/native construction.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -68,7 +68,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: Shared workspace owns rules-system routing and Randomize All orchestration. D&D dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching. dndNarrativeCreatorPanel renders system-owned questions, explicit Choose for me options, visible replay seed, mapped Class/Background/Species recommendations, and direct overrides. Next focus is a narrow continuation seam into the existing Guided Mechanical editor.
+    notes: Shared workspace owns rules-system routing and Randomize All orchestration. D&D dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching. dndNarrativeCreatorPanel renders system-owned questions, explicit Choose for me options, visible replay seed, and only the narrowed mapped Class/Background/Species candidates. To reach a choice outside the current branch, change an upstream Narrative answer. Next focus is a narrow continuation seam into the existing Guided Mechanical editor.
   project-memory:
     guidance:
       - AGENTS.md
@@ -93,14 +93,13 @@ common_tasks:
       - apps/web/src/dndGuidedCreatorPanel.ts
       - apps/web/src/guidedCreationPanel.ts
       - apps/web/src/creatorWorkspace.ts
-  - task: Inspect D&D Guided Narrative first slice
+  - task: Inspect D&D Guided Narrative choice shaping
     look_in:
+      - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - packages/system-dnd5e/src/guidedNarrative.ts
       - packages/system-dnd5e/src/guidedNarrative.test.ts
       - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndCreatorPanel.ts
-      - apps/web/src/creatorWorkspace.ts
   - task: Inspect D&D Quick top-level creator mode
     look_in:
       - refs/product/creator-workspace.md
