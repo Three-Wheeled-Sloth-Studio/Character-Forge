@@ -41,14 +41,14 @@ Branded Call of Cthulhu remains a possible separately licensed future product ta
 
 ## Implemented source evidence
 
-The current `brp-character/0.1` backend implements a deliberately narrow subset including:
+The current `brp-character/0.1` backend implements a deliberately bounded subset including:
 
 - STR, CON, SIZ, INT, POW, DEX, CHA;
 - explicit characteristics;
 - deterministic standard rolling with 3d6 for STR/CON/POW/DEX/CHA and 2d6+6 for INT/SIZ;
 - standard up-to-three-point redistribution;
-- Normal power level: 250 professional points and 75% starting cap;
-- Heroic power level: 325 base professional points and 90% starting cap;
+- Normal skill-construction profile: 250 professional points and 75% starting cap;
+- Heroic skill-construction profile: 325 base professional points and 90% starting cap;
 - personal skill budget `INT x 10`;
 - Detective and Scholar profession probes;
 - separate professional and personal skill contributions;
@@ -56,7 +56,75 @@ The current `brp-character/0.1` backend implements a deliberately narrow subset 
 - named language identity with Own/Other role semantics;
 - core derived Hit Points, Major Wound level, Power Points, Experience Bonus, Move, and Damage Modifier;
 - corrected `Charisma Roll` semantics using CHA x 5;
-- Track in the supported skill set, consistent with corrections 1.05.
+- Track in the supported skill set, consistent with corrections 1.05;
+- optional bounded Superpowers state with an independently retained power level and character-point budget;
+- Extra Energy and Extra Hit Points as the first Superpowers architecture probe.
+
+## Skill level versus power level
+
+The BRP source allows skill level and power level to be mixed rather than requiring them to move together.
+
+Character Forge already used `rulesProfile.powerLevel` for the established Normal/Heroic skill-construction profile before Powers were implemented. The first Powers slice therefore does **not** reinterpret or rename that existing field.
+
+Instead, each implemented power system owns the source-native state required by that system. The first Superpowers state retains its own independent `powerLevel`.
+
+This is deliberate backward compatibility and deliberate source modeling. A test proves a Normal skill-construction profile combined with a Heroic Superpowers profile.
+
+Do not promote either field into a universal cross-system power-level ontology.
+
+## Superpowers source behavior and first implementation
+
+BRP Superpowers use character points rather than the existing professional/personal skill budgets.
+
+The first implementation supports only Normal and Heroic Superpowers power levels:
+
+- Normal character-point budget: one-half of the highest initial/as-yet-unmodified characteristic, rounded up;
+- Heroic character-point budget: the highest initial/as-yet-unmodified characteristic.
+
+For standard-rolled characters, this basis is the retained initial characteristic layer before BRP's current redistribution step. The resulting budget therefore remains replayable even when final characteristics differ.
+
+Unused character points may remain unspent. This first slice does not implement power failings, power modifiers, GM-fixed budgets, Epic/Superhuman power levels, or other budget adjustments.
+
+The first two supported Superpowers are deliberately simple but mechanically distinct:
+
+### Extra Energy
+
+- retained as `extra-energy`;
+- one character point per level;
+- each level adds 10 Power Points;
+- does not change POW itself;
+- represented as an always-on source-native Superpower rather than a D&D-style spell.
+
+### Extra Hit Points
+
+- retained as `extra-hit-points`;
+- one character point per level;
+- each level adds 1 Hit Point;
+- Major Wound level is recalculated from the powered Hit Point total;
+- current source-profile limit: levels may not exceed initial CON.
+
+These two entries are not intended to define the final state shape for every Superpower. The broader catalog has heterogeneous mechanics and should be added from source evidence, not forced through these two fields.
+
+## Power-system architecture boundary
+
+`brp-character/0.1` remains sufficient after the first powered slice.
+
+Existing non-powered documents remain unchanged and valid. Powered documents additionally retain:
+
+- `enabledPowerSystems: ["superpowers"]` in the BRP rules profile;
+- one BRP-owned Superpowers system state;
+- independent Superpowers power level;
+- character-point budget method and initial-characteristic basis;
+- total, spent, and remaining character points;
+- exact supported power IDs, levels, and character-point costs;
+- powered derived values;
+- generation provenance for the system, power level, selections, and budget.
+
+Adapter `0.6.0` validates the established non-powered BRP state through the prior validation contract and independently validates powered state and powered-derived causality.
+
+Do not model BRP powers through D&D spell-state structures. Do not assume all BRP power systems use character points, levels, or the same activation mechanics.
+
+If a second power-system architecture probe is explicitly prioritized, Psychic Abilities are the strongest contrast because their source grammar is skill-rated and interacts with skill improvement and Power Points rather than Superpowers character-point purchasing.
 
 ## Profession evidence
 
@@ -102,7 +170,7 @@ This is BRP-native source identity. It is not a global Character Forge language 
 
 ## Implemented age boundary
 
-The current Heroic age slice retains the starting-age context needed to validate professional-skill bonuses:
+The current Heroic skill-profile age slice retains the starting-age context needed to validate professional-skill bonuses:
 
 - default starting age retained in the current 18 through 23 source range;
 - current age from retained starting age through 49;
@@ -116,8 +184,7 @@ This is an implementation boundary, not the complete BRP age system.
 ## Current supported profile
 
 - Human;
-- Normal or Heroic;
-- non-powered;
+- Normal or Heroic skill-construction profile;
 - explicit or standard-rolled characteristics;
 - Detective or Scholar;
 - Average or Affluent wealth;
@@ -125,7 +192,10 @@ This is an implementation boundary, not the complete BRP age system.
 - open Knowledge/Science specialties;
 - open named Own/Other language identities;
 - personal additional Other-language learning;
-- no EDU, Sanity, Fatigue, hit locations, cultural modifiers, non-human modifiers, powers, or optional skill-category bonuses.
+- either non-powered or a backend-only bounded Superpowers profile;
+- Superpowers power level Normal or Heroic, independent of skill profile;
+- Superpowers Extra Energy and/or Extra Hit Points within the retained source budget;
+- no EDU, Sanity, Fatigue, hit locations, cultural modifiers, non-human modifiers, optional skill-category bonuses, Magic, Mutations, Psychic Abilities, Sorcery, broad Superpowers catalog, power failings/modifiers, or Powers creator UI.
 
 ## BRP naming source finding
 
@@ -159,27 +229,26 @@ The existing `name-suggestion/0.1` provider contract is sufficient for this boun
 
 ## Current code milestone
 
-Named-language backend closure is automated-green at:
+First BRP Superpowers architecture proof is automated-green at:
 
-- code checkpoint `1ce3387491ccf859f56d7a0e92217c7737a56bf0`;
-- Actions `34291613617`;
-- job `102279178820`;
-- 30 test files / 152 tests / 0 failures;
-- 35 BRP tests;
-- 7 named-language tests;
-- adapter `0.5.0`;
-- native schema `brp-character/0.1`;
-- web build identity `Character Forge build 0.0.1 1ce33874`.
+- code checkpoint `bc0a05fb9b96c9777a73726100828712cd8bbb41`;
+- Actions `34413436457`;
+- job `102672848273`;
+- 45 test files / 223 tests / 0 failures;
+- 7 Superpowers-specific tests;
+- adapter `0.6.0`;
+- native schema remains `brp-character/0.1`;
+- web build identity `Character Forge build 0.0.1 bc0a05fb`.
 
-The language tests cover exact Own/Other identities, source bases, contradictory-role rejection, blank identity rejection, extra personal Other-language learning, profession-language tampering, base tampering, and CharacterDocument/generation provenance round trip.
+The Superpowers tests cover independent skill/power levels, source-derived budget causality, initial-before-redistribution budgeting, unused points, Extra Energy / Extra Hit Points derived effects, source limits, tamper detection, backward validation of non-powered characters, and CharacterDocument/generation provenance round trip.
 
-## Next source/application probe
+## Next source/application probes
 
 No BRP naming implementation should be added until a real setting/campaign/content provider exists.
 
-When such a consumer arrives, the first implementation proof should inject the concrete provider at the caller/host boundary, keep `system-brp` free of invented naming data, reuse `name-suggestion/0.1`, and retain provider/source/version/seed provenance while leaving authoritative native/display name state as ordinary strings.
+No broader BRP power implementation is implied by this first slice. If a second architecture proof is explicitly prioritized, audit a small Psychic Abilities subset first because it provides stronger evidence than ingesting more Superpowers entries of the same grammar.
 
-Until then, Character Forge should continue with an implementation slice that has an actual source/product consumer rather than adding a speculative generic content-provider layer.
+A Powers creator UI should wait until product direction decides which power systems and breadth are actually intended for user-facing support.
 
 ## Current external references
 
