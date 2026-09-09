@@ -11,27 +11,27 @@ tags:
 
 Date: 2026-09-09
 Branch: `dev`
-Current product status: **BRP Superpowers architecture proof is implemented and automated-green; D&D Guided Narrative remains parked.**
+Current product status: **BRP Superpowers and Psychic Abilities architecture probes are implemented and automated-green; D&D Guided Narrative remains parked.**
 
-## Accepted BRP Superpowers Checkpoint
+## Accepted BRP Psychic Abilities Checkpoint
 
-Starting head for this slice:
+Starting documented head for this slice:
 
-- `c553ba7195fbe52ea383de2df0310f3f9f3daf42`
+- `9bcdf2008b078d81171872c4d88e00773c15d50d`
 
 Automated-green implementation checkpoint:
 
-- SHA: `bc0a05fb9b96c9777a73726100828712cd8bbb41`
-- Actions: `34413436457`
-- job: `102672848273`
+- SHA: `ae35b556dfc177f12e9f934fedd455803c6b74c7`
+- Actions: `34417631582`
+- job: `102685926895`
 - Verify: success
-- 45 test files / 223 tests / 0 failures
-- 175 tracked paths
+- 46 test files / 231 tests / 0 failures
+- 178 tracked paths
 - 14 required project-memory files
 - OKF: 20 concepts / 10 indexes
-- agent context check: 3,730 characters
-- web build: `Character Forge build 0.0.1 bc0a05fb`
-- new Superpowers coverage: 7 tests
+- agent context check: 3,818 characters
+- web build: `Character Forge build 0.0.1 ae35b556`
+- new Psychic Abilities coverage: 8 tests
 
 No `qa` or `main` promotion occurred.
 
@@ -42,83 +42,133 @@ Promoted branches remain:
 
 Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## Source Finding That Drove The Slice
+## What Psychic Abilities Proved
 
-The BRP UGE source treats skill construction level and power level as independently configurable. Do not assume the existing BRP `rulesProfile.powerLevel` field is a universal character power-level ontology: in the current Character Forge backend it already governs the established skill-construction profile.
+The BRP UGE source treats Psychic Abilities as percentile-rated abilities that behave like skills for rating/improvement while remaining a distinct power system. Their starting rating is `POW x 1`, personal skill points may improve them during character creation, and use commonly spends Power Points.
 
-Superpowers are a useful architecture probe because they use a separate character-point budget derived from the character's initial, as-yet-unmodified characteristics. The first slice therefore proves a powered capability model without mapping it into D&D spell state or ordinary BRP skills.
+The bounded proof deliberately supports only:
 
-The narrow implemented Superpowers surface is:
+- Psychic power level: `normal`;
+- exactly two starting Psychic Abilities;
+- `Empathy`;
+- `Mind Shield`;
+- Detective construction paths;
+- explicit and standard-rolled characteristics;
+- personal-skill-point training only.
 
-- `Extra Energy`: one character point per retained level; each level adds 10 Power Points;
-- `Extra Hit Points`: one character point per retained level; each level adds 1 Hit Point and therefore changes Major Wound level; current source-profile limit is no more levels than initial CON;
-- Normal Superpowers budget: half the highest initial characteristic, rounded up;
-- Heroic Superpowers budget: the highest initial characteristic;
-- unused character points may remain unspent;
-- power failings, power modifiers, fixed GM budgets, Epic/Superhuman power levels, and the broader Superpowers catalog remain out of scope.
+The proof does **not** make Psychic Abilities ordinary entries in `skills`. They remain in a BRP-native `powerSystems` state because their runtime power semantics, Power Point use, and future ability-specific behavior are not ordinary skill semantics.
 
-## Architecture Result
+## Skill Pool And Power-Level Result
 
-`brp-character/0.1` remains sufficient.
+Psychic Ability training shares the existing personal `INT x 10` pool during creation.
 
-The new powered state is optional and BRP-owned. Existing non-powered `brp-character/0.1` documents remain valid unchanged.
+The current construction path first builds a legal ordinary BRP character, then explicitly reallocates retained personal skill points from ordinary skills into Psychic Ability training. The final native state therefore validates:
 
-A powered character retains:
+`ordinary personal skill spend + Psychic Ability personal training = INT x 10`
 
-- the existing `rulesProfile.powerLevel` for the established skill-construction profile;
-- `enabledPowerSystems: ["superpowers"]` when applicable;
-- a separate Superpowers state with its own `powerLevel`;
-- a retained character-point budget with method, highest-characteristic basis, total, spent, and remaining points;
-- exact power IDs, levels, and character-point costs;
-- powered derived Hit Points, Major Wound level, and Power Points;
-- generation decisions/provenance for power system, power level, selections, and character-point budget.
+The reallocation itself remains in generation provenance. The authoritative native state retains the resulting ordinary skill contributions and the Psychic Ability training contributions.
 
-The tests explicitly prove a **Normal skill profile with a Heroic Superpowers profile**. That is intentional evidence that the two dimensions must not be collapsed.
+The existing `rulesProfile.powerLevel` remains the established skill-construction profile. Psychic Abilities retain their own independent power-system level. A test proves **Heroic skill construction with Normal Psychic Abilities**.
 
-The rolled-characteristic test also proves that the Superpowers budget is calculated from initial characteristic values before the existing BRP redistribution step, not from final redistributed values.
+Psychic Ability training observes the retained skill-construction starting cap:
 
-## Implementation Shape
+- Normal skill profile: 75%;
+- Heroic skill profile: 90%.
+
+For standard-rolled characters, Psychic base ratings use the final starting POW after the existing legal redistribution step. This differs intentionally from the Superpowers character-point budget, which uses initial/as-yet-unmodified characteristics.
+
+## Implemented Psychic State
 
 New BRP-owned files:
 
-- `packages/system-brp/src/superpowers.ts`
-- `packages/system-brp/src/poweredAdapter.ts`
-- `packages/system-brp/src/superpowers.test.ts`
+- `packages/system-brp/src/psychicAbilities.ts`
+- `packages/system-brp/src/psychicAdapter.ts`
+- `packages/system-brp/src/psychicAbilities.test.ts`
 
-`superpowers.ts` composes the existing explicit or standard-rolled BRP builder during character creation, then adds source-owned Superpowers state before the CharacterDocument is returned. It does not introduce a shared capability schema.
+The retained Psychic state includes:
 
-`poweredAdapter.ts` makes adapter `0.6.0` the package-level BRP adapter. It keeps the existing `0.5.0` validator as the base validator for established BRP state and independently validates the added power-system state and powered derived causality.
+- `systemId: "psychic-abilities"`;
+- independent Psychic `powerLevel`;
+- total personal skill points spent on Psychic training;
+- exact ability IDs and labels;
+- `baseRatingMethod: "pow-x1"`;
+- source-derived base rating;
+- personal skill-point contribution;
+- final percentile rating.
 
-The canonical package export remains `brpUge105Adapter`; `brpUge105BaseAdapter` is retained as the legacy/base validator export for internal architecture clarity.
+The bounded source catalog also retains the currently needed use metadata:
 
-## Important Guardrails
+- Empathy: POW-meter range, instantaneous, 1 Power Point;
+- Mind Shield: self range, one full turn per Power Point, variable cost of at least 1 Power Point.
 
-Do not infer any of the following from this first powered slice:
+Runtime activation, resistance rolls, failure/fumble Power Point handling, and combat resolution remain out of scope for this creation architecture proof.
 
-- a universal D&D/BRP spell or ability schema;
-- a universal `powerLevel` field shared across systems;
-- that all BRP power systems use character points;
-- that Psychic Abilities are ordinary BRP skills merely because they are skill-rated;
-- that Sorcery should reuse D&D spell-state structures;
-- that all Superpowers can be represented by only `levels` and `characterPointCost`;
-- that creator UI should expose unsupported power catalogs before their source rules are implemented.
+## Adapter Stack
 
-Power-system-specific state should remain a tagged BRP-native union as additional real systems are implemented. Generalize only after repeated evidence.
+The BRP adapter layers are now intentionally explicit:
 
-## Candidate Next Powers Probe
+- `adapter.ts`: established BRP validator, adapter `0.5.0`;
+- `poweredAdapter.ts`: Superpowers-aware validator, adapter `0.6.0`;
+- `psychicAdapter.ts`: canonical package validator, adapter `0.7.0`.
 
-If product direction explicitly continues BRP Powers architecture, the strongest next contrast is **Psychic Abilities**, because they are skill-rated, interact with personal skill points, and commonly consume Power Points. That would test whether the optional BRP power-system union can support a fundamentally different power grammar beside Superpowers.
+`packages/system-brp/src/index.ts` exports:
 
-Do not start that automatically. The current Superpowers proof is a complete bounded milestone.
+- `brpUge105BaseAdapter` for the established base validator;
+- `brpUge105PoweredAdapter` for the Superpowers-aware layer;
+- `brpUge105Adapter` as the canonical current Psychic-aware validator.
 
-Also do not broaden immediately into:
+Existing non-powered and Superpowers documents continue to validate through the canonical adapter.
 
-- full Superpowers catalog ingestion;
+## Architecture Result Across Two Power Systems
+
+`brp-character/0.1` remains sufficient.
+
+Character Forge now has concrete BRP evidence for two materially different capability grammars:
+
+1. **Superpowers** — independent character-point purchasing, levels/costs, and direct derived-resource effects;
+2. **Psychic Abilities** — skill-rated power abilities, `POW x 1` bases, shared personal skill-point training, and Power Point use semantics.
+
+Neither required changing shared `CharacterDocument`, introducing a shared capability ontology, or reusing D&D spell-state structures.
+
+That is strong evidence that BRP power systems should remain a tagged BRP-native family until additional systems demonstrate genuinely repeated semantics.
+
+## Previous Superpowers Checkpoint
+
+The first Superpowers proof remains automated-green at:
+
+- SHA `bc0a05fb9b96c9777a73726100828712cd8bbb41`;
+- Actions `34413436457`;
+- job `102672848273`;
+- 45 test files / 223 tests / 0 failures;
+- adapter layer `0.6.0`;
+- native schema `brp-character/0.1`.
+
+It supports only Extra Energy and Extra Hit Points with source-derived Normal/Heroic character-point budgets.
+
+## Deliberately Deferred
+
+Do not infer or automatically add:
+
+- Heroic/Epic/Superhuman Psychic profiles;
+- the full Psychic Ability catalog;
+- Psychic professional-skill-pool training;
+- Scholar Psychic creation;
+- multiple simultaneous BRP power systems/power sets;
+- Psychic runtime activation/resistance/combat resolution;
+- full Superpowers catalog;
 - power failings/modifiers;
-- Magic, Mutations, Sorcery, or Psychic UI;
+- Magic, Mutations, or Sorcery;
+- Powers creator UI;
 - power randomization;
-- generic shared capability semantics;
-- creator UI for this first backend proof.
+- a universal D&D/BRP spell, power, or ability schema.
+
+Any of those requires an explicit product slice and source audit.
+
+## Stress-Test Status
+
+The original BRP second-system architecture stress-test objective is now substantially satisfied. BRP has already forced and proven non-D&D shapes for percentile skills, professions, open specialties/languages, skill-construction profiles, Superpowers character-point capabilities, and Psychic skill-rated capabilities without requiring shared CharacterDocument distortion.
+
+Further BRP work should be selected as **product breadth** or as a deliberately named additional architecture probe, not assumed necessary merely to keep Issue #13 growing.
 
 ## D&D Narrative Parking State
 
@@ -139,6 +189,7 @@ D&D Issue #11 remains the separate accumulated owner runtime-QA/promotion gate.
 - BRP naming content remains setting/campaign/content-package owned.
 - Random-table evaluation remains a separate generation primitive.
 - BRP powers must not be modeled through D&D spell-state structures merely for reuse.
+- Do not generalize from Superpowers and Psychic Abilities until a repeated cross-system need is concrete.
 
 ## Validation
 
