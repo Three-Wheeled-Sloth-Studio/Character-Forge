@@ -84,14 +84,17 @@ roadmap:
       - Scholar generation recipe 0.5 retains exact Own/Other language decisions and academic choices.
       - Native schema remains brp-character/0.1 across explicit/rolled, Normal/Heroic, Detective/Scholar, open specialty, and named-language slices.
       - Automated-green named-language checkpoint 1ce3387491ccf859f56d7a0e92217c7737a56bf0, Actions 34291613617, job 102279178820, 30 test files / 152 tests / 0 failures, 35 BRP tests.
+      - First BRP creator UI landed in the existing creator workspace with D&D 5E 2024 preserved as the default system and the existing D&D guided creator left unchanged.
+      - BRP creator exposes the supported Human profile only: Normal/Heroic, explicit/standard-rolled characteristics, Detective/Scholar, current age boundary, Average/Affluent wealth, open Scholar specialties/languages, and professional/personal contribution controls.
+      - BRP creator preview and validity feedback use BRP-owned profession, generation, power-profile, skill, budget, builder, and adapter seams rather than browser-owned rules formulas.
+      - BRP CharacterDocument reopen restores supported creator state from authoritative BRP native state, including generation provenance, rules profile, age causality, language identities, specialties, and contribution layers.
+      - Automated-green first creator UI checkpoint b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02, Actions 34295950302, job 102292513584, 32 test files / 159 tests / 0 failures.
     current_slice:
-      - Add the first narrow BRP creator UI instead of expanding backend catalog breadth by default.
-      - Preserve the existing creator standard: controls left, character review right, universal controls first, dynamic system/method-specific controls.
-      - Expose only implemented BRP rules: Human, Normal/Heroic, explicit/rolled, Detective/Scholar, current age boundary, Average/Affluent wealth, open Scholar academic specialties, named Own/Other languages, and professional/personal allocation.
-      - Reuse BRP-owned builders/validators or narrow BRP-owned preview helpers; browser code must not become a second rules engine.
-      - Preserve D&D creator behavior and sticky preferences unchanged.
-      - Preserve BRP CharacterDocument/native/provenance round trip and reopen behavior.
-      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out of this UI slice.
+      - Run owner/runtime browser QA of the first BRP creator UI before expanding backend rules breadth.
+      - Exercise explicit/rolled Detective/Scholar, Normal/Heroic age causality, legal/illegal redistribution, languages/specialties, skill budgets/caps, review, and reopen.
+      - Confirm switching back to D&D preserves existing defaults and sticky-choice behavior.
+      - Patch only concrete clarity, ergonomics, responsive-layout, feedback, or reopen findings from runtime evidence.
+      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out of the QA/polish slice.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
       - Preserve effective rules-profile and character-specific age context natively.

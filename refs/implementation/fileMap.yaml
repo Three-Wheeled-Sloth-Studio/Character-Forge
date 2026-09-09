@@ -28,14 +28,14 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Current next slice is the first narrow BRP creator UI.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. First creator UI is automated-green; current slice is runtime QA and evidence-driven polish without rules expansion.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
     source_roots:
       - apps/web/src
-    notes: Shared Character Forge creator workspace. Keep rules formulas in system-owned packages.
+    notes: Shared Character Forge creator workspace. D&D remains the default; BRP uses the same workspace. Keep rules formulas in system-owned packages.
   project-memory:
     guidance:
       - AGENTS.md
@@ -46,7 +46,7 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue the BRP creator UI slice
+  - task: Run BRP creator runtime QA and evidence-driven polish
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md

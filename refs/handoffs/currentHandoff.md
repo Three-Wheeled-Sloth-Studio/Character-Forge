@@ -19,103 +19,103 @@ Promoted branches remain unchanged:
 
 Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D or BRP work.
 
-D&D mechanical SRD Level 1 breadth remains automated-green at code checkpoint `55f79a1004c14eef1635e92c602e1fefa18cab15`. Issue #11 remains open for accumulated owner runtime QA and exact-SHA promotion.
+D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green at code checkpoint `55f79a1004c14eef1635e92c602e1fefa18cab15`. Issue #11 remains open for accumulated owner runtime QA and exact-SHA promotion.
 
-BRP named-language backend remains automated-green at code checkpoint `1ce3387491ccf859f56d7a0e92217c7737a56bf0`:
+BRP remains bounded to Basic Roleplaying: Universal Game Engine 2023 ORC content with corrections 1.05:
 
+- source ID: `chaosium-brp-uge-orc-1.05`
 - native schema: `brp-character/0.1`
 - adapter: `0.5.0`
-- rules source: `chaosium-brp-uge-orc-1.05`
-- 30 test files / 152 tests / 0 failures
-- 35 BRP tests
-- web build green
+- no Call of Cthulhu-specific protected content
+
+First BRP creator UI automated-green implementation checkpoint:
+
+- code checkpoint: `b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02`
+- Actions: `34295950302`
+- job: `102292513584`
+- 32 test files / 159 tests / 0 failures
+- 35 system-BRP tests plus 5 BRP creator-state tests
+- tracked-path case guard: 144 tracked paths collision-free
+- required project-memory files: 14
+- OKF: 17 concepts / 9 indexes
+- bounded re-entry packet: 3,395 characters
+- strict TypeScript: green
+- web build: green
+- build identity: `Character Forge build 0.0.1 b5cb07ab`
 
 ## What Landed
 
-The BRP backend now supports one shared native pipeline across:
+The existing Character Forge creator workspace now hosts both systems without making a second BRP application:
 
-- explicit and deterministic standard-rolled characteristics;
-- Normal and Heroic power levels;
-- Detective and Scholar professions;
-- bounded and open profession choice grammars;
-- open Knowledge/Science specialties;
-- named language identity with separate subject identity and Own/Other source role;
-- character-specific Heroic age causality.
+- a rules-system selector keeps D&D 5E 2024 as the default and mounts BRP UGE only when selected;
+- the existing D&D guided creator module was left unchanged, and existing sticky-choice tests remain green;
+- BRP controls cover display name, age, gender, Average/Affluent wealth, Normal/Heroic power level, retained Heroic default starting age, Detective/Scholar, Explicit/Standard Rolled characteristics, seed/re-roll, raw roll visibility, legal redistribution input, profession-specific choices, and professional/personal skill allocation;
+- budget, remaining-point, starting-cap, and invalid-state feedback are inline;
+- `Fill legal example` provides a deterministic convenience for reaching a legal supported allocation without weakening BRP validation;
+- the right review surface shows retained characteristics, derived state, skills, causal contribution layers, rules profile, age causality, languages/specialties, generation state, and native document provenance;
+- reopening a BRP CharacterDocument restores supported creator state directly from the authoritative BRP primary native payload, never from semantic projection.
 
-No shared CharacterDocument or semantic-schema change has been required.
+A narrow BRP-owned `calculateBrpPersonalSkillPoints()` helper was added so browser feedback does not duplicate the `INT x 10` rule. Existing BRP-owned profession resolvers, characteristic generation, power-profile logic, skill definitions/base chances, builders, and adapter validation remain authoritative.
 
-Repository guidance is aligned to the current Agent Academy bounded re-entry model:
+No shared CharacterDocument, semantic contract, generator-core contract, dependency, or lockfile change was required.
 
-- routine coding-agent continuation begins with `refs/tools/generate_agent_context.py`;
-- `refs/implementation/fileMap.yaml` supplies focused source/guidance hints;
-- context loading is progressive and diff-first rather than broad rereading after resets;
-- generated `.agent-context.md` is disposable scratch state;
-- the active handoff is delta-oriented;
-- a Git-index case-collision guard is part of ordinary validation.
+## Current Evidence / Gap
 
-Automated-green Agent Academy alignment checkpoint:
+Automated coverage proves explicit and standard-rolled Detective/Scholar creation, Normal/Heroic profile retention, Heroic age causality, exact Scholar language/specialty identities, budget/cap agreement with backend validation, invalid allocation rejection, authoritative native-state reopen, D&D default routing, and unchanged D&D sticky-choice tests.
 
-- code checkpoint: `1ff407a714b2730308e3d7a9493258f8fc168376`
-- Actions: `34293471021`
-- job: `102284877369`
-- tracked-path guard: green on 137 tracked paths, including synthetic collision/non-collision self-test
-- required project-memory/infrastructure files: 14
-- OKF: 17 concepts / 9 indexes
-- bounded re-entry packet: 3,395 characters against an 8,000-character routine ceiling
-- strict TypeScript: green
-- 30 test files / 152 tests / 0 failures
-- web build: green
-- build identity: `Character Forge build 0.0.1 1ff407a7`
+The remaining gap is owner runtime/browser QA of the first BRP creator UI. Treat visual friction, control clarity, responsive behavior, and reopen ergonomics as evidence-driven polish work. Do not expand BRP rules breadth merely because the first UI exists.
 
-No package dependency or lockfile change was required.
-
-## Current Gap
-
-BRP has no creator UI yet. The backend is now broad enough to expose without pretending unsupported BRP features exist.
-
-The D&D owner runtime-QA gate is still separate and open.
+The D&D Issue #11 runtime-QA/promotion gate remains separate and open.
 
 ## Next Slice
 
-Implement the first narrow BRP creator UI in the existing Character Forge creator workspace.
+Run a focused BRP creator runtime-QA and polish pass on `dev`.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "BRP creator UI"`
+`python refs/tools/generate_agent_context.py --focus "BRP creator runtime QA"`
 
-Then use `refs/implementation/fileMap.yaml` and `refs/handoffs/next-dev-prompt.md` to load only the source and guidance needed for the concrete task.
+Exercise at least:
 
-The UI must preserve:
+- explicit Detective and Scholar;
+- standard-rolled Detective and Scholar;
+- Normal and Heroic, including retained default starting age and age-derived budget;
+- legal and illegal redistribution;
+- Scholar Own/Other language identity and open Knowledge/Science specialties;
+- professional/personal budgets, cap feedback, and `Fill legal example`;
+- generated review details and JSON/native provenance;
+- reopen from a retained BRP CharacterDocument;
+- switching back to D&D with existing defaults/sticky behavior intact.
 
-- generation controls left, character review/details right;
-- universal system/name controls at the top;
-- one dynamic generation-method control surface;
-- BRP-owned rules calculations and validation;
-- lossless CharacterDocument/native-state persistence and reopen;
-- D&D creator behavior and sticky preferences;
-- current BRP scope only, without EDU, Sanity, Fatigue, powers, non-human rules, age-50+ rules, category bonuses, or broad profession ingestion.
+Patch only concrete runtime/UX findings. Keep unsupported BRP rules out of this QA slice. Do not promote `qa` or `main` without explicit instruction.
 
 ## Relevant Files
 
 - `refs/handoffs/next-dev-prompt.md`
 - `refs/implementation/fileMap.yaml`
-- `refs/integration/brp-uge-orc.md`
+- `apps/web/src/creatorWorkspace.ts`
+- `apps/web/src/brpCreatorPanel.ts`
+- `apps/web/src/brpCreatorPanelView.ts`
+- `apps/web/src/brpCreatorState.ts`
+- `apps/web/src/brpCreatorStyles.ts`
+- `apps/web/src/main.ts`
+- `packages/system-brp/src/powerLevel.ts`
 - `packages/system-brp/src/`
-- `apps/web/src/`
-- `packages/character-model/src/`
 
-Load deeper architecture and evidence references only when a system boundary, semantic claim, or source-fidelity question requires them.
+Load deeper architecture/source evidence only if a system boundary, semantic claim, or source-fidelity question actually requires it.
 
 ## Do Not Reopen Without New Evidence
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - BRP profession is not D&D class.
-- Keep BRP rules/profile/age/language causality BRP-owned.
-- Keep generator-core system-neutral.
-- Parchment remains system-agnostic.
-- Do not import Call of Cthulhu-specific protected content into the BRP adapter.
-- Do not freeze universal profession, specialty, language, or contribution schemas from D&D + BRP alone.
+- Keep base chance, professional contribution, personal contribution, and final rating distinct.
+- Keep open specialties and language identities BRP-owned.
+- Preserve effective rules profile and character-specific age causality.
+- Future BRP powers must not reuse D&D spell architecture.
+- Keep generator-core system-neutral and Parchment system-agnostic.
+- Do not import Call of Cthulhu-specific protected content.
+- Do not broaden the profession catalog during UI polish without new evidence.
 - Random-table companion remains `ready_for_discovery`.
 - D&D runtime QA remains its own promotion gate.
 
