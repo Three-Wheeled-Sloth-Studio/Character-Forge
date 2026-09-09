@@ -14,7 +14,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and the minimal name-suggestion provider/provenance contract. Core naming requires only displayName and opaque provider-owned context; it does not define identity semantics.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and the minimal name-suggestion provider/provenance contract. Core naming requires only displayName and opaque provider-owned context; it does not define identity or narrative semantics.
   structured-naming:
     guidance:
       - refs/product/structured-naming.md
@@ -28,8 +28,7 @@ areas:
       - packages/system-dnd5e/src/guidedGenerate.ts
       - packages/system-dnd5e/src/guidedNameProvenance.test.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/creatorWorkspace.ts
-    notes: name-suggestion/0.1 is proven with the existing D&D six-name placeholder provider and D&D guided creator provenance. BRP source discovery confirms naming content is setting/campaign/content-package owned rather than system-brp owned; no shared contract or generic content-provider layer change is justified until a concrete setting consumer exists.
+    notes: name-suggestion/0.1 is proven with the existing D&D placeholder provider and guided provenance. BRP naming content remains setting/campaign/content-package owned; no shared contract expansion is justified yet.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -41,7 +40,7 @@ areas:
       - packages/system-brp/src/professionSuggestion.test.ts
       - packages/system-brp/src/scholarAcademicSuggestion.ts
       - packages/system-brp/src/scholarAcademicSuggestion.test.ts
-    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. No universal suggestion schema or nested-table engine is justified yet.
+    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. No universal suggestion schema or nested-table engine is justified yet. Guided Narrative does not use this engine merely because it also has deterministic random choices.
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
@@ -50,7 +49,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, structured generated-name provenance, and system-owned Quick generation are proven. Quick is now a top-level creator mode; Guided Narrative is the next concrete creation-mode proof.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. Top-level Guided Mechanical, Guided Narrative, and Quick modes now exist. guidedNarrative.ts owns the first three-question mapping contract, deterministic Choose-for-me resolution, Class/Background/Species recommendations, override provenance, and ordinary guided/native construction.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -60,7 +59,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. The ORC source makes names setting-dependent and supplies no generated-name corpus, so future BRP name generation must consume a concrete caller/setting provider rather than adding system-brp naming data.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Naming data remains setting/campaign/content-package owned. No BRP Guided Narrative contract exists yet.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -69,7 +68,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: Shared workspace owns rules-system routing and Randomize All orchestration. D&D now has a top-level Guided Mechanical / Quick Generate selector in dndCreatorPanel; dndQuickCreatorPanel delegates directly to quickGenerateDnd5eFirstSlice and publishes through the ordinary onCharacter boundary. Randomize All is hidden/guarded in Quick mode. Next focus is the first D&D Guided Narrative vertical slice.
+    notes: Shared workspace owns rules-system routing and Randomize All orchestration. D&D dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching. dndNarrativeCreatorPanel renders system-owned questions, explicit Choose for me options, visible replay seed, mapped Class/Background/Species recommendations, and direct overrides. Next focus is a narrow continuation seam into the existing Guided Mechanical editor.
   project-memory:
     guidance:
       - AGENTS.md
@@ -80,16 +79,28 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Implement first D&D Guided Narrative vertical slice
+  - task: Continue D&D Guided Narrative into Guided Mechanical
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
-      - apps/web/src/dndCreatorPanel.ts
-      - apps/web/src/guidedCreationPanel.ts
+      - packages/system-dnd5e/src/guidedNarrative.ts
+      - packages/system-dnd5e/src/guidedNarrative.test.ts
       - packages/system-dnd5e/src/guidedGenerate.ts
-      - packages/system-dnd5e/src/index.ts
+      - apps/web/src/dndNarrativeCreatorPanel.ts
+      - apps/web/src/dndCreatorPanel.ts
+      - apps/web/src/dndGuidedCreatorPanel.ts
+      - apps/web/src/guidedCreationPanel.ts
+      - apps/web/src/creatorWorkspace.ts
+  - task: Inspect D&D Guided Narrative first slice
+    look_in:
+      - refs/product/generation-methods.md
+      - packages/system-dnd5e/src/guidedNarrative.ts
+      - packages/system-dnd5e/src/guidedNarrative.test.ts
+      - apps/web/src/dndNarrativeCreatorPanel.ts
+      - apps/web/src/dndCreatorPanel.ts
+      - apps/web/src/creatorWorkspace.ts
   - task: Inspect D&D Quick top-level creator mode
     look_in:
       - refs/product/creator-workspace.md
@@ -112,13 +123,6 @@ common_tasks:
       - packages/system-dnd5e/src/guidedGenerate.ts
       - packages/system-dnd5e/src/guidedNameProvenance.test.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/creatorWorkspace.ts
-  - task: Add or discover another naming provider
-    look_in:
-      - refs/product/structured-naming.md
-      - refs/integration/brp-uge-orc.md
-      - packages/generator-core/src/nameSuggestion.ts
-      - packages/system-dnd5e/src/nameGeneration.ts
   - task: Continue Randomize All QA or orchestration work
     look_in:
       - refs/handoffs/currentHandoff.md
