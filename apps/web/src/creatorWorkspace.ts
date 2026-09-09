@@ -1,5 +1,6 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import { mountBrpCreatorPanel, type BrpCreatorPanelController } from "./brpCreatorPanel.js";
+import { clickCreatorRandomizers } from "./creatorRandomization.js";
 import { mountGuidedCreationPanel } from "./guidedCreationPanel.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
@@ -20,30 +21,51 @@ export function creatorSystemForCharacter(character: CharacterDocument): Creator
   return null;
 }
 
+export function creatorRandomizerSelector(system: CreatorSystemId): string {
+  if (system === "brp-uge") return "#brp-profession-random, #brp-reroll";
+  return ".icon-button[id$='-random'], #creator-random-roll";
+}
+
+export function creatorRandomizationHelp(system: CreatorSystemId): string {
+  if (system === "brp-uge") {
+    return "Randomize All uses the BRP profession suggestion and re-rolls characteristics only when Standard Rolled is selected. Scholar academic suggestions remain field-level. Age, Gender, Wealth, name, and other fields stay unchanged until explicit system-owned distributions exist.";
+  }
+  return "Randomize All uses the existing D&D field randomizers and preserves every checked acceptable pool. If Random ability generation is selected, it also rolls a new ability set. Choices without an existing randomizer stay unchanged.";
+}
+
 export function mountCreatorWorkspace(
   root: HTMLElement,
   onCharacter: (character: CharacterDocument) => void,
 ): CreatorWorkspaceController {
   root.innerHTML = `
     <section class="creator-panel creator-system-panel">
-      <label>Rules system
-        <select id="creator-rules-system">
-          <option value="dnd5e-2024">D&D 5E 2024</option>
-          <option value="brp-uge">BRP UGE</option>
-        </select>
-      </label>
+      <div class="creator-system-actions">
+        <label>Rules system
+          <select id="creator-rules-system">
+            <option value="dnd5e-2024">D&D 5E 2024</option>
+            <option value="brp-uge">BRP UGE</option>
+          </select>
+        </label>
+        <button id="creator-randomize-all" type="button" class="secondary-button">Randomize All</button>
+      </div>
+      <p id="creator-randomization-help" class="muted"></p>
       <p class="muted">System-specific generation controls stay below. Native rules state remains authoritative.</p>
     </section>
     <div id="creator-system-host"></div>`;
 
   const systemSelect = requiredElement(root, "#creator-rules-system", HTMLSelectElement);
   const systemHost = requiredElement(root, "#creator-system-host", HTMLElement);
+  const randomizeAll = requiredElement(root, "#creator-randomize-all", HTMLButtonElement);
+  const randomizationHelp = requiredElement(root, "#creator-randomization-help", HTMLElement);
   let brpController: BrpCreatorPanelController | null = null;
+
+  const currentSystem = (): CreatorSystemId => systemSelect.value === "brp-uge" ? "brp-uge" : "dnd5e-2024";
 
   const renderSystem = (): void => {
     systemHost.innerHTML = "";
     brpController = null;
-    if (systemSelect.value === "brp-uge") {
+    randomizationHelp.textContent = creatorRandomizationHelp(currentSystem());
+    if (currentSystem() === "brp-uge") {
       brpController = mountBrpCreatorPanel(systemHost, onCharacter);
       return;
     }
@@ -52,6 +74,9 @@ export function mountCreatorWorkspace(
 
   systemSelect.value = defaultCreatorSystem();
   systemSelect.addEventListener("change", renderSystem);
+  randomizeAll.addEventListener("click", () => {
+    clickCreatorRandomizers(systemHost, creatorRandomizerSelector(currentSystem()));
+  });
   renderSystem();
 
   return {
