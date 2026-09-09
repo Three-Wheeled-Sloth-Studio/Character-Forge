@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, the first Guided Narrative vertical slice, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, Guided Narrative with explicit continuation into Guided Mechanical, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -41,49 +41,60 @@ The user makes ordinary system-native character choices with rules-aware guidanc
 
 The current D&D Guided Mechanical path supports:
 
-- sticky/direct/random-from-acceptable Class choices;
-- sticky/direct/random-from-acceptable Background choices;
-- sticky/direct/random-from-acceptable Species choices;
+- direct Class/Background/Species choices;
+- sticky acceptable pools used specifically for random-from-acceptable behavior;
 - all current Level 1 nested class/background/species choices;
 - Standard Array, Point Cost, Random, or Manual as interchangeable ability methods;
 - provider/source/version/seed provenance when a generated display name is accepted.
+
+A direct current Class/Background/Species selection is not required to belong to its sticky acceptable random pool. A `random` selection is required to belong to that pool. This keeps explicit current intent separate from persistent randomization preferences.
 
 ### Guided Narrative
 
 The user answers fictional or preference-oriented questions and the system maps those answers into ordinary mechanical recommendations. The mapping remains inspectable, recommendations remain overridable inside the narrowed branch, and important answers/mappings are retained in generation provenance.
 
-The first D&D Guided Narrative slice is implemented as a top-level creation mode beside Guided Mechanical and Quick Generate.
+D&D Guided Narrative is a top-level creation mode beside Guided Mechanical and Quick Generate.
 
-It currently asks three deliberately small questions about:
+The first implemented Narrative mapping asks small questions about:
 
 - preferred contribution when trouble starts;
 - what kind of prior life shaped the character;
 - what kind of heritage sounds interesting to explore.
 
-The system-owned mapping currently targets only already-supported Class, Background, and Species IDs. It exposes candidate IDs plus a recommendation. The creator presents only those narrowed candidates at the current Narrative step instead of exposing the full mechanical catalog.
+The system-owned mapping currently targets already-supported Class, Background, and Species IDs. It exposes candidate IDs plus a recommendation. The creator presents only those narrowed candidates at the current Narrative step instead of exposing the full mechanical catalog.
 
-Every Narrative question includes an explicit `Choose for me` option. This is a durable Narrative product rule. The first D&D implementation resolves `Choose for me` deterministically from the visible Narrative seed and retains both the submitted `choose-for-me` answer and the resolved substantive answer.
+Every Narrative question includes an explicit `Choose for me` option. Seeded resolution retains both the submitted `choose-for-me` answer and the resolved substantive answer.
 
-`guidedNarrativeGenerateDnd5eFirstSlice()` then uses the ordinary Guided/native construction path. The first slice uses:
+#### Build directly
+
+`guidedNarrativeGenerateDnd5eFirstSlice()` uses the ordinary Guided/native construction path. The current first slice uses:
 
 - current Guided defaults for detailed class/origin/species choices;
 - a legal class-prioritized Standard Array assignment;
 - a legal background +2/+1 increase plan;
 - current background equipment option A.
 
-Narrative-specific information remains in generation metadata:
+Narrative-specific information stays in generation metadata rather than a new native model.
 
-- mode `guided-narrative`;
-- method ID and recipe version;
+#### Continue in Guided Mechanical
+
+The user may instead explicitly continue from Narrative into the existing detailed Guided Mechanical editor.
+
+`createDnd5eGuidedNarrativeContinuation()` retains a replayable transfer record containing:
+
 - Narrative mapping ID/version;
-- seed;
+- Narrative seed;
 - submitted/resolved answers;
-- narrowed candidate/recommended/final mapped choices;
-- whether each mapped choice was overridden.
+- narrowed candidate sets and recommendations;
+- exact Narrative-final Class/Background/Species selections before continuation.
+
+The web controller initializes the existing Guided Mechanical form from those values. It does not duplicate detailed controls and does not overwrite user-sticky acceptable random pools.
+
+After ordinary Guided Mechanical generation, `applyDnd5eGuidedNarrativeContinuation()` attaches the retained Narrative provenance. Final generation uses mode `hybrid` and method ID `dnd5e:guided-narrative-to-guided-level-one`.
+
+Later Guided Mechanical edits remain authoritative. Mapping provenance records the recommendation, the value at the Narrative -> Guided boundary, and the final value after detailed editing. Retained continuation provenance is replay-validated before use.
 
 There is no Narrative CharacterDocument schema, native schema, adapter, or semantic personality model.
-
-The next Narrative increment should carry the recommendation into the existing Guided Mechanical editor for detailed customization rather than duplicate that editor inside Narrative.
 
 ### Quick Generate
 
@@ -97,7 +108,7 @@ Quick results publish through the same `onCharacter` review/save/host boundary a
 
 ## Product rule
 
-Generation methods converge on the same system-native validation and save boundary. A quick-generated, manually entered, Standard Array, Point Cost, randomly generated, Guided Mechanical, or Guided Narrative character should all result in equally valid native system state.
+Generation methods converge on the same system-native validation and save boundary. A quick-generated, manually entered, Standard Array, Point Cost, randomly generated, Guided Mechanical, Guided Narrative, or Narrative-continued-into-Guided character should all result in equally valid authoritative native system state.
 
 Method-specific information belongs primarily in generation provenance and decisions. Authoritative native state should differ only where the source system itself requires a mechanical difference.
 
@@ -110,7 +121,7 @@ The Character Forge creator keeps generation controls in the left surface and cu
 For D&D:
 
 - Guided Mechanical owns the four ability-method choices;
-- Guided Narrative owns its question/recommendation flow;
+- Guided Narrative owns its question/recommendation flow plus explicit continuation into Guided Mechanical;
 - Quick Generate owns its minimal name/seed flow.
 
 All three remain ordinary front ends over system-native generation.
@@ -129,13 +140,23 @@ Narrative choice surfaces also follow a deliberate bounded-choice rule:
 - Narrative overrides remain within the narrowed branch; selecting outside it requires changing an upstream Narrative answer;
 - once the user explicitly continues into Guided Mechanical, normal mechanical catalogs are not subject to the Narrative presentation ceiling.
 
-This means the user never has to fabricate a Narrative preference merely to continue, and also never has to scan a large mechanical catalog while in the Narrative flow.
-
 The owning system/content package defines eligible alternatives. Seeded random resolution retains replay provenance when used. Direct answers and later Guided Mechanical edits remain authoritative.
 
-This rule applies to Narrative choices. It does not imply that every ordinary mechanical select needs an additional random option or a five-item limit.
+Shared `Randomize All` is suppressed in Guided Narrative. Narrative uses explicit per-question `Choose for me`. Quick likewise suppresses shared Randomize All and owns randomization through `Generate character`.
 
-Shared `Randomize All` is therefore suppressed in Guided Narrative. Narrative uses its explicit per-question `Choose for me` behavior. Quick likewise suppresses shared Randomize All and owns randomization through `Generate character`.
+## Sticky acceptable pools
+
+Sticky acceptable pools are persistent randomization preferences, not a global legality boundary for direct selections.
+
+For choice-pool fields:
+
+- direct selection records the current user choice;
+- acceptable IDs record what may be selected by random-from-acceptable behavior;
+- `random` selection must resolve inside the acceptable pool;
+- explicit transfer or direct selection may temporarily select a legal value outside the sticky pool without rewriting the pool;
+- per-character provenance and user-sticky preferences remain separate.
+
+This distinction was required by Narrative -> Guided continuation and is now covered directly by tests.
 
 ## Current D&D checkpoints
 
@@ -160,25 +181,29 @@ Automated-green Narrative choice-shape refinement:
 - job: `102583371487`;
 - 42 test files / 204 tests / 0 failures.
 
-The D&D contract now enforces a maximum of 5 presented Narrative choices and rejects out-of-branch Narrative overrides. The current mapped Class/Background/Species candidate sets are generally 1-3 items.
+Automated-green Narrative -> Guided Mechanical continuation:
+
+- SHA: `b56efbadc5fcfdbb353cc3f8e74ebda10f6c905b`;
+- Actions: `34388640406`;
+- job: `102591189046`;
+- 44 test files / 210 tests / 0 failures.
 
 The accumulated non-promoted generation work remains on `dev` pending combined owner runtime QA under Issue #11.
 
 ## Future considerations
 
-### Narrative continuation/editing
+### Narrative alignment decomposition
 
-The next D&D slice should establish a narrow transfer/controller seam from Narrative into Guided Mechanical:
+The next bounded D&D Narrative slice should use alignment as a concrete proof of upstream narrowing because the normal alignment catalog is larger than the Narrative five-choice ceiling.
 
-- initialize the existing Guided Mechanical Class, Background, and Species from the Narrative final choices;
-- retain Narrative answer/mapping/narrowing provenance;
-- allow ordinary Guided Mechanical detail editing afterward;
-- keep sticky acceptable pools separate from per-character Narrative provenance;
-- avoid DOM-click automation when a bounded controller seam can express the transfer directly.
+Do not show the full alignment catalog inside Narrative. Prefer a small number of D&D-owned fictional/preference discriminators, each with `Choose for me` and no more than 5 total presented options, that map to the existing supported alignment IDs.
 
-Do not generalize the whole Guided form into a cross-system creator-state model merely for this transfer.
+The result should:
 
-If future Narrative content needs to expose more than five plausible choices at a step, add another upstream discriminator question instead of weakening the bounded-choice rule.
+- feed direct Narrative Build through the ordinary Guided/native alignment input rather than an unrelated default;
+- initialize the existing Guided Mechanical alignment control during continuation;
+- retain Narrative alignment answers/recommendation while allowing later Guided alignment edits to win;
+- avoid a universal morality/alignment/personality ontology.
 
 ### Partial regeneration
 
@@ -200,4 +225,4 @@ Two BRP-owned consumers prove enum-like and nested structured suggestion results
 
 D&D adapts its existing small placeholder list through the provider seam and retains accepted name provenance while leaving display/native names ordinary strings.
 
-BRP source discovery confirms that its rules engine does not own a generated-name corpus. Future BRP naming data remains setting/campaign/content-package owned and caller/provider supplied. Naming does not block Narrative continuation work.
+BRP source discovery confirms that its rules engine does not own a generated-name corpus. Future BRP naming data remains setting/campaign/content-package owned and caller/provider supplied.
