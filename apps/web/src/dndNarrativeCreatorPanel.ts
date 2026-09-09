@@ -1,6 +1,7 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
   createDnd5eGuidedNarrativeContinuation,
+  DND5E_ALIGNMENT_OPTIONS,
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   DND5E_GUIDED_NARRATIVE_QUESTIONS,
   DND5E_SRD_521_BACKGROUND_OPTIONS,
@@ -97,15 +98,15 @@ export function mountDndNarrativeCreatorPanel(
       populateNarrowedCatalog(classSelect, DND5E_SRD_521_CLASS_OPTIONS, recommendation.classChoice.candidateIds, recommendation.classChoice.recommendedId);
       populateNarrowedCatalog(backgroundSelect, DND5E_SRD_521_BACKGROUND_OPTIONS, recommendation.backgroundChoice.candidateIds, recommendation.backgroundChoice.recommendedId);
       populateNarrowedCatalog(speciesSelect, DND5E_SRD_521_SPECIES_OPTIONS, recommendation.speciesChoice.candidateIds, recommendation.speciesChoice.recommendedId);
-      resolution.textContent = [
-        resolutionText("role", recommendation.answers.role.submittedId, recommendation.answers.role.resolvedId),
-        resolutionText("past", recommendation.answers.past.submittedId, recommendation.answers.past.resolvedId),
-        resolutionText("heritage", recommendation.answers.heritage.submittedId, recommendation.answers.heritage.resolvedId),
-      ].join(" | ");
+      resolution.textContent = DND5E_GUIDED_NARRATIVE_QUESTIONS.map((question) => {
+        const answer = recommendation.answers[question.id];
+        return resolutionText(question.id, answer.submittedId, answer.resolvedId);
+      }).join(" | ");
       mappingSummary.textContent = [
         `Class candidates: ${recommendation.classChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_CLASS_OPTIONS, id)).join(", ")}`,
         `Background candidates: ${recommendation.backgroundChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_BACKGROUND_OPTIONS, id)).join(", ")}`,
         `Species candidates: ${recommendation.speciesChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_SPECIES_OPTIONS, id)).join(", ")}`,
+        `Alignment: ${catalogLabel(DND5E_ALIGNMENT_OPTIONS, recommendation.alignmentChoice.recommendedId)}`,
       ].join(" | ");
     } catch (caught) {
       error.textContent = caught instanceof Error ? caught.message : "Guided Narrative recommendation failed.";
@@ -167,6 +168,8 @@ function readAnswers(root: ParentNode): Dnd5eGuidedNarrativeAnswers {
     role: requiredElement(root, "#dnd-narrative-role", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["role"],
     past: requiredElement(root, "#dnd-narrative-past", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["past"],
     heritage: requiredElement(root, "#dnd-narrative-heritage", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["heritage"],
+    order: requiredElement(root, "#dnd-narrative-order", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["order"],
+    regard: requiredElement(root, "#dnd-narrative-regard", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["regard"],
   };
 }
 

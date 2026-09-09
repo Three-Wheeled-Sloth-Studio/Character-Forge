@@ -1,4 +1,5 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
+import { DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
 import {
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   DND5E_GUIDED_NARRATIVE_MAPPING_ID,
@@ -21,13 +22,14 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_CONTINUATION_METHOD_ID = "dnd5e:guided-narrative-to-guided-level-one";
-export const DND5E_GUIDED_NARRATIVE_CONTINUATION_RECIPE_VERSION = "0.1";
+export const DND5E_GUIDED_NARRATIVE_CONTINUATION_RECIPE_VERSION = "0.2";
 
 export interface Dnd5eGuidedNarrativeContinuation extends Dnd5eGuidedNarrativeRecommendation {
   initialChoices: {
     classId: GuidedDnd5eClassId;
     backgroundId: GuidedDnd5eBackgroundId;
     speciesId: GuidedDnd5eSpeciesId;
+    alignmentId: string;
   };
 }
 
@@ -43,6 +45,7 @@ export function createDnd5eGuidedNarrativeContinuation(
     classId: resolveNarrowedChoice(input.overrides?.classId, recommendation.classChoice, isGuidedDnd5eClassId, "class"),
     backgroundId: resolveNarrowedChoice(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background"),
     speciesId: resolveNarrowedChoice(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species"),
+    alignmentId: recommendation.alignmentChoice.recommendedId,
   };
   return { ...recommendation, initialChoices };
 }
@@ -59,6 +62,7 @@ export function applyDnd5eGuidedNarrativeContinuation(
     classId: requiredFinalChoice(generation.decisions, "class", isGuidedDnd5eClassId),
     backgroundId: requiredFinalChoice(generation.decisions, "background", isGuidedDnd5eBackgroundId),
     speciesId: requiredFinalChoice(generation.decisions, "species", isGuidedDnd5eSpeciesId),
+    alignmentId: requiredFinalChoice(generation.decisions, "alignment", isSupportedAlignment),
   };
   const baseGeneration: JsonObject = {
     methodId: generation.methodId,
@@ -92,15 +96,18 @@ export function applyDnd5eGuidedNarrativeContinuation(
 
 function createContinuationDecisions(
   continuation: Dnd5eGuidedNarrativeContinuation,
-  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId },
+  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; alignmentId: string },
 ): GenerationDecision[] {
   return [
     answerDecision("role", continuation.answers.role),
     answerDecision("past", continuation.answers.past),
     answerDecision("heritage", continuation.answers.heritage),
+    answerDecision("order", continuation.answers.order),
+    answerDecision("regard", continuation.answers.regard),
     continuationMappingDecision("class", continuation.classChoice, continuation.initialChoices.classId, finalChoices.classId),
     continuationMappingDecision("background", continuation.backgroundChoice, continuation.initialChoices.backgroundId, finalChoices.backgroundId),
     continuationMappingDecision("species", continuation.speciesChoice, continuation.initialChoices.speciesId, finalChoices.speciesId),
+    continuationMappingDecision("alignment", continuation.alignmentChoice, continuation.initialChoices.alignmentId, finalChoices.alignmentId),
     {
       stepId: "narrative.continue-guided",
       answer: {
@@ -110,6 +117,7 @@ function createContinuationDecisions(
         classId: continuation.initialChoices.classId,
         backgroundId: continuation.initialChoices.backgroundId,
         speciesId: continuation.initialChoices.speciesId,
+        alignmentId: continuation.initialChoices.alignmentId,
       },
       rationale: "The player continued from Guided Narrative into the existing Guided Mechanical editor.",
     },
@@ -135,7 +143,7 @@ function answerDecision(
 }
 
 function continuationMappingDecision<TId extends string>(
-  target: "class" | "background" | "species",
+  target: "class" | "background" | "species" | "alignment",
   mapping: Dnd5eGuidedNarrativeMappedChoice<TId>,
   narrativeFinalId: TId,
   finalId: TId,
@@ -178,15 +186,21 @@ function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation
   if (!sameResolution(replay.answers.role, continuation.answers.role)
     || !sameResolution(replay.answers.past, continuation.answers.past)
     || !sameResolution(replay.answers.heritage, continuation.answers.heritage)
+    || !sameResolution(replay.answers.order, continuation.answers.order)
+    || !sameResolution(replay.answers.regard, continuation.answers.regard)
     || !sameMapping(replay.classChoice, continuation.classChoice)
     || !sameMapping(replay.backgroundChoice, continuation.backgroundChoice)
-    || !sameMapping(replay.speciesChoice, continuation.speciesChoice)) {
+    || !sameMapping(replay.speciesChoice, continuation.speciesChoice)
+    || !sameMapping(replay.alignmentChoice, continuation.alignmentChoice)) {
     throw new Error("Guided Narrative continuation does not replay to its retained recommendation provenance.");
   }
 
   resolveNarrowedChoice(continuation.initialChoices.classId, replay.classChoice, isGuidedDnd5eClassId, "class");
   resolveNarrowedChoice(continuation.initialChoices.backgroundId, replay.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
   resolveNarrowedChoice(continuation.initialChoices.speciesId, replay.speciesChoice, isGuidedDnd5eSpeciesId, "species");
+  if (continuation.initialChoices.alignmentId !== replay.alignmentChoice.recommendedId) {
+    throw new Error("Guided Narrative alignment continuation choice does not match its replayed narrative recommendation.");
+  }
 }
 
 function submittedAnswers(continuation: Dnd5eGuidedNarrativeContinuation): Dnd5eGuidedNarrativeAnswers {
@@ -194,6 +208,8 @@ function submittedAnswers(continuation: Dnd5eGuidedNarrativeContinuation): Dnd5e
     role: continuation.answers.role.submittedId as Dnd5eGuidedNarrativeAnswers["role"],
     past: continuation.answers.past.submittedId as Dnd5eGuidedNarrativeAnswers["past"],
     heritage: continuation.answers.heritage.submittedId as Dnd5eGuidedNarrativeAnswers["heritage"],
+    order: continuation.answers.order.submittedId as Dnd5eGuidedNarrativeAnswers["order"],
+    regard: continuation.answers.regard.submittedId as Dnd5eGuidedNarrativeAnswers["regard"],
   };
 }
 
@@ -237,4 +253,8 @@ function requiredFinalChoice<TId extends string>(
     throw new Error(`Guided Mechanical generation is missing a supported final ${stepId} decision.`);
   }
   return choiceId;
+}
+
+function isSupportedAlignment(value: string): value is string {
+  return DND5E_ALIGNMENT_OPTIONS.some((option) => option.id === value);
 }

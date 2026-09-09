@@ -1,6 +1,7 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
 import { createGeneratedSeed, createSeededRandom, type RandomSource } from "../../generator-core/src/index.js";
 import { DND5E_STANDARD_ARRAY, type Dnd5eAbilityIncreasePlan } from "./abilityGeneration.js";
+import { DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
 import { defaultGuidedDnd5eCoreChoices } from "./guidedDefaults.js";
 import { guidedGenerateDnd5eFirstSlice } from "./guidedGenerate.js";
 import { DND5E_ABILITY_IDS, type Dnd5eAbilityId, type Dnd5eAbilityScores } from "./nativeCharacter.js";
@@ -16,7 +17,7 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_MAPPING_ID = "character-forge.dnd5e.guided-narrative.first-slice";
-export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "2";
+export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "3";
 export const DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID = "choose-for-me";
 export const DND5E_GUIDED_NARRATIVE_TARGET_PRESENTED_CHOICES = 3;
 export const DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5;
@@ -39,12 +40,24 @@ export type Dnd5eGuidedNarrativeHeritageAnswerId =
   | "ancient"
   | "formidable"
   | "uncanny";
-export type Dnd5eGuidedNarrativeQuestionId = "role" | "past" | "heritage";
+export type Dnd5eGuidedNarrativeOrderAnswerId =
+  | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
+  | "honor-structure"
+  | "case-by-case"
+  | "personal-freedom";
+export type Dnd5eGuidedNarrativeRegardAnswerId =
+  | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
+  | "protect-others"
+  | "balance-needs"
+  | "self-first";
+export type Dnd5eGuidedNarrativeQuestionId = "role" | "past" | "heritage" | "order" | "regard";
 
 export interface Dnd5eGuidedNarrativeAnswers {
   role: Dnd5eGuidedNarrativeRoleAnswerId;
   past: Dnd5eGuidedNarrativePastAnswerId;
   heritage: Dnd5eGuidedNarrativeHeritageAnswerId;
+  order: Dnd5eGuidedNarrativeOrderAnswerId;
+  regard: Dnd5eGuidedNarrativeRegardAnswerId;
 }
 
 export interface Dnd5eGuidedNarrativeQuestionOption {
@@ -97,6 +110,26 @@ export const DND5E_GUIDED_NARRATIVE_QUESTIONS: readonly Dnd5eGuidedNarrativeQues
       { id: "uncanny", label: "Unusual, uncanny, or unexpectedly hard to pin down" },
     ],
   },
+  {
+    id: "order",
+    prompt: "When rules and personal freedom pull in opposite directions, how should this character usually lean?",
+    options: [
+      CHOOSE_FOR_ME_OPTION,
+      { id: "honor-structure", label: "Keep promises, laws, and structure" },
+      { id: "case-by-case", label: "Judge each situation on its own" },
+      { id: "personal-freedom", label: "Follow personal judgment over imposed rules" },
+    ],
+  },
+  {
+    id: "regard",
+    prompt: "When this character's goals conflict with someone else's well-being, what tendency sounds most interesting to play?",
+    options: [
+      CHOOSE_FOR_ME_OPTION,
+      { id: "protect-others", label: "Protect others, even at real personal cost" },
+      { id: "balance-needs", label: "Balance their own needs and others case by case" },
+      { id: "self-first", label: "Put their own goals first, even when others may pay the price" },
+    ],
+  },
 ] as const;
 
 const ROLE_CLASS_MAP: Record<Exclude<Dnd5eGuidedNarrativeRoleAnswerId, typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID>, readonly GuidedDnd5eClassId[]> = {
@@ -120,6 +153,18 @@ const HERITAGE_SPECIES_MAP: Record<Exclude<Dnd5eGuidedNarrativeHeritageAnswerId,
   uncanny: ["tiefling", "halfling", "gnome"],
 };
 
+const ALIGNMENT_MAP: Record<string, string> = {
+  "honor-structure:protect-others": "lawful-good",
+  "honor-structure:balance-needs": "lawful-neutral",
+  "honor-structure:self-first": "lawful-evil",
+  "case-by-case:protect-others": "neutral-good",
+  "case-by-case:balance-needs": "neutral",
+  "case-by-case:self-first": "neutral-evil",
+  "personal-freedom:protect-others": "chaotic-good",
+  "personal-freedom:balance-needs": "chaotic-neutral",
+  "personal-freedom:self-first": "chaotic-evil",
+};
+
 export interface Dnd5eGuidedNarrativeResolvedAnswer {
   submittedId: string;
   resolvedId: string;
@@ -138,10 +183,13 @@ export interface Dnd5eGuidedNarrativeRecommendation {
     role: Dnd5eGuidedNarrativeResolvedAnswer;
     past: Dnd5eGuidedNarrativeResolvedAnswer;
     heritage: Dnd5eGuidedNarrativeResolvedAnswer;
+    order: Dnd5eGuidedNarrativeResolvedAnswer;
+    regard: Dnd5eGuidedNarrativeResolvedAnswer;
   };
   classChoice: Dnd5eGuidedNarrativeMappedChoice<GuidedDnd5eClassId>;
   backgroundChoice: Dnd5eGuidedNarrativeMappedChoice<GuidedDnd5eBackgroundId>;
   speciesChoice: Dnd5eGuidedNarrativeMappedChoice<GuidedDnd5eSpeciesId>;
+  alignmentChoice: Dnd5eGuidedNarrativeMappedChoice<string>;
 }
 
 export interface RecommendDnd5eGuidedNarrativeInput {
@@ -169,25 +217,31 @@ export function recommendDnd5eGuidedNarrative(
   const role = resolveNarrativeAnswer("role", input.answers.role, random);
   const past = resolveNarrativeAnswer("past", input.answers.past, random);
   const heritage = resolveNarrativeAnswer("heritage", input.answers.heritage, random);
+  const order = resolveNarrativeAnswer("order", input.answers.order, random);
+  const regard = resolveNarrativeAnswer("regard", input.answers.regard, random);
 
   const classCandidates = ROLE_CLASS_MAP[role.resolvedId as keyof typeof ROLE_CLASS_MAP];
   const backgroundCandidates = PAST_BACKGROUND_MAP[past.resolvedId as keyof typeof PAST_BACKGROUND_MAP];
   const speciesCandidates = HERITAGE_SPECIES_MAP[heritage.resolvedId as keyof typeof HERITAGE_SPECIES_MAP];
-  if (!classCandidates || !backgroundCandidates || !speciesCandidates) {
+  const alignmentId = ALIGNMENT_MAP[`${order.resolvedId}:${regard.resolvedId}`];
+  if (!classCandidates || !backgroundCandidates || !speciesCandidates || !alignmentId || !isSupportedAlignment(alignmentId)) {
     throw new Error("Guided Narrative resolved to an unmapped D&D answer.");
   }
+  const alignmentCandidates = [alignmentId];
   assertPresentedChoiceCount("class", classCandidates);
   assertPresentedChoiceCount("background", backgroundCandidates);
   assertPresentedChoiceCount("species", speciesCandidates);
+  assertPresentedChoiceCount("alignment", alignmentCandidates);
 
   return {
     mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
     mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
     seed,
-    answers: { role, past, heritage },
+    answers: { role, past, heritage, order, regard },
     classChoice: { candidateIds: [...classCandidates], recommendedId: pick(classCandidates, random) },
     backgroundChoice: { candidateIds: [...backgroundCandidates], recommendedId: pick(backgroundCandidates, random) },
     speciesChoice: { candidateIds: [...speciesCandidates], recommendedId: pick(speciesCandidates, random) },
+    alignmentChoice: { candidateIds: alignmentCandidates, recommendedId: alignmentId },
   };
 }
 
@@ -198,13 +252,16 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   const classId = resolveOverride(input.overrides?.classId, recommendation.classChoice, isGuidedDnd5eClassId, "class");
   const backgroundId = resolveOverride(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
   const speciesId = resolveOverride(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species");
+  const alignmentId = recommendation.alignmentChoice.recommendedId;
+  const coreChoices = defaultGuidedDnd5eCoreChoices(classId, backgroundId, speciesId);
+  coreChoices.alignmentId = alignmentId;
 
   const character = guidedGenerateDnd5eFirstSlice({
     name: input.name ?? "",
     classChoice: { selectedId: classId, acceptableIds: [classId], selectionMode: "direct" },
     backgroundChoice: { selectedId: backgroundId, acceptableIds: [backgroundId], selectionMode: "direct" },
     speciesChoice: { selectedId: speciesId, acceptableIds: [speciesId], selectionMode: "direct" },
-    coreChoices: defaultGuidedDnd5eCoreChoices(classId, backgroundId, speciesId),
+    coreChoices,
     abilityMethod: { method: "standard-array", assignment: narrativeStandardArray(classId) },
     backgroundIncreases: narrativeBackgroundIncreases(classId, backgroundId),
     backgroundEquipmentChoice: "A",
@@ -213,22 +270,23 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   const generation = character.generation;
   if (!generation) throw new Error("Guided Narrative generation did not produce provenance.");
   const baseGuidedRecipe = generation.recipe;
-  const narrativeDecisions = createNarrativeDecisions(recommendation, { classId, backgroundId, speciesId });
+  const narrativeDecisions = createNarrativeDecisions(recommendation, { classId, backgroundId, speciesId, alignmentId });
   const filteredBaseDecisions = generation.decisions
     .filter((decision) => !["class.acceptable-pool", "background.acceptable-pool", "species.acceptable-pool"].includes(decision.stepId))
-    .map((decision) => rewriteMappedChoiceRationale(decision, recommendation, { classId, backgroundId, speciesId }));
+    .map((decision) => rewriteMappedChoiceRationale(decision, recommendation, { classId, backgroundId, speciesId, alignmentId }));
 
   generation.methodId = "dnd5e:guided-narrative-level-one";
   generation.mode = "guided-narrative";
-  generation.recipeVersion = "0.1";
+  generation.recipeVersion = "0.2";
   generation.seed = recommendation.seed;
   generation.recipe = {
     mappingId: recommendation.mappingId,
     mappingVersion: recommendation.mappingVersion,
-    sequence: ["narrative.role", "narrative.past", "narrative.heritage", "mapped-guided-generation"],
+    sequence: ["narrative.role", "narrative.past", "narrative.heritage", "narrative.order", "narrative.regard", "mapped-guided-generation"],
     classId,
     backgroundId,
     speciesId,
+    alignmentId,
     abilityMethod: "standard-array",
     baseGuidedRecipe,
   };
@@ -254,23 +312,26 @@ function resolveNarrativeAnswer(
 
 function createNarrativeDecisions(
   recommendation: Dnd5eGuidedNarrativeRecommendation,
-  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId },
+  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; alignmentId: string },
 ): GenerationDecision[] {
   return [
     answerDecision("role", recommendation.answers.role),
     answerDecision("past", recommendation.answers.past),
     answerDecision("heritage", recommendation.answers.heritage),
+    answerDecision("order", recommendation.answers.order),
+    answerDecision("regard", recommendation.answers.regard),
     mappingDecision("class", recommendation.classChoice, finalChoices.classId),
     mappingDecision("background", recommendation.backgroundChoice, finalChoices.backgroundId),
     mappingDecision("species", recommendation.speciesChoice, finalChoices.speciesId),
+    mappingDecision("alignment", recommendation.alignmentChoice, finalChoices.alignmentId),
     {
       stepId: "narrative.remaining-choices",
       answer: {
         abilityMethod: "standard-array",
-        coreChoices: "current-guided-defaults",
+        coreChoices: "current-guided-defaults-except-alignment",
         backgroundEquipmentChoice: "A",
       },
-      rationale: "The first Guided Narrative slice maps Class, Background, and Species only; remaining legal choices use the existing guided defaults.",
+      rationale: "Guided Narrative maps Class, Background, Species, and Alignment; remaining legal choices use the existing guided defaults.",
     },
   ];
 }
@@ -295,7 +356,7 @@ function answerDecision(
 }
 
 function mappingDecision<TId extends string>(
-  target: "class" | "background" | "species",
+  target: "class" | "background" | "species" | "alignment",
   mapping: Dnd5eGuidedNarrativeMappedChoice<TId>,
   finalId: TId,
 ): GenerationDecision {
@@ -321,11 +382,12 @@ function mappingDecision<TId extends string>(
 function rewriteMappedChoiceRationale(
   decision: GenerationDecision,
   recommendation: Dnd5eGuidedNarrativeRecommendation,
-  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId },
+  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; alignmentId: string },
 ): GenerationDecision {
   if (decision.stepId === "class") return { ...decision, rationale: mappedChoiceRationale("class", recommendation.classChoice.recommendedId, finalChoices.classId) };
   if (decision.stepId === "background") return { ...decision, rationale: mappedChoiceRationale("background", recommendation.backgroundChoice.recommendedId, finalChoices.backgroundId) };
   if (decision.stepId === "species") return { ...decision, rationale: mappedChoiceRationale("species", recommendation.speciesChoice.recommendedId, finalChoices.speciesId) };
+  if (decision.stepId === "alignment") return { ...decision, rationale: mappedChoiceRationale("alignment", recommendation.alignmentChoice.recommendedId, finalChoices.alignmentId) };
   return decision;
 }
 
@@ -375,6 +437,10 @@ function resolveOverride<TId extends string>(
     throw new Error(`Guided Narrative ${label} override must stay within the narrowed narrative candidate set.`);
   }
   return override;
+}
+
+function isSupportedAlignment(value: string): boolean {
+  return DND5E_ALIGNMENT_OPTIONS.some((option) => option.id === value);
 }
 
 function assertNarrativeQuestionShape(): void {

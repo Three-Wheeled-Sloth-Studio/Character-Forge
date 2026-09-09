@@ -29,8 +29,16 @@ export function mountDndGuidedCreatorPanel(
 ): DndGuidedCreatorController {
   let nameSuggestion: Dnd5eNameSuggestion | null = null;
   let narrativeContinuation: Dnd5eGuidedNarrativeContinuation | null = null;
+  let alignmentObserver: MutationObserver | null = null;
+  let narrativeAlignmentTouched = false;
+  let alignmentInteractionTargets = new WeakSet<EventTarget>();
 
   const mountGuided = (): void => {
+    alignmentObserver?.disconnect();
+    alignmentObserver = null;
+    narrativeAlignmentTouched = false;
+    alignmentInteractionTargets = new WeakSet<EventTarget>();
+
     mountGuidedCreationPanel(root, (character) => {
       const current = matchingDnd5eNameSuggestion(character.displayName, nameSuggestion);
       const withNameProvenance = current
@@ -56,10 +64,33 @@ export function mountDndGuidedCreatorPanel(
     });
 
     if (narrativeContinuation) {
+      const markAlignmentTouched = (target: EventTarget | null, eventName: "change" | "click"): void => {
+        if (!target || alignmentInteractionTargets.has(target)) return;
+        alignmentInteractionTargets.add(target);
+        target.addEventListener(eventName, () => { narrativeAlignmentTouched = true; });
+      };
+      const applyNarrativeAlignment = (): void => {
+        if (!narrativeContinuation || narrativeAlignmentTouched) return;
+        const alignmentSelect = root.querySelector<HTMLSelectElement>("#creator-alignment");
+        if (!alignmentSelect) return;
+        const alignmentId = narrativeContinuation.initialChoices.alignmentId;
+        if (![...alignmentSelect.options].some((option) => option.value === alignmentId)) return;
+        alignmentSelect.value = alignmentId;
+        markAlignmentTouched(alignmentSelect, "change");
+        markAlignmentTouched(root.querySelector<HTMLButtonElement>("#creator-alignment-random"), "click");
+        for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-core-pool='alignment']")) {
+          markAlignmentTouched(checkbox, "change");
+        }
+      };
+
+      applyNarrativeAlignment();
+      alignmentObserver = new MutationObserver(() => applyNarrativeAlignment());
+      alignmentObserver.observe(root, { childList: true, subtree: true });
+
       const heading = root.querySelector<HTMLElement>(".creator-heading");
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = "Started from Guided Narrative. Class, Background, and Species were initialized from that result; later Guided Mechanical edits are authoritative.";
+      note.textContent = "Started from Guided Narrative. Class, Background, Species, and Alignment were initialized from that result; later Guided Mechanical edits are authoritative.";
       heading?.append(note);
     }
   };
