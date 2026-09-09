@@ -40,17 +40,18 @@ Guided Narrative is a front end over ordinary system-native choices. It must not
 
 The first D&D implementation proves a narrow pattern:
 
-1. system-owned narrative questions produce explicit answer IDs;
+1. system-owned Narrative questions produce explicit answer IDs;
 2. system-owned mapping code converts them into candidate/recommended ordinary D&D choices;
-3. the creator shows those recommendations visibly;
-4. the player may override them;
-5. final construction uses the ordinary guided/native generator and review/save boundary.
+3. the creator shows only the narrowed candidates for the current Narrative branch;
+4. the player may override within that branch;
+5. changing an upstream Narrative answer opens a different branch;
+6. final construction uses the ordinary guided/native generator and review/save boundary.
 
 ### Choose for me
 
-Every narrative question or narrative choice surface must provide an explicit `Choose for me` option, or a semantically equivalent explicit action.
+Every Narrative question or Narrative choice surface must provide an explicit `Choose for me` option, or a semantically equivalent explicit action.
 
-This is a narrative-flow product rule, not a requirement to add random choices to every ordinary mechanical dropdown.
+This is a Narrative-flow product rule, not a requirement to add random choices to every ordinary mechanical dropdown.
 
 When `Choose for me` uses randomness:
 
@@ -60,6 +61,22 @@ When `Choose for me` uses randomness:
 - direct player choices and later overrides remain authoritative.
 
 Do not hide this behavior behind a global randomizer or opaque browser logic.
+
+### Narrative choice density
+
+Narrative interaction should feel like a sequence of small, meaningful discriminators rather than a mechanical catalog browser.
+
+Use these rules:
+
+- target about 3 presented choices at a Narrative step where practical;
+- hard maximum 5 presented choices at any Narrative step;
+- `Choose for me` or semantic equivalent counts toward that maximum;
+- if the next Narrative step would have more than 5 choices, add an upstream Narrative question, also within the limit, to narrow it first;
+- do not expose the full Class, Species, profession, spell, equipment, or similar rules catalog as a Narrative override when it exceeds the limit;
+- Narrative overrides remain within the narrowed branch;
+- once the user explicitly continues into Guided Mechanical, ordinary mechanical catalogs are outside this Narrative ceiling and may use their normal interaction patterns.
+
+The target of about 3 is a design goal. Five is the hard upper bound.
 
 The first D&D Narrative slice maps only Class, Background, and Species. Detailed class skills, spells, origin details, equipment, and ability controls remain owned by Guided Mechanical.
 
@@ -75,6 +92,8 @@ Ordinary mechanical menu choices should use the established acceptable-option pa
 - sticky preferences and per-character provenance remain separate.
 
 Narrative `Choose for me` is separate from those sticky acceptable pools unless a future system-owned mapping deliberately connects them.
+
+Do not apply the Narrative five-choice ceiling indiscriminately to Guided Mechanical. The ceiling is specifically a Narrative interaction constraint.
 
 ## Character review
 
@@ -114,6 +133,7 @@ Prefer:
 - easy-to-change/easy-to-undo decisions;
 - visible result feedback;
 - inspectable recommendation/mapping behavior;
+- small Narrative decision sets with upstream narrowing;
 - icon-first secondary actions when meaning remains accessible through label/title/ARIA text.
 
 Avoid:
@@ -123,7 +143,9 @@ Avoid:
 - hiding the generated character below a long control surface;
 - duplicating native-generation logic in browser-only handlers;
 - duplicating Guided Mechanical detail controls inside Narrative;
-- narrative random choices without an explicit `Choose for me` equivalent.
+- Narrative random choices without an explicit `Choose for me` equivalent;
+- Narrative steps with more than 5 presented choices;
+- full mechanical catalogs masquerading as Narrative overrides.
 
 ## Current evidence
 
@@ -141,4 +163,13 @@ Automated-green first D&D Guided Narrative vertical slice:
 - job: `102578522427`;
 - 42 test files / 203 tests / 0 failures.
 
-Owner browser QA remains useful as accumulated creator QA, but neither slice creates a separate browser-QA gate.
+Automated-green Narrative choice-shape refinement:
+
+- SHA: `3ff8b064e614f964e83ff7dfc5549ce96594a33a`;
+- Actions: `34386315636`;
+- job: `102583371487`;
+- 42 test files / 204 tests / 0 failures.
+
+The current D&D Narrative contract enforces a maximum of 5 presented choices and mapped candidate sets. The browser now renders only narrowed Class/Background/Species candidates, and the system rejects out-of-branch Narrative overrides.
+
+Owner browser QA remains useful as accumulated creator QA, but these slices do not create a separate browser-QA gate.
