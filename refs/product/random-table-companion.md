@@ -8,7 +8,7 @@ tags:
 ---
 # Random Table Companion
 
-Status: System-neutral evaluator plus the first system-owned BRP creator consumer are implemented and automated-green on `dev`.
+Status: System-neutral evaluator plus two system-owned BRP creator consumers are implemented and automated-green on `dev`.
 
 ## Purpose
 
@@ -50,7 +50,7 @@ That supports partial regeneration, easy undo/retry behavior, and durable replay
 
 ## Ownership boundary
 
-The generic evaluator does not know what a trait, ideal, flaw, bond, equipment item, language, species choice, or profession choice means.
+The generic evaluator does not know what a trait, ideal, flaw, bond, equipment item, language, species choice, profession choice, or academic specialty means.
 
 System-owned packages remain responsible for:
 
@@ -88,13 +88,67 @@ Evidence:
 - 34 test files / 168 tests / 0 failures
 - 4 focused profession-suggestion tests
 
-## Next evidence needed
+## Second concrete consumer: BRP Scholar academic suggestion
 
-The first consumer is intentionally enum-like. It proves ownership, creator override, replay, and native-state safety, but it does not justify a universal suggestion ontology.
+`packages/system-brp/src/scholarAcademicSuggestion.ts` proves that result payloads can carry nested system-owned structure without changing the generic evaluator or inventing a universal suggestion schema.
 
-The next consumer should use a richer structured payload from already source-safe D&D or BRP content if possible. Good candidates are small flavor, equipment/trinket, or similar suggestions that have more structure than a single ID without requiring a major ingestion project.
+The table:
 
-If no such current dataset is available, identify the smallest licensed content slice needed rather than inventing public rules text.
+- uses table ID `brp-uge.scholar-academic.first-slice` version `1`;
+- uses source `chaosium-brp-uge-orc-1.05` version `1.05`;
+- reuses only source-safe academic definitions already present in `BRP_FIRST_SLICE_SKILL_CATALOG`;
+- currently suggests Knowledge (Law) or Science (Forensics);
+- returns BRP skill key, nested `BrpAcademicSkillSelection`, display label, and source base chance.
+
+The nested selection retains both the Knowledge/Science parent and specialty identity. This is a richer result payload, not a nested random table.
+
+The creator exposes `Suggest` on each of the five Scholar academic rows. Suggestions are ordinary row values and remain manually editable. Manual editing clears only that row's suggestion provenance.
+
+Accepted provenance is retained as `identity.profession-academic-suggestion` with:
+
+- Scholar slot index;
+- the complete structured result;
+- evaluator/table/source versions;
+- seed and draw index;
+- selected entry and weight evidence.
+
+Multiple Scholar slot records may coexist. Re-suggesting one slot replaces only that slot's prior record. Reopen restores records only while the structured result still agrees with the authoritative native Scholar academic selection.
+
+As with the first consumer, the provenance decorator runs only after the ordinary BRP builder/adapter has produced a valid native character and does not patch native state.
+
+Evidence:
+
+- code checkpoint: `54d471faa5a635e46ab9db90f8d05d26ac32944f`
+- Actions: `34368120736`
+- job: `102522033597`
+- 35 test files / 173 tests / 0 failures
+- 5 focused Scholar academic-suggestion tests
+
+## Evidence gained
+
+The two consumers now prove:
+
+- system-owned simple and nested result payloads;
+- deterministic replay using the same generic evaluator;
+- creator-visible suggestion and manual override;
+- per-slot retained suggestion provenance;
+- multiple independent suggestion records;
+- stale/mismatched provenance rejection on reopen;
+- no direct native-state mutation.
+
+This still does not justify a universal trait/ideal/bond/flaw vocabulary. A BRP academic selection remains a BRP academic selection.
+
+Likewise, nested result structure does not justify nested/subtable evaluation. No current consumer requires subtables.
+
+## Next evidence direction
+
+The immediate product need has shifted from another table payload to creator randomization orchestration. D&D and BRP now expose several independent random/suggestion actions, but the user-facing pattern is inconsistent and there is no shared `Randomize All` interaction.
+
+Shared creator code should coordinate randomization interactions only. Legal choices, acceptable pools, system distributions, and table datasets remain system-owned.
+
+Do not invent BRP Age, Gender, Wealth, or other distributions just to make `Randomize All` exhaustive. Fields without an explicit system-owned randomization rule can remain unchanged.
+
+A future consumer from D&D or another system will still be useful cross-system evidence for the companion, but it is not required before the orchestration slice.
 
 ## Explicitly deferred
 

@@ -23,14 +23,16 @@ areas:
       - packages/generator-core/src/randomTable.test.ts
       - packages/system-brp/src/professionSuggestion.ts
       - packages/system-brp/src/professionSuggestion.test.ts
-    notes: Generic weighted evaluator plus first BRP-owned profession suggestion consumer are proven. System datasets and mappings remain system-owned; the next evidence target is a richer second consumer.
+      - packages/system-brp/src/scholarAcademicSuggestion.ts
+      - packages/system-brp/src/scholarAcademicSuggestion.test.ts
+    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. Profession covers enum-like suggestion; Scholar academic covers nested structured results and independent per-slot provenance. No universal suggestion schema or nested-table engine is justified yet.
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, and provenance.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, and random ability generation.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -39,14 +41,14 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. First creator runtime QA is owner-accepted; BRP now owns the first random-table consumer and remaining creator findings are nonblocking UX debt.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Remaining randomization findings are nonblocking UX debt.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
     source_roots:
       - apps/web/src
-    notes: Shared Character Forge creator workspace. D&D remains the default; BRP uses the same workspace. BRP profession suggestion is wired through ordinary creator state, and touched BRP controls are constrained to the left column.
+    notes: Shared Character Forge creator workspace. D&D remains default; BRP uses the same workspace. Next slice is shared randomization orchestration over system-owned random seams, not shared rules/distributions.
   project-memory:
     guidance:
       - AGENTS.md
@@ -57,14 +59,21 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Build the second system-owned random-table consumer
+  - task: Build shared creator randomization orchestration
     look_in:
-      - refs/product/random-table-companion.md
       - refs/handoffs/currentHandoff.md
-      - packages/generator-core/src/randomTable.ts
-      - packages/system-brp/src/professionSuggestion.ts
+      - refs/handoffs/next-dev-prompt.md
+      - apps/web/src/creatorWorkspace.ts
+      - apps/web/src/guidedCreationPanel.ts
+      - apps/web/src/brpCreatorPanel.ts
       - packages/system-dnd5e/src
       - packages/system-brp/src
+  - task: Extend or inspect random-table consumers
+    look_in:
+      - refs/product/random-table-companion.md
+      - packages/generator-core/src/randomTable.ts
+      - packages/system-brp/src/professionSuggestion.ts
+      - packages/system-brp/src/scholarAcademicSuggestion.ts
   - task: Fold creator QA polish into a touched slice
     look_in:
       - refs/handoffs/currentHandoff.md

@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green first system-owned random-table consumer checkpoint.
+Continue Character Forge from the automated-green second system-owned random-table consumer checkpoint.
 
 Repository:
 
@@ -21,11 +21,11 @@ Do not reconstruct the full repository history.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "second random table consumer"`
+`python refs/tools/generate_agent_context.py --focus "creator randomization orchestration"`
 
-Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/product/random-table-companion.md`, and targeted source reads. Load deeper architecture, system source material, or historical evidence only if the selected consumer crosses those boundaries.
+Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, and targeted source reads. Load deeper architecture, system source material, or historical evidence only if the touched randomization semantics cross those boundaries.
 
-Prefer diff-first continuation from the accepted checkpoint and conserve coding-agent context deliberately.
+Prefer diff-first continuation and conserve coding-agent context deliberately.
 
 ## Accepted Automated-Green Checkpoints
 
@@ -36,14 +36,21 @@ Random-table core:
 - job: `102508743773`
 - focused evaluator tests: 5
 
-First system-owned consumer:
+First BRP consumer, Profession suggestion:
 
 - code checkpoint: `d4b881b29bd763d9f7fd50e56223b00b37077be2`
 - Actions: `34366600372`
 - job: `102516809719`
+- focused tests: 4
+
+Second BRP consumer, Scholar academic suggestion:
+
+- code checkpoint: `54d471faa5a635e46ab9db90f8d05d26ac32944f`
+- Actions: `34368120736`
+- job: `102522033597`
 - Verify conclusion: success
-- full suite: 34 test files / 168 tests / 0 failures
-- focused BRP profession-suggestion tests: 4
+- full suite: 35 test files / 173 tests / 0 failures
+- focused tests: 5
 
 Promoted branches remain unchanged:
 
@@ -54,78 +61,76 @@ Do not implicitly promote accumulated D&D, BRP, or companion work. Preserve exac
 
 ## What Is Proven
 
-`packages/generator-core/src/randomTable.ts` provides the system-neutral deterministic weighted evaluator and provenance contract.
+The generic random-table evaluator remains system-neutral and unchanged.
 
-`packages/system-brp/src/professionSuggestion.ts` is the first concrete consumer:
+BRP now has two concrete consumers:
 
-- BRP owns the dataset, typed result, and source mapping;
-- the table contains only the already-supported Detective and Scholar professions;
-- BRP delegates selection to the generic evaluator;
-- replay provenance retains evaluator/table/source versions, seed, drawIndex, selected entry, weights, and selected profession;
-- the creator can request a profession suggestion, accept it, or override it manually;
-- accepted suggestion provenance is stored in the normal generation decision list as `identity.profession-suggestion`;
-- the native BRP payload remains authoritative and untouched by the provenance decorator;
-- reopen reads the suggestion provenance only when it still agrees with the authoritative native profession.
+1. Profession suggestion proves an enum-like result, creator override, retained provenance, reopen, and no direct native patching.
+2. Scholar academic suggestion proves a richer nested result containing BRP skill key, Knowledge/Science parent, specialty identity, display label, and source base chance.
 
-The same slice fixed the accepted BRP left-panel containment issue while touching the relevant creator CSS. Remaining creator QA debt stays nonblocking and is listed in `refs/handoffs/currentHandoff.md`.
+The Scholar consumer also proves multiple independent suggestion slots. Each of the five Scholar academic rows can retain its own suggestion record; re-suggesting one slot replaces only that slot; manual row editing clears only that slot's suggestion provenance. Reopen restores a record only while it still matches authoritative BRP native state.
 
-## Immediate Slice: Second System-Owned Consumer
+A nested result object does not require nested random-table evaluation. No subtable feature was added.
 
-Select and implement one source-safe consumer with a richer structured result than a single enum-like profession ID.
+## Immediate Slice: Creator Randomization Orchestration
 
-The purpose is to gather evidence about payload shape and consumer ergonomics before inventing any universal suggestion vocabulary.
+Establish a consistent user-facing randomization pattern across D&D and BRP using existing system-owned random seams.
+
+The goal is not to randomize every visible field. It is to separate shared interaction/orchestration from system-specific random semantics and provide a useful `Randomize All` pattern without inventing distributions.
 
 Required approach:
 
-1. Inspect already-licensed/repository-owned D&D or BRP content first.
-2. Prefer a small flavor, equipment/trinket, or other structured suggestion that does not require a major ingestion project.
-3. Keep the dataset, source provenance, result payload type, and mapping in the owning system package.
-4. Keep `generator-core` system-neutral and unchanged unless a concrete table proves a missing generic capability.
-5. Let the creator inspect/accept/override the suggestion where UI involvement is appropriate.
-6. If the accepted result affects native state, route it through the ordinary system builder/adapter path.
-7. Never patch native state directly from the generic evaluator.
-8. Retain evaluator/table/source versions, seed, drawIndex, and selected entry identity wherever replay matters.
-9. Add focused tests for deterministic replay, source/system ownership, persistence/override behavior, and native-state safety.
+1. Inventory existing random controls before editing:
+   - D&D name generation;
+   - D&D class/background/species acceptable-pool selection;
+   - D&D sticky core-choice single and multi-selection randomizers;
+   - D&D random ability generation;
+   - BRP profession suggestion;
+   - BRP Scholar academic suggestions;
+   - BRP standard-rolled characteristics.
+2. Define the smallest shared UI/orchestration seam needed for consistent `Randomize All` and field-level random actions.
+3. Keep legal value generation and probability/distribution rules in system packages or existing system-owned helpers.
+4. Preserve D&D sticky acceptable pools. `Randomize All` must not silently broaden them.
+5. For BRP, use only already-supported random/suggestion semantics. Do not invent distributions for Age, Gender, Wealth, or other fields merely to make the button exhaustive.
+6. Preserve easy manual override. A later direct edit must remain authoritative and clear stale suggestion provenance where relevant.
+7. Preserve replay/provenance whenever a random result is retained in CharacterDocument generation state.
+8. Add focused tests for orchestration boundaries, pool preservation, manual override, and any changed provenance behavior.
 
-If no current source-safe richer consumer is small enough, stop after documenting that evidence and identify the smallest required content slice rather than inventing public rules text.
+If a truly shared helper is added, it should coordinate callbacks/field intents only. It must not know D&D classes, BRP professions, rules source IDs, or random distributions.
+
+## Opportunistic D&D Random UX Debt
+
+Because this slice naturally touches randomization UI, fold in these accepted findings if they remain small and well-bounded:
+
+- hide the disabled `Roll First` assignment control until rolls exist;
+- move verbose 4d6 roll history out of the cramped inline result display and into hover/detail text;
+- when a roll is reassigned, swap the displaced assignment rather than allowing two abilities to point at the same roll slot.
+
+Do not let these become a broad D&D creator rewrite.
 
 ## Explicitly Deferred
 
-Do not add without concrete consumer evidence:
+Do not add without concrete evidence:
 
+- random distributions for BRP Age, Gender, Wealth, or identity fields;
+- structured naming architecture or expansion of the temporary flat D&D name list;
 - nested/subtable evaluation;
-- dice-range table authoring syntax;
-- without-replacement or uniqueness sampling;
+- dice-range random-table authoring syntax;
+- without-replacement or uniqueness sampling in the generic table engine;
 - conditional table graphs;
 - universal trait/ideal/bond/flaw ontology;
-- user-authored table persistence or editor UI;
-- direct native-state mutation from the generic evaluator;
-- large structured naming work.
-
-The structured naming watch remains separate. Do not scale or repurpose the temporary D&D flat name list as this consumer.
-
-## Creator QA Debt To Fold Opportunistically
-
-Do not create a cleanup-only cycle, but if the touched code naturally intersects these items:
-
-- D&D Random: hide disabled `Roll First` until rolls exist;
-- D&D Random: move verbose roll history to hover/detail text;
-- D&D Random: swap displaced roll assignments rather than duplicate one roll slot;
-- shared: introduce a consistent `Randomize All` and field-randomizer interaction pattern where appropriate;
-- BRP: add name generation only through the proper naming seam;
-- BRP: randomize Age/Gender/Wealth when creator randomization is next touched.
-
-The BRP left-panel width/containment finding is already resolved.
+- user-authored table persistence/editor UI;
+- direct native-state mutation from random-table evaluation.
 
 ## Architecture Guardrails
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - `character-document/0.1` remains the shared contract unless concrete cross-system evidence requires change.
-- The random-table evaluator is a generation primitive, not a state model.
+- Shared creator code may coordinate interactions, but system rules and distributions stay system-owned.
+- Random-table evaluation is a generation primitive, not a state model.
 - System datasets/mappings remain system-owned.
 - Generic evaluator code remains system-neutral.
-- Table results feed normal decisions/suggestions and never patch native state directly.
 - Preserve replay provenance and explicit version boundaries.
 - Add nesting only when a real consumer requires it.
 - BRP profession is not D&D class.

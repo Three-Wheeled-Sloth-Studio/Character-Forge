@@ -99,12 +99,17 @@ roadmap:
       - BRP profession suggestion is creator-visible, manually overridable, replayable on reopen, and never patches authoritative native state directly.
       - BRP creator controls are now constrained to the left generation column, resolving the accepted containment finding while that UI was touched.
       - Automated-green profession-suggestion checkpoint d4b881b29bd763d9f7fd50e56223b00b37077be2, Actions 34366600372, job 102516809719, 34 test files / 168 tests / 0 failures.
+      - BRP owns a second random-table consumer for Scholar academic specialties using source-safe Knowledge (Law) and Science (Forensics) definitions already present in the first-slice catalog.
+      - Scholar academic suggestion returns a nested BRP-owned payload with skill key, Knowledge/Science parent, specialty identity, label, and source base chance.
+      - Each of five Scholar academic slots may retain independent suggestion provenance; manual row edits clear that slot, and reopen restores only records still matching authoritative native state.
+      - Automated-green Scholar academic-suggestion checkpoint 54d471faa5a635e46ab9db90f8d05d26ac32944f, Actions 34368120736, job 102522033597, 35 test files / 173 tests / 0 failures.
     current_gate:
-      - The first BRP creator UI and first random-table consumer are accepted for continued dev work; no dedicated polish cycle is required.
+      - The first BRP creator UI and both random-table consumers are accepted for continued dev work; no dedicated polish cycle is required.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
       - Add BRP name generation when the naming architecture has an appropriate consumer seam.
-      - Add field-level randomizers for Age, Gender, Wealth, and a shared Randomize All pattern when creator randomization is next touched.
+      - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
+      - Participate in the next shared creator randomization orchestration slice using existing BRP-owned profession, Scholar academic, and characteristic-generation seams.
       - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
@@ -137,12 +142,16 @@ roadmap:
       - First system-owned consumer implemented in BRP as the source-safe Detective/Scholar profession suggestion table.
       - Creator suggestion, manual override, retained generation provenance, reopen behavior, and no-direct-native-patch boundary are proven.
       - Automated-green first-consumer checkpoint d4b881b29bd763d9f7fd50e56223b00b37077be2, Actions 34366600372, job 102516809719, 34 test files / 168 tests / 0 failures.
+      - Second system-owned consumer implemented in BRP as a source-safe Scholar academic specialty suggestion table.
+      - Nested system-owned result payloads are proven without nested table evaluation or shared suggestion ontology.
+      - Independent per-slot suggestion provenance, re-suggest replacement, manual override, reopen validation, and no-direct-native-patch behavior are proven.
+      - Automated-green second-consumer checkpoint 54d471faa5a635e46ab9db90f8d05d26ac32944f, Actions 34368120736, job 102522033597, 35 test files / 173 tests / 0 failures.
     current_slice:
-      - Select a second source-safe system-owned consumer with a richer structured payload than a single enum-like ID.
-      - Prefer existing licensed flavor, equipment/trinket, or similar content that does not require a major ingestion project.
-      - Use the second payload as evidence before promoting any universal suggestion vocabulary.
-      - Keep system datasets/mappings system-owned and keep generator-core unchanged unless the real table exposes a missing generic capability.
-      - Preserve deterministic replay, manual override, and native-state safety.
+      - Random-table core does not need expansion from current evidence.
+      - Shift immediate product work to shared creator randomization orchestration using existing system-owned random and suggestion seams.
+      - Keep a future D&D or third-system table consumer as useful cross-system evidence, but do not manufacture one solely to exercise the engine.
+      - Do not promote a universal trait/ideal/bond/flaw vocabulary from the two BRP consumers.
+      - Do not add nested-table support; nested structured results already work without it.
     guardrails:
       - Generic table engine remains system-neutral.
       - System datasets/mappings remain system-owned.

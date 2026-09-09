@@ -49,9 +49,9 @@ Shared creator randomization:
 BRP creator:
 
 - add name generation when the structured naming seam is ready;
-- add randomizers for Age, Gender, Wealth, and similar fields when creator randomization is next touched.
+- add randomizers for Age, Gender, Wealth, and similar fields only when source/distribution semantics are explicit.
 
-The BRP left-pane containment finding is resolved in the first random-table consumer slice. These remaining items are nonblocking UX debt, not a reason to reopen BRP architecture or expand BRP rules breadth.
+The BRP left-pane containment finding is resolved. These remaining items are nonblocking UX debt, not a reason to reopen BRP architecture or expand BRP rules breadth.
 
 ## Random Table Companion Checkpoints
 
@@ -62,56 +62,78 @@ The system-neutral evaluator remains automated-green:
 - job: `102508743773`
 - focused evaluator tests: 5
 
-The first real system-owned consumer is now automated-green:
+The first real system-owned consumer remains automated-green:
 
 - consumer checkpoint: `d4b881b29bd763d9f7fd50e56223b00b37077be2`
 - Actions: `34366600372`
 - job: `102516809719`
-- Verify conclusion: success
-- full suite: 34 test files / 168 tests / 0 failures
 - focused BRP profession-suggestion tests: 4
 
-What the first consumer proves:
+The second, richer system-owned consumer is now automated-green:
 
-- BRP owns `BRP_PROFESSION_SUGGESTION_TABLE`, its typed result, and mapping semantics;
-- the table is intentionally tiny and source-safe: Detective and Scholar, the two already-supported BRP professions;
-- the table carries BRP source/version provenance and calls the system-neutral evaluator rather than duplicating random logic;
-- deterministic replay retains evaluator/table/source versions, seed, draw index, selected entry identity, selected weight, total weight, and selected profession;
-- the creator exposes a `Suggest` action beside Profession and allows ordinary manual override;
-- accepting the suggestion still changes profession through the existing BRP creator state and normal native builder/adapter path;
-- accepted suggestion provenance is retained as the ordinary generation decision `identity.profession-suggestion`;
-- the provenance decorator does not edit or reconstruct BRP native state;
-- reopening a generated character restores retained suggestion provenance from the generation record when it still matches the authoritative native profession;
-- touched BRP creator CSS now constrains controls, inputs, selects, fieldsets, and redistribution rows to the left generation column.
+- implementation checkpoint: `54d471faa5a635e46ab9db90f8d05d26ac32944f`
+- Actions: `34368120736`
+- job: `102522033597`
+- Verify conclusion: success
+- full suite: 35 test files / 173 tests / 0 failures
+- focused BRP Scholar academic-suggestion tests: 5
 
-No shared CharacterDocument, semantic contract, BRP native schema, adapter version, dependency, or lockfile change was required.
+## What The Second Consumer Proves
+
+BRP now owns `BRP_SCHOLAR_ACADEMIC_SUGGESTION_TABLE`, a source-safe table built only from academic specialty definitions already present in the first-slice BRP catalog:
+
+- Knowledge (Law), including parent skill, specialty identity, label, and base chance;
+- Science (Forensics), including parent skill, specialty identity, label, and base chance.
+
+The result is materially richer than the first profession enum-like payload. It retains:
+
+- a BRP skill key;
+- nested `BrpAcademicSkillSelection` with Knowledge/Science parent plus specialty ID/label;
+- display label;
+- source base chance.
+
+The consumer also proves multi-slot suggestion persistence:
+
+- any of the five Scholar academic slots can request a suggestion;
+- each retained decision records slot index, structured result, and full random-table provenance;
+- multiple slot records coexist independently;
+- re-suggesting one slot replaces only that slot's prior suggestion decision;
+- manual editing of a Scholar academic row clears that row's suggestion provenance in creator state;
+- creator reopen restores only suggestion records whose structured result still matches the authoritative native Scholar slot.
+
+Accepted academic suggestions still flow through the ordinary Scholar creator state and BRP builder/adapter before provenance is attached. `applyBrpScholarAcademicSuggestion()` changes only generation decisions and verifies the already-built authoritative native selection; it never patches or reconstructs native state.
+
+The generic evaluator required no changes. No shared CharacterDocument, semantic contract, BRP native schema, adapter version, dependency, or lockfile changed.
 
 ## Current Evidence / Gap
 
-The generic evaluator boundary and one end-to-end system-owned consumer are now proven. The first consumer is deliberately enum-like, so it does not yet justify a universal structured suggestion vocabulary for traits, ideals, bonds, flaws, equipment flavor, or similar richer payloads.
+Two concrete BRP consumers now prove both a simple enum-like payload and a nested structured payload, including replay, manual override, multiple independent suggestion slots, and native-state safety.
 
-The next useful evidence should come from one richer source-safe consumer that has more structure than a single profession ID while still avoiding a large content-ingestion project. If no such licensed/repository-owned content is already available, document the smallest required content slice instead of inventing public rules text.
+That is still not evidence for a universal trait/ideal/bond/flaw ontology. The structured payload remains explicitly BRP-owned. Nested/subtable evaluation is also still unneeded: the nested object shape is a result payload, not a nested random table.
 
-Subtable references remain a known likely requirement, but nesting is still deferred until an actual table requires it. The same applies to roll-range authoring, uniqueness sampling, conditional graphs, and user-authored table persistence.
+The next useful product slice is creator-level randomization orchestration. The UI already has several independent random/suggestion seams, but the user-facing pattern is inconsistent and there is no shared `Randomize All` interaction. This should be solved as orchestration over system-owned random functions, not by moving system rules or demographic distributions into the web shell.
+
+Do not invent random distributions for BRP Age, Gender, or Wealth merely to make `Randomize All` exhaustive. Randomize only fields with an explicit supported randomization seam; leave other fields unchanged until their distributions are deliberately defined.
 
 ## Next Slice
 
-Identify and implement the second narrow system-owned random-table consumer, prioritizing a richer structured payload.
+Implement the first shared creator randomization orchestration slice on `dev`.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "second random table consumer"`
+`python refs/tools/generate_agent_context.py --focus "creator randomization orchestration"`
 
 Before coding:
 
-1. Inspect existing source-safe D&D and BRP content for a small structured suggestion such as flavor, equipment/trinket, or another already-owned choice.
-2. Keep the dataset and payload type in the owning system package.
-3. Keep `generator-core` unchanged unless the selected real table exposes a missing generic capability.
-4. Route accepted results through ordinary system generation/build/adapter seams; never patch native state from the generic evaluator.
-5. Preserve replay provenance and easy manual override.
-6. Do not introduce a universal trait/ideal/bond/flaw schema from one system's payload.
+1. Inventory existing D&D and BRP field-level randomizers/suggestions and distinguish shell interaction from system-owned random semantics.
+2. Define a consistent `Randomize All` and field-randomizer interaction pattern in the creator workspace without creating a cross-system rules model.
+3. Preserve D&D acceptable-pool/sticky behavior and existing provenance semantics.
+4. Reuse BRP profession, Scholar academic, and characteristic-generation seams where they are actually applicable.
+5. Do not randomize Age, Gender, Wealth, names, or other fields unless an explicit system-owned distribution/generator already exists or is separately justified.
+6. Keep random actions easy to override and replay/provenance boundaries explicit where values enter CharacterDocument generation state.
+7. Fold the accepted D&D Random ability UX findings only where the touched code makes that cheap and safe.
 
-Do not use the temporary D&D flat name list as the next consumer. Structured naming remains a separate discovery watch.
+Do not reopen the generic random-table evaluator unless this real orchestration exposes a missing generic capability.
 
 ## Relevant Files
 
@@ -121,13 +143,14 @@ Do not use the temporary D&D flat name list as the next consumer. Structured nam
 - `refs/product/random-table-companion.md`
 - `packages/generator-core/src/randomTable.ts`
 - `packages/system-brp/src/professionSuggestion.ts`
-- `packages/system-brp/src/professionSuggestion.test.ts`
+- `packages/system-brp/src/scholarAcademicSuggestion.ts`
+- `packages/system-brp/src/scholarAcademicSuggestion.test.ts`
 - `apps/web/src/brpCreatorPanel.ts`
 - `apps/web/src/brpCreatorPanelView.ts`
-- `apps/web/src/brpCreatorStyles.ts`
-- `packages/system-dnd5e/src/`
+- `apps/web/src/guidedCreationPanel.ts`
+- `apps/web/src/creatorWorkspace.ts`
 
-Load deeper system source/licensing evidence only for the concrete second consumer being selected.
+Load deeper system source/licensing evidence only for randomization semantics actually being changed.
 
 ## Do Not Reopen Without New Evidence
 
@@ -139,6 +162,7 @@ Load deeper system source/licensing evidence only for the concrete second consum
 - Table results feed ordinary generation decisions or structured suggestions; they do not patch native state directly.
 - Preserve explicit replay provenance and version boundaries.
 - Add nesting only when a concrete consumer requires it.
+- A nested result payload is not evidence for nested random-table evaluation.
 - BRP profession is not D&D class.
 - Keep BRP base chance, professional contribution, personal contribution, and final rating distinct.
 - Future BRP powers must not reuse D&D spell architecture.
