@@ -4,109 +4,141 @@ title: "Current Handoff"
 tags:
 - character-forge
 - handoffs
-- parked
+- brp
+- powers
 ---
 # Current Handoff
 
 Date: 2026-09-09
 Branch: `dev`
-Current product status: **D&D Guided Narrative line parked; no automatic next implementation slice selected.**
+Current product status: **BRP Superpowers architecture proof is implemented and automated-green; D&D Guided Narrative remains parked.**
 
-## Parking State
+## Accepted BRP Superpowers Checkpoint
 
-The D&D Guided Narrative line was intentionally parked after the Fighter Fighting Style slice and documentation closeout.
+Starting head for this slice:
 
-The last fully documented pre-parking head was:
+- `c553ba7195fbe52ea383de2df0310f3f9f3daf42`
 
-- `5c343b3060c0294fa404b52d0428291f1e8862a4`
-- Actions `34408070329`
-- job `102655735014`
+Automated-green implementation checkpoint:
+
+- SHA: `bc0a05fb9b96c9777a73726100828712cd8bbb41`
+- Actions: `34413436457`
+- job: `102672848273`
 - Verify: success
-- 44 test files / 216 tests / 0 failures
-- 170 tracked paths
+- 45 test files / 223 tests / 0 failures
+- 175 tracked paths
 - 14 required project-memory files
-- OKF: 19 concepts / 9 indexes
-- build: `Character Forge build 0.0.1 5c343b30`
+- OKF: 20 concepts / 10 indexes
+- agent context check: 3,730 characters
+- web build: `Character Forge build 0.0.1 bc0a05fb`
+- new Superpowers coverage: 7 tests
 
-The explicit parking record is:
+No `qa` or `main` promotion occurred.
 
-- `refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md`
-- parking-record commit: `42cd7c4a1ab1cf41c849c71aff51f246cdc03121`
-
-`refs/handoffs/next-dev-prompt.md` now explicitly prevents chronological continuation of the D&D Narrative line.
-
-Promoted branches remain unchanged:
+Promoted branches remain:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D, BRP, random-table, creator, naming, or Narrative work.
+Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## D&D Narrative State At Parking
+## Source Finding That Drove The Slice
 
-Implemented and retained:
+The BRP UGE source treats skill construction level and power level as independently configurable. Do not assume the existing BRP `rulesProfile.powerLevel` field is a universal character power-level ontology: in the current Character Forge backend it already governs the established skill-construction profile.
 
-- six bounded global Guided Narrative questions covering Class, Background, Species, starting-equipment preference, and two D&D Alignment axes;
-- explicit `Choose for me` on every Narrative choice surface;
-- hard maximum of five presented choices per Narrative step;
-- deterministic seed/replay provenance;
-- direct Narrative Build through ordinary Guided/native generation;
-- explicit Narrative -> Guided Mechanical continuation;
-- current-choice initialization without rewriting sticky acceptable random pools;
-- later Guided Mechanical edits remaining authoritative;
-- conditional Fighter Fighting Style branch with all four supported styles.
+Superpowers are a useful architecture probe because they use a separate character-point budget derived from the character's initial, as-yet-unmodified characteristics. The first slice therefore proves a powered capability model without mapping it into D&D spell state or ordinary BRP skills.
 
-Current versions:
+The narrow implemented Superpowers surface is:
 
-- Narrative mapping: `5`;
-- direct Narrative recipe: `0.4`;
-- continuation recipe: `0.4`.
+- `Extra Energy`: one character point per retained level; each level adds 10 Power Points;
+- `Extra Hit Points`: one character point per retained level; each level adds 1 Hit Point and therefore changes Major Wound level; current source-profile limit is no more levels than initial CON;
+- Normal Superpowers budget: half the highest initial characteristic, rounded up;
+- Heroic Superpowers budget: the highest initial characteristic;
+- unused character points may remain unspent;
+- power failings, power modifiers, fixed GM budgets, Epic/Superhuman power levels, and the broader Superpowers catalog remain out of scope.
 
-The completed Class-defining-choice audit found no justified universal Class-feature ontology. Cleric/Druid order preference remains only a possible future candidate; it is **not active work**.
+## Architecture Result
 
-D&D Issue #11 remains the accumulated owner runtime-QA/promotion gate.
+`brp-character/0.1` remains sufficient.
 
-## Other Active/Available Product Lines
+The new powered state is optional and BRP-owned. Existing non-powered `brp-character/0.1` documents remain valid unchanged.
 
-Parking D&D Narrative does not park the rest of Character Forge.
+A powered character retains:
 
-Existing independent lines include:
+- the existing `rulesProfile.powerLevel` for the established skill-construction profile;
+- `enabledPowerSystems: ["superpowers"]` when applicable;
+- a separate Superpowers state with its own `powerLevel`;
+- a retained character-point budget with method, highest-characteristic basis, total, spent, and remaining points;
+- exact power IDs, levels, and character-point costs;
+- powered derived Hit Points, Major Wound level, and Power Points;
+- generation decisions/provenance for power system, power level, selections, and character-point budget.
 
-- BRP UGE second-system stress test and creator;
-- system-neutral random-table companion and real consumers;
-- structured naming/provider work when a real setting/campaign provider exists;
-- Foundry integration;
-- character advancement/maintenance;
-- later semantic/translation work after additional cross-system evidence.
+The tests explicitly prove a **Normal skill profile with a Heroic Superpowers profile**. That is intentional evidence that the two dimensions must not be collapsed.
 
-Selection among these lines is a product decision, not an implication of this handoff.
+The rolled-characteristic test also proves that the Superpowers budget is calculated from initial characteristic values before the existing BRP redistribution step, not from final redistributed values.
 
-## Re-entry Rule
+## Implementation Shape
 
-On the next implementation request:
+New BRP-owned files:
 
-1. follow the user's explicitly selected product line;
-2. generate a bounded context packet for that line;
-3. read only the relevant handoff/product/source files;
-4. preserve parked D&D Narrative behavior unless the user explicitly resumes it;
-5. do not infer work from the old chronological next-slice history.
+- `packages/system-brp/src/superpowers.ts`
+- `packages/system-brp/src/poweredAdapter.ts`
+- `packages/system-brp/src/superpowers.test.ts`
 
-## Durable Boundaries
+`superpowers.ts` composes the existing explicit or standard-rolled BRP builder during character creation, then adds source-owned Superpowers state before the CharacterDocument is returned. It does not introduce a shared capability schema.
 
-Do not reopen without concrete new evidence:
+`poweredAdapter.ts` makes adapter `0.6.0` the package-level BRP adapter. It keeps the existing `0.5.0` validator as the base validator for established BRP state and independently validates the added power-system state and powered derived causality.
 
-- authoritative native system state is mandatory and lossless;
-- never reconstruct retained native state from semantic projection;
-- Guided Narrative and Quick Generate are front ends over ordinary native state;
-- Narrative steps remain bounded to five presented choices including `Choose for me`;
-- Alignment decomposition remains D&D-specific;
-- equipment preference remains D&D-specific;
-- Fighter Fighting Style remains Fighter-specific;
-- direct current choices and sticky acceptable random pools remain separate concepts;
-- shared creator code coordinates interaction only; rules/mappings remain system-owned;
-- Parchment remains system-agnostic;
-- BRP naming content remains setting/campaign/content-package owned;
-- random-table evaluation remains a separate generation primitive.
+The canonical package export remains `brpUge105Adapter`; `brpUge105BaseAdapter` is retained as the legacy/base validator export for internal architecture clarity.
+
+## Important Guardrails
+
+Do not infer any of the following from this first powered slice:
+
+- a universal D&D/BRP spell or ability schema;
+- a universal `powerLevel` field shared across systems;
+- that all BRP power systems use character points;
+- that Psychic Abilities are ordinary BRP skills merely because they are skill-rated;
+- that Sorcery should reuse D&D spell-state structures;
+- that all Superpowers can be represented by only `levels` and `characterPointCost`;
+- that creator UI should expose unsupported power catalogs before their source rules are implemented.
+
+Power-system-specific state should remain a tagged BRP-native union as additional real systems are implemented. Generalize only after repeated evidence.
+
+## Candidate Next Powers Probe
+
+If product direction explicitly continues BRP Powers architecture, the strongest next contrast is **Psychic Abilities**, because they are skill-rated, interact with personal skill points, and commonly consume Power Points. That would test whether the optional BRP power-system union can support a fundamentally different power grammar beside Superpowers.
+
+Do not start that automatically. The current Superpowers proof is a complete bounded milestone.
+
+Also do not broaden immediately into:
+
+- full Superpowers catalog ingestion;
+- power failings/modifiers;
+- Magic, Mutations, Sorcery, or Psychic UI;
+- power randomization;
+- generic shared capability semantics;
+- creator UI for this first backend proof.
+
+## D&D Narrative Parking State
+
+D&D Guided Narrative remains intentionally parked. Its durable state is retained in:
+
+- `refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md`
+
+Do not automatically resume Cleric/Druid Narrative work.
+
+D&D Issue #11 remains the separate accumulated owner runtime-QA/promotion gate.
+
+## Durable Foundation Boundaries
+
+- Native system state is mandatory and lossless.
+- Never reconstruct retained native state from semantic projection.
+- Shared creator code coordinates interactions only; rules, mappings, distributions, and content remain system-owned.
+- Parchment remains system-agnostic.
+- BRP naming content remains setting/campaign/content-package owned.
+- Random-table evaluation remains a separate generation primitive.
+- BRP powers must not be modeled through D&D spell-state structures merely for reuse.
 
 ## Validation
 
