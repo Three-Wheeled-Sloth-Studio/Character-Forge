@@ -49,7 +49,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. guidedNarrative.ts owns five bounded Narrative questions, Class/Background/Species narrowing, two-question Alignment decomposition, mapping version 3, and the five-choice ceiling. guidedNarrativeContinuation.ts owns replayable Narrative -> Guided Mechanical transfer provenance including Alignment. guidedGenerate.ts remains the ordinary native-construction path.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. guidedNarrative.ts owns six bounded Narrative questions, Class/Background/Species narrowing, two-question Alignment decomposition, starting-equipment preference mapping, mapping version 4, and the five-choice ceiling. guidedNarrativeContinuation.ts owns replayable Narrative -> Guided Mechanical transfer provenance including Alignment and starting Class/Background equipment. guidedGenerate.ts remains the ordinary native-construction path.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -68,7 +68,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching and wires explicit Narrative continuation. dndNarrativeCreatorPanel renders system-owned bounded questions and shows mapped Alignment without a nine-item Narrative menu. dndGuidedCreatorPanel initializes Class/Background/Species and Alignment into the existing detailed form; Alignment initialization survives unrelated core rerenders until explicit player interaction without persisting over the sticky acceptable pool.
+    notes: dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching and wires explicit Narrative continuation. dndNarrativeCreatorPanel renders six system-owned bounded questions and shows mapped Alignment and starting-equipment preference without large mechanical catalogs. dndGuidedCreatorPanel initializes Class/Background/Species, Alignment, Class equipment, and Background equipment into the existing detailed form. Alignment and Class-equipment initialization survive relevant rerenders until explicit player interaction without persisting over sticky acceptable pools.
   project-memory:
     guidance:
       - AGENTS.md
@@ -79,7 +79,7 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Add D&D Guided Narrative starting-equipment preference
+  - task: Audit the next D&D Guided Narrative class-defining choice
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
@@ -89,10 +89,27 @@ common_tasks:
       - packages/system-dnd5e/src/guidedNarrative.test.ts
       - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
       - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
+      - packages/system-dnd5e/src/guidedChoices.ts
+      - packages/system-dnd5e/src/guidedDefaults.ts
+      - packages/system-dnd5e/src/clericCatalog.ts
+      - packages/system-dnd5e/src/druidCatalog.ts
+      - packages/system-dnd5e/src/warlockCatalog.ts
+      - packages/system-dnd5e/src/preparedCasterCatalog.ts
+      - packages/system-dnd5e/src/srdCatalog.ts
+      - apps/web/src/dndNarrativeCreatorPanel.ts
+      - apps/web/src/dndGuidedCreatorPanel.ts
+      - apps/web/src/guidedCreationPanel.ts
+  - task: Inspect D&D Guided Narrative starting-equipment preference
+    look_in:
+      - refs/product/creator-workspace.md
+      - refs/product/generation-methods.md
+      - packages/system-dnd5e/src/guidedNarrative.ts
+      - packages/system-dnd5e/src/guidedNarrative.test.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
       - packages/system-dnd5e/src/guidedGenerate.ts
       - packages/system-dnd5e/src/guidedDefaults.ts
       - packages/system-dnd5e/src/guidedChoices.ts
-      - packages/system-dnd5e/src/srdCatalog.ts
       - apps/web/src/dndNarrativeCreatorPanel.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
       - apps/web/src/guidedCreationPanel.ts
