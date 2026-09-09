@@ -27,6 +27,13 @@ export interface BrpResolvedPowerLevelProfile {
   ageBasis: BrpAgeBasisState | null;
 }
 
+export function calculateBrpPersonalSkillPoints(intelligence: number): number {
+  if (!Number.isInteger(intelligence) || intelligence < 1) {
+    throw new Error("BRP personal skill budget requires a positive integer INT value.");
+  }
+  return intelligence * 10;
+}
+
 export function getBrpPowerLevelRules(powerLevel: BrpPowerLevel): BrpPowerLevelRules {
   if (powerLevel === "normal") {
     return {

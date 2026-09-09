@@ -1,8 +1,9 @@
 import { dnd5eSrd521Adapter, type Dnd5eNativeCharacter } from "../../../packages/system-dnd5e/src/index.js";
-import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
+import { BRP_CHARACTERISTIC_IDS, brpUge105Adapter, type BrpNativeCharacter } from "../../../packages/system-brp/src/index.js";
+import type { CharacterDocument, NativeSystemState } from "../../../packages/character-model/src/index.js";
 import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
 import { parseCharacterOpenMessage, resolveHostOrigin } from "./characterForgeHostBridge.js";
-import { mountGuidedCreationPanel } from "./guidedCreationPanel.js";
+import { mountCreatorWorkspace } from "./creatorWorkspace.js";
 
 const CHARACTER_GENERATED_MESSAGE = "character-forge:character-generated";
 const params = new URLSearchParams(window.location.search);
@@ -34,12 +35,14 @@ const resultCandidate = document.querySelector<HTMLElement>("#result");
 if (!creatorRootCandidate || !resultCandidate) throw new Error("Character Forge workspace failed to initialize.");
 const creatorRoot: HTMLElement = creatorRootCandidate;
 const resultElement: HTMLElement = resultCandidate;
-mountGuidedCreationPanel(creatorRoot, publishCharacter);
+const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter);
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (window.parent === window || event.source !== window.parent || !hostOrigin || event.origin !== hostOrigin) return;
   const opened = parseCharacterOpenMessage(event.data);
   if (!opened || (projectId && opened.payload.projectId !== projectId)) return;
+  try { creatorController.openCharacter(opened.payload.character); }
+  catch { /* The review surface below reports invalid retained native state. */ }
   renderCharacter(opened.payload.character);
 });
 
@@ -48,7 +51,18 @@ function publishCharacter(character: CharacterDocument): void { renderCharacter(
 function renderCharacter(character: CharacterDocument): void {
   const nativeState = character.nativeStates.find((state) => state.id === character.primaryNativeStateId);
   if (!nativeState) { renderCharacterFailure(character, "The primary native state is missing from this character document."); return; }
-  if (nativeState.systemId !== dnd5eSrd521Adapter.systemId || nativeState.editionId !== dnd5eSrd521Adapter.editionId) { renderCharacterFailure(character, `This Character Forge build cannot open ${nativeState.systemId} ${nativeState.editionId}.`); return; }
+  if (nativeState.systemId === dnd5eSrd521Adapter.systemId && nativeState.editionId === dnd5eSrd521Adapter.editionId) {
+    renderDnd5eCharacter(character, nativeState);
+    return;
+  }
+  if (nativeState.systemId === brpUge105Adapter.systemId && nativeState.editionId === brpUge105Adapter.editionId) {
+    renderBrpCharacter(character, nativeState);
+    return;
+  }
+  renderCharacterFailure(character, `This Character Forge build cannot open ${nativeState.systemId} ${nativeState.editionId}.`);
+}
+
+function renderDnd5eCharacter(character: CharacterDocument, nativeState: NativeSystemState): void {
   const validation = dnd5eSrd521Adapter.validateNativeState(nativeState);
   if (!validation.valid) { renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "Native state validation failed."); return; }
 
@@ -103,6 +117,43 @@ function renderCharacter(character: CharacterDocument): void {
     <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
 }
 
+function renderBrpCharacter(character: CharacterDocument, nativeState: NativeSystemState): void {
+  const validation = brpUge105Adapter.validateNativeState(nativeState);
+  if (!validation.valid) { renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "BRP native state validation failed."); return; }
+  const payload = nativeState.payload as BrpNativeCharacter;
+  const profession = payload.identity.profession;
+  const rolled = payload.characteristicGenerationState.method === "standard-rolled" ? payload.characteristicGenerationState : null;
+  const ageBasis = payload.identity.ageBasis;
+
+  resultElement.classList.remove("empty-result");
+  resultElement.innerHTML = `
+    <div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2><p>Human · ${humanize(profession.professionId)} · BRP UGE</p></div><span class="validation-pill valid">Native state valid</span></div>
+    <div class="ability-grid brp-review-characteristics">${BRP_CHARACTERISTIC_IDS.map((id) => brpCharacteristicCard(id, payload.characteristics[id].final)).join("")}</div>
+    <div class="stat-grid">${statCard("HP", String(payload.derived.hitPoints))}${statCard("Major Wound", String(payload.derived.majorWoundLevel))}${statCard("Power Points", String(payload.derived.powerPoints))}${statCard("Move", String(payload.derived.move))}</div>
+    <div class="result-details">
+      <div><strong>Power level</strong><span>${humanize(payload.rulesProfile.powerLevel)}</span></div>
+      <div><strong>Characteristic method</strong><span>${humanize(payload.rulesProfile.characteristicGeneration)}</span></div>
+      <div><strong>Age / gender</strong><span>${payload.identity.age} / ${escapeHtml(payload.identity.gender)}</span></div>
+      <div><strong>Wealth</strong><span>${humanize(profession.wealth)}</span></div>
+      <div><strong>Damage modifier</strong><span>${escapeHtml(payload.derived.damageModifier)}</span></div>
+      <div><strong>Experience bonus</strong><span>${payload.derived.experienceBonus}</span></div>
+      <div><strong>Professional budget</strong><span>${payload.skillBudgets.professional.spent} / ${payload.skillBudgets.professional.total}</span></div>
+      <div><strong>Personal budget</strong><span>${payload.skillBudgets.personal.spent} / ${payload.skillBudgets.personal.total}</span></div>
+      ${ageBasis ? `<div><strong>Age causality</strong><span>Default ${ageBasis.defaultStartingAge}; +${ageBasis.addedYears} years; +${ageBasis.professionalSkillPointAdjustment} professional points</span></div>` : ""}
+      ${profession.professionId === "detective" ? `<div><strong>Detective electives</strong><span>${profession.selectedElectiveSkillIds.map(humanize).join(", ")}</span></div>` : ""}
+      ${profession.professionId === "scholar" ? `<div><strong>Own language</strong><span>${escapeHtml(profession.ownLanguage.label)} <code>${escapeHtml(profession.ownLanguage.id)}</code></span></div><div><strong>Other language</strong><span>${escapeHtml(profession.otherLanguage.label)} <code>${escapeHtml(profession.otherLanguage.id)}</code></span></div><div><strong>Academic specialties</strong><span>${profession.selectedAcademicSkills.map((entry) => `${humanize(entry.skillId)} (${escapeHtml(entry.specialty.label)})`).join(", ")}</span></div>` : ""}
+      ${rolled ? `<div><strong>Generation seed</strong><code>${escapeHtml(rolled.seed)}</code></div><div><strong>Redistribution</strong><span>${rolled.redistribution.length ? rolled.redistribution.map((entry) => `${entry.points} ${entry.from} to ${entry.to}`).join(", ") : "None"}</span></div>` : ""}
+      <div><strong>Rules source</strong><code>${payload.rulesSourceIds.map(escapeHtml).join(", ")}</code></div>
+    </div>
+    <div class="brp-review-skills">
+      <h3>Skills</h3>
+      <div class="brp-review-skill-labels"><span>Skill</span><span>Base</span><span>Prof.</span><span>Personal</span><span>Final</span></div>
+      ${payload.skills.map((skill) => `<div class="brp-review-skill-row"><span>${escapeHtml(skill.label)}${skill.specialty ? ` <small>${escapeHtml(skill.specialty.id)}</small>` : ""}</span><span>${skill.baseChance}</span><span>${skill.contributions.professional}</span><span>${skill.contributions.personal}</span><strong>${skill.finalRating}</strong></div>`).join("")}
+    </div>
+    ${rolled ? `<details class="document-inspector"><summary>Inspect retained characteristic rolls</summary><pre>${escapeHtml(JSON.stringify(rolled, null, 2))}</pre></details>` : ""}
+    <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
+}
+
 function classResourceDetails(payload: Dnd5eNativeCharacter): string {
   const r = payload.resources;
   const details: string[] = [];
@@ -121,6 +172,7 @@ function renderCharacterFailure(character: CharacterDocument, message: string): 
 }
 function postCharacterToHost(character: CharacterDocument): void { if (window.parent !== window) window.parent.postMessage({ type: CHARACTER_GENERATED_MESSAGE, payload: { projectId, character } }, hostOrigin ?? "*"); }
 function abilityCard(label: string, score: number): string { const modifier = Math.floor((score - 10) / 2); return `<div class="ability-card"><span>${label}</span><strong>${score}</strong><small>${signed(modifier)}</small></div>`; }
+function brpCharacteristicCard(label: string, score: number): string { return `<div class="ability-card"><span>${label}</span><strong>${score}</strong></div>`; }
 function statCard(label: string, value: string): string { return `<div class="stat-card"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`; }
 function signed(value: number): string { return value >= 0 ? `+${value}` : String(value); }
 function humanize(value: string): string { return value.split(":").at(-1)!.split("-").map((part) => part ? part[0]!.toUpperCase() + part.slice(1) : part).join(" "); }
