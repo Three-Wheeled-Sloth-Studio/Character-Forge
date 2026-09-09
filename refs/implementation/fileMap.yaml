@@ -24,7 +24,11 @@ areas:
       - packages/generator-core/src/nameSuggestion.test.ts
       - packages/system-dnd5e/src/nameGeneration.ts
       - packages/system-dnd5e/src/nameGeneration.test.ts
-    notes: name-suggestion/0.1 is proven with the existing D&D six-name placeholder provider. Provider/source/version/seed provenance is available; culture/language/species context remains provider-owned and no universal naming-parts ontology is defined.
+      - packages/system-dnd5e/src/guidedGenerate.ts
+      - packages/system-dnd5e/src/guidedNameProvenance.test.ts
+      - apps/web/src/dndGuidedCreatorPanel.ts
+      - apps/web/src/creatorWorkspace.ts
+    notes: name-suggestion/0.1 is proven with the existing D&D six-name placeholder provider and D&D guided creator provenance. Accepted suggestions retain provider/source/version/seed generation decisions; manual edits supersede stale suggestions; blank fallback retains replay seed; native/display name state remains plain strings. BRP provider/content boundary is next discovery.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -44,7 +48,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, and the first naming-provider adapter. The six-name corpus remains explicit placeholder content and must not be scaled as SRD/culture data.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, and structured generated-name provenance. The six-name corpus remains explicit Character Forge placeholder content and must not be scaled as SRD/culture data.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -54,7 +58,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Name generation waits for a deliberate BRP provider/content boundary rather than borrowing D&D placeholder data.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Name generation waits for deliberate provider/content ownership rather than borrowing D&D placeholder data or inferring culture from Human identity.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -62,7 +66,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: Shared workspace owns Randomize All orchestration only. D&D name randomization already participates through its existing system control. Next naming slice should retain provider provenance through creator generation without teaching the workspace naming rules.
+    notes: Shared workspace owns Randomize All orchestration only. D&D-specific dndGuidedCreatorPanel retains complete name suggestions around the existing guided creator, attaches only matching provenance after canonical generation, and leaves shared workspace naming-rule agnostic.
   project-memory:
     guidance:
       - AGENTS.md
@@ -73,16 +77,22 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Integrate D&D name suggestion provenance
+  - task: Discover BRP naming provider/content boundary
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
       - refs/product/structured-naming.md
       - packages/generator-core/src/nameSuggestion.ts
+      - packages/system-brp/src
+      - packages/system-dnd5e/src/nameGeneration.ts
+  - task: Inspect D&D generated-name provenance
+    look_in:
+      - refs/product/structured-naming.md
       - packages/system-dnd5e/src/nameGeneration.ts
       - packages/system-dnd5e/src/guidedGenerate.ts
-      - packages/system-dnd5e/src/guidedGenerate.test.ts
-      - apps/web/src/guidedCreationPanel.ts
+      - packages/system-dnd5e/src/guidedNameProvenance.test.ts
+      - apps/web/src/dndGuidedCreatorPanel.ts
+      - apps/web/src/creatorWorkspace.ts
   - task: Add or discover another naming provider
     look_in:
       - refs/product/structured-naming.md
