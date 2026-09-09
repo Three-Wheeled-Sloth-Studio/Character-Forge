@@ -200,7 +200,7 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   const speciesId = resolveOverride(input.overrides?.speciesId, recommendation.speciesChoice.recommendedId, isGuidedDnd5eSpeciesId, "species");
 
   const character = guidedGenerateDnd5eFirstSlice({
-    name: input.name,
+    name: input.name ?? "",
     classChoice: { selectedId: classId, acceptableIds: [classId], selectionMode: "direct" },
     backgroundChoice: { selectedId: backgroundId, acceptableIds: [backgroundId], selectionMode: "direct" },
     speciesChoice: { selectedId: speciesId, acceptableIds: [speciesId], selectionMode: "direct" },
