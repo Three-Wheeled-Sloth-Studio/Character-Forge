@@ -57,4 +57,11 @@ describe("creator workspace system routing", () => {
     expect(creatorRandomizeAllAvailable("brp-uge", "quick")).toBe(true);
     expect(creatorRandomizationHelp("dnd5e-2024", "quick")).toContain("hidden in Quick mode");
   });
+
+  it("uses per-question Choose for me instead of shared Randomize All in Guided Narrative", () => {
+    expect(creatorRandomizeAllAvailable("dnd5e-2024", "narrative")).toBe(false);
+    const help = creatorRandomizationHelp("dnd5e-2024", "narrative");
+    expect(help).toContain("Choose for me");
+    expect(help).toContain("narrative seed");
+  });
 });
