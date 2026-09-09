@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green shared creator randomization orchestration checkpoint.
+Continue Character Forge from the automated-green D&D Random-ability UX checkpoint.
 
 Repository:
 
@@ -21,78 +21,73 @@ Do not reconstruct the full repository history.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D random ability UX and Randomize All QA"`
+`python refs/tools/generate_agent_context.py --focus "structured naming seam discovery"`
 
-Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, and targeted source reads.
+Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, and targeted source reads. Load deeper source/licensing evidence only when the naming design actually crosses those boundaries.
 
 Prefer diff-first continuation and conserve coding-agent context deliberately.
 
-## Accepted Automated-Green Checkpoint
+## Accepted Automated-Green Checkpoints
 
 Shared creator randomization orchestration:
 
-- code checkpoint: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`
+- checkpoint: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`
 - Actions: `34369619403`
 - job: `102527165230`
+- 36 test files / 178 tests / 0 failures
+
+D&D Random-ability UX:
+
+- implementation checkpoint: `e66003b9b6334218fb689d2da32ae5bf133251af`
+- Actions: `34371712699`
+- job: `102534309918`
 - Verify conclusion: success
-- full suite: 36 test files / 178 tests / 0 failures
-- web build identity: `Character Forge build 0.0.1 1f6ed5ae`
+- 37 test files / 181 tests / 0 failures
+- build identity: `Character Forge build 0.0.1 e66003b9`
 
 Promoted branches remain unchanged:
 
-- `qa`: `c7b64ac774b9f903f0ca1882812`
-- `main`: `c7b64ac774b9f903f0ca1882812`
+- `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
+- `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Do not implicitly promote accumulated D&D, BRP, random-table, or creator-orchestration work. Preserve exact-SHA `dev -> qa -> main` promotion.
+Do not implicitly promote accumulated D&D, BRP, random-table, or creator work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## What Is Proven
+## What The Last Slice Proved
 
-`creatorWorkspace` now exposes one shared `Randomize All` control while system rules remain outside the shell.
+The accepted D&D Random-ability findings are now handled in a presentation-only enhancer rather than by changing D&D roll rules:
 
-`apps/web/src/creatorRandomization.ts` provides only interaction orchestration:
+- pre-roll `Roll First` assignment controls stay hidden until six rolls exist;
+- verbose roll history is removed from the cramped card line and exposed through hover/accessibility detail;
+- assignment changes use swap semantics so every rolled total remains assigned exactly once;
+- a pure `swapUniqueRandomAssignment()` helper enforces the permutation behavior with focused tests;
+- `guidedCreationPanel.ts`, `system-dnd5e` roll generation, native state, and provenance remain unchanged.
 
-- it repeatedly resolves the next available randomizer after each invocation;
-- dependent controls exposed by a re-render may join the same pass;
-- each stable control ID is invoked at most once per pass;
-- disabled controls are skipped;
-- it contains no D&D or BRP rules/distributions.
+Owner browser QA of shared `Randomize All` remains useful, but do not make it a dedicated implementation cycle. Existing automated evidence already proves pool-bounded selection and dynamic-action orchestration; fold any concrete browser finding into later touched creator work.
 
-D&D uses its existing field-level random buttons and, only when the Random ability method is already active, its existing random-roll action. This preserves sticky acceptable pools and existing generation provenance because orchestration invokes the established controls instead of duplicating their semantics.
+## Immediate Slice: Structured Naming Seam Discovery
 
-BRP `Randomize All` is deliberately narrower:
+The goal is to define the smallest naming architecture justified by current evidence before adding more names or wiring BRP name randomization.
 
-- Profession suggestion participates;
-- characteristic re-roll participates only when Standard Rolled is already selected;
-- Scholar academic suggestions remain field-level because the current source-safe suggestion table cannot populate five unique required slots;
-- Age, Gender, Wealth, name, and other fields remain untouched because explicit distributions/generators are not defined.
+Current evidence:
 
-## Immediate Slice: D&D Random Ability UX + Randomize All Runtime QA
+- D&D already has `resolveDnd5eCharacterName`, backed by a temporary flat generated-name approach that should not be scaled.
+- BRP has no generated-name provider, and owner QA explicitly identified that gap.
+- Shared `Randomize All` now needs a clean way to invoke a system-owned name generator when one exists.
+- D&D species, BRP human identity, named BRP languages, and future Parchment/World culture-language consumers demonstrate that biological species must not be treated as equivalent to culture or naming language.
 
-First, browser/runtime check the new shared orchestration. Then make the three already-accepted D&D Random ability UX fixes.
+Required discovery work:
 
-Required runtime checks:
+1. Audit the existing D&D name-generation function, data source, seed/random behavior, and any CharacterDocument generation provenance attached to generated names.
+2. Identify the minimum reusable contract for requesting and returning a generated display name. Prefer a provider/interface seam over a universal identity ontology.
+3. Separate reusable mechanism from datasets. Culture/language/system/setting-specific name corpora must remain owned by the appropriate provider or content pack.
+4. Preserve deterministic generation and explicit provenance capability where generated names are retained.
+5. Preserve manual override as authoritative; generated-name provenance must not force later edits back to a generated value.
+6. Define optional naming context without making species synonymous with culture. Candidate context may include system ID, culture/language tags, species/ancestry hints, gender/presentation hints where a provider uses them, and locale/style, but add only fields justified by real consumers.
+7. Decide whether any generic mechanism belongs in generator-core. Do not move naming into generator-core merely because it is reusable-looking.
+8. Define how system-owned name randomizers advertise participation in creator `Randomize All` without teaching the workspace D&D or BRP naming rules.
+9. Do not ingest a large corpus or add BRP names in this discovery slice unless the contract requires a tiny fixture to prove the boundary.
 
-1. Restrict D&D class/background/species acceptable pools, invoke `Randomize All`, and confirm selections remain within those pools.
-2. Exercise dynamic controls, especially class/species choices that reveal dependent controls, and confirm one pass randomizes newly exposed controls without repeated loops.
-3. Select D&D Random ability generation and confirm `Randomize All` also produces a fresh roll set.
-4. In BRP Explicit mode, confirm `Randomize All` changes only Profession.
-5. In BRP Standard Rolled mode, confirm it may change Profession and re-roll characteristics.
-6. Confirm BRP Age, Gender, Wealth, name, and Scholar academic rows remain unchanged by `Randomize All`.
-
-Then fix these bounded D&D Random ability findings:
-
-- hide the disabled `Roll First` assignment controls until rolls exist;
-- move verbose 4d6 roll-history detail out of the cramped inline result display and into hover/detail text;
-- when a roll is reassigned, swap the displaced ability's roll rather than allowing two abilities to reference one roll slot.
-
-Implementation guidance:
-
-- keep `rollDnd5eRandomAbilitySet` and random-roll rules unchanged unless runtime evidence proves a rule defect;
-- prefer a small pure assignment-swap helper that can be unit tested;
-- preserve the exact six rolled totals and only change their assignment interaction;
-- keep provenance and the generated CharacterDocument path unchanged;
-- keep the UI change limited to the Random method controls;
-- do not broaden acceptable pools or add new random distributions.
+Expected output is primarily a durable contract/reference plus the smallest code seam or proof needed to make the architecture concrete. Avoid a naming mini-framework.
 
 ## Existing Evidence To Preserve
 
@@ -101,34 +96,31 @@ Implementation guidance:
 - random-table core: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`.
 - BRP Profession consumer: `d4b881b29bd763d9f7fd50e56223b00b37077be2`.
 - BRP Scholar academic consumer: `54d471faa5a635e46ab9db90f8d05d26ac32944f`.
+- shared creator randomization: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`.
+- D&D Random-ability UX: `e66003b9b6334218fb689d2da32ae5bf133251af`.
 
 ## Explicitly Deferred
 
-Do not add without new evidence:
+Do not add without concrete evidence:
 
+- a large D&D or BRP name corpus;
+- species-equals-culture naming assumptions;
+- universal race/ethnicity/culture ontology;
 - random distributions for BRP Age, Gender, Wealth, or identity fields;
-- structured naming architecture or expansion of the temporary flat D&D name list;
 - nested/subtable evaluation;
-- dice-range random-table authoring syntax;
-- without-replacement or uniqueness sampling in the generic table engine;
-- conditional table graphs;
 - universal trait/ideal/bond/flaw ontology;
 - user-authored table persistence/editor UI;
-- direct native-state mutation from random-table evaluation.
+- direct native-state mutation from generation helpers.
 
 ## Architecture Guardrails
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - `character-document/0.1` remains the shared contract unless concrete cross-system evidence requires change.
-- Shared creator code coordinates interactions only; system rules and distributions stay system-owned.
-- Preserve sticky acceptable pools and existing D&D provenance semantics.
-- Random-table evaluation is a generation primitive, not a state model.
-- System datasets/mappings remain system-owned.
-- Generic evaluator code remains system-neutral.
-- Preserve replay provenance and explicit version boundaries.
-- BRP Profession is not D&D class.
-- Future BRP powers must not reuse D&D spell architecture.
+- Shared creator code coordinates interactions only; system rules, distributions, and content datasets stay system-owned.
+- Generated display name is not automatically a universal culture identity object.
+- Do not conflate species, culture, language, nationality, ethnicity, or naming convention.
+- Preserve manual override and provenance boundaries.
 - Parchment remains system-agnostic.
 - Do not import Call of Cthulhu-specific protected content.
 - Preserve exact-SHA promotion provenance.
