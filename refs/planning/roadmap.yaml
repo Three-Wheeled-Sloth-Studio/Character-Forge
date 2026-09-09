@@ -63,7 +63,7 @@ roadmap:
       - Owner runtime QA of representative classes/species and reopen behavior.
       - Owner browser QA the shared Randomize All behavior with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
       - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
-      - Consolidate Quick Generate as a top-level creator mode.
+      - Consolidate Quick Generate as a top-level creator mode; this is the next active implementation slice.
       - Add guided narrative generation through ordinary system APIs.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
@@ -120,15 +120,17 @@ roadmap:
       - Scholar academic suggestions remain field-level because the two-entry source-safe table cannot legally fill five unique required slots.
       - Age, Gender, Wealth, name, and similar fields remain unchanged because no deliberate BRP random distributions/generators exist yet.
       - Shared creator-randomization checkpoint 1f6ed5aee24f514fbc4fd9de39f9380e8df3719b, Actions 34369619403, job 102527165230, 36 test files / 178 tests / 0 failures.
-      - The shared naming provider/provenance mechanism and D&D persistence pattern are now proven, but BRP still intentionally has no provider or corpus until a deliberate content/source ownership boundary is selected.
+      - The shared naming provider/provenance mechanism and D&D persistence pattern are proven.
+      - BRP naming source review confirms names are setting/game dependent, optional cultural backgrounds are setting/GM-defined, and the ORC source supplies no generated-name corpus or culture-to-name mapping.
+      - BRP generated-name content is therefore setting/campaign/content-package owned, not system-brp owned; the current Human profile provides no naming-culture context.
+      - name-suggestion/0.1 is sufficient for a future caller-supplied provider, so no shared naming-contract or speculative generic content-provider layer is justified.
     current_gate:
-      - The first BRP creator UI, both random-table consumers, and bounded Randomize All participation are accepted for continued dev work.
+      - The first BRP creator UI, both random-table consumers, bounded Randomize All participation, and naming-content ownership decision are accepted for continued dev work.
       - Owner browser QA of shared Randomize All remains useful but is not a dedicated implementation slice.
-      - Naming work now needs a BRP provider/content ownership decision before implementation.
+      - BRP naming implementation waits for a real setting/campaign/content provider rather than blocking other work.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
-      - Discover whether BRP naming content should be system-owned, setting/campaign-owned, or supplied by a shared content provider before implementing a BRP name randomizer.
-      - Add BRP name generation only after selecting a deliberate BRP-appropriate provider/content source; do not borrow the D&D placeholder list or infer culture from Human species identity.
+      - When a real setting/campaign provider exists, inject it at the host/caller boundary and retain provider/source/version/seed provenance without putting invented data in system-brp.
       - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
       - Keep Scholar academic suggestions field-level until source-safe content or another system-owned strategy can satisfy uniqueness legally.
       - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
@@ -201,11 +203,15 @@ roadmap:
       - Blank-name fallback retains its effective name replay seed, and reopen does not reconstruct or force a generated suggestion from display text.
       - Shared Randomize All continues to invoke the same D&D name button without shared naming semantics.
       - Automated-green D&D name-provenance checkpoint 1a1eb5de957eabd87b63785ef8dafccafbd47a44, Actions 34374497101, job 102543733892, 40 test files / 193 tests / 0 failures.
+      - BRP ORC source review confirms that character names are setting/game dependent and optional cultural backgrounds are setting/GM-defined.
+      - No BRP generated-name table, BRP-owned corpus, or culture-to-name mapping was found in the authoritative source boundary.
+      - BRP naming data is setting/campaign/content-package owned; a future host may supply a concrete provider without changing name-suggestion/0.1.
+      - No speculative generic content-provider layer is justified before a real Parchment/world/setting consumer exists.
     current_slice:
-      - Discover the legitimate ownership and content boundary for a BRP name provider before adding BRP creator randomization.
-      - Determine whether BRP itself has source-safe naming content or whether naming should instead be setting/campaign/provider-owned.
-      - Do not infer culture or naming language from BRP's Human profile or reuse the D&D placeholder corpus.
-      - Keep name-suggestion/0.1 unchanged unless a real second-provider requirement demonstrates a gap.
+      - Naming architecture is waiting on a concrete setting/campaign/content consumer rather than further generic work.
+      - Do not add a BRP name randomizer until such a provider and license/source boundary exist.
+      - Keep name-suggestion/0.1 unchanged unless a real second provider demonstrates a gap.
+      - Naming no longer blocks unrelated creator work; D&D Quick Generate top-level creator consolidation is the next active implementation slice.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.
