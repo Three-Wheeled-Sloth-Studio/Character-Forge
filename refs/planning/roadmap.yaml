@@ -85,6 +85,15 @@ roadmap:
       - Guided Alignment initialization survives unrelated core-control rerenders until the player explicitly changes/randomizes/edits Alignment, without persisting over its sticky acceptable pool.
       - Later Guided Mechanical Alignment edits remain authoritative and hybrid provenance records the Narrative starting value plus final value.
       - Automated-green Narrative Alignment checkpoint 3d9be423d46c45c00ef2eed1b7d643186ed6530a, Actions 34392030680, job 102602424501, 44 test files / 211 tests / 0 failures.
+      - Starting-equipment audit found 11 Classes with prepared kit A versus starting gold B, Fighter with two prepared kits A/B plus starting gold C, and all four Backgrounds with prepared kit A versus 50 GP B:50-gp.
+      - Guided Narrative adds one bounded equipment preference with two substantive choices plus Choose for me: prepared gear or starting gold.
+      - Prepared gear maps to existing Class A plus Background A; starting gold maps to each Class's existing legal gold option plus Background B:50-gp, including Fighter C.
+      - Fighter prepared kit B remains a detailed Guided Mechanical playstyle choice rather than a fake universal alternate-kit category.
+      - Direct Narrative Build routes mapped Class and Background equipment through ordinary Guided/native inputs; Narrative mapping version is 4 and direct recipe version is 0.3.
+      - Narrative continuation recipe version is 0.3 and replay-validates retained starting Class and Background equipment choices.
+      - Class-equipment continuation preserves the direct-choice versus sticky-acceptable-pool boundary and reapplies an untouched Narrative preference through dependent rerenders without persisting over the pool.
+      - Later Guided Mechanical Class/Background equipment edits remain authoritative and hybrid provenance records Narrative starting choices plus final equipment choices.
+      - Automated-green Narrative starting-equipment checkpoint 5760a079ad8e188320997dcc02ddf8f683bd1d99, Actions 34395268461, job 102613297986, 44 test files / 213 tests / 0 failures.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
@@ -92,9 +101,9 @@ roadmap:
     remaining_scope:
       - Owner runtime QA of representative classes/species and reopen behavior.
       - Owner browser QA shared Randomize All with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
-      - Owner browser QA top-level Guided/Narrative/Quick switching, all five Narrative questions, Alignment mapping/transfer, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
+      - Owner browser QA top-level Guided/Narrative/Quick switching, all six Narrative questions, Alignment and equipment mapping/transfer, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
       - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
-      - Audit starting-equipment option semantics as the next bounded dependent Narrative consumer; do not force one universal question if Class/Background catalogs do not support it.
+      - Audit supported Level 1 Class-defining choices before selecting the next bounded Narrative consumer; prefer a narrow Class-specific branch over a false universal class-feature ontology when evidence is Class-specific.
       - Keep every current/future Narrative question equipped with explicit Choose for me or semantic equivalent and never above 5 presented choices.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
@@ -243,7 +252,7 @@ roadmap:
       - Naming architecture is waiting on a concrete setting/campaign/content consumer rather than further generic work.
       - Do not add a BRP name randomizer until such a provider and license/source boundary exist.
       - Keep name-suggestion/0.1 unchanged unless a real second provider demonstrates a gap.
-      - Naming no longer blocks unrelated creator work; D&D Guided Narrative starting-equipment discovery is the next active implementation slice.
+      - Naming no longer blocks unrelated creator work; the D&D Guided Narrative class-defining-choice audit is the next active discovery slice.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.
