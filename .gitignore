@@ -9,3 +9,4 @@ coverage/
 Thumbs.db
 __pycache__/
 *.py[cod]
+.agent-context.md

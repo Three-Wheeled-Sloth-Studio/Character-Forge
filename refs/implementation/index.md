@@ -9,3 +9,7 @@ Generated OKF discovery index. Do not edit manually.
 * [Manual Ability Generation Slice](manual-ability-generation-2026-08-26.md) - Agent Academy OKF knowledge concept.
 * [SRD Guided Class and Species Slice](srd-guided-choice-slice-2026-08-26.md) - Agent Academy OKF knowledge concept.
 * [Warlock Level 1 Guided Slice](warlock-level-one-slice-2026-09-07.md) - Agent Academy OKF knowledge concept.
+
+## Structured Resources
+
+* [fileMap.yaml](fileMap.yaml) - Agent Academy structured resource.

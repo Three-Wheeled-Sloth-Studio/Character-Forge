@@ -7,12 +7,14 @@
     "packages/*"
   ],
   "scripts": {
-    "validate:refs": "python refs/tools/validate_refs.py && npm run validate:okf",
-    "typecheck": "tsc --noEmit",
+    "validate:paths": "python refs/tools/check_case_collisions.py",
+    "validate:agent-context": "python refs/tools/generate_agent_context.py --check",
+    "validate:refs": "python refs/tools/validate_refs.py && npm run validate:okf && npm run validate:agent-context",
+    "typecheck": "npm run validate:paths && tsc --noEmit",
     "test": "vitest run",
-    "build:web": "tsc -p tsconfig.web.json && node tools/write-build-info.mjs",
+    "build:web": "npm run validate:paths && tsc -p tsconfig.web.json && node tools/write-build-info.mjs",
     "dev:web": "npm run build:web && node tools/web-server.mjs",
-    "verify": "npm run validate:refs && npm run typecheck && npm test && npm run build:web",
+    "verify": "npm run validate:paths && npm run validate:refs && npm run typecheck && npm test && npm run build:web",
     "validate:okf": "python refs/tools/validate_okf.py"
   },
   "devDependencies": {

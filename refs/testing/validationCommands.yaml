@@ -1,15 +1,21 @@
 version: 1
-updated: 2026-09-03
+updated: 2026-09-08
 commands:
+  paths:
+    command: npm run validate:paths
+    purpose: Inspect tracked paths from git ls-files, self-test the guard, and fail on full-path case-fold collisions.
   refs:
     command: npm run validate:refs
-    purpose: Confirm required durable project-memory files and foundation guardrails, then validate the Agent Academy OKF profile and deterministic discovery indexes.
+    purpose: Confirm required durable project-memory files and foundation guardrails, validate the Agent Academy OKF profile/indexes, and verify bounded agent re-entry generation.
+  agent_context:
+    command: npm run validate:agent-context
+    purpose: Verify the derived coding-agent re-entry packet is deterministic and remains within the bounded routine context budget.
   okf:
     command: npm run validate:okf
     purpose: Validate OKF v0.2 concept frontmatter, the pinned Agent Academy profile, and deterministic discovery indexes.
   typecheck:
     command: npm run typecheck
-    purpose: Type-check all TypeScript packages under strict settings.
+    purpose: Run the tracked-path guard, then type-check all TypeScript packages under strict settings.
   tests:
     command: npm test
     purpose: Run deterministic unit tests, including native-state preservation contracts.

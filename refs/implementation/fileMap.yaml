@@ -1,0 +1,71 @@
+version: 1
+updated: 2026-09-08
+areas:
+  character-contract:
+    guidance:
+      - refs/architecture/character-architecture.md
+    source_roots:
+      - packages/character-model
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative.
+  generator-core:
+    guidance:
+      - refs/product/generation-methods.md
+    source_roots:
+      - packages/generator-core
+    notes: System-neutral seeded randomness and dice-expression primitives only.
+  dnd5e:
+    guidance:
+      - refs/product/generation-methods.md
+      - refs/architecture/translation-bridge-rpg-notes.md
+    source_roots:
+      - packages/system-dnd5e
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, and provenance.
+  brp:
+    guidance:
+      - refs/handoffs/next-dev-prompt.md
+      - refs/architecture/brp-second-system-premortem.md
+      - refs/integration/brp-uge-orc.md
+      - refs/architecture/translation-bridge-rpg-notes.md
+    source_roots:
+      - packages/system-brp
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Current next slice is the first narrow BRP creator UI.
+  creator-web:
+    guidance:
+      - refs/handoffs/next-dev-prompt.md
+      - refs/product/generation-methods.md
+    source_roots:
+      - apps/web/src
+    notes: Shared Character Forge creator workspace. Keep rules formulas in system-owned packages.
+  project-memory:
+    guidance:
+      - AGENTS.md
+      - refs/README.md
+      - refs/handoffs/currentHandoff.md
+      - refs/testing/validationCommands.yaml
+    source_roots:
+      - refs
+    notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
+common_tasks:
+  - task: Continue the BRP creator UI slice
+    look_in:
+      - refs/handoffs/currentHandoff.md
+      - refs/handoffs/next-dev-prompt.md
+      - apps/web/src
+      - packages/system-brp/src
+  - task: Run or diagnose D&D accumulated runtime QA
+    look_in:
+      - refs/handoffs/currentHandoff.md
+      - packages/system-dnd5e/src
+      - apps/web/src
+  - task: Update translation or bridge-RPG evidence
+    look_in:
+      - refs/architecture/translation-bridge-rpg-notes.md
+      - packages/system-dnd5e/src
+      - packages/system-brp/src
+  - task: Change repository guidance or validation infrastructure
+    look_in:
+      - AGENTS.md
+      - refs/agents.yaml
+      - refs/testing/validationCommands.yaml
+      - refs/tools
+      - .github/workflows/verify.yml

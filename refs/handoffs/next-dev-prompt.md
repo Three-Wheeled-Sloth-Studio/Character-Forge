@@ -15,14 +15,24 @@ Repository:
 
 Work directly on `dev`.
 
-## Promoted baseline remains unchanged
+## Routine Re-entry
+
+Do not reconstruct the full project history after a context reset.
+
+Start with:
+
+`python refs/tools/generate_agent_context.py --focus "BRP creator UI"`
+
+Treat the generated packet as derived orientation only. Use `refs/implementation/fileMap.yaml` for focused source/guidance hints, then load deeper architecture, BRP source material, evidence history, or broad planning only if the task actually crosses those boundaries.
+
+## Promoted Baseline Remains Unchanged
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
 Do not implicitly promote accumulated D&D or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## Current BRP automated-green checkpoint
+## Current BRP Automated-Green Checkpoint
 
 - code checkpoint: `1ce3387491ccf859f56d7a0e92217c7737a56bf0`
 - Actions: `34291613617`
@@ -38,47 +48,21 @@ Do not implicitly promote accumulated D&D or BRP work. Preserve exact-SHA `dev -
 - adapter: `0.5.0`
 - rules source: `chaosium-brp-uge-orc-1.05`
 
-The first feature commit `6e70083a8cc033b59ec2953e642dc3a44d5ba64e` failed only because a stale impossible TypeScript branch remained after language base calculation moved out of the static skill catalog. `1ce338...` removes that stale branch and is the accepted automated-green code checkpoint.
+The earlier feature commit `6e70083a8cc033b59ec2953e642dc3a44d5ba64e` failed only because a stale impossible TypeScript branch remained after language base calculation moved out of the static skill catalog. `1ce338...` removes that stale branch and is the accepted automated-green code checkpoint.
 
-## D&D gate is still open and separate
+## D&D Gate Is Still Open And Separate
 
 D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green on `dev` at `55f79a1004c14eef1635e92c602e1fefa18cab15`, with 12 classes, 4 backgrounds, 9 species, and all 108 class/species combinations covered.
 
 Issue #11 remains open for accumulated owner runtime QA and exact-SHA promotion. BRP work does not waive that gate.
 
-## Read first
-
-1. `AGENTS.md`
-2. `refs/README.md`
-3. `refs/project.yaml`
-4. `refs/handoffs/currentHandoff.md`
-5. `refs/architecture/character-architecture.md`
-6. `refs/architecture/brp-second-system-premortem.md`
-7. `refs/architecture/translation-bridge-rpg-notes.md`
-8. `refs/integration/brp-uge-orc.md`
-9. `refs/planning/roadmap.yaml`
-10. `refs/testing/validationCommands.yaml`
-11. `packages/system-brp/src/nativeCharacter.ts`
-12. `packages/system-brp/src/powerLevel.ts`
-13. `packages/system-brp/src/characteristicGeneration.ts`
-14. `packages/system-brp/src/skills.ts`
-15. `packages/system-brp/src/professions.ts`
-16. `packages/system-brp/src/firstSlice.ts`
-17. `packages/system-brp/src/adapter.ts`
-18. `packages/system-brp/src/firstSlice.test.ts`
-19. `packages/system-brp/src/standardCharacteristicGeneration.test.ts`
-20. `packages/system-brp/src/heroicPowerLevel.test.ts`
-21. `packages/system-brp/src/scholarProfession.test.ts`
-22. `packages/system-brp/src/languageIdentity.test.ts`
-23. GitHub issue #13
-
-## Source boundary
+## Source Boundary
 
 Implement Basic Roleplaying: Universal Game Engine, 2023 ORC content, pinned to corrections `CHA2036 BRP UGE Corrections 1.05` for this adapter family.
 
 Do not use the older 2020 online BRP SRD as implementation authority. Do not import Call of Cthulhu-specific protected content.
 
-## What is now proven
+## What Is Now Proven
 
 The same `brp-character/0.1` native ontology supports:
 
@@ -96,11 +80,11 @@ The adapter independently derives exact legal Scholar language skills from retai
 
 No shared CharacterDocument or semantic schema change has been required.
 
-## Immediate implementation slice: first BRP creator UI
+## Immediate Implementation Slice: First BRP Creator UI
 
-Expose the narrow supported BRP backend through the Character Forge creator without broadening the rules surface.
+Expose the narrow supported BRP backend through the existing Character Forge creator without broadening the rules surface.
 
-### UX architecture
+### UX Architecture
 
 Follow the established creator standard:
 
@@ -109,12 +93,12 @@ Follow the established creator standard:
 - universal character fields and rules-system selection at the top;
 - one generation-method selector with method-specific controls appearing dynamically;
 - independent desktop scrolling for long controls and review;
-- direct selection must remain independent from any future sticky/random acceptable pools;
+- direct selection remains independent from any future sticky/random acceptable pools;
 - make actions easy to do and easy to undo rather than interrupting with validation popups where inline feedback is sufficient.
 
 Do not create a second disconnected BRP page if the existing creator workspace can host a system-specific control surface cleanly.
 
-### Supported BRP controls
+### Supported BRP Controls
 
 At minimum expose:
 
@@ -138,9 +122,9 @@ At minimum expose:
 
 Do not expose unsupported EDU, Sanity, Fatigue, hit locations, powers, non-human rules, age-50+ rules, cultural modifiers, skill-category bonuses, or broad profession ingestion.
 
-### System ownership
+### System Ownership
 
-The UI must call BRP-owned construction/validation seams rather than reimplementing BRP rules in React/browser code.
+The UI must call BRP-owned construction/validation seams rather than reimplementing BRP rules in browser code.
 
 At minimum:
 
@@ -152,7 +136,7 @@ At minimum:
 
 If the current builders are too all-at-once for good UI feedback, introduce narrow BRP-owned preview/query helpers rather than duplicating formulas in the UI.
 
-### Persistence / reopen
+### Persistence / Reopen
 
 The first UI slice must preserve existing CharacterDocument behavior:
 
@@ -163,7 +147,7 @@ The first UI slice must preserve existing CharacterDocument behavior:
 
 Do not make Parchment understand BRP mechanics. If host integration needs a generic system identifier/display capability, keep that boundary system-agnostic.
 
-### Validation target
+### Validation Target
 
 The automated gate should prove at minimum:
 
@@ -181,7 +165,7 @@ The automated gate should prove at minimum:
 
 Use targeted browser/unit tests; do not add broad end-to-end infrastructure unless the existing test seams cannot cover the risk.
 
-## After the first BRP UI
+## After The First BRP UI
 
 Reassess from actual creator friction. Likely next candidates are:
 
@@ -193,7 +177,7 @@ Reassess from actual creator friction. Likely next candidates are:
 
 Do not automatically ingest the whole BRP profession catalog after the first UI.
 
-## Architecture rules
+## Architecture Rules
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
@@ -208,6 +192,6 @@ Do not automatically ingest the whole BRP profession catalog after the first UI.
 - Parchment remains ignorant of system-specific mechanics.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## Parallel product work
+## Parallel Product Work
 
 The system-neutral random-table companion remains `ready_for_discovery`; do not let BRP UI work erase that product thread.

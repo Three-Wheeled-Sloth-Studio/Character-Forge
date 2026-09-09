@@ -7,6 +7,7 @@ identity:
   production_branch: main
   acceptance_branch: qa
   development_branch: dev
+  current_phase: BRP UGE first creator UI after automated-green named-language backend closure
   summary: Public modular character generation, maintenance, and cross-system translation engine for Parchment Worlds.
 thesis:
   core_promise: Create and maintain system-native RPG characters while building an evidence-driven semantic bridge for translation, VTT integration, and future original-system design.
@@ -72,6 +73,7 @@ source_of_truth:
   product: refs/product
   integration: refs/integration
   handoffs: refs/handoffs
+  implementation_map: refs/implementation/fileMap.yaml
   testing: refs/testing
   okf_profile: refs/okfProfile.yaml
   okf_discovery_index: refs/index.md

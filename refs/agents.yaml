@@ -1,6 +1,11 @@
 version: 1
-updated: 2026-09-03
-required_reading:
+updated: 2026-09-08
+routine_reentry:
+  command: python refs/tools/generate_agent_context.py --focus "<short task phrase>"
+  packet_is_derived: true
+  progressive_loading: true
+  file_map: refs/implementation/fileMap.yaml
+full_bootstrap_reading:
   - AGENTS.md
   - refs/README.md
   - refs/project.yaml
@@ -17,14 +22,21 @@ working_rules:
   native_system_state_required: true
   semantic_model_is_provisional: true
   update_translator_bridge_notes_as_you_learn: true
+  diff_first_continuation: true
+  conserve_agent_context: true
+  repeated_diagnostic_rule: make reusable before the third substantially identical run
+  active_handoff_is_delta_oriented: true
+  tracked_path_case_collision_guard_required: true
 validation:
   required_before_milestone_complete:
     - npm run verify
+  infrastructure:
+    - npm run validate:paths
+    - npm run validate:agent-context
 licensing:
   public_repository: true
   secrets_allowed: false
   non_redistributable_rules_content_allowed: false
-
 okf_profile:
   profile: refs/okfProfile.yaml
   discovery_index: refs/index.md

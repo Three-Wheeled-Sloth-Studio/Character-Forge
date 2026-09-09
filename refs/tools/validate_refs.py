@@ -14,7 +14,10 @@ REQUIRED_FILES = [
     "refs/product/generation-methods.md",
     "refs/handoffs/currentHandoff.md",
     "refs/handoffs/next-dev-prompt.md",
+    "refs/implementation/fileMap.yaml",
     "refs/testing/validationCommands.yaml",
+    "refs/tools/generate_agent_context.py",
+    "refs/tools/check_case_collisions.py",
 ]
 
 REQUIRED_TEXT = {
@@ -22,6 +25,8 @@ REQUIRED_TEXT = {
         "dev -> qa -> main",
         "Native system state is mandatory",
         "translation-bridge-rpg-notes.md",
+        "generate_agent_context.py",
+        "validate:paths",
     ],
     "refs/project.yaml": [
         "native system state",
