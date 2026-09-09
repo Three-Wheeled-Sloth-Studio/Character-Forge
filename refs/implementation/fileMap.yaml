@@ -50,7 +50,18 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 now proves two distinct backend-only power grammars without shared-model changes. superpowers.ts owns Normal/Heroic character-point purchasing for Extra Energy / Extra Hit Points. poweredAdapter.ts is the Superpowers-aware 0.6 layer. psychicAbilities.ts owns the bounded Normal Psychic creation grammar: two abilities, POW x1 bases, personal INT x10 reallocation, and Empathy/Mind Shield metadata. psychicAdapter.ts is canonical adapter 0.7 and validates Psychic plus combined personal-pool causality while delegating non-powered/Superpowers states. Skill-construction profile and power-system level remain deliberately independent. No universal capability contract exists.
+    notes: >-
+      BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 now proves two
+      distinct backend-only power grammars without shared-model changes.
+      superpowers.ts owns Normal/Heroic character-point purchasing for Extra
+      Energy / Extra Hit Points. poweredAdapter.ts is the Superpowers-aware 0.6
+      layer. psychicAbilities.ts owns the bounded Normal Psychic creation
+      grammar: two abilities, POW x1 bases, personal INT x10 reallocation, and
+      Empathy/Mind Shield metadata. psychicAdapter.ts is canonical adapter 0.7
+      and validates Psychic plus combined personal-pool causality while
+      delegating non-powered/Superpowers states. Skill-construction profile and
+      power-system level remain deliberately independent. No universal
+      capability contract exists.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
