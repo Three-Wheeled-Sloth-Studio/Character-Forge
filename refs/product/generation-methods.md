@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, the first guided class/background/species path, and the first system-neutral random-table evaluator are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, the first guided class/background/species path, the first system-neutral random-table evaluator, and the first structured naming contract are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -102,4 +102,12 @@ The first system-neutral random-table evaluator now exists in `generator-core`; 
 
 It supports versioned weighted tables, deterministic seed plus explicit draw-index replay, source/table/evaluator provenance, and arbitrary typed result payloads. The core does not know trait/ideal/bond/flaw/equipment semantics and never patches native character state directly.
 
-The next step is a narrow system-owned consumer that feeds an ordinary generation decision or structured suggestion. Keep system datasets/mappings system-owned. Do not add nesting, roll-range syntax, universal suggestion ontology, or user-authored table infrastructure until a concrete consumer requires them.
+Two BRP-owned consumers now prove enum-like and nested structured suggestion results without requiring a universal suggestion ontology or nested-table engine. Keep system datasets/mappings system-owned. Do not add nesting, roll-range syntax, universal suggestion ontology, or user-authored table infrastructure until a concrete consumer requires them.
+
+### Structured naming
+
+`refs/product/structured-naming.md` is the current naming contract.
+
+`generator-core` now exposes a minimal provider-based name-suggestion seam with deterministic seed/provenance support and opaque provider-owned context. The shared contract requires only a non-empty display name and does not define species, culture, language, gender, given/family-name parts, or other identity ontology.
+
+D&D adapts its existing six-name placeholder list to this contract without expanding the corpus or changing explicit-seed selection behavior. Direct user entry remains authoritative. The next proof is to carry creator-generated name provenance through the ordinary generation record before adding a second provider.
