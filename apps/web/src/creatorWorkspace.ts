@@ -48,6 +48,9 @@ export function creatorRandomizationHelp(
   if (dndMode === "quick") {
     return "Quick Generate owns its randomization through Generate character. Randomize All is hidden in Quick mode so hidden Guided controls are never invoked.";
   }
+  if (dndMode === "narrative") {
+    return "Guided Narrative keeps Randomize All hidden. Every narrative question has its own Choose for me option, resolved from the visible narrative seed, so hidden Guided Mechanical controls are never invoked.";
+  }
   return "Randomize All uses the existing D&D field randomizers and preserves every checked acceptable pool. If Random ability generation is selected, it also rolls a new ability set. Choices without an existing randomizer stay unchanged.";
 }
 
