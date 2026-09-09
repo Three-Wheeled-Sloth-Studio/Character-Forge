@@ -1,9 +1,9 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
 import { createGeneratedSeed, createSeededRandom, type RandomSource } from "../../generator-core/src/index.js";
 import { DND5E_STANDARD_ARRAY, type Dnd5eAbilityIncreasePlan } from "./abilityGeneration.js";
-import { DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
 import { defaultGuidedDnd5eCoreChoices } from "./guidedDefaults.js";
-import { guidedGenerateDnd5eFirstSlice } from "./guidedGenerate.js";
+import { guidedGenerateDnd5eFirstSlice, type GuidedBackgroundEquipmentChoice } from "./guidedGenerate.js";
 import { DND5E_ABILITY_IDS, type Dnd5eAbilityId, type Dnd5eAbilityScores } from "./nativeCharacter.js";
 import {
   DND5E_SRD_521_BACKGROUND_OPTIONS,
@@ -17,7 +17,7 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_MAPPING_ID = "character-forge.dnd5e.guided-narrative.first-slice";
-export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "3";
+export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "4";
 export const DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID = "choose-for-me";
 export const DND5E_GUIDED_NARRATIVE_TARGET_PRESENTED_CHOICES = 3;
 export const DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5;
@@ -40,6 +40,14 @@ export type Dnd5eGuidedNarrativeHeritageAnswerId =
   | "ancient"
   | "formidable"
   | "uncanny";
+export type Dnd5eGuidedNarrativeEquipmentAnswerId =
+  | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
+  | "prepared-gear"
+  | "starting-gold";
+export type Dnd5eGuidedNarrativeEquipmentPreferenceId = Exclude<
+  Dnd5eGuidedNarrativeEquipmentAnswerId,
+  typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
+>;
 export type Dnd5eGuidedNarrativeOrderAnswerId =
   | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
   | "honor-structure"
@@ -50,12 +58,13 @@ export type Dnd5eGuidedNarrativeRegardAnswerId =
   | "protect-others"
   | "balance-needs"
   | "self-first";
-export type Dnd5eGuidedNarrativeQuestionId = "role" | "past" | "heritage" | "order" | "regard";
+export type Dnd5eGuidedNarrativeQuestionId = "role" | "past" | "heritage" | "equipment" | "order" | "regard";
 
 export interface Dnd5eGuidedNarrativeAnswers {
   role: Dnd5eGuidedNarrativeRoleAnswerId;
   past: Dnd5eGuidedNarrativePastAnswerId;
   heritage: Dnd5eGuidedNarrativeHeritageAnswerId;
+  equipment: Dnd5eGuidedNarrativeEquipmentAnswerId;
   order: Dnd5eGuidedNarrativeOrderAnswerId;
   regard: Dnd5eGuidedNarrativeRegardAnswerId;
 }
@@ -111,6 +120,15 @@ export const DND5E_GUIDED_NARRATIVE_QUESTIONS: readonly Dnd5eGuidedNarrativeQues
     ],
   },
   {
+    id: "equipment",
+    prompt: "When the adventure begins, how would you rather be outfitted?",
+    options: [
+      CHOOSE_FOR_ME_OPTION,
+      { id: "prepared-gear", label: "Start ready with the gear my training and past provide" },
+      { id: "starting-gold", label: "Carry more coin and choose my own gear" },
+    ],
+  },
+  {
     id: "order",
     prompt: "When rules and personal freedom pull in opposite directions, how should this character usually lean?",
     options: [
@@ -153,6 +171,21 @@ const HERITAGE_SPECIES_MAP: Record<Exclude<Dnd5eGuidedNarrativeHeritageAnswerId,
   uncanny: ["tiefling", "halfling", "gnome"],
 };
 
+const CLASS_STARTING_GOLD_CHOICES: Record<GuidedDnd5eClassId, string> = {
+  barbarian: "B",
+  bard: "B",
+  cleric: "B",
+  druid: "B",
+  fighter: "C",
+  monk: "B",
+  paladin: "B",
+  ranger: "B",
+  rogue: "B",
+  sorcerer: "B",
+  warlock: "B",
+  wizard: "B",
+};
+
 const ALIGNMENT_MAP: Record<string, string> = {
   "honor-structure:protect-others": "lawful-good",
   "honor-structure:balance-needs": "lawful-neutral",
@@ -175,6 +208,12 @@ export interface Dnd5eGuidedNarrativeMappedChoice<TId extends string> {
   recommendedId: TId;
 }
 
+export interface Dnd5eGuidedNarrativeEquipmentChoices {
+  preferenceId: Dnd5eGuidedNarrativeEquipmentPreferenceId;
+  classEquipmentChoice: string;
+  backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+}
+
 export interface Dnd5eGuidedNarrativeRecommendation {
   mappingId: typeof DND5E_GUIDED_NARRATIVE_MAPPING_ID;
   mappingVersion: typeof DND5E_GUIDED_NARRATIVE_MAPPING_VERSION;
@@ -183,6 +222,7 @@ export interface Dnd5eGuidedNarrativeRecommendation {
     role: Dnd5eGuidedNarrativeResolvedAnswer;
     past: Dnd5eGuidedNarrativeResolvedAnswer;
     heritage: Dnd5eGuidedNarrativeResolvedAnswer;
+    equipment: Dnd5eGuidedNarrativeResolvedAnswer;
     order: Dnd5eGuidedNarrativeResolvedAnswer;
     regard: Dnd5eGuidedNarrativeResolvedAnswer;
   };
@@ -217,6 +257,7 @@ export function recommendDnd5eGuidedNarrative(
   const role = resolveNarrativeAnswer("role", input.answers.role, random);
   const past = resolveNarrativeAnswer("past", input.answers.past, random);
   const heritage = resolveNarrativeAnswer("heritage", input.answers.heritage, random);
+  const equipment = resolveNarrativeAnswer("equipment", input.answers.equipment, random);
   const order = resolveNarrativeAnswer("order", input.answers.order, random);
   const regard = resolveNarrativeAnswer("regard", input.answers.regard, random);
 
@@ -224,7 +265,7 @@ export function recommendDnd5eGuidedNarrative(
   const backgroundCandidates = PAST_BACKGROUND_MAP[past.resolvedId as keyof typeof PAST_BACKGROUND_MAP];
   const speciesCandidates = HERITAGE_SPECIES_MAP[heritage.resolvedId as keyof typeof HERITAGE_SPECIES_MAP];
   const alignmentId = ALIGNMENT_MAP[`${order.resolvedId}:${regard.resolvedId}`];
-  if (!classCandidates || !backgroundCandidates || !speciesCandidates || !alignmentId || !isSupportedAlignment(alignmentId)) {
+  if (!classCandidates || !backgroundCandidates || !speciesCandidates || !isEquipmentPreferenceId(equipment.resolvedId) || !alignmentId || !isSupportedAlignment(alignmentId)) {
     throw new Error("Guided Narrative resolved to an unmapped D&D answer.");
   }
   const alignmentCandidates = [alignmentId];
@@ -237,12 +278,25 @@ export function recommendDnd5eGuidedNarrative(
     mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
     mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
     seed,
-    answers: { role, past, heritage, order, regard },
+    answers: { role, past, heritage, equipment, order, regard },
     classChoice: { candidateIds: [...classCandidates], recommendedId: pick(classCandidates, random) },
     backgroundChoice: { candidateIds: [...backgroundCandidates], recommendedId: pick(backgroundCandidates, random) },
     speciesChoice: { candidateIds: [...speciesCandidates], recommendedId: pick(speciesCandidates, random) },
     alignmentChoice: { candidateIds: alignmentCandidates, recommendedId: alignmentId },
   };
+}
+
+export function resolveDnd5eGuidedNarrativeEquipmentChoices(
+  preferenceId: string,
+  classId: GuidedDnd5eClassId,
+): Dnd5eGuidedNarrativeEquipmentChoices {
+  if (!isEquipmentPreferenceId(preferenceId)) throw new Error("Unsupported Guided Narrative starting-equipment preference.");
+  const classEquipmentChoice = preferenceId === "prepared-gear" ? "A" : CLASS_STARTING_GOLD_CHOICES[classId];
+  const backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice = preferenceId === "prepared-gear" ? "A" : "B:50-gp";
+  if (!classChoiceRules(classId).equipmentChoices.some((option) => option.id === classEquipmentChoice)) {
+    throw new Error(`Guided Narrative equipment preference does not map to a legal ${classId} starting-equipment choice.`);
+  }
+  return { preferenceId, classEquipmentChoice, backgroundEquipmentChoice };
 }
 
 export function guidedNarrativeGenerateDnd5eFirstSlice(
@@ -253,8 +307,10 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   const backgroundId = resolveOverride(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
   const speciesId = resolveOverride(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species");
   const alignmentId = recommendation.alignmentChoice.recommendedId;
+  const equipmentChoices = resolveDnd5eGuidedNarrativeEquipmentChoices(recommendation.answers.equipment.resolvedId, classId);
   const coreChoices = defaultGuidedDnd5eCoreChoices(classId, backgroundId, speciesId);
   coreChoices.alignmentId = alignmentId;
+  coreChoices.classEquipmentChoice = equipmentChoices.classEquipmentChoice;
 
   const character = guidedGenerateDnd5eFirstSlice({
     name: input.name ?? "",
@@ -264,29 +320,32 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
     coreChoices,
     abilityMethod: { method: "standard-array", assignment: narrativeStandardArray(classId) },
     backgroundIncreases: narrativeBackgroundIncreases(classId, backgroundId),
-    backgroundEquipmentChoice: "A",
+    backgroundEquipmentChoice: equipmentChoices.backgroundEquipmentChoice,
   });
 
   const generation = character.generation;
   if (!generation) throw new Error("Guided Narrative generation did not produce provenance.");
   const baseGuidedRecipe = generation.recipe;
-  const narrativeDecisions = createNarrativeDecisions(recommendation, { classId, backgroundId, speciesId, alignmentId });
+  const narrativeDecisions = createNarrativeDecisions(recommendation, { classId, backgroundId, speciesId, alignmentId, ...equipmentChoices });
   const filteredBaseDecisions = generation.decisions
     .filter((decision) => !["class.acceptable-pool", "background.acceptable-pool", "species.acceptable-pool"].includes(decision.stepId))
     .map((decision) => rewriteMappedChoiceRationale(decision, recommendation, { classId, backgroundId, speciesId, alignmentId }));
 
   generation.methodId = "dnd5e:guided-narrative-level-one";
   generation.mode = "guided-narrative";
-  generation.recipeVersion = "0.2";
+  generation.recipeVersion = "0.3";
   generation.seed = recommendation.seed;
   generation.recipe = {
     mappingId: recommendation.mappingId,
     mappingVersion: recommendation.mappingVersion,
-    sequence: ["narrative.role", "narrative.past", "narrative.heritage", "narrative.order", "narrative.regard", "mapped-guided-generation"],
+    sequence: ["narrative.role", "narrative.past", "narrative.heritage", "narrative.equipment", "narrative.order", "narrative.regard", "mapped-guided-generation"],
     classId,
     backgroundId,
     speciesId,
     alignmentId,
+    equipmentPreferenceId: equipmentChoices.preferenceId,
+    classEquipmentChoice: equipmentChoices.classEquipmentChoice,
+    backgroundEquipmentChoice: equipmentChoices.backgroundEquipmentChoice,
     abilityMethod: "standard-array",
     baseGuidedRecipe,
   };
@@ -312,26 +371,35 @@ function resolveNarrativeAnswer(
 
 function createNarrativeDecisions(
   recommendation: Dnd5eGuidedNarrativeRecommendation,
-  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; alignmentId: string },
+  finalChoices: {
+    classId: GuidedDnd5eClassId;
+    backgroundId: GuidedDnd5eBackgroundId;
+    speciesId: GuidedDnd5eSpeciesId;
+    alignmentId: string;
+    preferenceId: Dnd5eGuidedNarrativeEquipmentPreferenceId;
+    classEquipmentChoice: string;
+    backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+  },
 ): GenerationDecision[] {
   return [
     answerDecision("role", recommendation.answers.role),
     answerDecision("past", recommendation.answers.past),
     answerDecision("heritage", recommendation.answers.heritage),
+    answerDecision("equipment", recommendation.answers.equipment),
     answerDecision("order", recommendation.answers.order),
     answerDecision("regard", recommendation.answers.regard),
     mappingDecision("class", recommendation.classChoice, finalChoices.classId),
     mappingDecision("background", recommendation.backgroundChoice, finalChoices.backgroundId),
     mappingDecision("species", recommendation.speciesChoice, finalChoices.speciesId),
     mappingDecision("alignment", recommendation.alignmentChoice, finalChoices.alignmentId),
+    equipmentMappingDecision(finalChoices),
     {
       stepId: "narrative.remaining-choices",
       answer: {
         abilityMethod: "standard-array",
-        coreChoices: "current-guided-defaults-except-alignment",
-        backgroundEquipmentChoice: "A",
+        coreChoices: "current-guided-defaults-except-mapped-alignment-and-class-equipment",
       },
-      rationale: "Guided Narrative maps Class, Background, Species, and Alignment; remaining legal choices use the existing guided defaults.",
+      rationale: "Guided Narrative maps Class, Background, Species, Alignment, and starting equipment; remaining legal choices use the existing guided defaults.",
     },
   ];
 }
@@ -379,6 +447,29 @@ function mappingDecision<TId extends string>(
   };
 }
 
+function equipmentMappingDecision(
+  choices: {
+    preferenceId: Dnd5eGuidedNarrativeEquipmentPreferenceId;
+    classEquipmentChoice: string;
+    backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+  },
+): GenerationDecision {
+  return {
+    stepId: "narrative.mapping.equipment",
+    answer: {
+      mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
+      mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
+      recommendedPreferenceId: choices.preferenceId,
+      startingClassEquipmentChoice: choices.classEquipmentChoice,
+      startingBackgroundEquipmentChoice: choices.backgroundEquipmentChoice,
+      finalClassEquipmentChoice: choices.classEquipmentChoice,
+      finalBackgroundEquipmentChoice: choices.backgroundEquipmentChoice,
+      changedAfterContinuation: false,
+    },
+    rationale: "The Guided Narrative equipment preference mapped to the existing legal Class and Background starting-equipment choices.",
+  };
+}
+
 function rewriteMappedChoiceRationale(
   decision: GenerationDecision,
   recommendation: Dnd5eGuidedNarrativeRecommendation,
@@ -388,6 +479,9 @@ function rewriteMappedChoiceRationale(
   if (decision.stepId === "background") return { ...decision, rationale: mappedChoiceRationale("background", recommendation.backgroundChoice.recommendedId, finalChoices.backgroundId) };
   if (decision.stepId === "species") return { ...decision, rationale: mappedChoiceRationale("species", recommendation.speciesChoice.recommendedId, finalChoices.speciesId) };
   if (decision.stepId === "alignment") return { ...decision, rationale: mappedChoiceRationale("alignment", recommendation.alignmentChoice.recommendedId, finalChoices.alignmentId) };
+  if (decision.stepId === "class.equipment" || decision.stepId === "background.equipment") {
+    return { ...decision, rationale: "Mapped from the player's Guided Narrative starting-equipment preference." };
+  }
   return decision;
 }
 
@@ -437,6 +531,10 @@ function resolveOverride<TId extends string>(
     throw new Error(`Guided Narrative ${label} override must stay within the narrowed narrative candidate set.`);
   }
   return override;
+}
+
+function isEquipmentPreferenceId(value: string): value is Dnd5eGuidedNarrativeEquipmentPreferenceId {
+  return value === "prepared-gear" || value === "starting-gold";
 }
 
 function isSupportedAlignment(value: string): boolean {
