@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, the first guided class/background/species path, the first system-neutral random-table evaluator, and the first structured naming contract are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, the first guided class/background/species path, the first system-neutral random-table evaluator, and structured D&D name-suggestion provenance are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -45,7 +45,8 @@ The current D&D guided path supports:
 - sticky/direct/random-from-acceptable Background choices;
 - sticky/direct/random-from-acceptable Species choices;
 - Criminal and Soldier as real enabled backgrounds;
-- Standard Array, Point Cost, Random, or Manual as interchangeable ability methods inside one guided native builder.
+- Standard Array, Point Cost, Random, or Manual as interchangeable ability methods inside one guided native builder;
+- provider/source/version/seed provenance when a generated display name is accepted.
 
 ### Guided narrative
 
@@ -84,7 +85,8 @@ Automated-green on Character Forge `dev`:
 - Random Generation;
 - guided Class / Background / Species creation;
 - Criminal and Soldier background mechanics;
-- all four explicit ability methods inside the guided creator.
+- all four explicit ability methods inside the guided creator;
+- structured generated-name provenance while preserving plain native/display-name state.
 
 The accumulated non-accepted generation work remains on `dev` pending combined owner runtime QA.
 
@@ -98,16 +100,16 @@ Do not generalize a full dependency graph until guided creation creates enough r
 
 ### Random-table companion
 
-The first system-neutral random-table evaluator now exists in `generator-core`; `refs/product/random-table-companion.md` is the current contract.
+The first system-neutral random-table evaluator exists in `generator-core`; `refs/product/random-table-companion.md` is the current contract.
 
 It supports versioned weighted tables, deterministic seed plus explicit draw-index replay, source/table/evaluator provenance, and arbitrary typed result payloads. The core does not know trait/ideal/bond/flaw/equipment semantics and never patches native character state directly.
 
-Two BRP-owned consumers now prove enum-like and nested structured suggestion results without requiring a universal suggestion ontology or nested-table engine. Keep system datasets/mappings system-owned. Do not add nesting, roll-range syntax, universal suggestion ontology, or user-authored table infrastructure until a concrete consumer requires them.
+Two BRP-owned consumers prove enum-like and nested structured suggestion results without requiring a universal suggestion ontology or nested-table engine. Keep system datasets/mappings system-owned. Do not add nesting, roll-range syntax, universal suggestion ontology, or user-authored table infrastructure until a concrete consumer requires them.
 
 ### Structured naming
 
 `refs/product/structured-naming.md` is the current naming contract.
 
-`generator-core` now exposes a minimal provider-based name-suggestion seam with deterministic seed/provenance support and opaque provider-owned context. The shared contract requires only a non-empty display name and does not define species, culture, language, gender, given/family-name parts, or other identity ontology.
+`generator-core` exposes a minimal provider-based name-suggestion seam with deterministic seed/provenance support and opaque provider-owned context. The shared contract requires only a non-empty display name and does not define species, culture, language, gender, given/family-name parts, or other identity ontology.
 
-D&D adapts its existing six-name placeholder list to this contract without expanding the corpus or changing explicit-seed selection behavior. Direct user entry remains authoritative. The next proof is to carry creator-generated name provenance through the ordinary generation record before adding a second provider.
+D&D adapts its existing six-name placeholder list to this contract without expanding the corpus or changing explicit-seed selection behavior. The guided creator now retains accepted provider/source/version/seed provenance as generation decisions; manual edits supersede stale suggestions, blank fallback retains its effective replay seed, and native/display names remain ordinary strings. The next naming proof is to determine the legitimate provider/content boundary for BRP rather than fabricating a second corpus.
