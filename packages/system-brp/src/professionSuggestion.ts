@@ -63,7 +63,7 @@ export function suggestBrpProfession(
   options: BrpProfessionSuggestionOptions = {},
 ): BrpProfessionSuggestion {
   const seed = options.seed?.trim() || createGeneratedSeed("brp-profession");
-  const evaluation = evaluateRandomTable(BRP_PROFESSION_SUGGESTION_TABLE, {
+  const evaluation = evaluateRandomTable<BrpProfessionSuggestionResult>(BRP_PROFESSION_SUGGESTION_TABLE, {
     seed,
     drawIndex: options.drawIndex ?? 0,
   });
