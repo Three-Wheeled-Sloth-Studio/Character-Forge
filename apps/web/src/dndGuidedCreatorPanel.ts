@@ -2,7 +2,9 @@ import type { CharacterDocument } from "../../../packages/character-model/src/in
 import {
   applyDnd5eGuidedNarrativeContinuation,
   applyDnd5eNameSuggestion,
+  isGuidedDnd5eClassId,
   matchingDnd5eNameSuggestion,
+  resolveDnd5eGuidedNarrativeEquipmentChoices,
   suggestDnd5eCharacterName,
   type Dnd5eGuidedNarrativeContinuation,
   type Dnd5eNameSuggestion,
@@ -29,15 +31,19 @@ export function mountDndGuidedCreatorPanel(
 ): DndGuidedCreatorController {
   let nameSuggestion: Dnd5eNameSuggestion | null = null;
   let narrativeContinuation: Dnd5eGuidedNarrativeContinuation | null = null;
-  let alignmentObserver: MutationObserver | null = null;
+  let narrativeObserver: MutationObserver | null = null;
   let narrativeAlignmentTouched = false;
-  let alignmentInteractionTargets = new WeakSet<EventTarget>();
+  let narrativeClassEquipmentTouched = false;
+  let narrativeBackgroundEquipmentTouched = false;
+  let narrativeInteractionTargets = new WeakSet<EventTarget>();
 
   const mountGuided = (): void => {
-    alignmentObserver?.disconnect();
-    alignmentObserver = null;
+    narrativeObserver?.disconnect();
+    narrativeObserver = null;
     narrativeAlignmentTouched = false;
-    alignmentInteractionTargets = new WeakSet<EventTarget>();
+    narrativeClassEquipmentTouched = false;
+    narrativeBackgroundEquipmentTouched = false;
+    narrativeInteractionTargets = new WeakSet<EventTarget>();
 
     mountGuidedCreationPanel(root, (character) => {
       const current = matchingDnd5eNameSuggestion(character.displayName, nameSuggestion);
@@ -64,33 +70,67 @@ export function mountDndGuidedCreatorPanel(
     });
 
     if (narrativeContinuation) {
-      const markAlignmentTouched = (target: EventTarget | null, eventName: "change" | "click"): void => {
-        if (!target || alignmentInteractionTargets.has(target)) return;
-        alignmentInteractionTargets.add(target);
-        target.addEventListener(eventName, () => { narrativeAlignmentTouched = true; });
+      const markTouched = (target: EventTarget | null, eventName: "change" | "click", onTouch: () => void): void => {
+        if (!target || narrativeInteractionTargets.has(target)) return;
+        narrativeInteractionTargets.add(target);
+        target.addEventListener(eventName, onTouch);
       };
-      const applyNarrativeAlignment = (): void => {
-        if (!narrativeContinuation || narrativeAlignmentTouched) return;
-        const alignmentSelect = root.querySelector<HTMLSelectElement>("#creator-alignment");
-        if (!alignmentSelect) return;
-        const alignmentId = narrativeContinuation.initialChoices.alignmentId;
-        if (![...alignmentSelect.options].some((option) => option.value === alignmentId)) return;
-        alignmentSelect.value = alignmentId;
-        markAlignmentTouched(alignmentSelect, "change");
-        markAlignmentTouched(root.querySelector<HTMLButtonElement>("#creator-alignment-random"), "click");
-        for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-core-pool='alignment']")) {
-          markAlignmentTouched(checkbox, "change");
+
+      const applyNarrativeInitialization = (): void => {
+        if (!narrativeContinuation) return;
+
+        if (!narrativeAlignmentTouched) {
+          const alignmentSelect = root.querySelector<HTMLSelectElement>("#creator-alignment");
+          if (alignmentSelect) {
+            const alignmentId = narrativeContinuation.initialChoices.alignmentId;
+            if ([...alignmentSelect.options].some((option) => option.value === alignmentId)) alignmentSelect.value = alignmentId;
+            markTouched(alignmentSelect, "change", () => { narrativeAlignmentTouched = true; });
+            markTouched(root.querySelector<HTMLButtonElement>("#creator-alignment-random"), "click", () => { narrativeAlignmentTouched = true; });
+            for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-core-pool='alignment']")) {
+              markTouched(checkbox, "change", () => { narrativeAlignmentTouched = true; });
+            }
+          }
+        }
+
+        const classSelect = root.querySelector<HTMLSelectElement>("#creator-class-selected");
+        const currentClassId = classSelect?.value;
+        const equipmentChoices = currentClassId && isGuidedDnd5eClassId(currentClassId)
+          ? resolveDnd5eGuidedNarrativeEquipmentChoices(narrativeContinuation.answers.equipment.resolvedId, currentClassId)
+          : null;
+
+        if (!narrativeClassEquipmentTouched && equipmentChoices) {
+          const classEquipmentSelect = root.querySelector<HTMLSelectElement>("#creator-class-equipment");
+          if (classEquipmentSelect) {
+            if ([...classEquipmentSelect.options].some((option) => option.value === equipmentChoices.classEquipmentChoice)) {
+              classEquipmentSelect.value = equipmentChoices.classEquipmentChoice;
+            }
+            markTouched(classEquipmentSelect, "change", () => { narrativeClassEquipmentTouched = true; });
+            markTouched(root.querySelector<HTMLButtonElement>("#creator-class-equipment-random"), "click", () => { narrativeClassEquipmentTouched = true; });
+            for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-core-pool='class-equipment']")) {
+              markTouched(checkbox, "change", () => { narrativeClassEquipmentTouched = true; });
+            }
+          }
+        }
+
+        if (!narrativeBackgroundEquipmentTouched && equipmentChoices) {
+          const backgroundEquipmentSelect = root.querySelector<HTMLSelectElement>("#creator-background-equipment");
+          if (backgroundEquipmentSelect) {
+            if ([...backgroundEquipmentSelect.options].some((option) => option.value === equipmentChoices.backgroundEquipmentChoice)) {
+              backgroundEquipmentSelect.value = equipmentChoices.backgroundEquipmentChoice;
+            }
+            markTouched(backgroundEquipmentSelect, "change", () => { narrativeBackgroundEquipmentTouched = true; });
+          }
         }
       };
 
-      applyNarrativeAlignment();
-      alignmentObserver = new MutationObserver(() => applyNarrativeAlignment());
-      alignmentObserver.observe(root, { childList: true, subtree: true });
+      applyNarrativeInitialization();
+      narrativeObserver = new MutationObserver(() => applyNarrativeInitialization());
+      narrativeObserver.observe(root, { childList: true, subtree: true });
 
       const heading = root.querySelector<HTMLElement>(".creator-heading");
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = "Started from Guided Narrative. Class, Background, Species, and Alignment were initialized from that result; later Guided Mechanical edits are authoritative.";
+      note.textContent = "Started from Guided Narrative. Class, Background, Species, Alignment, and starting equipment were initialized from that result; later Guided Mechanical edits are authoritative.";
       heading?.append(note);
     }
   };
