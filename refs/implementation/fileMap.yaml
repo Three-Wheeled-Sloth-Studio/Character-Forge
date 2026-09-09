@@ -49,7 +49,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. guidedNarrative.ts owns six bounded Narrative questions, Class/Background/Species narrowing, two-question Alignment decomposition, starting-equipment preference mapping, mapping version 4, and the five-choice ceiling. guidedNarrativeContinuation.ts owns replayable Narrative -> Guided Mechanical transfer provenance including Alignment and starting Class/Background equipment. guidedGenerate.ts remains the ordinary native-construction path.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. guidedNarrative.ts owns six global bounded Narrative questions, Class/Background/Species narrowing, two-question Alignment decomposition, starting-equipment preference, the conditional Fighter Fighting Style branch, mapping version 5, and the five-choice ceiling. guidedNarrativeContinuation.ts owns replayable Narrative -> Guided Mechanical provenance including Alignment, equipment, and applicable Fighter Fighting Style. guidedGenerate.ts remains the ordinary native-construction path.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -68,7 +68,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching and wires explicit Narrative continuation. dndNarrativeCreatorPanel renders six system-owned bounded questions and shows mapped Alignment and starting-equipment preference without large mechanical catalogs. dndGuidedCreatorPanel initializes Class/Background/Species, Alignment, Class equipment, and Background equipment into the existing detailed form. Alignment and Class-equipment initialization survive relevant rerenders until explicit player interaction without persisting over sticky acceptable pools.
+    notes: dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching and explicit Narrative continuation. dndNarrativeCreatorPanel renders six global bounded questions plus the Fighter-only Fighting Style branch when applicable. dndGuidedCreatorPanel initializes Class/Background/Species, Alignment, Class/Background equipment, and applicable Fighter Fighting Style into existing detailed controls. Rerender-sensitive initialization stops after explicit player interaction and does not persist over sticky acceptable pools.
   project-memory:
     guidance:
       - AGENTS.md
@@ -79,7 +79,7 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Audit the next D&D Guided Narrative class-defining choice
+  - task: Add or audit the Cleric/Druid Guided Narrative order preference
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
@@ -93,9 +93,19 @@ common_tasks:
       - packages/system-dnd5e/src/guidedDefaults.ts
       - packages/system-dnd5e/src/clericCatalog.ts
       - packages/system-dnd5e/src/druidCatalog.ts
-      - packages/system-dnd5e/src/warlockCatalog.ts
-      - packages/system-dnd5e/src/preparedCasterCatalog.ts
-      - packages/system-dnd5e/src/srdCatalog.ts
+      - apps/web/src/dndNarrativeCreatorPanel.ts
+      - apps/web/src/dndGuidedCreatorPanel.ts
+      - apps/web/src/guidedCreationPanel.ts
+      - apps/web/src/stickyChoicePool.ts
+  - task: Inspect the Fighter Guided Narrative Fighting Style branch
+    look_in:
+      - refs/product/creator-workspace.md
+      - refs/product/generation-methods.md
+      - packages/system-dnd5e/src/guidedNarrative.ts
+      - packages/system-dnd5e/src/guidedNarrative.test.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
+      - packages/system-dnd5e/src/guidedChoices.ts
       - apps/web/src/dndNarrativeCreatorPanel.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
       - apps/web/src/guidedCreationPanel.ts
@@ -136,13 +146,6 @@ common_tasks:
       - apps/web/src/dndCreatorPanel.ts
       - apps/web/src/stickyChoicePool.ts
       - apps/web/src/stickyChoicePool.test.ts
-  - task: Inspect D&D Guided Narrative choice shaping
-    look_in:
-      - refs/product/creator-workspace.md
-      - refs/product/generation-methods.md
-      - packages/system-dnd5e/src/guidedNarrative.ts
-      - packages/system-dnd5e/src/guidedNarrative.test.ts
-      - apps/web/src/dndNarrativeCreatorPanel.ts
   - task: Inspect D&D Quick top-level creator mode
     look_in:
       - refs/product/creator-workspace.md
