@@ -13,7 +13,7 @@ areas:
       - refs/product/random-table-companion.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice-expression primitives, and deterministic provenance-bearing random-table evaluation.
+    notes: System-neutral seeded randomness, dice-expression primitives, and deterministic provenance-bearing random-table evaluation. Do not move naming here without concrete system-neutral evidence.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -25,14 +25,14 @@ areas:
       - packages/system-brp/src/professionSuggestion.test.ts
       - packages/system-brp/src/scholarAcademicSuggestion.ts
       - packages/system-brp/src/scholarAcademicSuggestion.test.ts
-    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. Profession covers enum-like suggestion; Scholar academic covers nested structured results and independent per-slot provenance. No universal suggestion schema or nested-table engine is justified yet.
+    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. No universal suggestion schema or nested-table engine is justified yet.
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, and random ability generation. Next touched slice is the bounded Random-ability UX debt.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, and a temporary flat name generator that should be audited rather than expanded.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -41,14 +41,14 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Randomize All deliberately uses only Profession and Standard-Rolled characteristic seams; demographic distributions remain undefined.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Randomize All deliberately uses only Profession and Standard-Rolled characteristic seams; name and demographic randomizers remain undefined.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
     source_roots:
       - apps/web/src
-    notes: Shared Character Forge workspace now owns one Randomize All interaction. creatorRandomization.ts re-resolves field randomizers after each invocation while system-specific rules/distributions remain in existing controls. Runtime QA plus D&D Random-ability UX is next.
+    notes: Shared workspace owns Randomize All orchestration only. dndRandomAbilityUx.ts handles bounded D&D Random-method presentation and one-to-one roll-slot swapping without changing system rules. Next slice is structured naming-seam discovery.
   project-memory:
     guidance:
       - AGENTS.md
@@ -59,18 +59,27 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue Randomize All QA or orchestration work
+  - task: Discover the structured naming seam
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/product/generation-methods.md
+      - apps/web/src/creatorWorkspace.ts
+      - packages/system-dnd5e/src
+      - packages/system-brp/src
+  - task: Continue Randomize All QA or orchestration work
+    look_in:
+      - refs/handoffs/currentHandoff.md
       - apps/web/src/creatorWorkspace.ts
       - apps/web/src/creatorRandomization.ts
       - apps/web/src/creatorRandomization.test.ts
       - apps/web/src/guidedCreationPanel.ts
       - apps/web/src/brpCreatorPanel.ts
-  - task: Fix D&D Random ability UX
+  - task: Inspect or adjust D&D Random ability UX
     look_in:
       - refs/handoffs/currentHandoff.md
+      - apps/web/src/dndRandomAbilityUx.ts
+      - apps/web/src/dndRandomAbilityUx.test.ts
       - apps/web/src/guidedCreationPanel.ts
       - packages/system-dnd5e/src/randomGenerate.ts
       - packages/system-dnd5e/src/randomGenerate.test.ts
