@@ -3,6 +3,7 @@ export * from "./characteristicGeneration.js";
 export * from "./firstSlice.js";
 export * from "./nativeCharacter.js";
 export * from "./powerLevel.js";
+export * from "./professionSuggestion.js";
 export * from "./professions.js";
 export * from "./rulesSource.js";
 export * from "./skills.js";

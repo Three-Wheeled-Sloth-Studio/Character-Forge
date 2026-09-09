@@ -5,10 +5,15 @@ import {
   generateBrpStandardRolledCharacteristics,
   type BrpCharacteristicId,
   type BrpCharacteristicRedistributionInput,
+  type BrpProfessionSuggestionProvenance,
 } from "../../../packages/system-brp/src/index.js";
 import type { BrpCreatorPreview, BrpCreatorState } from "./brpCreatorState.js";
 
-export function brpCreatorHtml(state: BrpCreatorState, preview: BrpCreatorPreview): string {
+export function brpCreatorHtml(
+  state: BrpCreatorState,
+  preview: BrpCreatorPreview,
+  professionSuggestion: BrpProfessionSuggestionProvenance | null = null,
+): string {
   return `
     <section class="creator-panel compact-creator brp-creator-panel">
       <div class="creator-heading"><p class="eyebrow">Basic Roleplaying</p><h2>BRP UGE creator</h2><p>2023 ORC rules profile, corrections 1.05. Only the currently supported narrow human character surface is exposed.</p></div>
@@ -17,7 +22,8 @@ export function brpCreatorHtml(state: BrpCreatorState, preview: BrpCreatorPrevie
         <div class="brp-inline-grid"><label>Age<input id="brp-age" type="number" min="18" max="49" step="1" value="${state.age}"></label><label>Gender<input id="brp-gender" value="${escapeHtml(state.gender)}" autocomplete="off"></label></div>
         <div class="brp-inline-grid"><label>Wealth<select id="brp-wealth"><option value="average"${selected(state.wealth === "average")}>Average</option><option value="affluent"${selected(state.wealth === "affluent")}>Affluent</option></select></label><label>Power level<select id="brp-power"><option value="normal"${selected(state.powerLevel === "normal")}>Normal</option><option value="heroic"${selected(state.powerLevel === "heroic")}>Heroic</option></select></label></div>
         ${state.powerLevel === "heroic" ? `<label>Retained default starting age<input id="brp-default-age" type="number" min="18" max="23" step="1" value="${state.defaultStartingAge}"><span class="muted">Heroic age causality remains retained in native state.</span></label>` : ""}
-        <label>Profession<select id="brp-profession"><option value="detective"${selected(state.professionId === "detective")}>Detective</option><option value="scholar"${selected(state.professionId === "scholar")}>Scholar</option></select></label>
+        <div class="choice-pick-row"><label>Profession<select id="brp-profession"><option value="detective"${selected(state.professionId === "detective")}>Detective</option><option value="scholar"${selected(state.professionId === "scholar")}>Scholar</option></select></label><button id="brp-profession-random" class="secondary-button" type="button" title="Suggest a profession from the BRP UGE first-slice table">Suggest</button></div>
+        ${professionSuggestionHtml(professionSuggestion)}
         <div id="brp-profession-controls">${professionControlsHtml(state)}</div>
         <div class="section-divider"></div>
         <label>Characteristic generation<select id="brp-generation-method"><option value="explicit"${selected(state.characteristicMethod === "explicit")}>Explicit</option><option value="standard-rolled"${selected(state.characteristicMethod === "standard-rolled")}>Standard Rolled</option></select></label>
@@ -42,6 +48,13 @@ export function readBrpRedistribution(root: HTMLElement): BrpCharacteristicRedis
     if (from && to) result.push({ from, to, points });
   }
   return result;
+}
+
+function professionSuggestionHtml(provenance: BrpProfessionSuggestionProvenance | null): string {
+  if (!provenance) return "";
+  const label = provenance.selectedProfessionId === "scholar" ? "Scholar" : "Detective";
+  const details = `Table ${provenance.tableId} v${provenance.tableVersion}; source ${provenance.sourceId} ${provenance.sourceVersion}; evaluator ${provenance.evaluatorVersion}; seed ${provenance.seed}; draw ${provenance.drawIndex}; entry ${provenance.selectedEntryId}`;
+  return `<p class="muted brp-suggestion-note" title="${escapeHtml(details)}">Suggested ${label}. Change Profession to override; replay provenance is retained.</p>`;
 }
 
 function professionControlsHtml(state: BrpCreatorState): string {

@@ -1,8 +1,12 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
-import type {
-  BrpAcademicSkillSelection,
-  BrpCharacteristicId,
-  BrpDetectiveElectiveSkillKey,
+import {
+  applyBrpProfessionSuggestion,
+  readBrpProfessionSuggestion,
+  suggestBrpProfession,
+  type BrpAcademicSkillSelection,
+  type BrpCharacteristicId,
+  type BrpDetectiveElectiveSkillKey,
+  type BrpProfessionSuggestionProvenance,
 } from "../../../packages/system-brp/src/index.js";
 import {
   autoAllocateBrpCreatorState,
@@ -25,9 +29,10 @@ export function mountBrpCreatorPanel(
 ): BrpCreatorPanelController {
   ensureBrpCreatorStyles();
   let state = createDefaultBrpCreatorState();
+  let professionSuggestion: BrpProfessionSuggestionProvenance | null = null;
 
   const render = (): void => {
-    root.innerHTML = brpCreatorHtml(state, previewBrpCreatorState(state));
+    root.innerHTML = brpCreatorHtml(state, previewBrpCreatorState(state), professionSuggestion);
     bindCurrentControls();
   };
 
@@ -39,8 +44,22 @@ export function mountBrpCreatorPanel(
     bindSelectChange("#brp-wealth", (value) => { state.wealth = value === "affluent" ? "affluent" : "average"; render(); });
     bindSelectChange("#brp-power", (value) => { state.powerLevel = value === "heroic" ? "heroic" : "normal"; render(); });
     bindNumberChange("#brp-default-age", (value) => { state.defaultStartingAge = value; render(); });
-    bindSelectChange("#brp-profession", (value) => { state.professionId = value === "scholar" ? "scholar" : "detective"; state.allocations = {}; render(); });
+    bindSelectChange("#brp-profession", (value) => {
+      state.professionId = value === "scholar" ? "scholar" : "detective";
+      professionSuggestion = null;
+      state.allocations = {};
+      render();
+    });
     bindSelectChange("#brp-generation-method", (value) => { state.characteristicMethod = value === "standard-rolled" ? "standard-rolled" : "explicit"; state.allocations = {}; render(); });
+
+    root.querySelector<HTMLButtonElement>("#brp-profession-random")?.addEventListener("click", () => {
+      const suggestion = suggestBrpProfession();
+      const changedProfession = state.professionId !== suggestion.result.professionId;
+      state.professionId = suggestion.result.professionId;
+      professionSuggestion = suggestion.provenance;
+      if (changedProfession) state.allocations = {};
+      render();
+    });
 
     for (const input of root.querySelectorAll<HTMLInputElement>("[data-brp-characteristic]")) {
       input.addEventListener("change", () => {
@@ -92,7 +111,13 @@ export function mountBrpCreatorPanel(
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const preview = previewBrpCreatorState(state);
-      if (preview.validCharacter) onCharacter(preview.validCharacter);
+      if (preview.validCharacter) {
+        onCharacter(
+          professionSuggestion
+            ? applyBrpProfessionSuggestion(preview.validCharacter, professionSuggestion)
+            : preview.validCharacter,
+        );
+      }
       render();
     });
   };
@@ -139,7 +164,13 @@ export function mountBrpCreatorPanel(
   };
 
   render();
-  return { openCharacter(character: CharacterDocument): void { state = reopenBrpCreatorState(character); render(); } };
+  return {
+    openCharacter(character: CharacterDocument): void {
+      state = reopenBrpCreatorState(character);
+      professionSuggestion = readBrpProfessionSuggestion(character);
+      render();
+    },
+  };
 }
 
 function requiredElement<T extends Element>(root: ParentNode, selector: string, type: { new (...args: never[]): T }): T {
