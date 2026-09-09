@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DND5E_PLACEHOLDER_NAME_PROVIDER,
+  matchingDnd5eNameSuggestion,
   resolveDnd5eCharacterName,
   suggestDnd5eCharacterName,
 } from "./nameGeneration.js";
@@ -23,6 +24,16 @@ describe("D&D name suggestion provider", () => {
       sources: [{ id: "character-forge.dnd5e.placeholder-names", version: "1" }],
       seed: "source-boundary",
     });
+  });
+
+  it("keeps only current, replayable D&D suggestions attached to a matching submitted name", () => {
+    const suggestion = suggestDnd5eCharacterName("matching-name");
+    expect(matchingDnd5eNameSuggestion(suggestion.result.displayName, suggestion)).toBe(suggestion);
+    expect(matchingDnd5eNameSuggestion("Manual Override", suggestion)).toBeUndefined();
+    expect(matchingDnd5eNameSuggestion(suggestion.result.displayName, {
+      ...suggestion,
+      provenance: { ...suggestion.provenance, providerVersion: "stale" },
+    })).toBeUndefined();
   });
 
   it("keeps direct user entry authoritative over generated suggestions", () => {
