@@ -1,4 +1,5 @@
-export * from "./adapter.js";
+export { brpUge105Adapter as brpUge105BaseAdapter } from "./adapter.js";
+export { brpUge105Adapter } from "./poweredAdapter.js";
 export * from "./characteristicGeneration.js";
 export * from "./firstSlice.js";
 export * from "./nativeCharacter.js";
@@ -8,3 +9,4 @@ export * from "./professions.js";
 export * from "./rulesSource.js";
 export * from "./scholarAcademicSuggestion.js";
 export * from "./skills.js";
+export * from "./superpowers.js";
