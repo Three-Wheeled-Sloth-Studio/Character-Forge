@@ -9,6 +9,7 @@ export * from "./guidedCoreValidation.js";
 export * from "./guidedDefaults.js";
 export * from "./guidedFirstSlice.js";
 export * from "./guidedGenerate.js";
+export * from "./guidedNarrative.js";
 export * from "./guidedStandardArrayGenerate.js";
 export * from "./manualGenerate.js";
 export * from "./nameGeneration.js";
