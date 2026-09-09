@@ -4,10 +4,6 @@ export function ensureBrpCreatorStyles(): void {
   const style = document.createElement("style");
   style.id = styleId;
   style.textContent = `
-    .creator-system-panel { margin-bottom: 12px; padding: 14px 20px; display: grid; gap: 5px; }
-    .creator-system-panel label { display: grid; gap: 5px; font-size: .82rem; font-weight: 750; }
-    .creator-system-panel select { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid #b9aa96; border-radius: 9px; background: #fffdf9; color: #221d19; }
-    .creator-system-panel p { margin: 0; }
     .brp-creator-panel,
     .brp-creator-panel .creator-form,
     .brp-creator-panel fieldset,
