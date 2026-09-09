@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { brpUge105Adapter, type BrpNativeCharacter } from "../../../packages/system-brp/src/index.js";
 import {
   autoAllocateBrpCreatorState,

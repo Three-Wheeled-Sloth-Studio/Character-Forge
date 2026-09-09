@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import { creatorSystemForCharacter, defaultCreatorSystem } from "./creatorWorkspace.js";
 
