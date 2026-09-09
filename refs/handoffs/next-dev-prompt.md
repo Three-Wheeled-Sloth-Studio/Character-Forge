@@ -9,42 +9,48 @@ tags:
 ---
 # Next Development Prompt
 
-The first bounded BRP Superpowers architecture proof is complete and automated-green on `dev`.
+The bounded BRP Superpowers and Psychic Abilities architecture probes are complete and automated-green on `dev`.
 
 There is **no automatic follow-on implementation authorized by chronology**. Follow the user's explicitly selected product line.
 
 ## Bounded Re-entry
 
-If continuing BRP Powers work, begin with:
+For any BRP continuation, begin with:
 
-`python refs/tools/generate_agent_context.py --focus "BRP power-system architecture"`
+`python refs/tools/generate_agent_context.py --focus "BRP current product line"`
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/integration/brp-uge-orc.md`
 3. `refs/implementation/fileMap.yaml`
-4. `packages/system-brp/src/superpowers.ts`
-5. `packages/system-brp/src/poweredAdapter.ts`
-6. `packages/system-brp/src/superpowers.test.ts`
-7. targeted existing BRP builder/native files only when required.
+4. the system-owned files for the explicitly selected slice.
+
+If the selected work concerns Powers, inspect:
+
+- `packages/system-brp/src/superpowers.ts`
+- `packages/system-brp/src/poweredAdapter.ts`
+- `packages/system-brp/src/superpowers.test.ts`
+- `packages/system-brp/src/psychicAbilities.ts`
+- `packages/system-brp/src/psychicAdapter.ts`
+- `packages/system-brp/src/psychicAbilities.test.ts`
 
 Prefer diff-first continuation and conserve agent context.
 
-## Accepted Superpowers Checkpoint
+## Accepted Psychic Checkpoint
 
 Implementation checkpoint:
 
-- SHA: `bc0a05fb9b96c9777a73726100828712cd8bbb41`
-- Actions: `34413436457`
-- job: `102672848273`
+- SHA: `ae35b556dfc177f12e9f934fedd455803c6b74c7`
+- Actions: `34417631582`
+- job: `102685926895`
 - Verify: success
-- 45 test files / 223 tests / 0 failures
-- 175 tracked paths
+- 46 test files / 231 tests / 0 failures
+- 178 tracked paths
 - 14 required project-memory files
 - OKF: 20 concepts / 10 indexes
-- agent context: 3,730 characters
-- build: `Character Forge build 0.0.1 bc0a05fb`
+- agent context: 3,818 characters
+- build: `Character Forge build 0.0.1 ae35b556`
 
 The final documentation head may be newer; use the current `dev` head at re-entry and preserve the implementation checkpoint above as the tested code milestone.
 
@@ -55,65 +61,86 @@ Promoted branches remain unchanged unless an explicit promotion decision is made
 
 Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## What The First Powers Slice Proved
+## What The Two Powers Probes Proved
 
-BRP skill-construction level and power level must remain separate dimensions.
+BRP skill-construction level and power-system level are independent dimensions.
 
-The current `rulesProfile.powerLevel` remains the established Normal/Heroic skill-construction profile. The optional Superpowers state owns its own independent Normal/Heroic power level.
+The existing `rulesProfile.powerLevel` remains the established Normal/Heroic skill-construction profile. Individual BRP power systems retain their own source-native state.
 
-A test explicitly retains Normal skill construction with Heroic Superpowers.
+### Superpowers
 
-`brp-character/0.1` did not require a schema bump. Existing non-powered documents remain valid.
+The first probe uses a separate character-point grammar:
 
-Implemented Superpowers are intentionally only:
-
+- source-derived character-point budget from initial characteristics;
+- Normal/Heroic Superpowers levels independent of skill profile;
 - Extra Energy;
-- Extra Hit Points.
+- Extra Hit Points;
+- direct powered effects on Power Points / Hit Points / Major Wound level.
 
-The retained Superpowers state includes:
+### Psychic Abilities
 
-- system ID;
-- independent power level;
-- source budget method;
-- highest initial characteristic basis;
-- total/spent/remaining character points;
-- exact power IDs, levels, and costs.
+The second probe uses a different grammar:
 
-Powered derived state applies Extra Energy to Power Points and Extra Hit Points to Hit Points / Major Wound level.
+- Normal Psychic profile only in the current proof;
+- exactly two starting abilities;
+- Empathy and Mind Shield;
+- base rating `POW x 1`;
+- percentile ratings kept outside ordinary `skills`;
+- personal `INT x 10` skill points may be reallocated into Psychic Ability training;
+- ordinary personal skill spend plus Psychic training must equal the single personal pool;
+- skill-construction starting cap still governs the resulting Psychic rating;
+- Power Point use belongs to the ability's power semantics rather than ordinary skill state.
 
-For standard-rolled characters, the Superpowers budget uses initial characteristic values before redistribution.
+For rolled characters, Psychic base rating uses final starting POW after redistribution. This intentionally differs from Superpowers budgeting, which uses initial characteristics before redistribution.
 
-## Candidate Next Architecture Probe
+`brp-character/0.1` remains sufficient and shared CharacterDocument remains unchanged.
 
-If the user explicitly asks to continue BRP Powers architecture, prefer a **Psychic Abilities verification slice** before broadening Superpowers.
+## Stress-Test Decision Point
 
-Why Psychic is the useful contrast:
+The original BRP second-system architecture stress-test goal is now substantially complete.
 
-- it is a distinct BRP power system rather than another Superpower entry;
-- abilities are skill-rated;
-- they can interact with personal skill-point allocation;
-- they commonly consume Power Points;
-- their source grammar therefore differs materially from Superpowers character-point purchasing.
+Do not continue implementing BRP features merely to make the stress-test issue larger. Future BRP work should be one of:
 
-Before implementation, verify exact source behavior and choose the smallest legal Psychic subset that demonstrates the grammar without inventing a universal ability ontology.
+- explicit product breadth;
+- a deliberately selected source-supported architecture probe;
+- creator/runtime work required by a real user-facing BRP target;
+- eventual exact-SHA promotion after the user decides accumulated BRP is ready.
 
-If that evidence fits the existing optional power-system union, extend it. If not, change BRP-native state based on the source evidence. Do not modify shared CharacterDocument merely to make the systems look alike.
+A future Sorcery or Magic probe could test prepared/list-based capability grammars, but that is **not** automatically next and may provide less architecture value than defining the intended BRP product breadth.
 
 ## Do Not Add By Default
 
 Do not automatically add:
 
-- the full Superpowers catalog;
-- Epic or Superhuman power levels;
-- power failings or modifiers;
-- fixed GM character-point budgets;
-- Magic, Mutations, Sorcery, or Psychic systems without a bounded source audit;
+- more Superpowers entries;
+- more Psychic Abilities;
+- Heroic/Epic/Superhuman Psychic profiles;
+- Psychic professional-pool training;
+- Scholar Psychic support;
+- multiple simultaneous power systems/power sets;
+- Magic, Mutations, or Sorcery;
+- runtime Psychic activation/resistance/combat handling;
 - BRP Powers creator UI;
 - power randomization;
 - D&D spell-state reuse;
 - a universal cross-system power/capability ontology.
 
-The current slice is a backend architecture proof, not a claim of broad BRP power support.
+Each needs explicit product intent and a bounded source audit.
+
+## Other Independently Selectable Product Lines
+
+The user may instead explicitly select:
+
+- close/reframe BRP Issue #13 and spin future BRP breadth into separate epics;
+- BRP creator product breadth;
+- random-table companion work with a real consumer;
+- structured naming when a real setting/campaign provider exists;
+- Foundry integration;
+- character advancement/maintenance;
+- D&D accumulated runtime QA/promotion;
+- a deliberate resumption of parked D&D Guided Narrative.
+
+Do not choose among these merely because one appears later in the roadmap.
 
 ## D&D Parking State
 
