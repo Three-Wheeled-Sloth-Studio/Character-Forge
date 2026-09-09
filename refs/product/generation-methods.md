@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, guided mechanical creation, top-level Quick Generate, the first system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, the first Guided Narrative vertical slice, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -35,42 +35,69 @@ The underlying dice-expression capability is system-neutral so different systems
 
 Current D&D implementation uses six `4d6kh3` roll slots. It preserves seed, every raw die, kept dice, totals, and later roll-slot-to-ability assignment. Generated score identity is retained separately from the numeric score so duplicate rolled totals are not ambiguous.
 
-### Guided mechanical creation
+### Guided Mechanical
 
-The user makes ordinary system-native character choices with rules-aware guidance. Guided creation must call the same native generation/validation APIs used by other methods rather than becoming a parallel character model or one giant browser-only wizard.
+The user makes ordinary system-native character choices with rules-aware guidance. Guided creation calls the same native generation/validation APIs used by other methods rather than becoming a parallel character model or one giant browser-only wizard.
 
-The current D&D guided path supports:
+The current D&D Guided Mechanical path supports:
 
 - sticky/direct/random-from-acceptable Class choices;
 - sticky/direct/random-from-acceptable Background choices;
 - sticky/direct/random-from-acceptable Species choices;
-- Criminal and Soldier as real enabled backgrounds;
-- Standard Array, Point Cost, Random, or Manual as interchangeable ability methods inside one guided native builder;
+- all current Level 1 nested class/background/species choices;
+- Standard Array, Point Cost, Random, or Manual as interchangeable ability methods;
 - provider/source/version/seed provenance when a generated display name is accepted.
 
-### Guided narrative
+### Guided Narrative
 
-The user answers fictional or preference-oriented questions and the system maps those answers to weighted mechanical choices. The mapping must remain inspectable and the important answers and generated decisions must be recorded in generation provenance.
+The user answers fictional or preference-oriented questions and the system maps those answers into ordinary mechanical recommendations. The mapping remains inspectable, recommendations remain overridable, and important answers/mappings are retained in generation provenance.
 
-This path should appear early enough to influence generator architecture rather than being bolted onto a completed form wizard. Narrative guidance must ultimately produce ordinary system choices that can be inspected, overridden, validated, and persisted normally.
+The first D&D Guided Narrative slice is implemented as a top-level creation mode beside Guided Mechanical and Quick Generate.
 
-Guided Narrative remains the next concrete D&D creation-mode proof. Do not turn narrative answers into a universal personality ontology or a second native character model. The first slice should map a small set of explicit answers to existing D&D choices through system-owned, inspectable mapping data and then use the ordinary guided/native generation path.
+It currently asks three deliberately small questions about:
 
-### Quick generate
+- preferred contribution when trouble starts;
+- what kind of prior life shaped the character;
+- what kind of heritage sounds interesting to explore.
+
+The system-owned mapping currently targets only already-supported Class, Background, and Species IDs. It exposes candidate IDs plus a recommendation, and the creator exposes the recommended choices as normal selects so the player can override them before generation.
+
+Every narrative question includes an explicit `Choose for me` option. This is a durable narrative product rule. The first D&D implementation resolves `Choose for me` deterministically from the visible narrative seed and retains both the submitted `choose-for-me` answer and the resolved substantive answer.
+
+`guidedNarrativeGenerateDnd5eFirstSlice()` then uses the ordinary Guided/native construction path. The first slice uses:
+
+- current Guided defaults for detailed class/origin/species choices;
+- a legal class-prioritized Standard Array assignment;
+- a legal background +2/+1 increase plan;
+- current background equipment option A.
+
+Narrative-specific information remains in generation metadata:
+
+- mode `guided-narrative`;
+- method ID and recipe version;
+- narrative mapping ID/version;
+- seed;
+- submitted/resolved answers;
+- candidate/recommended/final mapped choices;
+- whether each mapped choice was overridden.
+
+There is no Narrative CharacterDocument schema, native schema, adapter, or semantic personality model.
+
+The next Narrative increment should carry the recommendation into the existing Guided Mechanical editor for detailed customization rather than duplicate that editor inside Narrative.
+
+### Quick Generate
 
 The system produces a legal complete character with minimal input, while still recording the recipe, rules sources, random seed where relevant, and major choices.
 
-Quick Generate is a complete-character front end over ordinary native generation behavior, not a separate character-state format and not merely another ability-score method.
+Quick Generate is a complete-character front end over ordinary native generation behavior, not a separate character-state format and not another ability-score method.
 
-D&D now exposes Quick Generate as a top-level creation mode beside Guided Mechanical. The Quick panel exposes only the current system API inputs, optional name and optional seed, and calls `quickGenerateDnd5eFirstSlice()` directly. Blank values retain the existing generated-name/generated-seed behavior. Explicit seeds retain the existing deterministic mechanics while opaque character/native IDs remain newly generated.
+D&D exposes Quick Generate as a top-level creation mode beside Guided Mechanical and Guided Narrative. Its panel exposes only optional name and optional seed and calls `quickGenerateDnd5eFirstSlice()` directly.
 
-Quick results publish through the same `onCharacter` review/save/host boundary as Guided creation. No parallel CharacterDocument or persistence model was introduced.
-
-`Randomize All` is hidden and disabled in Quick mode. Quick owns its own randomization through `Generate character`, preventing hidden Guided controls from being triggered accidentally.
+Quick results publish through the same `onCharacter` review/save/host boundary as other modes. No parallel CharacterDocument or persistence model was introduced.
 
 ## Product rule
 
-Generation methods converge on the same system-native validation and save boundary. A quick-generated character, manually entered character, Standard Array character, Point Cost character, randomly generated character, and narratively guided character should all result in equally valid native system state.
+Generation methods converge on the same system-native validation and save boundary. A quick-generated, manually entered, Standard Array, Point Cost, randomly generated, Guided Mechanical, or Guided Narrative character should all result in equally valid native system state.
 
 Method-specific information belongs primarily in generation provenance and decisions. Authoritative native state should differ only where the source system itself requires a mechanical difference.
 
@@ -78,57 +105,81 @@ Method-specific information belongs primarily in generation provenance and decis
 
 Do not represent every generation method as a separate full-width panel.
 
-The Character Forge creator keeps universal choices in a stable left-side control surface and the current character details in the right-side review surface. Top-level creation modes sit above method-specific controls. Guided Mechanical owns the ability-method dropdown; Quick Generate is a sibling creation mode rather than a fifth ability option.
+The Character Forge creator keeps generation controls in the left surface and current character details in the right review surface. Top-level creation modes sit above method-specific controls.
 
-## Current D&D checkpoint
+For D&D:
 
-Automated-green on Character Forge `dev`:
+- Guided Mechanical owns the four ability-method choices;
+- Guided Narrative owns its question/recommendation flow;
+- Quick Generate owns its minimal name/seed flow.
 
-- Quick Generate API/accepted host seam;
-- Quick Generate top-level creation mode;
-- Standard Array;
-- Manual Ability Entry;
-- Point Cost;
-- Random Generation;
-- guided Class / Background / Species creation;
-- Criminal and Soldier background mechanics;
-- all four explicit ability methods inside Guided Mechanical;
-- structured generated-name provenance while preserving plain native/display-name state;
-- Quick-mode Randomize All suppression so hidden Guided controls cannot be invoked.
+All three remain ordinary front ends over system-native generation.
 
-Quick creator consolidation checkpoint:
+## Narrative Choose For Me rule
+
+Every narrative question or narrative-choice step must expose `Choose for me` or a semantically equivalent explicit option.
+
+This means:
+
+- the user never has to fabricate a narrative preference merely to continue;
+- the owning system/content package defines what may be selected;
+- seeded random resolution retains replay provenance when used;
+- direct answers and later overrides remain authoritative.
+
+This rule applies to narrative choices. It does not imply that every ordinary mechanical select needs an additional random option.
+
+Shared `Randomize All` is therefore suppressed in Guided Narrative. Narrative uses its explicit per-question `Choose for me` behavior. Quick likewise suppresses shared Randomize All and owns randomization through `Generate character`.
+
+## Current D&D checkpoints
+
+Automated-green Quick creator consolidation:
 
 - SHA: `418db810828c6a44d7b24b88ef69a3b6ffdffc40`;
 - Actions: `34382893940`;
 - job: `102571852183`;
 - 41 test files / 197 tests / 0 failures.
 
-The accumulated non-accepted generation work remains on `dev` pending combined owner runtime QA.
+Automated-green first Guided Narrative vertical slice:
+
+- SHA: `bd5de95193002cb7ad176c5b325d42d5e21ff78c`;
+- Actions: `34384877186`;
+- job: `102578522427`;
+- 42 test files / 203 tests / 0 failures.
+
+The accumulated non-promoted generation work remains on `dev` pending combined owner runtime QA under Issue #11.
 
 ## Future considerations
 
+### Narrative continuation/editing
+
+The next D&D slice should establish a narrow transfer/controller seam from Narrative into Guided Mechanical:
+
+- initialize the existing Guided Mechanical Class, Background, and Species from the Narrative final choices;
+- retain Narrative answer/mapping provenance;
+- allow ordinary Guided Mechanical detail editing afterward;
+- keep sticky acceptable pools separate from per-character Narrative provenance;
+- avoid DOM-click automation when a bounded controller seam can express the transfer directly.
+
+Do not generalize the whole Guided form into a cross-system creator-state model merely for this transfer.
+
 ### Partial regeneration
 
-Generation methods should eventually support partial reroll or regeneration by step without rewriting unrelated character decisions. Random generation already provides evidence for this: roll slots have identities and can be reassigned without rerolling, while rerolling should be a separate explicit action.
+Generation methods should eventually support partial reroll or regeneration by step without rewriting unrelated character decisions. Random generation already provides evidence for this: roll slots have identities and can be reassigned without rerolling, while rerolling is a separate explicit action.
 
-Do not generalize a full dependency graph until guided creation creates enough real choice interactions to justify it.
+Do not generalize a full dependency graph until enough real choice interactions justify it.
 
 ### Random-table companion
 
-The first system-neutral random-table evaluator exists in `generator-core`; `refs/product/random-table-companion.md` is the current contract.
+The system-neutral random-table evaluator exists in `generator-core`; `refs/product/random-table-companion.md` is the current contract.
 
 It supports versioned weighted tables, deterministic seed plus explicit draw-index replay, source/table/evaluator provenance, and arbitrary typed result payloads. The core does not know trait/ideal/bond/flaw/equipment semantics and never patches native character state directly.
 
-Two BRP-owned consumers prove enum-like and nested structured suggestion results without requiring a universal suggestion ontology or nested-table engine. Keep system datasets/mappings system-owned. Do not add nesting, roll-range syntax, universal suggestion ontology, or user-authored table infrastructure until a concrete consumer requires them.
+Two BRP-owned consumers prove enum-like and nested structured suggestion results without requiring a universal suggestion ontology or nested-table engine. Do not force Narrative mapping through the random-table engine merely because both may use randomness.
 
 ### Structured naming
 
 `refs/product/structured-naming.md` is the current naming contract.
 
-`generator-core` exposes a minimal provider-based name-suggestion seam with deterministic seed/provenance support and opaque provider-owned context. The shared contract requires only a non-empty display name and does not define species, culture, language, gender, given/family-name parts, or other identity ontology.
+D&D adapts its existing small placeholder list through the provider seam and retains accepted name provenance while leaving display/native names ordinary strings.
 
-D&D adapts its existing six-name placeholder list to this contract without expanding the corpus or changing explicit-seed selection behavior. The guided creator retains accepted provider/source/version/seed provenance as generation decisions; manual edits supersede stale suggestions, blank fallback retains its effective replay seed, and native/display names remain ordinary strings.
-
-BRP source discovery confirms that the rules engine does not own a generated-name corpus. BRP directs character names to be appropriate to the setting/game and makes optional cultural backgrounds setting/GM-defined. Therefore future BRP naming data is setting/campaign/content-package owned and should be supplied by a concrete caller/provider. `name-suggestion/0.1` already supports that boundary, so no generic content-provider framework or shared naming-contract expansion is justified now.
-
-Naming work can wait for a real setting consumer. The next concrete creator implementation target is the first D&D Guided Narrative vertical slice.
+BRP source discovery confirms that its rules engine does not own a generated-name corpus. Future BRP naming data remains setting/campaign/content-package owned and caller/provider supplied. Naming does not block Narrative continuation work.
