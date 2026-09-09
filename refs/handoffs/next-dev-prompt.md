@@ -74,6 +74,12 @@ At parking:
 
 D&D Issue #11 remains the accumulated runtime-QA/promotion gate.
 
+## Foundation Guardrails
+
+Native system state is mandatory and lossless.
+
+Never reconstruct retained native state from semantic projection. Shared creator code coordinates interactions only; system-owned rules, mappings, distributions, and content remain system-owned. Parchment remains system-agnostic. Preserve exact-SHA promotion provenance.
+
 ## Validation
 
 For any future implementation milestone:
