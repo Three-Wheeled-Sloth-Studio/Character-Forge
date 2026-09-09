@@ -1,11 +1,14 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
-import { DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import type { GuidedBackgroundEquipmentChoice } from "./guidedGenerate.js";
 import {
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   DND5E_GUIDED_NARRATIVE_MAPPING_ID,
   DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
   recommendDnd5eGuidedNarrative,
+  resolveDnd5eGuidedNarrativeEquipmentChoices,
   type Dnd5eGuidedNarrativeAnswers,
+  type Dnd5eGuidedNarrativeEquipmentPreferenceId,
   type Dnd5eGuidedNarrativeMappedChoice,
   type Dnd5eGuidedNarrativeOverrides,
   type Dnd5eGuidedNarrativeQuestionId,
@@ -22,7 +25,7 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_CONTINUATION_METHOD_ID = "dnd5e:guided-narrative-to-guided-level-one";
-export const DND5E_GUIDED_NARRATIVE_CONTINUATION_RECIPE_VERSION = "0.2";
+export const DND5E_GUIDED_NARRATIVE_CONTINUATION_RECIPE_VERSION = "0.3";
 
 export interface Dnd5eGuidedNarrativeContinuation extends Dnd5eGuidedNarrativeRecommendation {
   initialChoices: {
@@ -30,6 +33,8 @@ export interface Dnd5eGuidedNarrativeContinuation extends Dnd5eGuidedNarrativeRe
     backgroundId: GuidedDnd5eBackgroundId;
     speciesId: GuidedDnd5eSpeciesId;
     alignmentId: string;
+    classEquipmentChoice: string;
+    backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
   };
 }
 
@@ -41,11 +46,17 @@ export function createDnd5eGuidedNarrativeContinuation(
   input: CreateDnd5eGuidedNarrativeContinuationInput,
 ): Dnd5eGuidedNarrativeContinuation {
   const recommendation = recommendDnd5eGuidedNarrative(input);
+  const classId = resolveNarrowedChoice(input.overrides?.classId, recommendation.classChoice, isGuidedDnd5eClassId, "class");
+  const backgroundId = resolveNarrowedChoice(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
+  const speciesId = resolveNarrowedChoice(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species");
+  const equipmentChoices = resolveDnd5eGuidedNarrativeEquipmentChoices(recommendation.answers.equipment.resolvedId, classId);
   const initialChoices = {
-    classId: resolveNarrowedChoice(input.overrides?.classId, recommendation.classChoice, isGuidedDnd5eClassId, "class"),
-    backgroundId: resolveNarrowedChoice(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background"),
-    speciesId: resolveNarrowedChoice(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species"),
+    classId,
+    backgroundId,
+    speciesId,
     alignmentId: recommendation.alignmentChoice.recommendedId,
+    classEquipmentChoice: equipmentChoices.classEquipmentChoice,
+    backgroundEquipmentChoice: equipmentChoices.backgroundEquipmentChoice,
   };
   return { ...recommendation, initialChoices };
 }
@@ -58,11 +69,18 @@ export function applyDnd5eGuidedNarrativeContinuation(
   const generation = character.generation;
   if (!generation) throw new Error("Guided Narrative continuation requires generation provenance from Guided Mechanical.");
 
+  const classId = requiredFinalChoice(generation.decisions, "class", isGuidedDnd5eClassId);
   const finalChoices = {
-    classId: requiredFinalChoice(generation.decisions, "class", isGuidedDnd5eClassId),
+    classId,
     backgroundId: requiredFinalChoice(generation.decisions, "background", isGuidedDnd5eBackgroundId),
     speciesId: requiredFinalChoice(generation.decisions, "species", isGuidedDnd5eSpeciesId),
     alignmentId: requiredFinalChoice(generation.decisions, "alignment", isSupportedAlignment),
+    classEquipmentChoice: requiredFinalChoice(
+      generation.decisions,
+      "class.equipment",
+      (value): value is string => classChoiceRules(classId).equipmentChoices.some((option) => option.id === value),
+    ),
+    backgroundEquipmentChoice: requiredFinalChoice(generation.decisions, "background.equipment", isSupportedBackgroundEquipmentChoice),
   };
   const baseGeneration: JsonObject = {
     methodId: generation.methodId,
@@ -96,18 +114,27 @@ export function applyDnd5eGuidedNarrativeContinuation(
 
 function createContinuationDecisions(
   continuation: Dnd5eGuidedNarrativeContinuation,
-  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; alignmentId: string },
+  finalChoices: {
+    classId: GuidedDnd5eClassId;
+    backgroundId: GuidedDnd5eBackgroundId;
+    speciesId: GuidedDnd5eSpeciesId;
+    alignmentId: string;
+    classEquipmentChoice: string;
+    backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+  },
 ): GenerationDecision[] {
   return [
     answerDecision("role", continuation.answers.role),
     answerDecision("past", continuation.answers.past),
     answerDecision("heritage", continuation.answers.heritage),
+    answerDecision("equipment", continuation.answers.equipment),
     answerDecision("order", continuation.answers.order),
     answerDecision("regard", continuation.answers.regard),
     continuationMappingDecision("class", continuation.classChoice, continuation.initialChoices.classId, finalChoices.classId),
     continuationMappingDecision("background", continuation.backgroundChoice, continuation.initialChoices.backgroundId, finalChoices.backgroundId),
     continuationMappingDecision("species", continuation.speciesChoice, continuation.initialChoices.speciesId, finalChoices.speciesId),
     continuationMappingDecision("alignment", continuation.alignmentChoice, continuation.initialChoices.alignmentId, finalChoices.alignmentId),
+    continuationEquipmentMappingDecision(continuation, finalChoices.classEquipmentChoice, finalChoices.backgroundEquipmentChoice),
     {
       stepId: "narrative.continue-guided",
       answer: {
@@ -118,6 +145,8 @@ function createContinuationDecisions(
         backgroundId: continuation.initialChoices.backgroundId,
         speciesId: continuation.initialChoices.speciesId,
         alignmentId: continuation.initialChoices.alignmentId,
+        classEquipmentChoice: continuation.initialChoices.classEquipmentChoice,
+        backgroundEquipmentChoice: continuation.initialChoices.backgroundEquipmentChoice,
       },
       rationale: "The player continued from Guided Narrative into the existing Guided Mechanical editor.",
     },
@@ -172,6 +201,32 @@ function continuationMappingDecision<TId extends string>(
   };
 }
 
+function continuationEquipmentMappingDecision(
+  continuation: Dnd5eGuidedNarrativeContinuation,
+  finalClassEquipmentChoice: string,
+  finalBackgroundEquipmentChoice: GuidedBackgroundEquipmentChoice,
+): GenerationDecision {
+  const preferenceId = continuation.answers.equipment.resolvedId as Dnd5eGuidedNarrativeEquipmentPreferenceId;
+  const changedAfterContinuation = finalClassEquipmentChoice !== continuation.initialChoices.classEquipmentChoice
+    || finalBackgroundEquipmentChoice !== continuation.initialChoices.backgroundEquipmentChoice;
+  return {
+    stepId: "narrative.mapping.equipment",
+    answer: {
+      mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
+      mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
+      recommendedPreferenceId: preferenceId,
+      startingClassEquipmentChoice: continuation.initialChoices.classEquipmentChoice,
+      startingBackgroundEquipmentChoice: continuation.initialChoices.backgroundEquipmentChoice,
+      finalClassEquipmentChoice,
+      finalBackgroundEquipmentChoice,
+      changedAfterContinuation,
+    },
+    rationale: changedAfterContinuation
+      ? "Guided Narrative supplied the starting equipment preference; later Guided Mechanical equipment edits are authoritative."
+      : "The player retained the Guided Narrative starting-equipment choices through Guided Mechanical.",
+  };
+}
+
 function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation): void {
   if (continuation.mappingId !== DND5E_GUIDED_NARRATIVE_MAPPING_ID
     || continuation.mappingVersion !== DND5E_GUIDED_NARRATIVE_MAPPING_VERSION) {
@@ -186,6 +241,7 @@ function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation
   if (!sameResolution(replay.answers.role, continuation.answers.role)
     || !sameResolution(replay.answers.past, continuation.answers.past)
     || !sameResolution(replay.answers.heritage, continuation.answers.heritage)
+    || !sameResolution(replay.answers.equipment, continuation.answers.equipment)
     || !sameResolution(replay.answers.order, continuation.answers.order)
     || !sameResolution(replay.answers.regard, continuation.answers.regard)
     || !sameMapping(replay.classChoice, continuation.classChoice)
@@ -201,6 +257,11 @@ function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation
   if (continuation.initialChoices.alignmentId !== replay.alignmentChoice.recommendedId) {
     throw new Error("Guided Narrative alignment continuation choice does not match its replayed narrative recommendation.");
   }
+  const replayedEquipment = resolveDnd5eGuidedNarrativeEquipmentChoices(replay.answers.equipment.resolvedId, continuation.initialChoices.classId);
+  if (continuation.initialChoices.classEquipmentChoice !== replayedEquipment.classEquipmentChoice
+    || continuation.initialChoices.backgroundEquipmentChoice !== replayedEquipment.backgroundEquipmentChoice) {
+    throw new Error("Guided Narrative equipment continuation choices do not match the replayed narrative preference.");
+  }
 }
 
 function submittedAnswers(continuation: Dnd5eGuidedNarrativeContinuation): Dnd5eGuidedNarrativeAnswers {
@@ -208,6 +269,7 @@ function submittedAnswers(continuation: Dnd5eGuidedNarrativeContinuation): Dnd5e
     role: continuation.answers.role.submittedId as Dnd5eGuidedNarrativeAnswers["role"],
     past: continuation.answers.past.submittedId as Dnd5eGuidedNarrativeAnswers["past"],
     heritage: continuation.answers.heritage.submittedId as Dnd5eGuidedNarrativeAnswers["heritage"],
+    equipment: continuation.answers.equipment.submittedId as Dnd5eGuidedNarrativeAnswers["equipment"],
     order: continuation.answers.order.submittedId as Dnd5eGuidedNarrativeAnswers["order"],
     regard: continuation.answers.regard.submittedId as Dnd5eGuidedNarrativeAnswers["regard"],
   };
@@ -253,6 +315,10 @@ function requiredFinalChoice<TId extends string>(
     throw new Error(`Guided Mechanical generation is missing a supported final ${stepId} decision.`);
   }
   return choiceId;
+}
+
+function isSupportedBackgroundEquipmentChoice(value: string): value is GuidedBackgroundEquipmentChoice {
+  return value === "A" || value === "B:50-gp";
 }
 
 function isSupportedAlignment(value: string): value is string {
