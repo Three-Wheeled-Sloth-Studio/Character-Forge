@@ -8,7 +8,7 @@ tags:
 ---
 # Structured Naming
 
-Status: The first system-neutral name-suggestion contract and one D&D adapter proof are implemented on `dev`. This is a deliberately small boundary, not a universal identity or culture model.
+Status: The first system-neutral name-suggestion contract, D&D placeholder provider, and D&D guided-creator provenance integration are implemented on `dev`. This remains a deliberately small boundary, not a universal identity or culture model.
 
 ## Why this exists
 
@@ -55,13 +55,13 @@ Provider-owned context is not copied automatically into generic provenance. If a
 
 Generated names are suggestions. Direct user entry remains authoritative.
 
-A creator may retain generation provenance for the suggestion that produced the current display name, but a later manual edit must be allowed to supersede that suggestion without the provider forcing the generated value back into native or shared state.
+A creator may retain generation provenance for the suggestion that produced the current display name, but a later manual edit must supersede that suggestion without the provider forcing the generated value back into native or shared state.
 
 No shared naming code owns `CharacterDocument.displayName`.
 
-## D&D adapter proof
+## D&D provider
 
-`packages/system-dnd5e/src/nameGeneration.ts` now exports `DND5E_PLACEHOLDER_NAME_PROVIDER` and `suggestDnd5eCharacterName()`.
+`packages/system-dnd5e/src/nameGeneration.ts` exports `DND5E_PLACEHOLDER_NAME_PROVIDER` and `suggestDnd5eCharacterName()`.
 
 The provider deliberately reuses the existing six placeholder names. The dataset is identified as Character Forge placeholder content:
 
@@ -70,17 +70,44 @@ The provider deliberately reuses the existing six placeholder names. The dataset
 
 It is not represented as WotC SRD naming data.
 
-`resolveDnd5eCharacterName()` remains the compatibility API used by current guided generation. Explicit user input still wins, and the same explicit seed produces the same placeholder selection as before the provider seam.
+`resolveDnd5eCharacterName()` remains a compatibility API. Explicit user input still wins, and the same explicit seed produces the same placeholder selection as before the provider seam.
 
-Quick Generate still uses the existing system-owned `pickDnd5eGeneratedName()` inside its single seeded quick-generation stream. That path was intentionally not rewritten in this discovery slice because changing random-consumption order would be a behavior change without product evidence.
+Quick Generate still uses the existing system-owned `pickDnd5eGeneratedName()` inside its single seeded quick-generation stream. That path remains intentionally unchanged because moving it to an independently seeded suggestion would change random-consumption behavior without product evidence.
+
+## D&D guided creator provenance
+
+The guided D&D path now retains name-specific provenance without changing native identity state.
+
+- Guided generation recipe version is `0.7`.
+- `CharacterDocument.displayName` remains a plain string.
+- D&D native `identity.name` remains the same plain authoritative string.
+- Accepted generated-name provenance is retained as an `identity.name.suggestion` generation decision.
+- The decision records the generated display name, whether the trigger was `explicit-randomize` or `blank-fallback`, and contract/provider/source/version/seed provenance.
+- Blank-name fallback now retains its effective name-generation seed instead of silently discarding it.
+- If random ability generation supplied the historical fallback seed, the naming provider may continue to use that seed so existing behavior is not changed accidentally. Otherwise the naming provider creates a name-specific replay seed.
+
+`matchingDnd5eNameSuggestion()` accepts a retained suggestion only when its current provider/source/version identity is valid, its display name still matches, and replay from its retained seed reproduces the same name.
+
+`applyDnd5eNameSuggestion()` attaches an accepted creator-held suggestion to generation provenance only after the canonical D&D character is built. It verifies both the authoritative `CharacterDocument.displayName` and native identity name, then changes generation decisions only. Native states are not mutated.
+
+The web layer uses `apps/web/src/dndGuidedCreatorPanel.ts` as a thin D&D-specific wrapper around the existing guided panel. It retains the complete suggestion while the generated name remains current. Manual name input clears that creator-local suggestion. This avoids teaching the shared creator workspace any D&D naming rules.
+
+Reopen does not infer or reconstruct a generated suggestion from the display string. An old suggestion therefore cannot overwrite the authoritative retained name simply because the text happens to match a placeholder entry.
+
+Automated-green implementation checkpoint:
+
+- SHA: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`
+- Actions: `34374497101`
+- job: `102543733892`
+- 40 test files / 193 tests / 0 failures
 
 ## Creator and Randomize All boundary
 
-The shared creator does not need to understand naming providers. It coordinates existing system-owned randomizer controls.
+The shared creator does not understand naming providers. It coordinates existing system-owned randomizer controls.
 
-D&D already exposes its name randomizer as one of those controls, so it can participate in `Randomize All` without a naming rule in `creatorWorkspace`.
+D&D's existing name button remains the participation seam for `Randomize All`. The D&D creator wrapper intercepts that same control to retain the complete provider suggestion, so the shared orchestration does not need a naming-specific branch.
 
-A future BRP name randomizer should follow the same pattern only after BRP owns a legitimate provider/dataset. The absence of a provider is a valid state; `Randomize All` must not invent names or distributions merely to be exhaustive.
+A future BRP name randomizer should follow the same pattern only after a legitimate provider/content boundary is chosen. The absence of a provider is a valid state; `Randomize All` must not invent names or distributions merely to be exhaustive.
 
 ## What is intentionally not modeled yet
 
@@ -99,6 +126,8 @@ Do not add these to the shared contract without concrete cross-provider evidence
 
 ## Next proof
 
-The next narrow implementation should carry D&D creator-generated name provenance through the normal generation record while preserving manual override and existing native/display-name behavior.
+The next naming slice is discovery-first: decide where a legitimate BRP name provider and its content should live.
 
-That proof should answer the persistence/reopen question before a second provider is added. A BRP provider should follow only when its source/content boundary is deliberate rather than borrowing the D&D placeholder list or inventing a pseudo-cultural distribution.
+Do not assume BRP's Human profile supplies a culture or naming language. Determine whether name content should be BRP-system-owned, setting/campaign-owned, or supplied by a future shared content/provider layer. If no BRP-specific source legitimately defines names, record that fact rather than fabricating pseudo-BRP culture data.
+
+The existing `name-suggestion/0.1` mechanism should remain unchanged unless this second-provider discovery produces concrete evidence that it is insufficient.
