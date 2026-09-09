@@ -1,7 +1,7 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
 import { createGeneratedSeed, createSeededRandom, type RandomSource } from "../../generator-core/src/index.js";
 import { DND5E_STANDARD_ARRAY, type Dnd5eAbilityIncreasePlan } from "./abilityGeneration.js";
-import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS, DND5E_FIGHTING_STYLE_OPTIONS } from "./guidedChoices.js";
 import { defaultGuidedDnd5eCoreChoices } from "./guidedDefaults.js";
 import { guidedGenerateDnd5eFirstSlice, type GuidedBackgroundEquipmentChoice } from "./guidedGenerate.js";
 import { DND5E_ABILITY_IDS, type Dnd5eAbilityId, type Dnd5eAbilityScores } from "./nativeCharacter.js";
@@ -17,7 +17,7 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_MAPPING_ID = "character-forge.dnd5e.guided-narrative.first-slice";
-export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "4";
+export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "5";
 export const DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID = "choose-for-me";
 export const DND5E_GUIDED_NARRATIVE_TARGET_PRESENTED_CHOICES = 3;
 export const DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5;
@@ -48,6 +48,16 @@ export type Dnd5eGuidedNarrativeEquipmentPreferenceId = Exclude<
   Dnd5eGuidedNarrativeEquipmentAnswerId,
   typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
 >;
+export type Dnd5eGuidedNarrativeFighterStyleAnswerId =
+  | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
+  | "control-from-range"
+  | "hold-the-line"
+  | "heavy-weapon"
+  | "paired-weapons";
+export type Dnd5eGuidedNarrativeFighterStylePreferenceId = Exclude<
+  Dnd5eGuidedNarrativeFighterStyleAnswerId,
+  typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
+>;
 export type Dnd5eGuidedNarrativeOrderAnswerId =
   | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
   | "honor-structure"
@@ -59,6 +69,7 @@ export type Dnd5eGuidedNarrativeRegardAnswerId =
   | "balance-needs"
   | "self-first";
 export type Dnd5eGuidedNarrativeQuestionId = "role" | "past" | "heritage" | "equipment" | "order" | "regard";
+type Dnd5eGuidedNarrativeDecisionQuestionId = Dnd5eGuidedNarrativeQuestionId | "fighter-style";
 
 export interface Dnd5eGuidedNarrativeAnswers {
   role: Dnd5eGuidedNarrativeRoleAnswerId;
@@ -150,6 +161,18 @@ export const DND5E_GUIDED_NARRATIVE_QUESTIONS: readonly Dnd5eGuidedNarrativeQues
   },
 ] as const;
 
+export const DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION = {
+  id: "fighter-style",
+  prompt: "As a Fighter, what fighting approach sounds most fun?",
+  options: [
+    CHOOSE_FOR_ME_OPTION,
+    { id: "control-from-range", label: "Control the fight from range" },
+    { id: "hold-the-line", label: "Stay hard to hurt while holding the line" },
+    { id: "heavy-weapon", label: "Commit to heavy two-handed blows" },
+    { id: "paired-weapons", label: "Fight with a weapon in each hand" },
+  ],
+} as const;
+
 const ROLE_CLASS_MAP: Record<Exclude<Dnd5eGuidedNarrativeRoleAnswerId, typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID>, readonly GuidedDnd5eClassId[]> = {
   "front-line": ["barbarian", "fighter", "paladin"],
   outmaneuver: ["rogue", "ranger", "monk"],
@@ -184,6 +207,13 @@ const CLASS_STARTING_GOLD_CHOICES: Record<GuidedDnd5eClassId, string> = {
   sorcerer: "B",
   warlock: "B",
   wizard: "B",
+};
+
+const FIGHTER_STYLE_MAP: Record<Dnd5eGuidedNarrativeFighterStylePreferenceId, string> = {
+  "control-from-range": "archery",
+  "hold-the-line": "defense",
+  "heavy-weapon": "great-weapon-fighting",
+  "paired-weapons": "two-weapon-fighting",
 };
 
 const ALIGNMENT_MAP: Record<string, string> = {
@@ -226,6 +256,7 @@ export interface Dnd5eGuidedNarrativeRecommendation {
     order: Dnd5eGuidedNarrativeResolvedAnswer;
     regard: Dnd5eGuidedNarrativeResolvedAnswer;
   };
+  fighterStyle: Dnd5eGuidedNarrativeResolvedAnswer;
   classChoice: Dnd5eGuidedNarrativeMappedChoice<GuidedDnd5eClassId>;
   backgroundChoice: Dnd5eGuidedNarrativeMappedChoice<GuidedDnd5eBackgroundId>;
   speciesChoice: Dnd5eGuidedNarrativeMappedChoice<GuidedDnd5eSpeciesId>;
@@ -234,6 +265,7 @@ export interface Dnd5eGuidedNarrativeRecommendation {
 
 export interface RecommendDnd5eGuidedNarrativeInput {
   answers: Dnd5eGuidedNarrativeAnswers;
+  fighterStyle?: Dnd5eGuidedNarrativeFighterStyleAnswerId;
   seed?: string;
 }
 
@@ -260,12 +292,13 @@ export function recommendDnd5eGuidedNarrative(
   const equipment = resolveNarrativeAnswer("equipment", input.answers.equipment, random);
   const order = resolveNarrativeAnswer("order", input.answers.order, random);
   const regard = resolveNarrativeAnswer("regard", input.answers.regard, random);
+  const fighterStyle = resolveFighterStyleAnswer(input.fighterStyle ?? DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID, random);
 
   const classCandidates = ROLE_CLASS_MAP[role.resolvedId as keyof typeof ROLE_CLASS_MAP];
   const backgroundCandidates = PAST_BACKGROUND_MAP[past.resolvedId as keyof typeof PAST_BACKGROUND_MAP];
   const speciesCandidates = HERITAGE_SPECIES_MAP[heritage.resolvedId as keyof typeof HERITAGE_SPECIES_MAP];
   const alignmentId = ALIGNMENT_MAP[`${order.resolvedId}:${regard.resolvedId}`];
-  if (!classCandidates || !backgroundCandidates || !speciesCandidates || !isEquipmentPreferenceId(equipment.resolvedId) || !alignmentId || !isSupportedAlignment(alignmentId)) {
+  if (!classCandidates || !backgroundCandidates || !speciesCandidates || !isEquipmentPreferenceId(equipment.resolvedId) || !isFighterStylePreferenceId(fighterStyle.resolvedId) || !alignmentId || !isSupportedAlignment(alignmentId)) {
     throw new Error("Guided Narrative resolved to an unmapped D&D answer.");
   }
   const alignmentCandidates = [alignmentId];
@@ -279,6 +312,7 @@ export function recommendDnd5eGuidedNarrative(
     mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
     seed,
     answers: { role, past, heritage, equipment, order, regard },
+    fighterStyle,
     classChoice: { candidateIds: [...classCandidates], recommendedId: pick(classCandidates, random) },
     backgroundChoice: { candidateIds: [...backgroundCandidates], recommendedId: pick(backgroundCandidates, random) },
     speciesChoice: { candidateIds: [...speciesCandidates], recommendedId: pick(speciesCandidates, random) },
@@ -299,6 +333,15 @@ export function resolveDnd5eGuidedNarrativeEquipmentChoices(
   return { preferenceId, classEquipmentChoice, backgroundEquipmentChoice };
 }
 
+export function resolveDnd5eGuidedNarrativeFighterStyle(answerId: string): string {
+  if (!isFighterStylePreferenceId(answerId)) throw new Error("Unsupported Guided Narrative Fighter style preference.");
+  const fightingStyleFeatId = FIGHTER_STYLE_MAP[answerId];
+  if (!DND5E_FIGHTING_STYLE_OPTIONS.some((option) => option.id === fightingStyleFeatId)) {
+    throw new Error("Guided Narrative Fighter style preference does not map to a supported Fighting Style.");
+  }
+  return fightingStyleFeatId;
+}
+
 export function guidedNarrativeGenerateDnd5eFirstSlice(
   input: GuidedNarrativeGenerateDnd5eInput,
 ): CharacterDocument {
@@ -308,9 +351,13 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   const speciesId = resolveOverride(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species");
   const alignmentId = recommendation.alignmentChoice.recommendedId;
   const equipmentChoices = resolveDnd5eGuidedNarrativeEquipmentChoices(recommendation.answers.equipment.resolvedId, classId);
+  const fightingStyleFeatId = classId === "fighter"
+    ? resolveDnd5eGuidedNarrativeFighterStyle(recommendation.fighterStyle.resolvedId)
+    : undefined;
   const coreChoices = defaultGuidedDnd5eCoreChoices(classId, backgroundId, speciesId);
   coreChoices.alignmentId = alignmentId;
   coreChoices.classEquipmentChoice = equipmentChoices.classEquipmentChoice;
+  if (fightingStyleFeatId) coreChoices.fightingStyleFeatId = fightingStyleFeatId;
 
   const character = guidedGenerateDnd5eFirstSlice({
     name: input.name ?? "",
@@ -326,19 +373,28 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   const generation = character.generation;
   if (!generation) throw new Error("Guided Narrative generation did not produce provenance.");
   const baseGuidedRecipe = generation.recipe;
-  const narrativeDecisions = createNarrativeDecisions(recommendation, { classId, backgroundId, speciesId, alignmentId, ...equipmentChoices });
+  const narrativeDecisions = createNarrativeDecisions(recommendation, { classId, backgroundId, speciesId, alignmentId, ...equipmentChoices, fightingStyleFeatId });
   const filteredBaseDecisions = generation.decisions
     .filter((decision) => !["class.acceptable-pool", "background.acceptable-pool", "species.acceptable-pool"].includes(decision.stepId))
-    .map((decision) => rewriteMappedChoiceRationale(decision, recommendation, { classId, backgroundId, speciesId, alignmentId }));
+    .map((decision) => rewriteMappedChoiceRationale(decision, recommendation, { classId, backgroundId, speciesId, alignmentId, fightingStyleFeatId }));
 
   generation.methodId = "dnd5e:guided-narrative-level-one";
   generation.mode = "guided-narrative";
-  generation.recipeVersion = "0.3";
+  generation.recipeVersion = "0.4";
   generation.seed = recommendation.seed;
   generation.recipe = {
     mappingId: recommendation.mappingId,
     mappingVersion: recommendation.mappingVersion,
-    sequence: ["narrative.role", "narrative.past", "narrative.heritage", "narrative.equipment", "narrative.order", "narrative.regard", "mapped-guided-generation"],
+    sequence: [
+      "narrative.role",
+      "narrative.past",
+      "narrative.heritage",
+      "narrative.equipment",
+      ...(fightingStyleFeatId ? ["narrative.fighter-style"] : []),
+      "narrative.order",
+      "narrative.regard",
+      "mapped-guided-generation",
+    ],
     classId,
     backgroundId,
     speciesId,
@@ -346,6 +402,7 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
     equipmentPreferenceId: equipmentChoices.preferenceId,
     classEquipmentChoice: equipmentChoices.classEquipmentChoice,
     backgroundEquipmentChoice: equipmentChoices.backgroundEquipmentChoice,
+    ...(fightingStyleFeatId ? { fightingStyleFeatId } : {}),
     abilityMethod: "standard-array",
     baseGuidedRecipe,
   };
@@ -369,6 +426,20 @@ function resolveNarrativeAnswer(
   return { submittedId, resolvedId: resolved.id };
 }
 
+function resolveFighterStyleAnswer(
+  submittedId: string,
+  random: RandomSource,
+): Dnd5eGuidedNarrativeResolvedAnswer {
+  const question = DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION;
+  if (!question.options.some((option) => option.id === submittedId)) {
+    throw new Error(`Unsupported answer ${submittedId} for Guided Narrative Fighter style question.`);
+  }
+  if (submittedId !== DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID) return { submittedId, resolvedId: submittedId };
+  const substantiveOptions = question.options.filter((option) => option.id !== DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID);
+  const resolved = pick(substantiveOptions, random);
+  return { submittedId, resolvedId: resolved.id };
+}
+
 function createNarrativeDecisions(
   recommendation: Dnd5eGuidedNarrativeRecommendation,
   finalChoices: {
@@ -379,6 +450,7 @@ function createNarrativeDecisions(
     preferenceId: Dnd5eGuidedNarrativeEquipmentPreferenceId;
     classEquipmentChoice: string;
     backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+    fightingStyleFeatId?: string;
   },
 ): GenerationDecision[] {
   return [
@@ -386,6 +458,12 @@ function createNarrativeDecisions(
     answerDecision("past", recommendation.answers.past),
     answerDecision("heritage", recommendation.answers.heritage),
     answerDecision("equipment", recommendation.answers.equipment),
+    ...(finalChoices.fightingStyleFeatId
+      ? [
+          answerDecision("fighter-style", recommendation.fighterStyle),
+          fighterStyleMappingDecision(recommendation.fighterStyle, finalChoices.fightingStyleFeatId),
+        ]
+      : []),
     answerDecision("order", recommendation.answers.order),
     answerDecision("regard", recommendation.answers.regard),
     mappingDecision("class", recommendation.classChoice, finalChoices.classId),
@@ -397,15 +475,15 @@ function createNarrativeDecisions(
       stepId: "narrative.remaining-choices",
       answer: {
         abilityMethod: "standard-array",
-        coreChoices: "current-guided-defaults-except-mapped-alignment-and-class-equipment",
+        coreChoices: "current-guided-defaults-except-mapped-narrative-choices",
       },
-      rationale: "Guided Narrative maps Class, Background, Species, Alignment, and starting equipment; remaining legal choices use the existing guided defaults.",
+      rationale: "Guided Narrative maps the supported high-level and class-specific choices; remaining legal choices use the existing guided defaults.",
     },
   ];
 }
 
 function answerDecision(
-  questionId: Dnd5eGuidedNarrativeQuestionId,
+  questionId: Dnd5eGuidedNarrativeDecisionQuestionId,
   resolution: Dnd5eGuidedNarrativeResolvedAnswer,
 ): GenerationDecision {
   const answer: JsonObject = {
@@ -470,10 +548,35 @@ function equipmentMappingDecision(
   };
 }
 
+function fighterStyleMappingDecision(
+  fighterStyle: Dnd5eGuidedNarrativeResolvedAnswer,
+  fightingStyleFeatId: string,
+): GenerationDecision {
+  return {
+    stepId: "narrative.mapping.fighter-style",
+    choiceId: fightingStyleFeatId,
+    answer: {
+      mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
+      mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
+      recommendedPreferenceId: fighterStyle.resolvedId,
+      startingFightingStyleFeatId: fightingStyleFeatId,
+      finalFightingStyleFeatId: fightingStyleFeatId,
+      changedAfterContinuation: false,
+    },
+    rationale: "The Fighter-specific Guided Narrative preference mapped to the existing Fighting Style choice.",
+  };
+}
+
 function rewriteMappedChoiceRationale(
   decision: GenerationDecision,
   recommendation: Dnd5eGuidedNarrativeRecommendation,
-  finalChoices: { classId: GuidedDnd5eClassId; backgroundId: GuidedDnd5eBackgroundId; speciesId: GuidedDnd5eSpeciesId; alignmentId: string },
+  finalChoices: {
+    classId: GuidedDnd5eClassId;
+    backgroundId: GuidedDnd5eBackgroundId;
+    speciesId: GuidedDnd5eSpeciesId;
+    alignmentId: string;
+    fightingStyleFeatId?: string;
+  },
 ): GenerationDecision {
   if (decision.stepId === "class") return { ...decision, rationale: mappedChoiceRationale("class", recommendation.classChoice.recommendedId, finalChoices.classId) };
   if (decision.stepId === "background") return { ...decision, rationale: mappedChoiceRationale("background", recommendation.backgroundChoice.recommendedId, finalChoices.backgroundId) };
@@ -481,6 +584,9 @@ function rewriteMappedChoiceRationale(
   if (decision.stepId === "alignment") return { ...decision, rationale: mappedChoiceRationale("alignment", recommendation.alignmentChoice.recommendedId, finalChoices.alignmentId) };
   if (decision.stepId === "class.equipment" || decision.stepId === "background.equipment") {
     return { ...decision, rationale: "Mapped from the player's Guided Narrative starting-equipment preference." };
+  }
+  if (decision.stepId === "class.fighting-style" && finalChoices.fightingStyleFeatId) {
+    return { ...decision, rationale: "Mapped from the player's Fighter-specific Guided Narrative fighting preference." };
   }
   return decision;
 }
@@ -537,18 +643,25 @@ function isEquipmentPreferenceId(value: string): value is Dnd5eGuidedNarrativeEq
   return value === "prepared-gear" || value === "starting-gold";
 }
 
+function isFighterStylePreferenceId(value: string): value is Dnd5eGuidedNarrativeFighterStylePreferenceId {
+  return value === "control-from-range" || value === "hold-the-line" || value === "heavy-weapon" || value === "paired-weapons";
+}
+
 function isSupportedAlignment(value: string): boolean {
   return DND5E_ALIGNMENT_OPTIONS.some((option) => option.id === value);
 }
 
 function assertNarrativeQuestionShape(): void {
-  for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) {
-    if (question.options.length > DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES) {
-      throw new Error(`Guided Narrative question ${question.id} exceeds the ${DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES}-choice presentation limit.`);
-    }
-    if (!question.options.some((option) => option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID)) {
-      throw new Error(`Guided Narrative question ${question.id} must include Choose for me.`);
-    }
+  for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) assertQuestionShape(question.id, question.options);
+  assertQuestionShape(DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.id, DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.options);
+}
+
+function assertQuestionShape(id: string, options: readonly Dnd5eGuidedNarrativeQuestionOption[]): void {
+  if (options.length > DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES) {
+    throw new Error(`Guided Narrative question ${id} exceeds the ${DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES}-choice presentation limit.`);
+  }
+  if (!options.some((option) => option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID)) {
+    throw new Error(`Guided Narrative question ${id} must include Choose for me.`);
   }
 }
 
