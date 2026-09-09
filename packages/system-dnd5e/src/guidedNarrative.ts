@@ -450,7 +450,7 @@ function createNarrativeDecisions(
     preferenceId: Dnd5eGuidedNarrativeEquipmentPreferenceId;
     classEquipmentChoice: string;
     backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
-    fightingStyleFeatId?: string;
+    fightingStyleFeatId?: string | undefined;
   },
 ): GenerationDecision[] {
   return [
@@ -575,7 +575,7 @@ function rewriteMappedChoiceRationale(
     backgroundId: GuidedDnd5eBackgroundId;
     speciesId: GuidedDnd5eSpeciesId;
     alignmentId: string;
-    fightingStyleFeatId?: string;
+    fightingStyleFeatId?: string | undefined;
   },
 ): GenerationDecision {
   if (decision.stepId === "class") return { ...decision, rationale: mappedChoiceRationale("class", recommendation.classChoice.recommendedId, finalChoices.classId) };
