@@ -95,13 +95,16 @@ roadmap:
       - BRP CharacterDocument reopen restores supported creator state from authoritative BRP native state, including generation provenance, rules profile, age causality, language identities, specialties, and contribution layers.
       - Automated-green first creator UI checkpoint b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02, Actions 34295950302, job 102292513584, 32 test files / 159 tests / 0 failures.
       - Owner runtime/browser QA accepted the first BRP creator UI on 2026-09-09 with no blocking findings.
+      - BRP owns the first concrete random-table consumer: a source-safe Detective/Scholar profession suggestion table using the generic evaluator and retained generation provenance.
+      - BRP profession suggestion is creator-visible, manually overridable, replayable on reopen, and never patches authoritative native state directly.
+      - BRP creator controls are now constrained to the left generation column, resolving the accepted containment finding while that UI was touched.
+      - Automated-green profession-suggestion checkpoint d4b881b29bd763d9f7fd50e56223b00b37077be2, Actions 34366600372, job 102516809719, 34 test files / 168 tests / 0 failures.
     current_gate:
-      - The first BRP creator UI is accepted for continued dev work; no dedicated polish cycle is required.
+      - The first BRP creator UI and first random-table consumer are accepted for continued dev work; no dedicated polish cycle is required.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
       - Add BRP name generation when the naming architecture has an appropriate consumer seam.
       - Add field-level randomizers for Age, Gender, Wealth, and a shared Randomize All pattern when creator randomization is next touched.
-      - Fix creator left-pane containment so BRP controls cannot render wider than the column or hide under the review surface.
       - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
@@ -131,12 +134,15 @@ roadmap:
       - drawIndex makes partial replay independent of hidden global evaluation order.
       - Table validation rejects empty identity, duplicate entry IDs, empty tables, invalid weights, invalid random-source values, empty seeds, and invalid draw indexes.
       - Automated-green core checkpoint 0ace3aacc7e23a420377b6c4c8f2b9b243ec945e, Actions 34364243890, job 102508743773.
+      - First system-owned consumer implemented in BRP as the source-safe Detective/Scholar profession suggestion table.
+      - Creator suggestion, manual override, retained generation provenance, reopen behavior, and no-direct-native-patch boundary are proven.
+      - Automated-green first-consumer checkpoint d4b881b29bd763d9f7fd50e56223b00b37077be2, Actions 34366600372, job 102516809719, 34 test files / 168 tests / 0 failures.
     current_slice:
-      - Select one narrow source-safe system-owned consumer and prove how a table result becomes an ordinary generation decision or structured suggestion.
-      - Prefer a consumer that can exercise structured payloads and provenance without requiring a universal trait/ideal/flaw schema.
-      - Keep system datasets/mappings system-owned.
-      - Do not wire the evaluator directly to CharacterDocument or native-state mutation.
-      - Preserve deterministic replay and retained source/table/evaluator provenance.
+      - Select a second source-safe system-owned consumer with a richer structured payload than a single enum-like ID.
+      - Prefer existing licensed flavor, equipment/trinket, or similar content that does not require a major ingestion project.
+      - Use the second payload as evidence before promoting any universal suggestion vocabulary.
+      - Keep system datasets/mappings system-owned and keep generator-core unchanged unless the real table exposes a missing generic capability.
+      - Preserve deterministic replay, manual override, and native-state safety.
     guardrails:
       - Generic table engine remains system-neutral.
       - System datasets/mappings remain system-owned.

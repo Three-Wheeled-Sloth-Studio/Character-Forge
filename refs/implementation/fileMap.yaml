@@ -21,7 +21,9 @@ areas:
     source_roots:
       - packages/generator-core/src/randomTable.ts
       - packages/generator-core/src/randomTable.test.ts
-    notes: Generic weighted evaluator only. System datasets and result mappings stay system-owned; first concrete system consumer is the next slice.
+      - packages/system-brp/src/professionSuggestion.ts
+      - packages/system-brp/src/professionSuggestion.test.ts
+    notes: Generic weighted evaluator plus first BRP-owned profession suggestion consumer are proven. System datasets and mappings remain system-owned; the next evidence target is a richer second consumer.
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
@@ -37,14 +39,14 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. First creator runtime QA is owner-accepted; remaining findings are nonblocking UX debt to fold into later work.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. First creator runtime QA is owner-accepted; BRP now owns the first random-table consumer and remaining creator findings are nonblocking UX debt.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
     source_roots:
       - apps/web/src
-    notes: Shared Character Forge creator workspace. D&D remains the default; BRP uses the same workspace. Keep rules formulas in system-owned packages and fold accepted nonblocking QA polish into future touched slices.
+    notes: Shared Character Forge creator workspace. D&D remains the default; BRP uses the same workspace. BRP profession suggestion is wired through ordinary creator state, and touched BRP controls are constrained to the left column.
   project-memory:
     guidance:
       - AGENTS.md
@@ -55,11 +57,12 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Build the first system-owned random-table consumer
+  - task: Build the second system-owned random-table consumer
     look_in:
       - refs/product/random-table-companion.md
       - refs/handoffs/currentHandoff.md
       - packages/generator-core/src/randomTable.ts
+      - packages/system-brp/src/professionSuggestion.ts
       - packages/system-dnd5e/src
       - packages/system-brp/src
   - task: Fold creator QA polish into a touched slice

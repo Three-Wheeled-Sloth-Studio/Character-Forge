@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green first random-table evaluator checkpoint.
+Continue Character Forge from the automated-green first system-owned random-table consumer checkpoint.
 
 Repository:
 
@@ -21,21 +21,29 @@ Do not reconstruct the full repository history.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "first random table consumer"`
+`python refs/tools/generate_agent_context.py --focus "second random table consumer"`
 
 Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/product/random-table-companion.md`, and targeted source reads. Load deeper architecture, system source material, or historical evidence only if the selected consumer crosses those boundaries.
 
 Prefer diff-first continuation from the accepted checkpoint and conserve coding-agent context deliberately.
 
-## Accepted Automated-Green Checkpoint
+## Accepted Automated-Green Checkpoints
 
 Random-table core:
 
 - code checkpoint: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`
 - Actions: `34364243890`
 - job: `102508743773`
+- focused evaluator tests: 5
+
+First system-owned consumer:
+
+- code checkpoint: `d4b881b29bd763d9f7fd50e56223b00b37077be2`
+- Actions: `34366600372`
+- job: `102516809719`
 - Verify conclusion: success
-- new evaluator suite: 5 focused tests
+- full suite: 34 test files / 168 tests / 0 failures
+- focused BRP profession-suggestion tests: 4
 
 Promoted branches remain unchanged:
 
@@ -44,45 +52,42 @@ Promoted branches remain unchanged:
 
 Do not implicitly promote accumulated D&D, BRP, or companion work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-The first BRP creator runtime/browser QA was owner-accepted on 2026-09-09 with no blocking findings. Its remaining UI findings are recorded in `refs/handoffs/currentHandoff.md` as nonblocking debt to fold into later touched slices.
+## What Is Proven
 
-## What The Random-Table Core Supports
+`packages/generator-core/src/randomTable.ts` provides the system-neutral deterministic weighted evaluator and provenance contract.
 
-`packages/generator-core/src/randomTable.ts` now provides a system-neutral weighted evaluator:
+`packages/system-brp/src/professionSuggestion.ts` is the first concrete consumer:
 
-- stable table ID and table version;
-- source/dataset ID and source version;
-- stable entry IDs;
-- optional positive weights, defaulting to 1;
-- arbitrary typed result payloads owned by the caller;
-- caller seed plus explicit non-negative `drawIndex`;
-- deterministic replay scoped by evaluator/table/source versions and draw identity;
-- returned provenance containing evaluator version, table/source identity, seed, drawIndex, selected entry ID, selected weight, and total weight;
-- validation for malformed tables, invalid weights, invalid random-source values, empty seeds, and invalid draw indexes.
+- BRP owns the dataset, typed result, and source mapping;
+- the table contains only the already-supported Detective and Scholar professions;
+- BRP delegates selection to the generic evaluator;
+- replay provenance retains evaluator/table/source versions, seed, drawIndex, selected entry, weights, and selected profession;
+- the creator can request a profession suggestion, accept it, or override it manually;
+- accepted suggestion provenance is stored in the normal generation decision list as `identity.profession-suggestion`;
+- the native BRP payload remains authoritative and untouched by the provenance decorator;
+- reopen reads the suggestion provenance only when it still agrees with the authoritative native profession.
 
-The core does not know trait/ideal/bond/flaw/equipment semantics and does not modify CharacterDocument or native state.
+The same slice fixed the accepted BRP left-panel containment issue while touching the relevant creator CSS. Remaining creator QA debt stays nonblocking and is listed in `refs/handoffs/currentHandoff.md`.
 
-## Immediate Slice: First System-Owned Consumer
+## Immediate Slice: Second System-Owned Consumer
 
-Select and implement one narrow source-safe consumer from D&D or BRP.
+Select and implement one source-safe consumer with a richer structured result than a single enum-like profession ID.
 
-The purpose is to prove the ownership and persistence boundary, not to build a large random-table catalog.
+The purpose is to gather evidence about payload shape and consumer ergonomics before inventing any universal suggestion vocabulary.
 
-Required shape:
+Required approach:
 
-1. The owning system package defines the table dataset and result payload type.
-2. The dataset has explicit source/version provenance appropriate to that system.
-3. The system calls the generic evaluator rather than duplicating weighted/random logic.
-4. The selected result becomes either:
-   - an ordinary system generation decision; or
-   - a structured suggestion that the creator can inspect/accept/override.
-5. If accepted into character state, it must pass through the ordinary native builder/adapter path.
-6. Replay-relevant provenance retains evaluator/table/source versions, seed, drawIndex, and selected entry identity.
-7. Add focused tests proving deterministic replay, system ownership, and no direct native-state patching.
+1. Inspect already-licensed/repository-owned D&D or BRP content first.
+2. Prefer a small flavor, equipment/trinket, or other structured suggestion that does not require a major ingestion project.
+3. Keep the dataset, source provenance, result payload type, and mapping in the owning system package.
+4. Keep `generator-core` system-neutral and unchanged unless a concrete table proves a missing generic capability.
+5. Let the creator inspect/accept/override the suggestion where UI involvement is appropriate.
+6. If the accepted result affects native state, route it through the ordinary system builder/adapter path.
+7. Never patch native state directly from the generic evaluator.
+8. Retain evaluator/table/source versions, seed, drawIndex, and selected entry identity wherever replay matters.
+9. Add focused tests for deterministic replay, source/system ownership, persistence/override behavior, and native-state safety.
 
-Prefer a consumer that already has source-safe content available in the repository or licensed source boundary. Do not begin a major content-ingestion project merely to feed the evaluator.
-
-If no current source-safe consumer is small enough, stop after documenting that evidence and identify the smallest required content slice rather than inventing public rules text.
+If no current source-safe richer consumer is small enough, stop after documenting that evidence and identify the smallest required content slice rather than inventing public rules text.
 
 ## Explicitly Deferred
 
@@ -94,10 +99,10 @@ Do not add without concrete consumer evidence:
 - conditional table graphs;
 - universal trait/ideal/bond/flaw ontology;
 - user-authored table persistence or editor UI;
-- direct CharacterDocument mutation from the generic evaluator;
+- direct native-state mutation from the generic evaluator;
 - large structured naming work.
 
-The structured naming watch remains separate. Do not scale the temporary D&D flat name list as the random-table consumer.
+The structured naming watch remains separate. Do not scale or repurpose the temporary D&D flat name list as this consumer.
 
 ## Creator QA Debt To Fold Opportunistically
 
@@ -108,8 +113,9 @@ Do not create a cleanup-only cycle, but if the touched code naturally intersects
 - D&D Random: swap displaced roll assignments rather than duplicate one roll slot;
 - shared: introduce a consistent `Randomize All` and field-randomizer interaction pattern where appropriate;
 - BRP: add name generation only through the proper naming seam;
-- BRP: randomize Age/Gender/Wealth when creator randomization is next touched;
-- BRP: constrain left-panel controls to the generation column width.
+- BRP: randomize Age/Gender/Wealth when creator randomization is next touched.
+
+The BRP left-panel width/containment finding is already resolved.
 
 ## Architecture Guardrails
 

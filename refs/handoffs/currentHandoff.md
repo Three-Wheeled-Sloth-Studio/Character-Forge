@@ -49,62 +49,69 @@ Shared creator randomization:
 BRP creator:
 
 - add name generation when the structured naming seam is ready;
-- add randomizers for Age, Gender, Wealth, and similar fields when creator randomization is next touched;
-- fix left-pane containment so controls cannot render wider than the generation column or disappear under the review surface.
+- add randomizers for Age, Gender, Wealth, and similar fields when creator randomization is next touched.
 
-These are nonblocking UX debt, not a reason to reopen BRP architecture or expand BRP rules breadth.
+The BRP left-pane containment finding is resolved in the first random-table consumer slice. These remaining items are nonblocking UX debt, not a reason to reopen BRP architecture or expand BRP rules breadth.
 
-## Random Table Companion Checkpoint
+## Random Table Companion Checkpoints
 
-The first system-neutral random-table evaluator is automated-green on `dev`:
+The system-neutral evaluator remains automated-green:
 
-- code checkpoint: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`
+- core checkpoint: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`
 - Actions: `34364243890`
 - job: `102508743773`
+- focused evaluator tests: 5
+
+The first real system-owned consumer is now automated-green:
+
+- consumer checkpoint: `d4b881b29bd763d9f7fd50e56223b00b37077be2`
+- Actions: `34366600372`
+- job: `102516809719`
 - Verify conclusion: success
-- new evaluator test suite: 5 focused tests
+- full suite: 34 test files / 168 tests / 0 failures
+- focused BRP profession-suggestion tests: 4
 
-What landed in `generator-core`:
+What the first consumer proves:
 
-- `RandomTable<TResult>` with stable table ID/version, source ID/version, stable entry IDs, optional positive weights, and arbitrary typed result payloads;
-- deterministic `evaluateRandomTable()` driven by caller seed plus explicit non-negative `drawIndex`;
-- evaluator/table/source identity is included in the deterministic seed domain so replay does not depend on hidden global draw order;
-- provenance records evaluator version, table/source identity and versions, caller seed, draw index, selected entry ID, selected weight, and total weight;
-- low-level weighted selection remains system-neutral and validates the random source is in `[0, 1)`;
-- table validation rejects empty identity, duplicate entry IDs, empty tables, invalid weights, non-finite total weight, empty seeds, and invalid draw indexes;
-- the evaluator returns the caller-owned typed result unchanged and never patches CharacterDocument or native state.
+- BRP owns `BRP_PROFESSION_SUGGESTION_TABLE`, its typed result, and mapping semantics;
+- the table is intentionally tiny and source-safe: Detective and Scholar, the two already-supported BRP professions;
+- the table carries BRP source/version provenance and calls the system-neutral evaluator rather than duplicating random logic;
+- deterministic replay retains evaluator/table/source versions, seed, draw index, selected entry identity, selected weight, total weight, and selected profession;
+- the creator exposes a `Suggest` action beside Profession and allows ordinary manual override;
+- accepting the suggestion still changes profession through the existing BRP creator state and normal native builder/adapter path;
+- accepted suggestion provenance is retained as the ordinary generation decision `identity.profession-suggestion`;
+- the provenance decorator does not edit or reconstruct BRP native state;
+- reopening a generated character restores retained suggestion provenance from the generation record when it still matches the authoritative native profession;
+- touched BRP creator CSS now constrains controls, inputs, selects, fieldsets, and redistribution rows to the left generation column.
 
-The contract is documented in `refs/product/random-table-companion.md`.
-
-No shared CharacterDocument, semantic contract, rules adapter, system-native schema, dependency, or lockfile change was required.
+No shared CharacterDocument, semantic contract, BRP native schema, adapter version, dependency, or lockfile change was required.
 
 ## Current Evidence / Gap
 
-The generic evaluator seam is now proven, but there is intentionally no system-owned dataset or creator UI consumer yet.
+The generic evaluator boundary and one end-to-end system-owned consumer are now proven. The first consumer is deliberately enum-like, so it does not yet justify a universal structured suggestion vocabulary for traits, ideals, bonds, flaws, equipment flavor, or similar richer payloads.
 
-Do not invent a universal trait/ideal/bond/flaw schema from the generic engine. The next evidence must come from one real source-safe system-owned consumer that maps the selected result into an ordinary generation decision or structured suggestion.
+The next useful evidence should come from one richer source-safe consumer that has more structure than a single profession ID while still avoiding a large content-ingestion project. If no such licensed/repository-owned content is already available, document the smallest required content slice instead of inventing public rules text.
 
 Subtable references remain a known likely requirement, but nesting is still deferred until an actual table requires it. The same applies to roll-range authoring, uniqueness sampling, conditional graphs, and user-authored table persistence.
 
 ## Next Slice
 
-Build the first narrow system-owned random-table consumer on `dev`.
+Identify and implement the second narrow system-owned random-table consumer, prioritizing a richer structured payload.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "first random table consumer"`
+`python refs/tools/generate_agent_context.py --focus "second random table consumer"`
 
 Before coding:
 
-1. Identify one source-safe existing D&D or BRP consumer that benefits from a structured random suggestion.
-2. Keep the dataset and result payload type in the owning system package.
-3. Use `generator-core` only for evaluation and replay provenance.
-4. Feed the result through an ordinary generation decision or suggestion seam rather than mutating native state directly.
-5. Retain seed, table/source/evaluator versions, draw index, and selected entry identity wherever replayability matters.
+1. Inspect existing source-safe D&D and BRP content for a small structured suggestion such as flavor, equipment/trinket, or another already-owned choice.
+2. Keep the dataset and payload type in the owning system package.
+3. Keep `generator-core` unchanged unless the selected real table exposes a missing generic capability.
+4. Route accepted results through ordinary system generation/build/adapter seams; never patch native state from the generic evaluator.
+5. Preserve replay provenance and easy manual override.
+6. Do not introduce a universal trait/ideal/bond/flaw schema from one system's payload.
 
-Prefer a consumer small enough to prove the boundary without dragging in a large content-ingestion or naming project.
-
-Do not add nested tables merely because the engine could support them. Add nesting only if the chosen real consumer requires it.
+Do not use the temporary D&D flat name list as the next consumer. Structured naming remains a separate discovery watch.
 
 ## Relevant Files
 
@@ -112,13 +119,15 @@ Do not add nested tables merely because the engine could support them. Add nesti
 - `refs/implementation/fileMap.yaml`
 - `refs/planning/roadmap.yaml`
 - `refs/product/random-table-companion.md`
-- `refs/product/generation-methods.md`
 - `packages/generator-core/src/randomTable.ts`
-- `packages/generator-core/src/randomTable.test.ts`
+- `packages/system-brp/src/professionSuggestion.ts`
+- `packages/system-brp/src/professionSuggestion.test.ts`
+- `apps/web/src/brpCreatorPanel.ts`
+- `apps/web/src/brpCreatorPanelView.ts`
+- `apps/web/src/brpCreatorStyles.ts`
 - `packages/system-dnd5e/src/`
-- `packages/system-brp/src/`
 
-Load deeper system source/licensing evidence only for the concrete consumer being selected.
+Load deeper system source/licensing evidence only for the concrete second consumer being selected.
 
 ## Do Not Reopen Without New Evidence
 

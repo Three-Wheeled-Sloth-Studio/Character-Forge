@@ -8,7 +8,7 @@ tags:
 ---
 # Random Table Companion
 
-Status: First system-neutral evaluator slice implemented on `dev`. No system dataset or creator UI is wired yet.
+Status: System-neutral evaluator plus the first system-owned BRP creator consumer are implemented and automated-green on `dev`.
 
 ## Purpose
 
@@ -62,19 +62,39 @@ System-owned packages remain responsible for:
 
 The evaluator must never patch a `CharacterDocument` or a system-native payload directly.
 
-## First concrete consumers
+## First concrete consumer: BRP profession suggestion
 
-The existing product evidence is sufficient to justify the engine seam, but not yet enough to justify a universal suggestion schema. Expected consumers include:
+`packages/system-brp/src/professionSuggestion.ts` proves the first end-to-end system-owned boundary without adding new BRP rules breadth.
 
-- personality traits;
-- ideals;
-- bonds;
-- flaws;
-- equipment and trinket suggestions;
-- system-owned tags or native IDs;
-- weighted narrative or flavor suggestions.
+The BRP-owned table:
 
-The first system-owned consumer should prove the payload shape before any cross-system suggestion vocabulary is promoted.
+- uses table ID `brp-uge.profession.first-slice` version `1`;
+- uses source `chaosium-brp-uge-orc-1.05` version `1.05`;
+- contains only Detective and Scholar, the two professions already supported by the current BRP slice;
+- returns a BRP-owned structured payload containing profession ID and label;
+- delegates deterministic selection to the generic evaluator.
+
+The creator exposes a `Suggest` action beside Profession. A user may accept the selected profession or override it with the ordinary selector. Profession validity still comes from the existing BRP creator state, builder, and adapter.
+
+When a suggestion is accepted, BRP retains its replay provenance in the ordinary generation decision list as `identity.profession-suggestion`. The provenance decorator verifies that the retained native BRP profession matches the suggested profession and then changes only generation metadata; it does not patch or reconstruct native state.
+
+Reopen reads the retained suggestion only when its source/table/evaluator provenance is current and it still agrees with the authoritative native profession.
+
+Evidence:
+
+- code checkpoint: `d4b881b29bd763d9f7fd50e56223b00b37077be2`
+- Actions: `34366600372`
+- job: `102516809719`
+- 34 test files / 168 tests / 0 failures
+- 4 focused profession-suggestion tests
+
+## Next evidence needed
+
+The first consumer is intentionally enum-like. It proves ownership, creator override, replay, and native-state safety, but it does not justify a universal suggestion ontology.
+
+The next consumer should use a richer structured payload from already source-safe D&D or BRP content if possible. Good candidates are small flavor, equipment/trinket, or similar suggestions that have more structure than a single ID without requiring a major ingestion project.
+
+If no such current dataset is available, identify the smallest licensed content slice needed rather than inventing public rules text.
 
 ## Explicitly deferred
 
@@ -86,7 +106,7 @@ Do not add these until a real consumer requires them:
 - without-replacement sampling;
 - conditional table graphs;
 - a universal trait/ideal/flaw ontology;
-- direct CharacterDocument mutation;
+- direct native-state mutation;
 - user-authored table persistence/editor UI.
 
 Subtable references are a known likely requirement, but nesting remains intentionally deferred until an actual table needs it.
