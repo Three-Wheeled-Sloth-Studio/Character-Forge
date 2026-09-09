@@ -34,47 +34,70 @@ Important later green checkpoints include:
 
 ## D&D Guided Narrative First Vertical Slice
 
-The first Guided Narrative slice is automated-green at:
+The first Guided Narrative implementation remains automated-green at:
 
 - implementation checkpoint: `bd5de95193002cb7ad176c5b325d42d5e21ff78c`
 - Actions: `34384877186`
 - job: `102578522427`
 - Verify conclusion: success
 - full suite: 42 test files / 203 tests / 0 failures
+
+The follow-up Narrative choice-shape refinement is automated-green at:
+
+- implementation checkpoint: `3ff8b064e614f964e83ff7dfc5549ce96594a33a`
+- Actions: `34386315636`
+- job: `102583371487`
+- Verify conclusion: success
+- full suite: 42 test files / 204 tests / 0 failures
 - tracked paths: 167
 - OKF: 19 concepts / 9 indexes
-- generated agent context: 3,710 characters
-- web build identity: `Character Forge build 0.0.1 bd5de951`
-
-One earlier checkpoint, `eb9b4c43ee11e86860f6bd6284cc165c445f3683`, failed only on `exactOptionalPropertyTypes` because an optional narrative name was explicitly passed as `undefined`. The correction passes `name: input.name ?? ""`; no system behavior changed beyond satisfying the existing guided input contract.
+- generated agent context: 3,945 characters
+- web build identity: `Character Forge build 0.0.1 3ff8b064`
 
 ## What Changed
 
-D&D now exposes three top-level creation modes:
+D&D exposes three top-level creation modes:
 
 1. `Guided Mechanical` - still the default detailed creator;
-2. `Guided Narrative` - the new narrative/preference front end;
+2. `Guided Narrative` - narrative/preference front end;
 3. `Quick Generate` - unchanged system-owned Quick generation.
 
 Standard Array, Point Cost, Random, and Manual remain ability-generation methods inside Guided Mechanical only.
 
-The new system-owned `packages/system-dnd5e/src/guidedNarrative.ts` defines the first narrative contract and mappings. Browser code renders that contract but does not own the mapping logic.
+The system-owned `packages/system-dnd5e/src/guidedNarrative.ts` defines the Narrative contract and mappings. Browser code renders that contract but does not own the mapping logic.
 
-The first questionnaire contains three deliberately narrow questions:
+The current first-slice questionnaire contains three deliberately narrow questions:
 
 - preferred role in trouble;
 - kind of life before adventuring;
 - kind of heritage the player wants to explore.
 
-Every narrative question includes an explicit `Choose for me` option. This is now a product requirement for narrative choice surfaces, not a one-off convenience. When chosen, the substantive answer is resolved deterministically from the visible narrative seed and both the submitted `choose-for-me` answer and resolved answer are retained.
+Every Narrative question includes an explicit `Choose for me` option. When selected, the substantive answer is resolved deterministically from the visible Narrative seed and both the submitted `choose-for-me` answer and resolved answer are retained.
 
-Current mappings stay entirely within already-supported D&D choices:
+The mapping result exposes candidate IDs and one deterministic recommendation for:
 
 - role -> Class candidates;
-- past -> Background;
+- past -> Background candidates;
 - heritage -> Species candidates.
 
-The mapping result exposes candidate IDs and one deterministic recommendation. The creator shows the recommended Class, Background, and Species as ordinary editable selects so the player can override any recommendation before generation.
+Narrative mechanical overrides are now limited to the narrowed candidate set produced by upstream answers. If the player wants a mechanical option outside that set, the intended Narrative interaction is to change an upstream answer, not to open the full rules catalog in the same Narrative step.
+
+## Durable Narrative Choice-Shape Rule
+
+For current and future Narrative flows:
+
+- target about 3 presented choices at a step when practical;
+- hard upper limit 5 presented choices at any Narrative step;
+- `Choose for me` or a semantic equivalent counts as one of the presented choices;
+- if the next Narrative choice set would exceed 5, insert an upstream Narrative question, itself within the same limit, to narrow the downstream set;
+- do not solve a large Narrative choice set by showing a 10-20 item mechanical dropdown and calling it an override;
+- once the user explicitly continues into Guided Mechanical, ordinary mechanical catalogs are no longer subject to the Narrative presentation ceiling.
+
+The D&D contract now exports and enforces `DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5`. Question sets are validated against that limit, mapped candidate sets are validated against it, and attempts to bypass a narrowed branch with an arbitrary out-of-branch Narrative override are rejected.
+
+The current role and heritage question shapes were tightened to stay within the limit. The current mapped candidate sets are generally 1-3 choices.
+
+The target of about 3 is a design heuristic rather than a hard validator. The maximum of 5 is the hard contract.
 
 ## Generation And Provenance Boundary
 
@@ -87,20 +110,20 @@ It:
 - uses a legal Standard Array assignment with class-aware priority;
 - derives a legal +2/+1 background ability-increase plan from the selected background and class priority;
 - uses the normal guided builder and D&D adapter path;
-- does not introduce a narrative-native schema or narrative adapter.
+- does not introduce a Narrative-native schema or Narrative adapter.
 
-After ordinary generation, generation metadata is made narrative-specific:
+Generation metadata retains:
 
 - `methodId`: `dnd5e:guided-narrative-level-one`;
 - `mode`: `guided-narrative`;
 - `recipeVersion`: `0.1`;
-- narrative seed retained;
-- mapping ID/version retained;
-- submitted and resolved narrative answers retained;
-- candidate, recommended, final, and override status retained for Class, Background, and Species;
-- remaining defaulted choices explicitly recorded as first-slice behavior.
+- Narrative seed;
+- mapping ID/version;
+- submitted and resolved Narrative answers;
+- narrowed candidate, recommended, final, and override status for Class, Background, and Species;
+- remaining defaulted choices as first-slice behavior.
 
-Narrative generation removes the Guided Mechanical sticky acceptable-pool provenance records because those pools were not used by the narrative path. Ordinary final Class/Background/Species decisions are retained with rationale showing recommendation acceptance or player override.
+The Narrative mapping version is now `2` because the choice taxonomy and narrowing behavior changed.
 
 No CharacterDocument schema, D&D native schema, D&D adapter, BRP code, generator-core random-table contract, dependency, or lockfile changed.
 
@@ -112,24 +135,14 @@ No CharacterDocument schema, D&D native schema, D&D adapter, BRP code, generator
 - defaults each question to `Choose for me`;
 - exposes the replay seed;
 - provides `Choose again` by generating a new seed;
-- shows the resolved answers and mapped candidate summary;
-- exposes overrideable Class, Background, and Species selects;
+- shows resolved answers and mapped candidate summary;
+- populates Class, Background, and Species selects from the narrowed candidate IDs only;
+- tells the player to change an earlier Narrative answer to explore another branch;
 - publishes through the same ordinary `onCharacter` review/save/host boundary as the other D&D modes.
 
 All three D&D mode surfaces remain mounted while switching, preserving in-progress form state.
 
-Shared `Randomize All` remains available only in Guided Mechanical. It is hidden/disabled and click-guarded in both Quick and Guided Narrative. Narrative uses the explicit per-question `Choose for me` behavior instead of accidentally invoking hidden Guided Mechanical controls.
-
-## Durable Narrative Choice Rule
-
-For current and future narrative questionnaires:
-
-- every narrative choice/question must include `Choose for me` or a semantically equivalent explicit option;
-- the random/default resolution must be deliberate and system/content-owner defined, never inferred from hidden browser behavior;
-- where replay matters, retain the seed and submitted-versus-resolved provenance;
-- direct player answers and later mechanical overrides remain authoritative.
-
-Do not generalize this into a universal personality or psychology schema from the first D&D consumer.
+Shared `Randomize All` remains available only in Guided Mechanical. It is hidden/disabled and click-guarded in both Quick and Guided Narrative. Narrative uses explicit per-question `Choose for me` behavior instead.
 
 ## Remaining QA Evidence
 
@@ -137,14 +150,16 @@ Owner browser QA of accumulated creator behavior remains useful, including:
 
 - Guided / Narrative / Quick switching;
 - Narrative `Choose for me` replay and `Choose again`;
-- Class/Background/Species narrative override behavior;
+- verifying every Narrative step presents no more than 5 choices;
+- verifying mapped Class/Background/Species options stay within the narrowed branch;
+- changing upstream Narrative answers to reach different branches;
 - existing Randomize All behavior in Guided Mechanical.
 
 Keep this as accumulated nonblocking creator QA unless a concrete blocker appears. D&D Issue #11 remains the promotion gate.
 
 ## Next Slice
 
-Continue Guided Narrative into the existing Guided Mechanical customization surface instead of duplicating detailed D&D controls in the narrative panel.
+Continue Guided Narrative into the existing Guided Mechanical customization surface instead of duplicating detailed D&D controls in the Narrative panel.
 
 Start routine work with:
 
@@ -152,16 +167,18 @@ Start routine work with:
 
 Priorities:
 
-1. Define the smallest D&D-owned/controller seam for initializing the existing Guided Mechanical Class, Background, and Species from a narrative recommendation/final selection.
-2. Add a clear `Continue in Guided Mechanical` interaction rather than copying class skills, spells, equipment, origin details, or ability controls into the narrative panel.
-3. Preserve the narrative answers, mapping ID/version, seed, recommendation, and override provenance when the user continues into detailed Guided Mechanical editing and later builds the character.
+1. Define the smallest D&D-owned/controller seam for initializing the existing Guided Mechanical Class, Background, and Species from a Narrative recommendation/final selection.
+2. Add a clear `Continue in Guided Mechanical` interaction rather than copying class skills, spells, equipment, origin details, or ability controls into the Narrative panel.
+3. Preserve the Narrative answers, mapping ID/version, seed, recommendation, narrowed candidates, and overrides when the user continues into detailed Guided Mechanical editing and later builds the character.
 4. Preserve direct user overrides as authoritative.
-5. Keep all existing and future narrative questions equipped with explicit `Choose for me` or semantic equivalent.
-6. Keep all three top-level D&D mode surfaces mounted and avoid losing in-progress state merely from mode switching.
-7. Keep Randomize All suppressed in Narrative and Quick; only Guided Mechanical owns the existing shared orchestration behavior.
-8. Do not create a generic questionnaire engine or universal personality/trait ontology unless repeated concrete consumers require one.
-9. Do not add BRP Guided Narrative in this slice.
-10. Do not promote `qa` or `main`.
+5. Keep every current and future Narrative question equipped with explicit `Choose for me` or semantic equivalent.
+6. Keep Narrative presentation near 3 choices where practical and never above 5; add an upstream narrowing question when a downstream Narrative set would exceed 5.
+7. Once explicitly in Guided Mechanical, ordinary mechanical catalogs may use their normal UI rather than inheriting the Narrative ceiling.
+8. Keep all three top-level D&D mode surfaces mounted and avoid losing in-progress state merely from mode switching.
+9. Keep Randomize All suppressed in Narrative and Quick; only Guided Mechanical owns the existing shared orchestration behavior.
+10. Do not create a generic questionnaire engine or universal personality/trait ontology unless repeated concrete consumers require one.
+11. Do not add BRP Guided Narrative in this slice.
+12. Do not promote `qa` or `main`.
 
 ## Relevant Files
 
@@ -184,7 +201,8 @@ Priorities:
 - Never reconstruct retained native state from semantic projection.
 - Quick Generate and Guided Narrative are top-level creation front ends, not ability-generation methods.
 - Guided Narrative is a front end over ordinary D&D system choices, not a new character-state model.
-- Every narrative question must include an explicit `Choose for me` equivalent.
+- Every Narrative question must include an explicit `Choose for me` equivalent.
+- Narrative steps target about 3 choices and must never present more than 5; add upstream narrowing rather than large downstream menus.
 - Shared creator code coordinates interactions only; system rules, mappings, distributions, and content stay system-owned.
 - Do not promote universal personality, trait, ideal, bond, flaw, culture, or naming schemas from one D&D questionnaire.
 - BRP naming content remains setting/campaign/content-package owned.
