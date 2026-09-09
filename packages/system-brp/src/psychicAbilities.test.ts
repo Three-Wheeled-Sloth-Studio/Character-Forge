@@ -199,38 +199,16 @@ describe("BRP UGE Psychic Abilities architecture slice", () => {
   });
 
   it("applies the retained skill-construction cap to personal Psychic Ability training", () => {
-    const input = heroicInput();
-    input.powerLevel = "normal";
-    delete input.defaultStartingAge;
-    input.professionalAllocations = [
-      { skillKey: "firearm:handgun", points: 35 },
-      { skillKey: "knowledge:law", points: 45 },
-      { skillKey: "listen", points: 35 },
-      { skillKey: "persuade", points: 25 },
-      { skillKey: "spot", points: 30 },
-      { skillKey: "research", points: 35 },
-      { skillKey: "science:forensics", points: 25 },
-      { skillKey: "insight", points: 20 },
-    ];
-    input.personalAllocations = [
-      { skillKey: "first-aid", points: 45 },
-      { skillKey: "research", points: 20 },
-      { skillKey: "spot", points: 20 },
-      { skillKey: "science:forensics", points: 40 },
-      { skillKey: "stealth", points: 40 },
-      { skillKey: "track", points: 5 },
-    ];
-
     expect(() => buildBrpPsychicFirstSliceCharacter({
-      ...input,
+      ...heroicInput(),
       psychicAbilities: {
         powerLevel: "normal",
         abilities: [
-          { abilityId: "empathy", personalSkillPoints: 62, reallocateFromSkillKey: "first-aid" },
+          { abilityId: "empathy", personalSkillPoints: 77, reallocateFromSkillKey: "first-aid" },
           { abilityId: "mind-shield", personalSkillPoints: 0, reallocateFromSkillKey: "stealth" },
         ],
       },
-    })).toThrow(/exceeds the Normal skill cap of 75/i);
+    })).toThrow(/exceeds the Heroic skill cap of 90/i);
   });
 
   it("rejects psychic training that cannot be reallocated from retained personal skill points", () => {
