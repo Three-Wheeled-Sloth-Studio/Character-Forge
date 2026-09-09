@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, the first guided class/background/species path, the first system-neutral random-table evaluator, and structured D&D name-suggestion provenance are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, the first guided class/background/species path, the first system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -112,4 +112,8 @@ Two BRP-owned consumers prove enum-like and nested structured suggestion results
 
 `generator-core` exposes a minimal provider-based name-suggestion seam with deterministic seed/provenance support and opaque provider-owned context. The shared contract requires only a non-empty display name and does not define species, culture, language, gender, given/family-name parts, or other identity ontology.
 
-D&D adapts its existing six-name placeholder list to this contract without expanding the corpus or changing explicit-seed selection behavior. The guided creator now retains accepted provider/source/version/seed provenance as generation decisions; manual edits supersede stale suggestions, blank fallback retains its effective replay seed, and native/display names remain ordinary strings. The next naming proof is to determine the legitimate provider/content boundary for BRP rather than fabricating a second corpus.
+D&D adapts its existing six-name placeholder list to this contract without expanding the corpus or changing explicit-seed selection behavior. The guided creator retains accepted provider/source/version/seed provenance as generation decisions; manual edits supersede stale suggestions, blank fallback retains its effective replay seed, and native/display names remain ordinary strings.
+
+BRP source discovery confirms that the rules engine does not own a generated-name corpus. BRP directs character names to be appropriate to the setting/game and makes optional cultural backgrounds setting/GM-defined. Therefore future BRP naming data is setting/campaign/content-package owned and should be supplied by a concrete caller/provider. `name-suggestion/0.1` already supports that boundary, so no generic content-provider framework or shared naming-contract expansion is justified now.
+
+Naming work can wait for a real setting consumer. The next concrete creator implementation target is consolidating D&D Quick Generate as a top-level creation mode rather than as an ability method.
