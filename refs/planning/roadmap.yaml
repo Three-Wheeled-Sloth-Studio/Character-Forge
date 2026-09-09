@@ -103,8 +103,10 @@ roadmap:
       - Narrative continuation recipe version is 0.4 and replay-validates applicable Fighter style while preserving the direct-selection versus sticky-acceptable-pool boundary.
       - Later Guided Fighting Style edits remain authoritative; changing Class away from Fighter makes the Fighter style inapplicable while retaining Narrative history.
       - Automated-green Narrative Fighter Fighting Style checkpoint 0cc60281fc85d1c13511515b573f30dedf3ea2ab, Actions 34407597435, job 102654207021, 44 test files / 216 tests / 0 failures.
+      - D&D Guided Narrative was explicitly parked after the Fighter slice; the full retained state is archived in refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
+      - D&D Guided Narrative is parked and has no automatic next slice.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
       - Issue 11 tracks that gate.
     remaining_scope:
@@ -112,7 +114,7 @@ roadmap:
       - Owner browser QA shared Randomize All with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
       - Owner browser QA top-level Guided/Narrative/Quick switching, all six global Narrative questions, conditional Fighter branch, Alignment/equipment/Fighting Style transfer, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
       - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
-      - Verify the exact Cleric Protector/Thaumaturge and Druid Warden/Magician mechanics before implementing a conditional martial-resilience versus broader-magic Narrative branch; split the branches if the shared wording is not honest.
+      - If D&D Narrative is explicitly resumed, verify the exact Cleric Protector/Thaumaturge and Druid Warden/Magician mechanics before implementing a conditional martial-resilience versus broader-magic branch; split the branches if shared wording is not honest.
       - Do not expose Warlock Invocation or broad spell/cantrip catalogs without a new bounded discriminator that respects the five-choice ceiling.
       - Keep every current/future Narrative question equipped with explicit Choose for me or semantic equivalent and never above 5 presented choices.
       - Keep the system-neutral random-table companion active as a parallel thread.
@@ -174,16 +176,26 @@ roadmap:
       - BRP naming source review confirms names are setting/game dependent, optional cultural backgrounds are setting/GM-defined, and the ORC source supplies no generated-name corpus or culture-to-name mapping.
       - BRP generated-name content is therefore setting/campaign/content-package owned, not system-brp owned; the current Human profile provides no naming-culture context.
       - name-suggestion/0.1 is sufficient for a future caller-supplied provider, so no shared naming-contract or speculative generic content-provider layer is justified.
+      - First BRP Powers architecture proof adds Superpowers as an optional BRP-native tagged power-system state without changing brp-character/0.1 or CharacterDocument.
+      - Existing rulesProfile.powerLevel remains the skill-construction profile; Superpowers retains an independent Normal/Heroic power level, with a test proving Normal skill construction plus Heroic Superpowers.
+      - Superpowers character-point budgets are source-derived from initial characteristics: Normal uses half the highest initial characteristic rounded up, Heroic uses the highest initial characteristic, and unused points may remain.
+      - Extra Energy and Extra Hit Points are the first bounded Superpowers entries, affecting Power Points and Hit Points/Major Wound level through retained exact levels and costs.
+      - Standard-rolled powered generation proves the Superpowers budget uses initial characteristic values before redistribution rather than final redistributed values.
+      - Package adapter 0.6.0 validates both unchanged non-powered documents and powered Superpowers state, including budget and derived-state tampering.
+      - Automated-green Superpowers architecture checkpoint bc0a05fb9b96c9777a73726100828712cd8bbb41, Actions 34413436457, job 102672848273, 45 test files / 223 tests / 0 failures.
     current_gate:
-      - The first BRP creator UI, both random-table consumers, bounded Randomize All participation, and naming-content ownership decision are accepted for continued dev work.
-      - Owner browser QA of shared Randomize All remains useful but is not a dedicated implementation slice.
-      - BRP naming implementation waits for a real setting/campaign/content provider rather than blocking other work.
+      - The first BRP creator UI, both random-table consumers, bounded Randomize All participation, naming-content ownership decision, and first Superpowers backend architecture proof are accepted for continued dev work.
+      - BRP Powers UI is not part of the first architecture proof.
+      - No automatic follow-on Powers implementation is authorized by chronology.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
+      - If BRP Powers architecture is explicitly continued, verify Psychic Abilities next as the strongest contrasting grammar before broadening the Superpowers catalog.
+      - Treat Psychic Abilities as a separate BRP power system unless source evidence proves otherwise; do not assume skill rating implies ordinary-skill identity.
+      - Keep full Superpowers catalog ingestion, power failings/modifiers, Epic/Superhuman power levels, fixed GM budgets, and Powers creator UI out until separately prioritized.
       - When a real setting/campaign provider exists, inject it at the host/caller boundary and retain provider/source/version/seed provenance without putting invented data in system-brp.
       - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
       - Keep Scholar academic suggestions field-level until source-safe content or another system-owned strategy can satisfy uniqueness legally.
-      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
+      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, age-50+, cultural/category modifiers, broad profession ingestion, and unimplemented Magic/Mutations/Sorcery/Psychic systems out until separately prioritized.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
       - Preserve effective rules-profile and character-specific age context natively.
@@ -191,7 +203,9 @@ roadmap:
       - Preserve base chance, professional contribution, personal contribution, and final rating separately.
       - Keep specialties and language identities open-ended and source-owned.
       - Preserve both language subject identity and Own/Other role when source meaning depends on them.
-      - Do not model future BRP powers through D&D spell-state structures.
+      - Keep BRP power-system state BRP-native and tagged; do not model it through D&D spell-state structures.
+      - Do not collapse BRP skill-construction level and power-system level into one universal powerLevel concept.
+      - Do not assume all BRP power systems use character-point purchasing because Superpowers does.
       - Keep generation method provenance separate from runtime ontology unless a source proves otherwise.
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 
@@ -262,7 +276,7 @@ roadmap:
       - Naming architecture is waiting on a concrete setting/campaign/content consumer rather than further generic work.
       - Do not add a BRP name randomizer until such a provider and license/source boundary exist.
       - Keep name-suggestion/0.1 unchanged unless a real second provider demonstrates a gap.
-      - Naming no longer blocks unrelated creator work; the next bounded D&D Narrative candidate is the Cleric/Druid order preference verification slice.
+      - Naming no longer blocks unrelated creator work; product direction selects the next line explicitly, and D&D Guided Narrative remains parked.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.
