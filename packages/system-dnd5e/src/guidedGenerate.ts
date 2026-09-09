@@ -2,7 +2,7 @@ import type { CharacterDocument, GenerationDecision, JsonObject } from "../../ch
 import { calculateDnd5ePointCost, createManualAbilityState, createPointCostAbilityState, createRandomAbilityState, createStandardArrayAbilityState, type Dnd5eAbilityIncreasePlan } from "./abilityGeneration.js";
 import type { GuidedDnd5eCoreChoices } from "./guidedChoices.js";
 import { createGuidedDnd5eFirstSliceCharacter } from "./guidedFirstSlice.js";
-import { resolveDnd5eCharacterName } from "./nameGeneration.js";
+import { matchingDnd5eNameSuggestion, suggestDnd5eCharacterName, type Dnd5eNameSuggestion } from "./nameGeneration.js";
 import type { Dnd5eAbilityScores } from "./nativeCharacter.js";
 import { assignDnd5eRandomAbilityScores, rollDnd5eRandomAbilitySet, type Dnd5eRandomAbilityAssignment } from "./randomGenerate.js";
 import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
@@ -17,7 +17,7 @@ export type GuidedAbilityMethodInput =
   | { method: "point-cost"; scores: Dnd5eAbilityScores }
   | { method: "random"; seed?: string; assignment: Dnd5eRandomAbilityAssignment };
 export interface GuidedGenerateDnd5eInput {
-  name?: string; nameSelectionMode?: GuidedChoiceSelectionMode;
+  name?: string; nameSelectionMode?: GuidedChoiceSelectionMode; nameSuggestion?: Dnd5eNameSuggestion;
   classChoice: GuidedChoiceProvenance<GuidedDnd5eClassId>;
   backgroundChoice: GuidedChoiceProvenance<GuidedDnd5eBackgroundId>;
   speciesChoice: GuidedChoiceProvenance<GuidedDnd5eSpeciesId>;
@@ -28,12 +28,16 @@ export interface GuidedGenerateDnd5eInput {
   backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
 }
 
+type GuidedNameOrigin = "explicit-randomize" | "blank-fallback";
+interface ResolvedGuidedName { displayName: string; suggestion?: Dnd5eNameSuggestion; origin?: GuidedNameOrigin; }
+
 export function guidedGenerateDnd5eFirstSlice(input: GuidedGenerateDnd5eInput): CharacterDocument {
   assertChoice(input.classChoice, isGuidedDnd5eClassId, "class"); assertChoice(input.backgroundChoice, isGuidedDnd5eBackgroundId, "background"); assertChoice(input.speciesChoice, isGuidedDnd5eSpeciesId, "species");
   const background = DND5E_SRD_521_BACKGROUND_OPTIONS.find((o) => o.id === input.backgroundChoice.selectedId);
   if (!background || !background.guidedSupported) throw new Error("Selected background is not supported by the current guided D&D slice.");
   const methodResult = createAbilityMethodResult(input.abilityMethod, background.abilityScoreIds, input.backgroundIncreases);
-  const displayName = resolveDnd5eCharacterName(input.name, methodResult.seed);
+  const resolvedName = resolveGuidedName(input, methodResult.seed);
+  const displayName = resolvedName.displayName;
   const decisions: GenerationDecision[] = [
     poolDecision("class", input.classChoice.acceptableIds), choiceDecision("class", input.classChoice),
     poolDecision("background", input.backgroundChoice.acceptableIds), choiceDecision("background", input.backgroundChoice),
@@ -41,20 +45,60 @@ export function guidedGenerateDnd5eFirstSlice(input: GuidedGenerateDnd5eInput): 
     poolDecision("species", input.speciesChoice.acceptableIds), choiceDecision("species", input.speciesChoice),
     ...coreDecisions(input.coreChoices), ...(input.coreChoiceProvenance ?? []), ...methodResult.decisions,
     { stepId: "background.ability-increases", answer: methodResult.abilities.backgroundIncreases },
-    { stepId: "identity.name", answer: displayName, rationale: nameRationale(input) },
+    { stepId: "identity.name", answer: displayName, rationale: nameRationale(input, resolvedName) },
+    ...nameSuggestionDecisions(resolvedName),
   ];
   return createGuidedDnd5eFirstSliceCharacter({
     displayName, classId: input.classChoice.selectedId, backgroundId: input.backgroundChoice.selectedId, speciesId: input.speciesChoice.selectedId,
     backgroundEquipmentChoice: input.backgroundEquipmentChoice, coreChoices: input.coreChoices, abilities: methodResult.abilities,
     generation: {
-      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`, mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical", recipeVersion: "0.6",
+      methodId: `dnd5e:guided-${input.abilityMethod.method}-level-one`, mode: input.abilityMethod.method === "manual" ? "manual" : "mechanical", recipeVersion: "0.7",
       ...(methodResult.seed ? { seed: methodResult.seed } : {}), rulesSourceIds: [DND5E_SRD_5_2_1_SOURCE.id],
       recipe: { sequence: ["class", "background", "species", "origin-details", "abilities", "alignment"], classId: input.classChoice.selectedId, backgroundId: input.backgroundChoice.selectedId, speciesId: input.speciesChoice.selectedId, abilityMethod: input.abilityMethod.method, backgroundEquipmentChoice: input.backgroundEquipmentChoice, classEquipmentChoice: input.coreChoices.classEquipmentChoice },
       decisions,
     },
   });
 }
-function nameRationale(input: GuidedGenerateDnd5eInput): string { if (input.nameSelectionMode === "random") return "Generated by the user's explicit randomize-name action."; if (input.name?.trim()) return "Direct user entry."; return "Generated because the name field was left blank."; }
+function resolveGuidedName(input: GuidedGenerateDnd5eInput, fallbackSeed?: string): ResolvedGuidedName {
+  const explicit = input.name?.trim();
+  if (explicit) {
+    const suggestion = input.nameSelectionMode === "random"
+      ? matchingDnd5eNameSuggestion(explicit, input.nameSuggestion)
+      : undefined;
+    return suggestion
+      ? { displayName: explicit, suggestion, origin: "explicit-randomize" }
+      : { displayName: explicit };
+  }
+  const suggestion = suggestDnd5eCharacterName(fallbackSeed);
+  return { displayName: suggestion.result.displayName, suggestion, origin: "blank-fallback" };
+}
+function nameRationale(input: GuidedGenerateDnd5eInput, resolved: ResolvedGuidedName): string {
+  if (resolved.origin === "explicit-randomize" || input.nameSelectionMode === "random") return "Generated by the user's explicit randomize-name action.";
+  if (input.name?.trim()) return "Direct user entry.";
+  return "Generated because the name field was left blank.";
+}
+function nameSuggestionDecisions(resolved: ResolvedGuidedName): GenerationDecision[] {
+  if (!resolved.suggestion || !resolved.origin) return [];
+  const provenance: JsonObject = {
+    contractVersion: resolved.suggestion.provenance.contractVersion,
+    providerId: resolved.suggestion.provenance.providerId,
+    providerVersion: resolved.suggestion.provenance.providerVersion,
+    sources: resolved.suggestion.provenance.sources.map((source) => ({ id: source.id, version: source.version })),
+    seed: resolved.suggestion.provenance.seed,
+  };
+  const answer: JsonObject = {
+    displayName: resolved.suggestion.result.displayName,
+    trigger: resolved.origin,
+    provenance,
+  };
+  return [{
+    stepId: "identity.name.suggestion",
+    answer,
+    rationale: resolved.origin === "explicit-randomize"
+      ? "Retained provider provenance for the accepted randomize-name suggestion."
+      : "Retained provider provenance for blank-name fallback generation.",
+  }];
+}
 function coreDecisions(choices: GuidedDnd5eCoreChoices): GenerationDecision[] {
   const decisions: GenerationDecision[] = [
     { stepId: "alignment", choiceId: choices.alignmentId }, { stepId: "origin.languages", answer: choices.originLanguageIds },
