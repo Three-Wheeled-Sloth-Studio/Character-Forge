@@ -48,6 +48,9 @@ roadmap:
       - D&D 4d6 roll history is moved out of the cramped inline card surface into hover/accessibility detail.
       - D&D Random ability reassignment uses one-to-one swap semantics so all six rolled totals remain uniquely assigned.
       - Automated-green D&D Random-ability UX checkpoint e66003b9b6334218fb689d2da32ae5bf133251af, Actions 34371712699, job 102534309918, 37 test files / 181 tests / 0 failures.
+      - The existing D&D six-name placeholder generator now implements the shared name-suggestion provider seam without expanding its corpus or changing seeded selection behavior.
+      - Placeholder naming data is explicitly identified as Character Forge content rather than SRD naming data.
+      - Automated-green structured-naming proof checkpoint 978e145bb4614cf6d0f4872cea61c9f9ede613bf, Actions 34372897196, job 102538304875, 39 test files / 188 tests / 0 failures.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
@@ -55,7 +58,8 @@ roadmap:
     remaining_scope:
       - Owner runtime QA of representative classes/species and reopen behavior.
       - Owner browser QA the shared Randomize All behavior with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
-      - Replace the temporary flat generated-name approach with a structured, provenance-bearing naming seam before scaling name content.
+      - Carry structured D&D name-suggestion provenance through the ordinary creator generation record while preserving manual override and current display/native-name behavior.
+      - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
       - Consolidate Quick Generate as a top-level creator mode.
       - Add guided narrative generation through ordinary system APIs.
       - Keep the system-neutral random-table companion active as a parallel thread.
@@ -113,12 +117,13 @@ roadmap:
       - Scholar academic suggestions remain field-level because the two-entry source-safe table cannot legally fill five unique required slots.
       - Age, Gender, Wealth, name, and similar fields remain unchanged because no deliberate BRP random distributions/generators exist yet.
       - Shared creator-randomization checkpoint 1f6ed5aee24f514fbc4fd9de39f9380e8df3719b, Actions 34369619403, job 102527165230, 36 test files / 178 tests / 0 failures.
+      - The shared naming provider/provenance contract is now available, but BRP still intentionally has no provider or corpus until a deliberate content/source boundary is selected.
     current_gate:
       - The first BRP creator UI, both random-table consumers, and bounded Randomize All participation are accepted for continued dev work.
       - Owner browser QA of shared Randomize All remains useful but is not a dedicated implementation slice.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
-      - Add BRP name generation only after the structured naming seam establishes an appropriate provider boundary.
+      - Add BRP name generation only after selecting a deliberate BRP-appropriate provider/content source; do not borrow the D&D placeholder list or infer culture from Human species identity.
       - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
       - Keep Scholar academic suggestions field-level until source-safe content or another system-owned strategy can satisfy uniqueness legally.
       - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
@@ -171,25 +176,32 @@ roadmap:
       - Do not add roll-range authoring, uniqueness sampling, conditional graphs, or user-authored table persistence until evidence requires them.
 
   - id: naming-system-watch
-    horizon: next
-    status: ready_for_discovery
+    horizon: now
+    status: in_progress
     goal: Replace temporary flat generated-name lists with structured, provenance-bearing naming informed by real system, culture, and language consumers.
     trigger:
       - D&D already has a temporary flat name generator that should not be scaled.
       - BRP owner QA exposed the absence of generated names.
       - Shared Randomize All now needs a clean system-owned name-randomizer participation seam.
       - D&D species, BRP human identity, and named BRP language support provide evidence that species, culture, language, and naming convention must remain separable.
+    completed:
+      - Structured naming contract documented in refs/product/structured-naming.md.
+      - generator-core name-suggestion/0.1 requires only provider ID/version, optional source refs, seed, opaque provider-owned context, and a non-empty displayName result.
+      - The shared contract deliberately does not define culture, language, species, gender, given/family-name parts, transliteration, or other identity ontology.
+      - D&D adapts its existing six-name placeholder list through DND5E_PLACEHOLDER_NAME_PROVIDER without expanding content or changing explicit-seed selection behavior.
+      - Direct user-entered names remain authoritative through the existing resolveDnd5eCharacterName compatibility path.
+      - Automated-green naming contract/provider checkpoint 978e145bb4614cf6d0f4872cea61c9f9ede613bf, Actions 34372897196, job 102538304875, 39 test files / 188 tests / 0 failures.
     current_slice:
-      - Audit D&D name generation and current provenance behavior.
-      - Define the minimum provider/request/result contract justified by D&D and BRP.
-      - Preserve deterministic generation, provenance, and manual override without inventing a universal identity ontology.
-      - Decide placement from evidence rather than automatically putting naming in generator-core.
-      - Do not ingest a large corpus in the discovery slice.
+      - Carry D&D generated-name provider provenance into the ordinary guided creator generation record.
+      - Ensure manual name edits clear/supersede suggestion provenance and reopen does not force a generated value back over authoritative retained name state.
+      - Preserve the existing D&D placeholder corpus and current name-selection behavior.
+      - After persistence is proven, select a deliberate BRP provider/content source before adding BRP name randomization.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.
       - Keep system/setting/culture/language datasets separate from the reusable mechanism.
       - Do not equate species with culture, language, nationality, ethnicity, or naming convention.
+      - Do not promote universal name-part fields until multiple real providers need the same semantics.
 
   - id: parchment-2-character-persistence
     horizon: completed
