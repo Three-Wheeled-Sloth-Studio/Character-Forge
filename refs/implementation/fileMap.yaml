@@ -14,7 +14,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and the minimal name-suggestion provider/provenance contract. Core naming requires only displayName and opaque provider-owned context; it does not define identity or narrative semantics.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and the minimal name-suggestion provider/provenance contract. Core naming requires only displayName and opaque provider-owned context; it does not define identity or Narrative semantics.
   structured-naming:
     guidance:
       - refs/product/structured-naming.md
@@ -49,7 +49,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. Top-level Guided Mechanical, Guided Narrative, and Quick modes exist. guidedNarrative.ts owns the first three-question mapping contract, deterministic Choose-for-me resolution, a target of about 3 and hard maximum of 5 presented Narrative choices, narrowed Class/Background/Species candidate sets, in-branch override validation, provenance, and ordinary guided/native construction.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. guidedNarrative.ts owns bounded Narrative questions/mappings and the five-choice ceiling. guidedNarrativeContinuation.ts owns replayable Narrative -> Guided Mechanical transfer provenance and hybrid final-generation annotation without changing native state. guidedGenerate.ts keeps direct current choices separate from sticky acceptable random pools; random selections still require pool membership.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -68,7 +68,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: Shared workspace owns rules-system routing and Randomize All orchestration. D&D dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching. dndNarrativeCreatorPanel renders system-owned questions, explicit Choose for me options, visible replay seed, and only the narrowed mapped Class/Background/Species candidates. To reach a choice outside the current branch, change an upstream Narrative answer. Next focus is a narrow continuation seam into the existing Guided Mechanical editor.
+    notes: dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching and wires explicit Narrative continuation. dndNarrativeCreatorPanel renders bounded system-owned questions and narrowed candidates. dndGuidedCreatorPanel owns the explicit transfer into the existing detailed form and attaches continuation provenance after ordinary Guided generation. stickyChoicePool supports one-shot transient direct initialization without rewriting persisted acceptable pools.
   project-memory:
     guidance:
       - AGENTS.md
@@ -79,7 +79,7 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue D&D Guided Narrative into Guided Mechanical
+  - task: Add D&D Guided Narrative alignment decomposition
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
@@ -87,12 +87,25 @@ common_tasks:
       - refs/product/generation-methods.md
       - packages/system-dnd5e/src/guidedNarrative.ts
       - packages/system-dnd5e/src/guidedNarrative.test.ts
-      - packages/system-dnd5e/src/guidedGenerate.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
+      - packages/system-dnd5e/src/guidedDefaults.ts
+      - packages/system-dnd5e/src/guidedChoices.ts
+      - packages/system-dnd5e/src/srdCatalog.ts
       - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndCreatorPanel.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
       - apps/web/src/guidedCreationPanel.ts
-      - apps/web/src/creatorWorkspace.ts
+  - task: Inspect D&D Guided Narrative continuation
+    look_in:
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
+      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
+      - packages/system-dnd5e/src/guidedChoicePoolBoundary.test.ts
+      - packages/system-dnd5e/src/guidedGenerate.ts
+      - apps/web/src/dndNarrativeCreatorPanel.ts
+      - apps/web/src/dndGuidedCreatorPanel.ts
+      - apps/web/src/dndCreatorPanel.ts
+      - apps/web/src/stickyChoicePool.ts
+      - apps/web/src/stickyChoicePool.test.ts
   - task: Inspect D&D Guided Narrative choice shaping
     look_in:
       - refs/product/creator-workspace.md
