@@ -168,7 +168,8 @@ describe("BRP Scholar academic random-table consumer", () => {
 
     const accepted = applyBrpScholarAcademicSuggestion(characterAccepting(1, suggestion), 1, suggestion);
     const changed = scholarCharacter(DEFAULT_ACADEMICS);
-    changed.generation = accepted.generation;
+    expect(accepted.generation).toBeDefined();
+    changed.generation = accepted.generation!;
     expect(readBrpScholarAcademicSuggestions(changed)).toEqual([]);
   });
 
