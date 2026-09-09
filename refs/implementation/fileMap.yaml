@@ -11,9 +11,20 @@ areas:
     guidance:
       - refs/product/generation-methods.md
       - refs/product/random-table-companion.md
+      - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice-expression primitives, and deterministic provenance-bearing random-table evaluation. Do not move naming here without concrete system-neutral evidence.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and the minimal name-suggestion provider/provenance contract. Core naming requires only displayName and opaque provider-owned context; it does not define identity semantics.
+  structured-naming:
+    guidance:
+      - refs/product/structured-naming.md
+      - refs/product/generation-methods.md
+    source_roots:
+      - packages/generator-core/src/nameSuggestion.ts
+      - packages/generator-core/src/nameSuggestion.test.ts
+      - packages/system-dnd5e/src/nameGeneration.ts
+      - packages/system-dnd5e/src/nameGeneration.test.ts
+    notes: name-suggestion/0.1 is proven with the existing D&D six-name placeholder provider. Provider/source/version/seed provenance is available; culture/language/species context remains provider-owned and no universal naming-parts ontology is defined.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -29,26 +40,29 @@ areas:
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
+      - refs/product/structured-naming.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, and a temporary flat name generator that should be audited rather than expanded.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, and the first naming-provider adapter. The six-name corpus remains explicit placeholder content and must not be scaled as SRD/culture data.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/architecture/brp-second-system-premortem.md
       - refs/integration/brp-uge-orc.md
+      - refs/product/structured-naming.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Randomize All deliberately uses only Profession and Standard-Rolled characteristic seams; name and demographic randomizers remain undefined.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Name generation waits for a deliberate BRP provider/content boundary rather than borrowing D&D placeholder data.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
+      - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: Shared workspace owns Randomize All orchestration only. dndRandomAbilityUx.ts handles bounded D&D Random-method presentation and one-to-one roll-slot swapping without changing system rules. Next slice is structured naming-seam discovery.
+    notes: Shared workspace owns Randomize All orchestration only. D&D name randomization already participates through its existing system control. Next naming slice should retain provider provenance through creator generation without teaching the workspace naming rules.
   project-memory:
     guidance:
       - AGENTS.md
@@ -59,13 +73,21 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Discover the structured naming seam
+  - task: Integrate D&D name suggestion provenance
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
-      - refs/product/generation-methods.md
-      - apps/web/src/creatorWorkspace.ts
-      - packages/system-dnd5e/src
+      - refs/product/structured-naming.md
+      - packages/generator-core/src/nameSuggestion.ts
+      - packages/system-dnd5e/src/nameGeneration.ts
+      - packages/system-dnd5e/src/guidedGenerate.ts
+      - packages/system-dnd5e/src/guidedGenerate.test.ts
+      - apps/web/src/guidedCreationPanel.ts
+  - task: Add or discover another naming provider
+    look_in:
+      - refs/product/structured-naming.md
+      - packages/generator-core/src/nameSuggestion.ts
+      - packages/system-dnd5e/src/nameGeneration.ts
       - packages/system-brp/src
   - task: Continue Randomize All QA or orchestration work
     look_in:
