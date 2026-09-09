@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green D&D Guided Narrative starting-equipment slice.
+Continue Character Forge from the automated-green D&D Guided Narrative Fighter Fighting Style slice.
 
 Repository:
 
@@ -19,22 +19,24 @@ Work directly on `dev`.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative class defining choices"`
+`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative Cleric Druid order preference"`
 
 Then read `refs/implementation/fileMap.yaml`, `refs/handoffs/currentHandoff.md`, `refs/product/creator-workspace.md`, `refs/product/generation-methods.md`, and only targeted D&D creator/source files. Prefer diff-first continuation and conserve agent context.
 
-## Accepted Equipment Checkpoint
+## Accepted Fighter Checkpoint
 
 Latest automated-green implementation:
 
-- SHA: `5760a079ad8e188320997dcc02ddf8f683bd1d99`
-- Actions: `34395268461`
-- job: `102613297986`
+- SHA: `0cc60281fc85d1c13511515b573f30dedf3ea2ab`
+- Actions: `34407597435`
+- job: `102654207021`
 - Verify: success
-- 44 test files / 213 tests / 0 failures
+- 44 test files / 216 tests / 0 failures
 - 170 tracked paths
+- 14 required project-memory files
 - OKF: 19 concepts / 9 indexes
-- build: `Character Forge build 0.0.1 5760a079`
+- agent context check: 4,114 characters
+- build: `Character Forge build 0.0.1 0cc60281`
 
 Promoted branches remain unchanged:
 
@@ -45,7 +47,7 @@ Preserve exact-SHA `dev -> qa -> main` promotion. Do not promote unless explicit
 
 ## Current D&D Narrative Shape
 
-D&D Guided Narrative now has six bounded questions:
+D&D Guided Narrative retains six global bounded questions:
 
 - role -> Class candidates/recommendation;
 - past -> Background candidates/recommendation;
@@ -54,32 +56,58 @@ D&D Guided Narrative now has six bounded questions:
 - order -> Alignment axis;
 - regard -> Alignment axis.
 
-Every question includes explicit `Choose for me` and stays at or below the five-choice ceiling.
+Fighter adds one conditional Class-specific branch after Class is resolved/selected:
 
-Narrative mapping version is `4`. Direct Narrative recipe version is `0.3`. Continuation recipe version is `0.3`.
+- `control-from-range` -> Archery;
+- `hold-the-line` -> Defense;
+- `heavy-weapon` -> Great Weapon Fighting;
+- `paired-weapons` -> Two-Weapon Fighting.
 
-Direct Narrative Build feeds Class, Background, Species, Alignment, Class equipment, and Background equipment through ordinary Guided/native construction.
+That branch presents four substantive choices plus `Choose for me`, exactly meeting the five-choice ceiling.
 
-Narrative -> Guided Mechanical continuation retains the Narrative starting Class, Background, Species, Alignment, Class equipment, and Background equipment. Later Guided Mechanical edits remain authoritative.
+Every global or conditional Narrative question includes explicit `Choose for me` and stays at or below the five-choice ceiling.
 
-## Starting-Equipment Finding
+Narrative mapping version is `5`. Direct Narrative recipe version is `0.4`. Continuation recipe version is `0.4`.
 
-Do not reopen the equipment abstraction without concrete new evidence.
+Direct Narrative Build feeds Class, Background, Species, Alignment, Class/Background equipment, and applicable Fighter Fighting Style through ordinary Guided/native construction.
 
-The current supported catalogs show:
+Narrative -> Guided Mechanical continuation retains the applicable Narrative starting choices. Later Guided Mechanical edits remain authoritative.
 
-- 11 Classes: prepared kit `A` versus starting gold `B`;
-- Fighter: prepared heavy/melee kit `A`, prepared lighter/ranged kit `B`, starting gold `C`;
-- all four Backgrounds: prepared kit `A` versus 50 GP `B:50-gp`.
+## Class-Defining-Choice Audit Finding
 
-The only shared Narrative discriminator justified by the data is therefore:
+Do not reopen the audit unless new source data or implementation evidence requires it.
 
-- `prepared-gear` -> existing Class `A` + Background `A`;
-- `starting-gold` -> the Class's existing legal gold option + Background `B:50-gp`.
+Current Level 1 choice shapes include:
 
-Fighter `A` versus `B` is a real playstyle choice but remains Guided Mechanical. It does not justify a universal alternate-kit category.
+- Fighter Fighting Style: 4 supported choices;
+- Cleric Divine Order: Protector or Thaumaturge;
+- Druid Primal Order: Warden or Magician;
+- Warlock Eldritch Invocation: 5 supported choices before adding `Choose for me`;
+- prepared spell/cantrip catalogs: commonly 10 to 20+ options, often with multiple simultaneous selections;
+- Weapon Mastery, skills, Expertise, and related controls: broad mechanical catalogs rather than one clean fictional discriminator.
 
-Class equipment continuation initializes the existing current control without rewriting its sticky acceptable random pool. The untouched Narrative preference is reapplied through dependent rerenders; explicit Guided equipment interaction ends that initialization. Background equipment uses the existing direct selector. Hybrid provenance retains starting and final equipment choices.
+The audit found no honest universal Class-feature ontology.
+
+There is one limited cross-Class semantic candidate:
+
+- Cleric Protector and Druid Warden emphasize physical resilience / martial capability;
+- Cleric Thaumaturge and Druid Magician emphasize broader magical capability.
+
+Fighter and Warlock do not fit that axis cleanly. Warlock Invocations mix several unrelated playstyle dimensions.
+
+## Fighter Branch Contract
+
+Fighter Fighting Style is a Class-specific Narrative branch, not a seventh global question and not a shared combat-role ontology.
+
+The branch appears only when the current Narrative Class is Fighter.
+
+Direct Build maps the Narrative preference into existing `GuidedDnd5eCoreChoices.fightingStyleFeatId` before ordinary generation.
+
+Continuation initializes the existing Guided Mechanical Fighting Style control without dispatching a persisted change or rewriting the sticky acceptable Fighting Style pool.
+
+The initialization survives unrelated rerenders until the player explicitly changes/randomizes/edits Fighting Style. Later Guided Mechanical intent is authoritative.
+
+Changing Class away from Fighter removes the applicable final Fighter style while retained Narrative provenance still shows the original starting recommendation.
 
 ## Narrative Choice-Shape Contract
 
@@ -88,7 +116,9 @@ Treat this as a hard product constraint:
 - target about 3 choices per Narrative step where practical;
 - hard maximum 5 presented choices per Narrative step;
 - `Choose for me` or semantic equivalent counts toward that maximum;
-- if a downstream choice set would exceed 5, add an upstream bounded discriminator rather than exposing the large mechanical catalog;
+- conditional Class-specific questions are allowed when the owning Class semantics justify them;
+- similar mechanical location does not imply shared semantics;
+- if a downstream catalog would exceed 5, add a bounded upstream discriminator or leave it to Guided Mechanical;
 - Narrative overrides stay inside the narrowed branch;
 - once the player explicitly enters Guided Mechanical, ordinary mechanical catalogs are outside the Narrative ceiling;
 - direct answers and later Guided edits remain authoritative;
@@ -96,45 +126,55 @@ Treat this as a hard product constraint:
 
 Do not weaken `DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5`.
 
-## Immediate Slice: Class-Defining-Choice Audit
+## Immediate Slice: Cleric / Druid Order Preference
 
-Start with discovery, not implementation.
+Start with a short verification audit, not implementation by assumption.
 
-Audit the actual currently supported Level 1 D&D Class-owned choices that materially change how a character plays. Include at least:
+Inspect the exact Level 1 mechanics and current Guided controls for:
 
-- Fighter Fighting Style;
-- Cleric Divine Order;
-- Druid Primal Order;
-- Warlock Eldritch Invocation;
-- class spell/cantrip selections where they create clear playstyle distinctions;
-- any other already-supported Class-owned choice that is comparably character-defining.
+- Cleric Protector versus Thaumaturge;
+- Druid Warden versus Magician.
+
+The candidate player-facing discriminator is:
+
+- lean toward physical resilience / martial capability;
+- lean toward broader magical capability.
 
 Questions to answer before editing:
 
-1. Which choices are truly character/playstyle-defining versus merely detailed mechanical configuration?
-2. Which choices share a real player-intent discriminator across multiple Classes, if any?
-3. Which are inherently Class-specific and should stay behind a Class-specific Narrative branch?
-4. Which catalogs exceed the five-choice Narrative ceiling and would require an upstream discriminator?
-5. Can the smallest useful next slice initialize existing Guided controls without introducing a generic conditional-question engine?
-6. Can direct Narrative Build route the result through ordinary Guided/native inputs with clean replay provenance?
+1. Do the exact Protector/Warden mechanics support the same player-facing "physical resilience / martial" wording without hiding an important difference?
+2. Do the exact Thaumaturge/Magician mechanics support the same "broader magical capability" wording without overstating equivalence?
+3. Can one conditional question be shown only for Cleric and Druid, with mapping dependent on the already-resolved Class?
+4. Can the result initialize the existing `divineOrderId` / `primalOrderId` controls without a generic conditional-question engine?
+5. Can direct Narrative Build route the mapped choice through ordinary Guided/native inputs with clean replay provenance?
+6. Can continuation preserve sticky acceptable pools while later Guided Mechanical edits remain authoritative?
 
-Do not assume that Fighting Style, Divine Order, Primal Order, Invocation, and spell selection belong to one universal concept. Similar UI position is not evidence of shared semantics.
+If the evidence supports the shared wording, the smallest implementation should be:
 
-## Decision Rule
+- one conditional Cleric/Druid Narrative question;
+- `Choose for me` plus exactly two substantive preferences;
+- Cleric mapping: martial/resilience -> Protector, magic -> Thaumaturge;
+- Druid mapping: martial/resilience -> Warden, magic -> Magician;
+- question absent for every other Class;
+- direct Build through existing core choices;
+- continuation into existing Guided controls;
+- retained submitted/resolved answer, mapping version, seed behavior, starting choice, final choice, and changed-after-continuation provenance.
 
-If the audit exposes one small, honest cross-Class discriminator, summarize it and propose the narrowest implementation.
+If the exact mechanics do not support one honest shared wording, stop after the audit and split the work into smaller Cleric-only and Druid-only branches rather than forcing equivalence.
 
-If the audit shows only Class-specific semantics, prefer one bounded Class-specific branch as the next proof rather than inventing a shared combat-role, magic-style, personality, or class-feature ontology.
+## Do Not Add Yet
 
-If the smallest honest branch would require a generic conditional-question engine, stop after the audit and recommend a smaller prerequisite or different consumer.
+Keep this narrow. Do not add:
 
-Before making changes, summarize:
+- Warlock Invocation Narrative mapping;
+- broad spell/cantrip recommendation or optimization;
+- a generic conditional-question/branching engine;
+- universal combat-role, magic-style, class-feature, personality, or psychology ontology;
+- BRP Guided Narrative;
+- Quick Generate changes;
+- unrelated creator cleanup.
 
-1. current state;
-2. audited Class choice shapes;
-3. shared versus Class-specific semantics;
-4. whether a coherent next Narrative slice is justified;
-5. the smallest proposed implementation shape.
+Warlock has five Invocation choices already, so adding `Choose for me` would exceed the Narrative ceiling. It needs a separate upstream discriminator before becoming a Narrative surface.
 
 ## Foundation Guardrails
 
@@ -146,25 +186,11 @@ Native system state is mandatory and lossless. Never reconstruct retained native
 - Direct current choices and sticky acceptable random pools remain separate concepts.
 - Alignment decomposition remains D&D-specific, not a shared morality/personality model.
 - Equipment preference remains D&D-specific and does not create a universal gear ontology.
-- Fighter's alternate prepared kit remains an ordinary detailed mechanical choice unless a future Class-specific Narrative branch explicitly targets it.
+- Fighter Fighting Style remains Fighter-specific and does not create a universal combat-role ontology.
 - BRP naming remains setting/campaign/content-package owned.
 - Parchment remains system-agnostic.
 - Preserve exact-SHA promotion provenance.
 - D&D Issue #11 remains the accumulated runtime-QA/promotion gate.
-
-## Explicitly Deferred
-
-- BRP Guided Narrative;
-- generic questionnaire/branching engine;
-- universal alignment/morality/personality/psychology ontology;
-- universal equipment/loadout ontology;
-- universal combat-role or class-feature ontology;
-- broad spell recommendation/optimization;
-- equipment optimization, inventory management, or pricing redesign;
-- equipment or spell random tables merely to exercise the random-table engine;
-- changes to Quick Generate mechanics;
-- BRP generated names without a real setting provider;
-- unrelated creator cleanup.
 
 ## Validation
 
@@ -172,4 +198,4 @@ Run:
 
 `npm run verify`
 
-Do not call a milestone green unless the exact committed SHA passes GitHub Actions. Update the delta-oriented handoff and related product/roadmap/file-map truth only after a green implementation checkpoint. Do not promote `qa` or `main` unless explicitly instructed.
+Do not call a milestone green unless the exact committed SHA passes GitHub Actions. Update delta-oriented handoff/product/roadmap/file-map truth only after a green implementation checkpoint. Do not promote `qa` or `main` unless explicitly instructed.
