@@ -7,6 +7,7 @@ principles:
   - Make guided narrative generation a first-class path early.
   - Every narrative choice/question exposes an explicit Choose for me equivalent; direct answers and later overrides remain authoritative.
   - Narrative steps target about 3 presented choices and never exceed 5 including Choose for me; use upstream narrowing when needed.
+  - Conditional Narrative branches may be Class-specific when real system semantics justify them; similar UI placement does not imply a shared ontology.
   - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
   - Keep direct current choices separate from sticky acceptable random pools; random selections remain constrained to their pool.
   - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface.
@@ -94,6 +95,14 @@ roadmap:
       - Class-equipment continuation preserves the direct-choice versus sticky-acceptable-pool boundary and reapplies an untouched Narrative preference through dependent rerenders without persisting over the pool.
       - Later Guided Mechanical Class/Background equipment edits remain authoritative and hybrid provenance records Narrative starting choices plus final equipment choices.
       - Automated-green Narrative starting-equipment checkpoint 5760a079ad8e188320997dcc02ddf8f683bd1d99, Actions 34395268461, job 102613297986, 44 test files / 213 tests / 0 failures.
+      - Class-defining-choice audit found Fighter Fighting Style at 4 choices, Cleric Divine Order and Druid Primal Order at 2 choices each, Warlock Invocation at 5 choices before Choose for me, and broad multi-select spell/cantrip catalogs.
+      - The audit rejected a universal Class-feature ontology; Cleric/Druid show a limited martial-resilience versus broader-magic axis, while Fighter and Warlock do not honestly fit it.
+      - Fighter Fighting Style becomes the first conditional Class-specific Narrative branch and is shown only when the current Narrative Class is Fighter.
+      - The Fighter branch presents four substantive preferences plus Choose for me and maps one-to-one to Archery, Defense, Great Weapon Fighting, and Two-Weapon Fighting.
+      - Direct Narrative Build routes Fighter style through the existing fightingStyleFeatId core choice; Narrative mapping version is 5 and direct recipe version is 0.4.
+      - Narrative continuation recipe version is 0.4 and replay-validates applicable Fighter style while preserving the direct-selection versus sticky-acceptable-pool boundary.
+      - Later Guided Fighting Style edits remain authoritative; changing Class away from Fighter makes the Fighter style inapplicable while retaining Narrative history.
+      - Automated-green Narrative Fighter Fighting Style checkpoint 0cc60281fc85d1c13511515b573f30dedf3ea2ab, Actions 34407597435, job 102654207021, 44 test files / 216 tests / 0 failures.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
@@ -101,9 +110,10 @@ roadmap:
     remaining_scope:
       - Owner runtime QA of representative classes/species and reopen behavior.
       - Owner browser QA shared Randomize All with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
-      - Owner browser QA top-level Guided/Narrative/Quick switching, all six Narrative questions, Alignment and equipment mapping/transfer, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
+      - Owner browser QA top-level Guided/Narrative/Quick switching, all six global Narrative questions, conditional Fighter branch, Alignment/equipment/Fighting Style transfer, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
       - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
-      - Audit supported Level 1 Class-defining choices before selecting the next bounded Narrative consumer; prefer a narrow Class-specific branch over a false universal class-feature ontology when evidence is Class-specific.
+      - Verify the exact Cleric Protector/Thaumaturge and Druid Warden/Magician mechanics before implementing a conditional martial-resilience versus broader-magic Narrative branch; split the branches if the shared wording is not honest.
+      - Do not expose Warlock Invocation or broad spell/cantrip catalogs without a new bounded discriminator that respects the five-choice ceiling.
       - Keep every current/future Narrative question equipped with explicit Choose for me or semantic equivalent and never above 5 presented choices.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
@@ -252,7 +262,7 @@ roadmap:
       - Naming architecture is waiting on a concrete setting/campaign/content consumer rather than further generic work.
       - Do not add a BRP name randomizer until such a provider and license/source boundary exist.
       - Keep name-suggestion/0.1 unchanged unless a real second provider demonstrates a gap.
-      - Naming no longer blocks unrelated creator work; the D&D Guided Narrative class-defining-choice audit is the next active discovery slice.
+      - Naming no longer blocks unrelated creator work; the next bounded D&D Narrative candidate is the Cleric/Druid order preference verification slice.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.
