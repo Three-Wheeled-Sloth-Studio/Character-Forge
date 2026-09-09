@@ -36,110 +36,97 @@ Existing green checkpoints remain valid:
 - shared creator randomization: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`, Actions `34369619403`, job `102527165230`;
 - D&D Random-ability UX: `e66003b9b6334218fb689d2da32ae5bf133251af`, Actions `34371712699`, job `102534309918`;
 - structured naming contract/provider proof: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`, Actions `34372897196`, job `102538304875`;
-- D&D generated-name provenance: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`, Actions `34374497101`, job `102543733892`.
+- D&D generated-name provenance: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`, Actions `34374497101`, job `102543733892`;
+- BRP naming ownership discovery docs head: `515ca38960169f3476fcfdd9ffcc9f0195f36d5b`, Actions `34379945403`, job `102562036634`.
 
-## BRP Naming Provider/Content Boundary Discovery
+## D&D Quick Generate Top-Level Creator Mode Checkpoint
 
-The naming question is now resolved at the ownership level. This slice intentionally did not add runtime code or fabricate a BRP name corpus.
+The creator-mode consolidation slice is automated-green:
 
-Authoritative source reviewed:
+- implementation checkpoint: `418db810828c6a44d7b24b88ef69a3b6ffdffc40`
+- Actions: `34382893940`
+- job: `102571852183`
+- Verify conclusion: success
+- full suite: 41 test files / 197 tests / 0 failures
+- tracked paths: 164
+- OKF: 19 concepts / 9 indexes
+- generated agent context: 3,809 characters
+- web build identity: `Character Forge build 0.0.1 418db810`
 
-- Basic Roleplaying - Universal Game Engine - ORC Content Document;
-- Chaosium BRP ORC License/notice page;
-- existing Character Forge BRP 1.05 source boundary.
+What changed:
 
-Positive source evidence:
+- `apps/web/src/dndCreatorPanel.ts` now owns D&D top-level creation-mode selection.
+- D&D exposes exactly two current creation modes: `Guided Mechanical` and `Quick Generate`.
+- `Guided Mechanical` remains the default and keeps the existing detailed creator intact.
+- Standard Array, Point Cost, Random, and Manual remain ability-generation methods inside Guided Mechanical. Quick was not added to that dropdown.
+- Both D&D mode surfaces stay mounted while toggling, so switching modes does not discard the current Guided form or Quick name/seed inputs.
+- `apps/web/src/dndQuickCreatorPanel.ts` exposes only optional name and optional seed, matching the existing `quickGenerateDnd5eFirstSlice()` API.
+- Quick browser code does not reproduce the Human/Soldier/Fighter template or any randomization/rules logic. It delegates directly to the system package.
+- Quick output flows through the same `onCharacter` callback used by Guided creation, preserving the existing review, host-message, save, and Parchment persistence boundary.
+- Blank name/seed retain the system API's generated behavior. Explicit seed retains the existing deterministic-mechanics/new-opaque-ID behavior already covered by system tests.
+- No Quick Generate native mechanics, recipe, template, adapter, CharacterDocument schema, dependency, or lockfile changed.
 
-1. The BRP terminology section says character names and backgrounds are determined by the player with gamemaster assistance and/or approval.
-2. Character Creation, Step One says the character name should be appropriate to the setting and game being played and can be deferred if no idea suggests itself.
-3. The optional `Culture and Characters` section says the gamemaster may develop cultural backgrounds appropriate to an original or adapted setting. Language(s) is one possible cultural-background field.
+## Randomize All Decision
 
-Explicit non-findings:
+`Randomize All` remains available for D&D Guided Mechanical and BRP under their established semantics.
 
-- no BRP generated-name table;
-- no BRP-owned name corpus;
-- no generic BRP culture-to-name mapping;
-- no source basis for treating the current `Human` profile as a culture, nationality, ethnicity, language, or naming convention.
+While D&D Quick mode is active:
 
-The durable source finding is recorded in `refs/integration/brp-uge-orc.md` and the product boundary in `refs/product/structured-naming.md`.
+- the workspace hides and disables `Randomize All`;
+- the click path is also guarded in code;
+- hidden Guided controls therefore cannot be triggered accidentally;
+- Quick owns its randomization through the explicit `Generate character` action.
 
-## Ownership Decision
+No BRP Quick mode was added or implied.
 
-BRP generated-name content is setting/campaign/content-package owned, not `packages/system-brp` owned.
+## Product Boundary Preserved
 
-A future BRP creator may consume a concrete naming provider supplied by its caller/host when a setting or campaign has one. That provider owns any setting/culture/language/naming-convention context it needs. Those concepts remain opaque provider context unless multiple real consumers justify promoting a shared schema.
+The creator hierarchy is now explicit:
 
-The absence of a naming provider is valid. `Randomize All` must not invent a name, pseudo-culture, or distribution merely to be exhaustive.
+1. rules system;
+2. top-level creation mode;
+3. method-specific controls inside that mode.
 
-`name-suggestion/0.1` already expresses the required mechanism:
+This keeps Quick and future Guided Narrative at the correct level without destabilizing the existing Guided Mechanical form.
 
-- provider ID/version;
-- source ID/version;
-- replay seed;
-- opaque typed context;
-- provider result containing a display name.
+The existing left-controls/right-review workspace remains unchanged. Generation seed and provenance continue to appear in the ordinary review/inspector surface.
 
-No shared naming-contract change is justified. No generic content-provider framework is justified yet. The existing caller-supplied `NameSuggestionProvider<TContext, TResult>` is enough until a real Parchment/world/setting consumer demonstrates another requirement.
+## BRP Naming Decision Remains Closed
 
-## License/Provenance Finding
+Do not reopen BRP naming architecture in the next slice.
 
-Chaosium makes the applicable BRP UGE text available under the ORC license subject to its product-identity exclusions. That does not automatically license a naming dataset from another setting, source, or real-world corpus.
-
-Any future BRP naming provider must therefore retain its own source/version and deliberate redistribution/license basis. Provider provenance must not claim that setting names came from `chaosium-brp-uge-orc-1.05` when they did not.
-
-Call of Cthulhu, RuneQuest, Pendragon, Rivers of London, and other branded-setting content remain excluded unless separately licensed or independently open for the intended use.
-
-## What Changed In Repo
-
-Documentation/project truth only:
-
-- `refs/integration/brp-uge-orc.md` now records the source evidence, non-findings, ownership decision, and license consequence.
-- `refs/product/structured-naming.md` now records BRP as a setting/campaign/provider-owned naming consumer and closes the second-provider discovery question.
-- `refs/product/generation-methods.md` now states that naming waits for a real setting consumer and no longer blocks unrelated creator work.
-- `refs/implementation/fileMap.yaml` now routes BRP naming inspection to the source/decision docs and makes Quick Generate consolidation the next active creator task.
-
-No CharacterDocument schema, D&D native schema, BRP native schema, adapter, generator-core contract, dependency, lockfile, or runtime creator code changed in this discovery slice.
-
-## Naming Work Status
-
-Naming architecture is not blocked technically. It is waiting on a real content owner.
-
-When a concrete Parchment/world/setting naming source exists, the first BRP naming proof should:
-
-- inject the concrete provider at the host/caller boundary;
-- preserve direct user-entry authority;
-- retain provider/source/version/seed provenance;
-- leave authoritative display/native names as ordinary strings;
-- keep `system-brp` free of invented naming datasets.
-
-Do not create that seam speculatively before a real provider exists.
+The authoritative BRP source review established that names are setting/game dependent and optional culture is GM/setting defined. There is no BRP generated-name corpus or culture-to-name mapping. Future BRP naming data is setting/campaign/content-package owned and should be caller/provider supplied through the existing `name-suggestion/0.1` seam.
 
 ## Remaining QA Evidence
 
-Owner browser QA of shared `Randomize All` remains useful but is not a dedicated cycle. Fold nonblocking creator polish into related touched slices.
+Owner browser QA of the accumulated creator workspace remains useful, including mode switching and Quick submission, but remains a nonblocking accumulated QA gate rather than a dedicated implementation cycle unless a concrete blocker appears.
 
-D&D accumulated runtime QA remains a separate promotion gate under Issue #11.
+D&D accumulated runtime QA remains separately tracked by Issue #11 before promotion.
 
 ## Next Slice
 
-Return to a concrete creator product gap: consolidate existing D&D Quick Generate as a top-level creator mode.
+Begin the first D&D Guided Narrative vertical slice.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D Quick Generate top-level creator mode"`
+`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative first vertical slice"`
 
 Priorities:
 
-1. Treat Quick Generate as a creation mode, not a fifth ability-generation method.
-2. Reuse the existing automated-green `quickGenerateDnd5eFirstSlice()` API and ordinary CharacterDocument/native validation path rather than reimplementing quick mechanics in browser code.
-3. Keep the existing Guided creator and its Standard Array / Point Cost / Random / Manual ability dropdown intact.
-4. Add a compact top-level creation-mode selector in the established left-side creator workspace. Guided Mechanical should remain the current detailed form path; Quick should expose only controls it legitimately needs.
-5. Preserve the existing owner-accepted Quick Generate host/persistence/reopen behavior and do not reopen its native template mechanics without evidence.
-6. Keep D&D as the default rules system and do not make BRP pretend to support a Quick mode unless a BRP quick-generation contract exists.
-7. Preserve shared Randomize All semantics. Decide deliberately whether Randomize All is visible/applicable in Quick mode rather than accidentally invoking hidden Guided controls.
-8. Fold only directly adjacent nonblocking creator polish into this slice; do not turn it into a general UI cleanup cycle.
-9. Keep Quick generation provenance, seed, and native validation visible in the ordinary review surface.
-10. Do not promote `qa` or `main`.
+1. Treat Guided Narrative as a third top-level D&D creation mode, not an ability-generation method.
+2. Start with a deliberately small set of narrative/preference questions that can map to already-supported D&D mechanical choices.
+3. Keep narrative mapping data system-owned and inspectable. Browser code should render questions and orchestrate selection, not own hidden D&D rules logic.
+4. Record the important narrative answers and resulting mapped choices in generation provenance.
+5. Route final results through existing guided/native generation APIs rather than creating a narrative-specific character-state model.
+6. Prefer mapping first to already-supported Class / Background / Species choices. Do not add new SRD mechanics merely to broaden narrative coverage.
+7. Make mapped choices inspectable and overridable before or during final generation. Narrative guidance should suggest/direct ordinary choices, not trap the user in an opaque result.
+8. Keep random/weighted behavior deterministic if randomness is introduced and retain its seed/provenance.
+9. Do not promote a universal personality, trait, ideal, bond, flaw, or psychological ontology from the first D&D questionnaire.
+10. Do not combine this slice with BRP narrative generation, BRP naming, a large random-table expansion, or general creator cleanup.
+11. Preserve Quick and Guided Mechanical behavior exactly unless a concrete integration bug requires a narrow fix.
+12. Do not promote `qa` or `main`.
+
+A good first proof is a small D&D-owned narrative mapping contract plus the minimum creator integration needed to produce ordinary Class / Background / Species selections with retained answer/mapping provenance. Keep the first question set small enough that every mapped output is already legal in the current D&D creator.
 
 ## Relevant Files
 
@@ -147,25 +134,23 @@ Priorities:
 - `refs/product/generation-methods.md`
 - `refs/handoffs/next-dev-prompt.md`
 - `refs/implementation/fileMap.yaml`
-- `packages/system-dnd5e/src/quickGenerate.ts`
-- `packages/system-dnd5e/src/quickGenerate.test.ts`
+- `packages/system-dnd5e/src/guidedGenerate.ts`
 - `packages/system-dnd5e/src/index.ts`
-- `apps/web/src/creatorWorkspace.ts`
+- `apps/web/src/dndCreatorPanel.ts`
 - `apps/web/src/guidedCreationPanel.ts`
-- `apps/web/src/dndGuidedCreatorPanel.ts`
-- `apps/web/src/main.ts`
-- `apps/web/src/characterForgeHostBridge.ts`
-- `apps/web/src/characterForgeHostBridge.test.ts`
+- `apps/web/src/dndQuickCreatorPanel.ts`
+- `apps/web/src/creatorWorkspace.ts`
 
 ## Do Not Reopen Without New Evidence
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
+- Quick Generate and Guided Narrative are top-level creation front ends, not ability-generation methods.
+- Shared creator code coordinates interactions only; system rules, mappings, distributions, and content stay system-owned.
 - Name suggestion is a generation primitive, not a universal identity object or character-state format.
 - BRP naming content is setting/campaign/content-package owned unless a future source explicitly says otherwise.
 - Do not equate species with culture, language, nationality, ethnicity, or naming convention.
-- Do not promote universal name-part fields until multiple real providers require the same semantics.
-- Shared creator orchestration coordinates interactions only; system rules, distributions, and content stay system-owned.
+- Do not promote universal trait/ideal/bond/flaw or personality schemas from one D&D narrative implementation.
 - Random-table evaluation remains a separate generation primitive.
 - Preserve explicit replay provenance and version boundaries.
 - Do not invent distributions merely to make `Randomize All` exhaustive.

@@ -7,7 +7,7 @@ tags:
 ---
 # Creator Workspace
 
-Status: Product/UI standard established by the D&D guided-creation refactor on 2026-08-26.
+Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level D&D Guided Mechanical / Quick Generate creation modes on 2026-09-09.
 
 ## Core layout
 
@@ -20,11 +20,13 @@ The user should be able to adjust creation inputs without losing sight of the re
 
 ## Control hierarchy
 
-Put controls shared across generation methods near the top of the left panel. Method-specific controls should not duplicate the whole creator.
+Put controls shared across creation modes and generation methods near the top of the left panel. Method-specific controls should not duplicate the whole creator.
 
-For the current D&D guided creator, universal controls include character identity and ordinary origin/class selections. Ability generation uses one method dropdown; selecting Standard Array, Point Cost, Random, or Manual dynamically inserts only the controls needed by that method.
+For D&D, the rules-system selector remains above a compact top-level creation-mode selector. `Guided Mechanical` is the default and retains the full detailed creator. Within Guided Mechanical, ability generation still uses one method dropdown; Standard Array, Point Cost, Random, or Manual dynamically inserts only the controls needed by that method.
 
-Do not add one full-width card/panel per generation method.
+`Quick Generate` is a sibling creation mode, not a fifth ability method. Its current UI exposes only the inputs supported by the existing system API: optional character name and optional seed.
+
+Do not add one full-width card/panel per ability-generation method.
 
 ## Choice menus
 
@@ -47,15 +49,30 @@ The right-side review surface should prioritize information useful for evaluatin
 - generation seed/provenance when useful;
 - drill-down to the complete native/CharacterDocument representation.
 
+All creation modes publish through the same ordinary CharacterDocument review/save boundary. Quick does not own a parallel result model.
+
 Do not reserve equal visual weight for raw JSON. Keep inspection available as a drill-down rather than making it the primary character view.
 
 ## Creation mode versus sub-method
 
 Not every generation concept belongs in the same dropdown.
 
-Standard Array, Point Cost, Random, and Manual are currently alternate **ability-generation methods** within guided creation.
+Standard Array, Point Cost, Random, and Manual are alternate **ability-generation methods** within Guided Mechanical creation.
 
-Quick Generate and Guided Narrative are broader **creation modes/front ends** because they can make multiple character decisions, not only produce ability scores. When these are visually consolidated, expose them at the appropriate higher level while routing their results through the same ordinary native generation/validation APIs.
+Quick Generate and Guided Narrative are broader **creation modes/front ends** because they can make multiple character decisions, not only produce ability scores. They belong at the higher creation-mode level while routing results through ordinary native generation/validation APIs.
+
+D&D now proves this hierarchy with `Guided Mechanical | Quick Generate`. Both mode surfaces remain mounted while switching so an in-progress Guided form or Quick seed/name is not discarded merely by toggling modes.
+
+Quick mode calls `quickGenerateDnd5eFirstSlice()` directly. Browser code does not duplicate its template, randomization, class/background/species, ability, or naming mechanics.
+
+## Randomize All by creation mode
+
+Shared `Randomize All` is an orchestration control, not a promise that every mode has identical random semantics.
+
+- Guided Mechanical continues to delegate to its existing D&D field randomizers and random-roll control.
+- Quick Generate owns randomization through its `Generate character` action, so the workspace hides and disables `Randomize All` while Quick is active.
+- The workspace also guards the click path, so hidden Guided controls cannot be accidentally invoked in Quick mode.
+- BRP behavior remains unchanged and no BRP Quick mode is implied.
 
 ## Extension rule
 
@@ -76,3 +93,14 @@ Avoid:
 - validation popups for easily reversible creation changes;
 - hiding the generated character below a long control surface;
 - duplicating native-generation logic in browser-only handlers.
+
+## Current evidence
+
+Automated-green D&D top-level Quick consolidation:
+
+- implementation SHA: `418db810828c6a44d7b24b88ef69a3b6ffdffc40`;
+- Actions: `34382893940`;
+- job: `102571852183`;
+- 41 test files / 197 tests / 0 failures.
+
+Owner browser QA remains useful as accumulated creator QA, but this slice did not create a separate browser-QA gate.

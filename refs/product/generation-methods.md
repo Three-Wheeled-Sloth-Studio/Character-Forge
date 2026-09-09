@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, the first guided class/background/species path, the first system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, guided mechanical creation, top-level Quick Generate, the first system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -54,13 +54,19 @@ The user answers fictional or preference-oriented questions and the system maps 
 
 This path should appear early enough to influence generator architecture rather than being bolted onto a completed form wizard. Narrative guidance must ultimately produce ordinary system choices that can be inspected, overridden, validated, and persisted normally.
 
+Guided Narrative remains the next concrete D&D creation-mode proof. Do not turn narrative answers into a universal personality ontology or a second native character model. The first slice should map a small set of explicit answers to existing D&D choices through system-owned, inspectable mapping data and then use the ordinary guided/native generation path.
+
 ### Quick generate
 
 The system produces a legal complete character with minimal input, while still recording the recipe, rules sources, random seed where relevant, and major choices.
 
 Quick Generate is a complete-character front end over ordinary native generation behavior, not a separate character-state format and not merely another ability-score method.
 
-The existing owner-accepted Quick Generate API/host/persistence seam remains intact. The consolidated guided UI currently uses a single dropdown for the four ability-generation methods. When Quick is visually folded into that workspace, it should be represented as a top-level creation mode that can reuse sticky acceptable pools and ordinary catalogs rather than being mislabeled as a fifth ability method.
+D&D now exposes Quick Generate as a top-level creation mode beside Guided Mechanical. The Quick panel exposes only the current system API inputs, optional name and optional seed, and calls `quickGenerateDnd5eFirstSlice()` directly. Blank values retain the existing generated-name/generated-seed behavior. Explicit seeds retain the existing deterministic mechanics while opaque character/native IDs remain newly generated.
+
+Quick results publish through the same `onCharacter` review/save/host boundary as Guided creation. No parallel CharacterDocument or persistence model was introduced.
+
+`Randomize All` is hidden and disabled in Quick mode. Quick owns its own randomization through `Generate character`, preventing hidden Guided controls from being triggered accidentally.
 
 ## Product rule
 
@@ -72,21 +78,30 @@ Method-specific information belongs primarily in generation provenance and decis
 
 Do not represent every generation method as a separate full-width panel.
 
-The Character Forge creator keeps universal choices in a stable left-side control surface and the current character details in the right-side review surface. Method-specific ability controls are selected from one dropdown and rendered dynamically. New generation methods should extend that interaction model unless they are genuinely different top-level creation modes such as Quick or Guided Narrative.
+The Character Forge creator keeps universal choices in a stable left-side control surface and the current character details in the right-side review surface. Top-level creation modes sit above method-specific controls. Guided Mechanical owns the ability-method dropdown; Quick Generate is a sibling creation mode rather than a fifth ability option.
 
 ## Current D&D checkpoint
 
 Automated-green on Character Forge `dev`:
 
 - Quick Generate API/accepted host seam;
+- Quick Generate top-level creation mode;
 - Standard Array;
 - Manual Ability Entry;
 - Point Cost;
 - Random Generation;
 - guided Class / Background / Species creation;
 - Criminal and Soldier background mechanics;
-- all four explicit ability methods inside the guided creator;
-- structured generated-name provenance while preserving plain native/display-name state.
+- all four explicit ability methods inside Guided Mechanical;
+- structured generated-name provenance while preserving plain native/display-name state;
+- Quick-mode Randomize All suppression so hidden Guided controls cannot be invoked.
+
+Quick creator consolidation checkpoint:
+
+- SHA: `418db810828c6a44d7b24b88ef69a3b6ffdffc40`;
+- Actions: `34382893940`;
+- job: `102571852183`;
+- 41 test files / 197 tests / 0 failures.
 
 The accumulated non-accepted generation work remains on `dev` pending combined owner runtime QA.
 
@@ -116,4 +131,4 @@ D&D adapts its existing six-name placeholder list to this contract without expan
 
 BRP source discovery confirms that the rules engine does not own a generated-name corpus. BRP directs character names to be appropriate to the setting/game and makes optional cultural backgrounds setting/GM-defined. Therefore future BRP naming data is setting/campaign/content-package owned and should be supplied by a concrete caller/provider. `name-suggestion/0.1` already supports that boundary, so no generic content-provider framework or shared naming-contract expansion is justified now.
 
-Naming work can wait for a real setting consumer. The next concrete creator implementation target is consolidating D&D Quick Generate as a top-level creation mode rather than as an ability method.
+Naming work can wait for a real setting consumer. The next concrete creator implementation target is the first D&D Guided Narrative vertical slice.

@@ -55,6 +55,12 @@ roadmap:
       - Blank-name fallback retains its effective name replay seed, manual name edits supersede stale suggestions, and creator-held suggestion application changes generation provenance without mutating native state.
       - D&D name randomization still participates in shared Randomize All through the existing name button; creatorWorkspace remains unaware of D&D naming rules.
       - Automated-green D&D generated-name provenance checkpoint 1a1eb5de957eabd87b63785ef8dafccafbd47a44, Actions 34374497101, job 102543733892, 40 test files / 193 tests / 0 failures.
+      - D&D creator now has explicit top-level Guided Mechanical and Quick Generate modes above the ability-generation method level.
+      - Guided Mechanical remains default and retains Standard Array, Point Cost, Random, and Manual as its four ability methods.
+      - Quick mode exposes only optional name and seed and delegates directly to quickGenerateDnd5eFirstSlice through the ordinary onCharacter/review/save boundary.
+      - Both D&D mode surfaces remain mounted while toggling so in-progress Guided and Quick inputs are preserved.
+      - Randomize All is hidden, disabled, and click-guarded in Quick mode so hidden Guided randomizers cannot run accidentally.
+      - Automated-green D&D Quick creator-mode checkpoint 418db810828c6a44d7b24b88ef69a3b6ffdffc40, Actions 34382893940, job 102571852183, 41 test files / 197 tests / 0 failures.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
@@ -62,9 +68,9 @@ roadmap:
     remaining_scope:
       - Owner runtime QA of representative classes/species and reopen behavior.
       - Owner browser QA the shared Randomize All behavior with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
+      - Owner browser QA top-level Guided/Quick switching and Quick submit behavior as part of accumulated creator QA, not a dedicated cycle unless blocking.
       - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
-      - Consolidate Quick Generate as a top-level creator mode; this is the next active implementation slice.
-      - Add guided narrative generation through ordinary system APIs.
+      - Implement the first Guided Narrative vertical slice through ordinary system APIs; this is the next active implementation slice.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
       guided_workspace_issue: 9
@@ -96,7 +102,7 @@ roadmap:
       - Scholar professional eligibility reconstructed independently from retained profession choices.
       - Named language identity closure retains open Own and Other language IDs/labels.
       - Language Own uses INT x 5 in the current EDU-disabled profile; Language Other uses 0 base.
-      - Exact same language ID cannot occupy both Scholar Own and Other roles.
+      - Exact same language ID cannot occupy both roles for the same Scholar.
       - Personal allocation may learn additional named Language Other identities outside Scholar professional choices.
       - Adapter 0.5.0 independently validates language role/identity, source bases, exact professional eligibility, and tampering.
       - Scholar generation recipe 0.5 retains exact Own/Other language decisions and academic choices.
@@ -211,7 +217,7 @@ roadmap:
       - Naming architecture is waiting on a concrete setting/campaign/content consumer rather than further generic work.
       - Do not add a BRP name randomizer until such a provider and license/source boundary exist.
       - Keep name-suggestion/0.1 unchanged unless a real second provider demonstrates a gap.
-      - Naming no longer blocks unrelated creator work; D&D Quick Generate top-level creator consolidation is the next active implementation slice.
+      - Naming no longer blocks unrelated creator work; the first D&D Guided Narrative vertical slice is the next active implementation slice.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.

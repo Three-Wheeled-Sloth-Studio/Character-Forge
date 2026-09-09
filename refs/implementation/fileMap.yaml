@@ -45,11 +45,12 @@ areas:
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
+      - refs/product/creator-workspace.md
       - refs/product/structured-naming.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, and structured generated-name provenance. The six-name corpus remains explicit Character Forge placeholder content and must not be scaled as SRD/culture data. Quick Generate top-level creator consolidation is the next concrete implementation slice.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, random ability generation, structured generated-name provenance, and system-owned Quick generation are proven. Quick is now a top-level creator mode; Guided Narrative is the next concrete creation-mode proof.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -63,11 +64,12 @@ areas:
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
+      - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - refs/product/structured-naming.md
     source_roots:
       - apps/web/src
-    notes: Shared workspace owns Randomize All orchestration only. D&D-specific dndGuidedCreatorPanel retains complete name suggestions around the existing guided creator. Next implementation focus is consolidating existing D&D Quick Generate as a top-level creator mode without treating it as an ability method.
+    notes: Shared workspace owns rules-system routing and Randomize All orchestration. D&D now has a top-level Guided Mechanical / Quick Generate selector in dndCreatorPanel; dndQuickCreatorPanel delegates directly to quickGenerateDnd5eFirstSlice and publishes through the ordinary onCharacter boundary. Randomize All is hidden/guarded in Quick mode. Next focus is the first D&D Guided Narrative vertical slice.
   project-memory:
     guidance:
       - AGENTS.md
@@ -78,13 +80,23 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Consolidate D&D Quick Generate as top-level creator mode
+  - task: Implement first D&D Guided Narrative vertical slice
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
-      - apps/web/src/creatorWorkspace.ts
+      - apps/web/src/dndCreatorPanel.ts
       - apps/web/src/guidedCreationPanel.ts
+      - packages/system-dnd5e/src/guidedGenerate.ts
+      - packages/system-dnd5e/src/index.ts
+  - task: Inspect D&D Quick top-level creator mode
+    look_in:
+      - refs/product/creator-workspace.md
+      - refs/product/generation-methods.md
+      - apps/web/src/dndCreatorPanel.ts
+      - apps/web/src/dndQuickCreatorPanel.ts
+      - apps/web/src/creatorWorkspace.ts
       - packages/system-dnd5e/src/quickGenerate.ts
       - packages/system-dnd5e/src/quickGenerate.test.ts
   - task: Inspect BRP naming provider/content boundary
