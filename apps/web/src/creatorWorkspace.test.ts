@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
-import { creatorSystemForCharacter, defaultCreatorSystem } from "./creatorWorkspace.js";
+import {
+  creatorRandomizationHelp,
+  creatorRandomizerSelector,
+  creatorSystemForCharacter,
+  defaultCreatorSystem,
+} from "./creatorWorkspace.js";
 
 function character(systemId: string, editionId: string): CharacterDocument {
   return {
@@ -29,5 +34,19 @@ describe("creator workspace system routing", () => {
     expect(creatorSystemForCharacter(character("dnd5e", "2024"))).toBe("dnd5e-2024");
     expect(creatorSystemForCharacter(character("brp", "uge-2023"))).toBe("brp-uge");
     expect(creatorSystemForCharacter(character("unknown", "1"))).toBeNull();
+  });
+
+  it("keeps Randomize All orchestration separate from system random semantics", () => {
+    expect(creatorRandomizerSelector("dnd5e-2024")).toBe(".icon-button[id$='-random'], #creator-random-roll");
+    expect(creatorRandomizerSelector("brp-uge")).toBe("#brp-profession-random, #brp-reroll");
+    expect(creatorRandomizerSelector("brp-uge")).not.toContain("academic");
+  });
+
+  it("makes intentionally unrandomized BRP fields explicit", () => {
+    const help = creatorRandomizationHelp("brp-uge");
+    expect(help).toContain("Age");
+    expect(help).toContain("Gender");
+    expect(help).toContain("Wealth");
+    expect(help).toContain("stay unchanged");
   });
 });
