@@ -212,6 +212,14 @@ describe("BRP UGE Psychic Abilities architecture slice", () => {
       { skillKey: "science:forensics", points: 25 },
       { skillKey: "insight", points: 20 },
     ];
+    input.personalAllocations = [
+      { skillKey: "first-aid", points: 45 },
+      { skillKey: "research", points: 20 },
+      { skillKey: "spot", points: 20 },
+      { skillKey: "science:forensics", points: 40 },
+      { skillKey: "stealth", points: 40 },
+      { skillKey: "track", points: 5 },
+    ];
 
     expect(() => buildBrpPsychicFirstSliceCharacter({
       ...input,
