@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green structured naming discovery/contract checkpoint.
+Continue Character Forge from the automated-green D&D generated-name provenance checkpoint.
 
 Repository:
 
@@ -21,23 +21,25 @@ Do not reconstruct the full repository history.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D generated name provenance integration"`
+`python refs/tools/generate_agent_context.py --focus "BRP naming provider content boundary"`
 
-Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, `refs/product/structured-naming.md`, and targeted source reads.
+Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, `refs/product/structured-naming.md`, `refs/integration/brp-uge-orc.md`, and targeted source reads.
 
 Prefer diff-first continuation and conserve coding-agent context deliberately.
 
-## Accepted Automated-Green Naming Checkpoint
+## Accepted Automated-Green Naming Provenance Checkpoint
 
-Structured naming contract plus D&D provider proof:
+D&D guided generated-name provenance integration:
 
-- implementation checkpoint: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`
-- Actions: `34372897196`
-- job: `102538304875`
+- implementation checkpoint: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`
+- Actions: `34374497101`
+- job: `102543733892`
 - Verify conclusion: success
-- 39 test files / 188 tests / 0 failures
-- tracked paths: 158
-- build identity: `Character Forge build 0.0.1 978e145b`
+- 40 test files / 193 tests / 0 failures
+- tracked paths: 161
+- OKF: 19 concepts / 9 indexes
+- generated agent context: 4,210 characters
+- build identity: `Character Forge build 0.0.1 1a1eb5de`
 
 Promoted branches remain unchanged:
 
@@ -46,58 +48,58 @@ Promoted branches remain unchanged:
 
 Do not implicitly promote accumulated D&D, BRP, random-table, creator, or naming work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## What The Naming Discovery Slice Proved
+## What Is Proven
 
-`packages/generator-core/src/nameSuggestion.ts` defines the deliberately small `name-suggestion/0.1` boundary:
+The generic naming mechanism remains `name-suggestion/0.1` in `generator-core`:
 
-- provider ID and version;
+- provider ID/version;
 - optional versioned source references;
-- caller-supplied or generated replay seed;
-- opaque provider-owned typed context;
-- provider-owned result requiring only non-empty `displayName`;
-- returned provider/source/version/seed provenance.
+- replay seed;
+- opaque provider-owned context;
+- provider result requiring only non-empty `displayName`.
 
-The core does not persist names, patch native state, decide whether a generated suggestion overrides user input, or define culture/language/species identity semantics.
+It does not define species, culture, language, nationality, ethnicity, gender/presentation, given/family/clan name parts, transliteration, or character-state ownership.
 
-The contract deliberately does not define given/family/clan parts, culture, language, nationality, ethnicity, gender/presentation, script, transliteration, or species mapping. Promote such concepts only from repeated concrete provider evidence.
+D&D proves one provider and one persistence pattern:
 
-D&D provides the first adapter proof:
+- provider `DND5E_PLACEHOLDER_NAME_PROVIDER`;
+- provider ID `dnd5e:placeholder-display-name`;
+- provider version `0.1`;
+- source `character-forge.dnd5e.placeholder-names@1`;
+- exactly the existing six Character Forge placeholder names.
 
-- `DND5E_PLACEHOLDER_NAME_PROVIDER`
-- provider ID `dnd5e:placeholder-display-name`
-- provider version `0.1`
-- source `character-forge.dnd5e.placeholder-names@1`
+Guided D&D recipe `0.7` retains accepted generated-name provenance as `identity.name.suggestion` generation decisions while `CharacterDocument.displayName` and native D&D `identity.name` remain ordinary strings.
 
-The existing six names remain temporary Character Forge placeholder data. No corpus expansion occurred and they are not represented as WotC SRD, culture, language, or species naming data.
+Explicit randomize-name and blank-name fallback are distinguishable. Blank fallback retains its effective replay seed. Current provider/source/version identity and seed replay are validated before a suggestion is accepted.
 
-`resolveDnd5eCharacterName()` remains compatible: direct user input wins, and an explicit seed preserves the previous selection behavior. `suggestDnd5eCharacterName()` exposes the richer provider/provenance result.
+`apps/web/src/dndGuidedCreatorPanel.ts` retains the complete D&D suggestion around the existing creator. Manual name input clears it. The suggestion is applied only after canonical generation and only if the authoritative display/native name still matches. Native states are not mutated.
 
-Quick Generate was intentionally left on its existing `pickDnd5eGeneratedName()` call inside the established quick-generation random stream. Do not change random-consumption order without evidence.
+The same existing name button continues to participate in shared `Randomize All`; the shared workspace contains no naming-provider rules.
 
-## Immediate Slice: D&D Generated Name Provenance Integration
+Reopen does not reconstruct a generated suggestion merely from display text and therefore cannot force stale provenance back over an authoritative retained name.
 
-Use the new provider seam in the existing guided creator without changing shared/native identity contracts.
+## Immediate Slice: BRP Naming Provider/Content Boundary Discovery
 
-Required behavior:
+This is discovery-first. Do not begin by inventing a BRP name corpus.
 
-1. When the D&D name randomizer is pressed, retain the complete `suggestDnd5eCharacterName()` suggestion in creator-local state rather than only copying its display string.
-2. The ordinary guided generation call should receive enough information to retain provider/source/version/seed provenance for the current generated name.
-3. Keep `CharacterDocument.displayName` and native D&D `identity.name` exactly as ordinary string state. Generated-name provenance belongs in generation decisions, not native identity structure.
-4. Manual edits to the name field must clear/supersede any stale retained suggestion. A generated-name provenance record is valid only while its result still equals the current submitted name.
-5. Explicit randomize-name and blank-name fallback may use the same provider but should remain distinguishable in generation rationale/provenance where useful.
-6. Blank-name fallback must no longer discard its effective name-generation seed if replay provenance can be retained cheaply.
-7. Reopen/persistence must not force an old generated suggestion over the authoritative retained display/native name. If current D&D reopen does not restore creator-local name provenance, that is acceptable unless concrete UX requires it; do not reconstruct provenance from the display string.
-8. D&D's name button should continue to participate in shared `Randomize All` through the existing control convention. Do not teach `creatorWorkspace` naming rules.
-9. Preserve the existing six-name placeholder dataset and explicit-seed selection behavior.
-10. Do not add BRP names, culture mappings, or a large D&D corpus in this slice.
+Questions to resolve:
 
-Implementation guidance:
+1. Does the authoritative BRP UGE 2023 ORC source actually provide naming content suitable for a provider? Confirm from source evidence rather than assumption.
+2. If BRP rules do not own naming content, should Character Forge treat names as setting/campaign data supplied to the BRP creator rather than `system-brp` data?
+3. Is a reusable future content-provider layer justified now, or is a caller-supplied provider interface enough until a real setting/world consumer exists?
+4. What source/license provenance would any candidate naming dataset need to retain?
+5. What context would a BRP naming provider legitimately consume? Do not infer culture, nationality, ethnicity, language, or naming convention from the current Human profile.
+6. Can the existing `name-suggestion/0.1` contract express the legitimate provider without change? Prefer yes unless concrete evidence says otherwise.
 
-- Prefer a small D&D-owned helper/typed input for turning a `NameSuggestion` into a `GenerationDecision` rather than leaking generic provider types throughout the creator.
-- Keep manual-vs-generated authority explicit.
-- Do not change `character-document/0.1`, `dnd5e-character/0.3`, or the D&D adapter solely to store naming provenance.
-- Avoid coupling name generation to ability-generation seed unless deliberately preserving an existing fallback behavior; name-specific provenance should identify its own effective seed.
-- If guided generation currently creates a name internally when the field is blank, refactor only enough to retain the suggestion/provenance rather than creating a parallel naming path.
+Required output of the slice:
+
+- a documented provider/content ownership decision;
+- source/license findings and explicit non-findings;
+- recommended next implementation boundary;
+- any contract change only if evidence demands it;
+- no fabricated culture data.
+
+Implementation is optional in this slice. If a source-safe, clearly owned minimal provider becomes obvious from evidence, a very small proof may be appropriate. Otherwise stop at a durable discovery decision rather than manufacturing content to keep coding moving.
 
 ## Existing Evidence To Preserve
 
@@ -109,19 +111,21 @@ Implementation guidance:
 - shared creator randomization: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`.
 - D&D Random-ability UX: `e66003b9b6334218fb689d2da32ae5bf133251af`.
 - structured naming provider proof: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`.
+- D&D generated-name provenance: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`.
 
 ## Explicitly Deferred
 
 Do not add without concrete evidence:
 
 - a large D&D or BRP name corpus;
-- BRP generated names before choosing a deliberate provider/content source;
-- species-equals-culture naming assumptions;
+- a pseudo-BRP culture/nationality naming set;
+- Human-equals-culture naming assumptions;
 - universal race/ethnicity/culture ontology;
 - universal given/family/clan/patronymic fields;
 - transliteration/multi-script architecture;
 - campaign-wide name uniqueness;
 - random distributions for BRP Age, Gender, Wealth, or identity fields;
+- Call of Cthulhu-specific protected naming/content data;
 - nested/subtable evaluation changes;
 - universal trait/ideal/bond/flaw ontology;
 - user-authored naming/table persistence UI.
@@ -136,6 +140,7 @@ Do not add without concrete evidence:
 - Shared creator code coordinates interactions only; system rules, distributions, and content datasets stay system-owned.
 - Do not conflate species, culture, language, nationality, ethnicity, or naming convention.
 - Preserve provider/source/version/seed provenance boundaries.
+- BRP Profession is not D&D class.
 - Parchment remains system-agnostic.
 - Do not import Call of Cthulhu-specific protected content.
 - Preserve exact-SHA promotion provenance.
@@ -143,10 +148,10 @@ Do not add without concrete evidence:
 
 ## Before Stopping
 
-Run:
+If code or durable project truth changes, run:
 
 `npm run verify`
 
 Do not claim green unless the exact committed SHA passes GitHub Actions.
 
-Update the delta-oriented `refs/handoffs/currentHandoff.md` with accepted baseline, what changed, evidence/gaps, next slice, relevant files, do-not-reopen constraints, and validation SHA/run/job. Update this prompt, roadmap, product references, and file map only where new evidence changes their truth. Do not promote `qa` or `main` unless explicitly instructed.
+Update the delta-oriented `refs/handoffs/currentHandoff.md` with accepted baseline, evidence/findings, chosen ownership boundary, next slice, relevant files, do-not-reopen constraints, and validation SHA/run/job when applicable. Update this prompt, roadmap, product references, and file map only where new evidence changes their truth. Do not promote `qa` or `main` unless explicitly instructed.
