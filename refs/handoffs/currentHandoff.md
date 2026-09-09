@@ -53,6 +53,22 @@ Repository guidance is aligned to the current Agent Academy bounded re-entry mod
 - the active handoff is delta-oriented;
 - a Git-index case-collision guard is part of ordinary validation.
 
+Automated-green Agent Academy alignment checkpoint:
+
+- code checkpoint: `1ff407a714b2730308e3d7a9493258f8fc168376`
+- Actions: `34293471021`
+- job: `102284877369`
+- tracked-path guard: green on 137 tracked paths, including synthetic collision/non-collision self-test
+- required project-memory/infrastructure files: 14
+- OKF: 17 concepts / 9 indexes
+- bounded re-entry packet: 3,395 characters against an 8,000-character routine ceiling
+- strict TypeScript: green
+- 30 test files / 152 tests / 0 failures
+- web build: green
+- build identity: `Character Forge build 0.0.1 1ff407a7`
+
+No package dependency or lockfile change was required.
+
 ## Current Gap
 
 BRP has no creator UI yet. The backend is now broad enough to expose without pretending unsupported BRP features exist.
