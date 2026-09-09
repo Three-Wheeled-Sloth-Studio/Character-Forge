@@ -35,6 +35,7 @@ export function mountDndGuidedCreatorPanel(
   let narrativeAlignmentTouched = false;
   let narrativeClassEquipmentTouched = false;
   let narrativeBackgroundEquipmentTouched = false;
+  let narrativeFightingStyleTouched = false;
   let narrativeInteractionTargets = new WeakSet<EventTarget>();
 
   const mountGuided = (): void => {
@@ -43,6 +44,7 @@ export function mountDndGuidedCreatorPanel(
     narrativeAlignmentTouched = false;
     narrativeClassEquipmentTouched = false;
     narrativeBackgroundEquipmentTouched = false;
+    narrativeFightingStyleTouched = false;
     narrativeInteractionTargets = new WeakSet<EventTarget>();
 
     mountGuidedCreationPanel(root, (character) => {
@@ -121,6 +123,23 @@ export function mountDndGuidedCreatorPanel(
             markTouched(backgroundEquipmentSelect, "change", () => { narrativeBackgroundEquipmentTouched = true; });
           }
         }
+
+        if (!narrativeFightingStyleTouched
+          && currentClassId === "fighter"
+          && narrativeContinuation.initialChoices.fightingStyleFeatId) {
+          const fightingStyleSelect = root.querySelector<HTMLSelectElement>("#creator-fighting-style");
+          if (fightingStyleSelect) {
+            const fightingStyleFeatId = narrativeContinuation.initialChoices.fightingStyleFeatId;
+            if ([...fightingStyleSelect.options].some((option) => option.value === fightingStyleFeatId)) {
+              fightingStyleSelect.value = fightingStyleFeatId;
+            }
+            markTouched(fightingStyleSelect, "change", () => { narrativeFightingStyleTouched = true; });
+            markTouched(root.querySelector<HTMLButtonElement>("#creator-fighting-style-random"), "click", () => { narrativeFightingStyleTouched = true; });
+            for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-core-pool='fighting-style']")) {
+              markTouched(checkbox, "change", () => { narrativeFightingStyleTouched = true; });
+            }
+          }
+        }
       };
 
       applyNarrativeInitialization();
@@ -130,7 +149,9 @@ export function mountDndGuidedCreatorPanel(
       const heading = root.querySelector<HTMLElement>(".creator-heading");
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = "Started from Guided Narrative. Class, Background, Species, Alignment, and starting equipment were initialized from that result; later Guided Mechanical edits are authoritative.";
+      note.textContent = narrativeContinuation.initialChoices.fightingStyleFeatId
+        ? "Started from Guided Narrative. Class, Background, Species, Alignment, starting equipment, and Fighter style were initialized from that result; later Guided Mechanical edits are authoritative."
+        : "Started from Guided Narrative. Class, Background, Species, Alignment, and starting equipment were initialized from that result; later Guided Mechanical edits are authoritative.";
       heading?.append(note);
     }
   };
