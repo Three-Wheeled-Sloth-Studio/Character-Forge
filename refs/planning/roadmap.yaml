@@ -8,6 +8,7 @@ principles:
   - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
   - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface.
   - On desktop, long creator-control and character-review columns should scroll independently.
+  - Shared creator randomization coordinates existing controls only; legal random semantics and distributions remain system-owned.
   - Random-table results feed ordinary generation decisions or structured suggestions; the generic evaluator never patches native state directly.
 
 roadmap:
@@ -39,19 +40,22 @@ roadmap:
       - Nested class/background/species choices, species magic, class casting, Magic Initiate grants, Warlock Pact Magic/Invocations/Tome, Wizard spellbook, Druid/Ranger always-prepared source spells, equipment/training, and derived state retained natively.
       - Visible runtime build/source badge and Parchment local rebuild seam available for QA provenance.
       - Mechanical closeout checkpoint 55f79a1004c14eef1635e92c602e1fefa18cab15, Actions 34220401743, 25 test files / 117 tests, adapter 0.15.0.
+      - Shared creator Randomize All now delegates to existing D&D field randomizers and preserves checked sticky acceptable pools instead of duplicating random-choice rules.
+      - When Random ability generation is already selected, Randomize All also invokes the existing D&D random-roll action.
+      - Shared creator-randomization checkpoint 1f6ed5aee24f514fbc4fd9de39f9380e8df3719b, Actions 34369619403, job 102527165230, 36 test files / 178 tests / 0 failures.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
       - Issue 11 tracks that gate.
     remaining_scope:
       - Owner runtime QA of representative classes/species and reopen behavior.
+      - Runtime QA the new Randomize All behavior with restricted acceptable pools and dynamic dependent controls.
       - Structured naming architecture later; do not scale the temporary flat name list.
       - Consolidate Quick Generate as a top-level creator mode.
       - Add guided narrative generation through ordinary system APIs.
       - Hide the disabled Random-ability "Roll First" assignment control until rolls exist.
       - Move verbose 4d6 roll-history detail out of the cramped inline result display and into hover/detail affordance.
       - When a Random ability roll is reassigned, swap the displaced roll instead of allowing two abilities to point at one roll slot.
-      - Add a shared Randomize All interaction pattern and field-level randomizers where appropriate without moving system rules into the shell.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
       guided_workspace_issue: 9
@@ -97,19 +101,24 @@ roadmap:
       - Owner runtime/browser QA accepted the first BRP creator UI on 2026-09-09 with no blocking findings.
       - BRP owns the first concrete random-table consumer: a source-safe Detective/Scholar profession suggestion table using the generic evaluator and retained generation provenance.
       - BRP profession suggestion is creator-visible, manually overridable, replayable on reopen, and never patches authoritative native state directly.
-      - BRP creator controls are now constrained to the left generation column, resolving the accepted containment finding while that UI was touched.
+      - BRP creator controls are constrained to the left generation column.
       - Automated-green profession-suggestion checkpoint d4b881b29bd763d9f7fd50e56223b00b37077be2, Actions 34366600372, job 102516809719, 34 test files / 168 tests / 0 failures.
       - BRP owns a second random-table consumer for Scholar academic specialties using source-safe Knowledge (Law) and Science (Forensics) definitions already present in the first-slice catalog.
       - Scholar academic suggestion returns a nested BRP-owned payload with skill key, Knowledge/Science parent, specialty identity, label, and source base chance.
       - Each of five Scholar academic slots may retain independent suggestion provenance; manual row edits clear that slot, and reopen restores only records still matching authoritative native state.
       - Automated-green Scholar academic-suggestion checkpoint 54d471faa5a635e46ab9db90f8d05d26ac32944f, Actions 34368120736, job 102522033597, 35 test files / 173 tests / 0 failures.
+      - Shared Randomize All deliberately invokes only BRP Profession suggestion and Standard-Rolled characteristic re-roll where applicable.
+      - Scholar academic suggestions remain field-level because the two-entry source-safe table cannot legally fill five unique required slots.
+      - Age, Gender, Wealth, name, and similar fields remain unchanged because no deliberate BRP random distributions/generators exist yet.
+      - Shared creator-randomization checkpoint 1f6ed5aee24f514fbc4fd9de39f9380e8df3719b, Actions 34369619403, job 102527165230, 36 test files / 178 tests / 0 failures.
     current_gate:
-      - The first BRP creator UI and both random-table consumers are accepted for continued dev work; no dedicated polish cycle is required.
+      - The first BRP creator UI, both random-table consumers, and bounded Randomize All participation are accepted for continued dev work.
+      - Runtime QA the new Randomize All interaction before treating the orchestration UX as owner-accepted.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
       - Add BRP name generation when the naming architecture has an appropriate consumer seam.
       - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
-      - Participate in the next shared creator randomization orchestration slice using existing BRP-owned profession, Scholar academic, and characteristic-generation seams.
+      - Keep Scholar academic suggestions field-level until source-safe content or another system-owned strategy can satisfy uniqueness legally.
       - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
@@ -148,7 +157,7 @@ roadmap:
       - Automated-green second-consumer checkpoint 54d471faa5a635e46ab9db90f8d05d26ac32944f, Actions 34368120736, job 102522033597, 35 test files / 173 tests / 0 failures.
     current_slice:
       - Random-table core does not need expansion from current evidence.
-      - Shift immediate product work to shared creator randomization orchestration using existing system-owned random and suggestion seams.
+      - Shared creator orchestration now consumes the existing BRP Profession suggestion without requiring any evaluator or table changes.
       - Keep a future D&D or third-system table consumer as useful cross-system evidence, but do not manufacture one solely to exercise the engine.
       - Do not promote a universal trait/ideal/bond/flaw vocabulary from the two BRP consumers.
       - Do not add nested-table support; nested structured results already work without it.
