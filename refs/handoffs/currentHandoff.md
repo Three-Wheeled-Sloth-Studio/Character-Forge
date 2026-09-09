@@ -34,92 +34,89 @@ Random-table checkpoints remain green:
 - BRP Profession consumer: `d4b881b29bd763d9f7fd50e56223b00b37077be2`, Actions `34366600372`, job `102516809719`;
 - BRP Scholar academic consumer: `54d471faa5a635e46ab9db90f8d05d26ac32944f`, Actions `34368120736`, job `102522033597`.
 
-## Shared Creator Randomization Checkpoint
+Shared creator randomization remains automated-green at `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`, Actions `34369619403`, job `102527165230`, 36 test files / 178 tests / 0 failures.
 
-The first creator-level randomization orchestration slice is automated-green:
+## D&D Random Ability UX Checkpoint
 
-- checkpoint: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`
-- Actions: `34369619403`
-- job: `102527165230`
+The bounded D&D Random-ability UX slice is automated-green:
+
+- implementation checkpoint: `e66003b9b6334218fb689d2da32ae5bf133251af`
+- Actions: `34371712699`
+- job: `102534309918`
 - Verify conclusion: success
-- full suite: 36 test files / 178 tests / 0 failures
-- tracked paths: 153
-- generated agent context: 4,132 characters
-- web build identity: `Character Forge build 0.0.1 1f6ed5ae`
+- full suite: 37 test files / 181 tests / 0 failures
+- tracked paths: 155
+- generated agent context: 3,426 characters
+- web build identity: `Character Forge build 0.0.1 e66003b9`
 
 What changed:
 
-- `creatorWorkspace` now owns one visible `Randomize All` interaction shared across systems.
-- `creatorRandomization.ts` provides a system-neutral orchestration primitive that repeatedly resolves randomizer actions after each click. This matters because one random choice can re-render and expose dependent controls during the same pass.
-- The helper coordinates interaction only. It knows no D&D classes, BRP professions, source IDs, probability distributions, or native-state semantics.
-- D&D `Randomize All` invokes the existing field randomizers already exposed by the guided creator, plus the existing random-ability roll action when the Random ability method is currently selected.
-- Because D&D field buttons already read their sticky acceptable pools, `Randomize All` does not broaden those pools or create a second random-choice implementation.
-- D&D generation provenance remains the existing provenance produced by the same field controls and system generation path.
-- BRP `Randomize All` invokes only the existing Profession suggestion and, when Standard Rolled is already selected, the existing characteristic re-roll action.
-- BRP Scholar academic suggestions intentionally remain field-level. The current source-safe table has only two academic results and cannot legally populate five unique Scholar academic slots, so orchestration does not pretend otherwise.
-- BRP Age, Gender, Wealth, name, and other fields remain unchanged because no explicit system-owned random distribution/generator exists for them yet.
-- Shared creator-shell styling now lives in `styles.css` instead of the BRP-only injected stylesheet, so the system selector and `Randomize All` control are styled consistently even while D&D remains the default system.
+- `apps/web/src/dndRandomAbilityUx.ts` now owns presentation-only enhancement for the existing D&D Random ability controls.
+- Disabled pre-roll assignment controls are hidden until the six roll slots exist and are enabled, removing the confusing `Roll First` dropdown surface.
+- The six roll cards retain the exact roll data but hide the cramped inline dice-history line after rendering. The same history is moved to card hover text and an accessible card label.
+- Reassigning one rolled total now swaps the displaced ability back to the changed ability's prior roll slot, preserving a one-to-one permutation of the six rolled totals.
+- `swapUniqueRandomAssignment()` is a pure tested helper. It rejects duplicate starting state, out-of-range assignment indexes, and values that are not one of the existing roll slots.
+- `creatorWorkspace` mounts the D&D-only UX enhancer after the existing guided creator. No D&D rule, roll-generation, CharacterDocument, native schema, adapter, generation provenance, dependency, or lockfile changed.
+- The large `guidedCreationPanel.ts` and `system-dnd5e` random-generation implementation were intentionally left unchanged because no rules defect was found.
 
-No CharacterDocument, native schema, adapter, generator-core, system random-table dataset, dependency, or lockfile changed.
+## Randomize All QA Evidence
 
-## Existing Evidence Reused
+This environment does not provide a live browser surface, so owner browser QA of `Randomize All` remains outstanding. The automated/structural evidence remains strong and green:
 
-This slice deliberately delegates instead of duplicating:
+- sticky single-choice and multi-choice pool tests prove random picks stay inside retained acceptable pools;
+- creator randomization tests prove dependent controls exposed by earlier random actions can join the same pass and each stable action runs at most once;
+- D&D `Randomize All` still delegates to the existing field buttons and random-roll action instead of reimplementing selection rules;
+- BRP selector coverage still limits `Randomize All` to Profession suggestion and Standard-Rolled re-roll where available, excluding Scholar academic rows and demographic fields;
+- all D&D, BRP, generator-core, and creator tests remain green after the UX change.
 
-- D&D sticky choice-pool tests already prove random selection stays inside the retained acceptable pool.
-- BRP Profession suggestion tests already prove accepted random provenance is retained without native-state mutation and manual Profession selection supersedes stale suggestion state in the creator.
-- BRP Scholar academic tests already prove per-row manual override and native-state match requirements.
-- Standard D&D and BRP generation/build/adapter tests remain green.
+Do not convert the remaining owner browser check into a dedicated cleanup cycle. Fold any concrete finding into the next touched creator slice unless it is blocking.
 
-## Remaining Creator QA Debt
+## Remaining Creator QA / Product Gaps
 
-D&D Random ability generation still has three accepted, nonblocking UX findings:
+D&D:
 
-- hide the disabled `Roll First` assignment controls until rolls exist;
-- move verbose per-roll dice history out of the cramped inline result display and into hover/detail text;
-- when a roll is reassigned, swap the displaced ability's roll rather than allowing two abilities to reference one roll slot.
+- owner runtime QA of representative classes/species/reopen behavior still gates Issue #11 promotion;
+- owner browser check of shared `Randomize All` with restricted pools and dynamic dependent controls is still useful;
+- structured naming still needs to replace the temporary flat generated-name approach before it is scaled.
 
-BRP still has intentionally unresolved randomization gaps:
+BRP:
 
-- structured name generation only when the naming seam is ready;
-- Age, Gender, Wealth, and similar randomizers only after deliberate distributions are defined.
-
-The first shared `Randomize All` interaction now needs owner browser/runtime QA for clarity and behavior, especially with restricted D&D acceptable pools and dynamic class/species controls.
+- structured name generation remains unavailable;
+- Age, Gender, Wealth, and similar randomizers remain intentionally undefined until deliberate distributions are chosen;
+- Scholar academic suggestions remain field-level because the current two-entry source-safe table cannot populate five unique required slots.
 
 ## Next Slice
 
-Take the narrow D&D Random-ability UX debt while runtime-QA checking the new shared `Randomize All` interaction.
+Start structured naming-seam discovery. Two real systems now expose the need without requiring a speculative universal identity model: D&D has a temporary flat name generator, BRP has no name generator, and shared `Randomize All` needs a clean system-owned name-randomizer boundary before names participate consistently.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D random ability UX and Randomize All QA"`
+`python refs/tools/generate_agent_context.py --focus "structured naming seam discovery"`
 
 Priorities:
 
-1. Verify `Randomize All` in D&D respects restricted class/background/species and nested acceptable pools.
-2. Verify dynamic dependent controls can appear and still be randomized in the same pass without repeated/random-loop behavior.
-3. Verify BRP `Randomize All` changes only Profession and rolled characteristics where applicable; Age/Gender/Wealth/name and Scholar academics should remain unchanged.
-4. Fix the three bounded D&D Random-ability UX findings above.
-5. Keep the Random ability rule and roll generation in `system-dnd5e`; the web change should only improve assignment/presentation interaction.
-6. Add focused tests for any new assignment-swap helper or interaction state.
-7. Do not expand this into a broader D&D creator rewrite.
+1. Audit the existing D&D `resolveDnd5eCharacterName` implementation, its current flat dataset, and retained generation provenance.
+2. Define the smallest reusable naming contract needed for generated display names while keeping datasets/culture/language assumptions outside shared creator code.
+3. Preserve deterministic seed/provenance capability and easy manual override.
+4. Do not equate biological species with culture or naming language. D&D species, BRP human identity, and future World/Parchment culture-language consumers must be able to supply different naming context.
+5. Decide where the reusable mechanism belongs only from evidence: generator-core if it is truly system-neutral, otherwise keep provider seams system-owned.
+6. Define how a future system name randomizer participates in `Randomize All` without inventing BRP names or expanding the temporary D&D flat list.
+7. Prefer a discovery/contract slice before content ingestion or a large naming corpus.
 
 ## Relevant Files
 
 - `refs/handoffs/next-dev-prompt.md`
 - `refs/implementation/fileMap.yaml`
 - `refs/planning/roadmap.yaml`
+- `refs/product/generation-methods.md`
 - `apps/web/src/creatorWorkspace.ts`
-- `apps/web/src/creatorWorkspace.test.ts`
 - `apps/web/src/creatorRandomization.ts`
-- `apps/web/src/creatorRandomization.test.ts`
-- `apps/web/src/guidedCreationPanel.ts`
-- `apps/web/src/brpCreatorPanel.ts`
-- `apps/web/src/brpCreatorPanelView.ts`
-- `apps/web/src/styles.css`
-- `packages/system-dnd5e/src/randomGenerate.ts`
+- `apps/web/src/dndRandomAbilityUx.ts`
+- `apps/web/src/dndRandomAbilityUx.test.ts`
+- `packages/system-dnd5e/src`
+- `packages/system-brp/src`
 
-Load deeper system source only if a concrete UX fix would otherwise change rule semantics.
+For the completed Random-ability UX, `packages/system-dnd5e/src/randomGenerate.ts` remains the rules source and was not changed.
 
 ## Do Not Reopen Without New Evidence
 
@@ -131,6 +128,7 @@ Load deeper system source only if a concrete UX fix would otherwise change rule 
 - The generic table evaluator must not learn D&D- or BRP-specific semantics.
 - Preserve explicit replay provenance and version boundaries.
 - Do not invent distributions merely to make `Randomize All` exhaustive.
+- Do not make species synonymous with culture or naming language.
 - BRP Profession is not D&D class.
 - Keep BRP base chance, professional contribution, personal contribution, and final rating distinct.
 - Future BRP powers must not reuse D&D spell architecture.
