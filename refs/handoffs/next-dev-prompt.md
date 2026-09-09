@@ -4,81 +4,128 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- parked
+- brp
+- powers
 ---
 # Next Development Prompt
 
-There is currently **no authorized next D&D Guided Narrative implementation slice**.
+The first bounded BRP Superpowers architecture proof is complete and automated-green on `dev`.
 
-The D&D Guided Narrative line was explicitly parked on 2026-09-09 after the Fighter Fighting Style slice.
+There is **no automatic follow-on implementation authorized by chronology**. Follow the user's explicitly selected product line.
 
-Before doing any D&D Narrative work, read:
+## Bounded Re-entry
 
-1. `refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md`
-2. `refs/handoffs/currentHandoff.md`
-3. `refs/product/creator-workspace.md`
-4. `refs/product/generation-methods.md`
+If continuing BRP Powers work, begin with:
 
-Do not automatically continue into Cleric/Druid order-preference work. That is retained only as a possible future candidate if product direction explicitly returns to this line.
+`python refs/tools/generate_agent_context.py --focus "BRP power-system architecture"`
 
-## Parking Checkpoint
+Then read only:
 
-The last fully documented D&D Narrative head before the explicit parking record was:
+1. `refs/handoffs/currentHandoff.md`
+2. `refs/integration/brp-uge-orc.md`
+3. `refs/implementation/fileMap.yaml`
+4. `packages/system-brp/src/superpowers.ts`
+5. `packages/system-brp/src/poweredAdapter.ts`
+6. `packages/system-brp/src/superpowers.test.ts`
+7. targeted existing BRP builder/native files only when required.
 
-- `5c343b3060c0294fa404b52d0428291f1e8862a4`
-- Actions `34408070329`
-- job `102655735014`
+Prefer diff-first continuation and conserve agent context.
+
+## Accepted Superpowers Checkpoint
+
+Implementation checkpoint:
+
+- SHA: `bc0a05fb9b96c9777a73726100828712cd8bbb41`
+- Actions: `34413436457`
+- job: `102672848273`
 - Verify: success
-- 44 test files / 216 tests / 0 failures
-- build: `Character Forge build 0.0.1 5c343b30`
+- 45 test files / 223 tests / 0 failures
+- 175 tracked paths
+- 14 required project-memory files
+- OKF: 20 concepts / 10 indexes
+- agent context: 3,730 characters
+- build: `Character Forge build 0.0.1 bc0a05fb`
 
-The explicit parking record was then committed at:
+The final documentation head may be newer; use the current `dev` head at re-entry and preserve the implementation checkpoint above as the tested code milestone.
 
-- `42cd7c4a1ab1cf41c849c71aff51f246cdc03121`
-
-Promoted branches remain intentionally separate unless an explicit promotion decision is made:
+Promoted branches remain unchanged unless an explicit promotion decision is made:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
 Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## What To Do On Re-entry
+## What The First Powers Slice Proved
 
-Do not infer the next product line from chronology.
+BRP skill-construction level and power level must remain separate dimensions.
 
-When a new Character Forge implementation request arrives:
+The current `rulesProfile.powerLevel` remains the established Normal/Heroic skill-construction profile. The optional Superpowers state owns its own independent Normal/Heroic power level.
 
-- use the user's requested line of work as authoritative;
-- generate a bounded agent-context packet for that line;
-- prefer diff-first continuation and targeted source reads;
-- preserve existing D&D Narrative behavior while it is parked;
-- do not reopen deferred D&D Narrative abstractions merely because they are documented.
+A test explicitly retains Normal skill construction with Heroic Superpowers.
 
-BRP, random-table, naming, Foundry, advancement, or other roadmap lines may be selected independently by product direction. This prompt does not authorize any one of them by default.
+`brp-character/0.1` did not require a schema bump. Existing non-powered documents remain valid.
 
-## Durable D&D Narrative State
+Implemented Superpowers are intentionally only:
 
-At parking:
+- Extra Energy;
+- Extra Hit Points.
 
-- six global bounded Narrative questions remain implemented;
-- Fighter has one conditional Fighting Style branch;
-- mapping version is `5`;
-- direct Narrative recipe is `0.4`;
-- continuation recipe is `0.4`;
-- `Choose for me` remains required on Narrative choice surfaces;
-- five presented choices remains the hard Narrative ceiling;
-- later Guided Mechanical edits remain authoritative;
-- direct current choices remain separate from sticky acceptable random pools;
-- no universal class-feature, combat-role, equipment, Alignment/personality, or questionnaire ontology was created.
+The retained Superpowers state includes:
 
-D&D Issue #11 remains the accumulated runtime-QA/promotion gate.
+- system ID;
+- independent power level;
+- source budget method;
+- highest initial characteristic basis;
+- total/spent/remaining character points;
+- exact power IDs, levels, and costs.
+
+Powered derived state applies Extra Energy to Power Points and Extra Hit Points to Hit Points / Major Wound level.
+
+For standard-rolled characters, the Superpowers budget uses initial characteristic values before redistribution.
+
+## Candidate Next Architecture Probe
+
+If the user explicitly asks to continue BRP Powers architecture, prefer a **Psychic Abilities verification slice** before broadening Superpowers.
+
+Why Psychic is the useful contrast:
+
+- it is a distinct BRP power system rather than another Superpower entry;
+- abilities are skill-rated;
+- they can interact with personal skill-point allocation;
+- they commonly consume Power Points;
+- their source grammar therefore differs materially from Superpowers character-point purchasing.
+
+Before implementation, verify exact source behavior and choose the smallest legal Psychic subset that demonstrates the grammar without inventing a universal ability ontology.
+
+If that evidence fits the existing optional power-system union, extend it. If not, change BRP-native state based on the source evidence. Do not modify shared CharacterDocument merely to make the systems look alike.
+
+## Do Not Add By Default
+
+Do not automatically add:
+
+- the full Superpowers catalog;
+- Epic or Superhuman power levels;
+- power failings or modifiers;
+- fixed GM character-point budgets;
+- Magic, Mutations, Sorcery, or Psychic systems without a bounded source audit;
+- BRP Powers creator UI;
+- power randomization;
+- D&D spell-state reuse;
+- a universal cross-system power/capability ontology.
+
+The current slice is a backend architecture proof, not a claim of broad BRP power support.
+
+## D&D Parking State
+
+D&D Guided Narrative remains parked. Do not resume Cleric/Druid order-preference work unless explicitly instructed.
+
+D&D Issue #11 remains the accumulated owner runtime-QA/promotion gate.
 
 ## Foundation Guardrails
 
 Native system state is mandatory and lossless.
 
-Never reconstruct retained native state from semantic projection. Shared creator code coordinates interactions only; system-owned rules, mappings, distributions, and content remain system-owned. Parchment remains system-agnostic. Preserve exact-SHA promotion provenance.
+Never reconstruct retained native state from semantic projection. Shared creator code coordinates interactions only; system-owned rules, mappings, distributions, and content remain system-owned. Parchment remains system-agnostic. BRP power systems remain BRP-native until repeated cross-system evidence justifies anything shared. Preserve exact-SHA promotion provenance.
 
 ## Validation
 
