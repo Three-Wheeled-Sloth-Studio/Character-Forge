@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { dnd5eSrd521Adapter } from "./adapter.js";
-import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS, DND5E_FIGHTING_STYLE_OPTIONS } from "./guidedChoices.js";
 import {
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
+  DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION,
   DND5E_GUIDED_NARRATIVE_MAPPING_ID,
   DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
   DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES,
@@ -10,6 +11,7 @@ import {
   guidedNarrativeGenerateDnd5eFirstSlice,
   recommendDnd5eGuidedNarrative,
   resolveDnd5eGuidedNarrativeEquipmentChoices,
+  resolveDnd5eGuidedNarrativeFighterStyle,
   type Dnd5eGuidedNarrativeAnswers,
 } from "./guidedNarrative.js";
 import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
@@ -34,13 +36,14 @@ const explicitAnswers: Dnd5eGuidedNarrativeAnswers = {
 };
 
 describe("D&D 5E Guided Narrative first slice", () => {
-  it("offers Choose for me on every narrative question without exceeding the presentation ceiling", () => {
+  it("offers Choose for me on every global and Fighter-specific narrative question without exceeding the presentation ceiling", () => {
     expect(DND5E_GUIDED_NARRATIVE_QUESTIONS).toHaveLength(6);
-    for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) {
+    for (const question of [...DND5E_GUIDED_NARRATIVE_QUESTIONS, DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION]) {
       expect(question.options.some((option) => option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID)).toBe(true);
       expect(question.options.filter((option) => option.id !== DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID).length).toBeGreaterThan(0);
       expect(question.options.length).toBeLessThanOrEqual(DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES);
     }
+    expect(DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.options).toHaveLength(5);
   });
 
   it("resolves Choose for me deterministically and retains submitted versus resolved answers", () => {
@@ -54,6 +57,8 @@ describe("D&D 5E Guided Narrative first slice", () => {
       expect(resolution.submittedId).toBe(DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID);
       expect(resolution.resolvedId).not.toBe(DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID);
     }
+    expect(first.fighterStyle.submittedId).toBe(DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID);
+    expect(first.fighterStyle.resolvedId).not.toBe(DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID);
     expect(GUIDED_DND5E_CLASS_IDS).toContain(first.classChoice.recommendedId);
     expect(GUIDED_DND5E_BACKGROUND_IDS).toContain(first.backgroundChoice.recommendedId);
     expect(GUIDED_DND5E_SPECIES_IDS).toContain(first.speciesChoice.recommendedId);
@@ -104,6 +109,30 @@ describe("D&D 5E Guided Narrative first slice", () => {
     }
   });
 
+  it("maps the bounded Fighter playstyle branch one-to-one onto existing Fighting Styles", () => {
+    const cases = [
+      ["control-from-range", "archery"],
+      ["hold-the-line", "defense"],
+      ["heavy-weapon", "great-weapon-fighting"],
+      ["paired-weapons", "two-weapon-fighting"],
+    ] as const;
+
+    expect(DND5E_FIGHTING_STYLE_OPTIONS).toHaveLength(4);
+    for (const [preferenceId, fightingStyleFeatId] of cases) {
+      expect(resolveDnd5eGuidedNarrativeFighterStyle(preferenceId)).toBe(fightingStyleFeatId);
+      const character = guidedNarrativeGenerateDnd5eFirstSlice({
+        answers: { ...explicitAnswers, role: "front-line" },
+        fighterStyle: preferenceId,
+        seed: `fighter-style-${preferenceId}`,
+        overrides: { classId: "fighter" },
+      });
+      expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0])).toEqual({ valid: true, issues: [] });
+      expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.fighter-style")?.choiceId).toBe(preferenceId);
+      expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.mapping.fighter-style")?.choiceId).toBe(fightingStyleFeatId);
+      expect(character.generation?.decisions.find((decision) => decision.stepId === "class.fighting-style")?.choiceId).toBe(fightingStyleFeatId);
+    }
+  });
+
   it("keeps explicit narrative mappings bounded to already-supported small candidate sets", () => {
     const recommendation = recommendDnd5eGuidedNarrative({ answers: explicitAnswers, seed: "explicit-map" });
 
@@ -131,7 +160,7 @@ describe("D&D 5E Guided Narrative first slice", () => {
     expect(payload.origin.backgroundEquipmentChoice).toBe(expectedEquipment.backgroundEquipmentChoice);
     expect(character.generation?.mode).toBe("guided-narrative");
     expect(character.generation?.methodId).toBe("dnd5e:guided-narrative-level-one");
-    expect(character.generation?.recipeVersion).toBe("0.3");
+    expect(character.generation?.recipeVersion).toBe("0.4");
     expect(character.generation?.seed).toBe("narrative-character");
     expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.role")?.answer).toMatchObject({
       submittedId: "choose-for-me",
