@@ -1,8 +1,8 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import { mountBrpCreatorPanel, type BrpCreatorPanelController } from "./brpCreatorPanel.js";
 import { clickCreatorRandomizers } from "./creatorRandomization.js";
+import { mountDndGuidedCreatorPanel } from "./dndGuidedCreatorPanel.js";
 import { mountDndRandomAbilityUx } from "./dndRandomAbilityUx.js";
-import { mountGuidedCreationPanel } from "./guidedCreationPanel.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
 
@@ -70,7 +70,7 @@ export function mountCreatorWorkspace(
       brpController = mountBrpCreatorPanel(systemHost, onCharacter);
       return;
     }
-    mountGuidedCreationPanel(systemHost, onCharacter);
+    mountDndGuidedCreatorPanel(systemHost, onCharacter);
     mountDndRandomAbilityUx(systemHost);
   };
 
