@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, Guided Narrative with explicit continuation into Guided Mechanical and bounded Alignment decomposition, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, Guided Narrative with explicit continuation into Guided Mechanical, bounded Alignment decomposition, Narrative starting-equipment preference, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -55,21 +55,22 @@ The user answers fictional or preference-oriented questions and the system maps 
 
 D&D Guided Narrative is a top-level creation mode beside Guided Mechanical and Quick Generate.
 
-The current mapping asks five bounded questions about:
+The current mapping asks six bounded questions about:
 
 - preferred contribution when trouble starts;
 - what kind of prior life shaped the character;
 - what kind of heritage sounds interesting to explore;
+- whether to begin with prepared gear or more starting coin;
 - how the character leans when rules and personal freedom conflict;
 - how the character weighs personal goals against other people's well-being.
 
-The first three map to supported Class, Background, and Species candidates/recommendations. The last two map orthogonally across the ordinary nine D&D Alignment IDs without showing a nine-item Narrative menu.
+Role, past, and heritage map to supported Class, Background, and Species candidates/recommendations. Equipment maps to existing legal Class and Background starting-equipment choices. The last two questions map orthogonally across the ordinary nine D&D Alignment IDs without showing a nine-item Narrative menu.
 
 Every Narrative question includes explicit `Choose for me`. Seeded resolution retains both the submitted `choose-for-me` answer and the resolved substantive answer.
 
 #### Alignment decomposition
 
-Alignment demonstrates the Narrative bounded-choice rule rather than creating a new alignment system.
+Alignment demonstrates the Narrative bounded-choice rule rather than creating a new Alignment system.
 
 The two three-way substantive questions map to:
 
@@ -78,19 +79,42 @@ The two three-way substantive questions map to:
 
 The actual result remains an ordinary existing D&D `alignmentId`. The mapping is D&D-owned and is not promoted into a universal morality, personality, or psychology contract.
 
+#### Starting-equipment preference
+
+Starting equipment demonstrates the evidence-first abstraction rule.
+
+The supported catalogs were audited before designing the Narrative question:
+
+- 11 Classes expose prepared kit `A` and starting gold `B`;
+- Fighter exposes prepared heavy/melee kit `A`, prepared lighter/ranged kit `B`, and starting gold `C`;
+- all four supported Backgrounds expose prepared kit `A` and 50 GP `B:50-gp`.
+
+Only one shared player-intent discriminator is therefore justified:
+
+- `prepared-gear` -> existing Class `A` plus Background `A`;
+- `starting-gold` -> the current Class's existing legal gold choice plus Background `B:50-gp`.
+
+Fighter starting gold maps to `C`; all other currently supported Classes use `B`.
+
+Fighter's alternate prepared kit `B` is not generalized into a universal alternate-kit concept because the other supported Classes do not provide equivalent semantics.
+
+The Narrative equipment question presents only those two substantive preferences plus `Choose for me`.
+
 #### Build directly
 
 `guidedNarrativeGenerateDnd5eFirstSlice()` uses the ordinary Guided/native construction path. The current path uses:
 
 - mapped Class, Background, Species, and Alignment;
+- mapped existing Class and Background starting-equipment choices;
 - current Guided defaults for the remaining detailed class/origin/species choices;
 - a legal class-prioritized Standard Array assignment;
-- a legal background +2/+1 increase plan;
-- current background equipment option A.
+- a legal background +2/+1 increase plan.
 
 Narrative-specific information stays in generation metadata rather than a new native model.
 
-Current Narrative generation recipe version is `0.2`, with mapping version `3`.
+Current Narrative generation recipe version is `0.3`, with mapping version `4`.
+
+Equipment provenance retains the submitted/resolved Narrative answer, mapping version, resolved preference, starting Class/Background equipment choices, and final Class/Background equipment choices alongside the ordinary final equipment decisions.
 
 #### Continue in Guided Mechanical
 
@@ -102,19 +126,24 @@ The user may explicitly continue from Narrative into the existing detailed Guide
 - Narrative seed;
 - submitted/resolved answers;
 - narrowed candidate sets and recommendations;
-- exact Narrative-final Class/Background/Species/Alignment selections before continuation.
+- exact Narrative-final Class/Background/Species/Alignment selections before continuation;
+- exact Narrative starting Class and Background equipment choices.
 
 The web controller initializes the existing Guided Mechanical form from those values. It does not duplicate detailed controls and does not overwrite user-sticky acceptable random pools merely to transfer an explicit current choice.
 
 After ordinary Guided Mechanical generation, `applyDnd5eGuidedNarrativeContinuation()` attaches the retained Narrative provenance. Final generation uses mode `hybrid` and method ID `dnd5e:guided-narrative-to-guided-level-one`.
 
-Continuation recipe version is `0.2`.
+Continuation recipe version is `0.3`.
 
-Later Guided Mechanical edits remain authoritative. Mapping provenance records the recommendation, the value at the Narrative -> Guided boundary, and the final value after detailed editing. Retained continuation provenance is replay-validated before use.
+Later Guided Mechanical edits remain authoritative. Mapping provenance records the Narrative starting value and the final value after detailed editing. Retained continuation provenance is replay-validated before use.
 
-Alignment uses a narrow controller initialization because that core control can be recreated by dependent form rerenders. The Narrative starting alignment is reapplied only until the player explicitly interacts with alignment; initialization itself does not persist a change to the acceptable pool.
+Alignment uses a narrow controller initialization because that core control can be recreated by dependent form rerenders. The Narrative starting Alignment is reapplied only until the player explicitly interacts with Alignment; initialization itself does not persist a change to the acceptable pool.
 
-There is no Narrative CharacterDocument schema, native schema, adapter, or semantic personality model.
+Class equipment now uses the same direct-versus-sticky boundary. While untouched, dependent rerenders reapply the Narrative equipment preference against the current Class so its mechanical choice remains legal. Changing the equipment select, invoking its randomizer, or editing its acceptable pool makes the Guided Mechanical choice authoritative and stops Narrative reapplication.
+
+Background equipment is the existing direct selector and is initialized until explicitly changed.
+
+There is no Narrative CharacterDocument schema, native schema, adapter, semantic personality model, or universal equipment model.
 
 ### Quick Generate
 
@@ -176,7 +205,7 @@ For choice-pool fields:
 - explicit transfer or direct selection may temporarily select a legal value outside the sticky pool without rewriting the pool;
 - per-character provenance and user-sticky preferences remain separate.
 
-This distinction is used by Narrative -> Guided continuation and is covered directly by tests.
+This distinction is used by Narrative -> Guided continuation for Class/Background/Species, Alignment, and Class equipment and is covered directly by tests.
 
 ## Current D&D checkpoints
 
@@ -208,24 +237,33 @@ Automated-green Narrative -> Guided Mechanical continuation:
 - job: `102591189046`;
 - 44 test files / 210 tests / 0 failures.
 
-Automated-green Narrative alignment decomposition:
+Automated-green Narrative Alignment decomposition:
 
 - SHA: `3d9be423d46c45c00ef2eed1b7d643186ed6530a`;
 - Actions: `34392030680`;
 - job: `102602424501`;
 - 44 test files / 211 tests / 0 failures.
 
+Automated-green Narrative starting-equipment preference:
+
+- SHA: `5760a079ad8e188320997dcc02ddf8f683bd1d99`;
+- Actions: `34395268461`;
+- job: `102613297986`;
+- 44 test files / 213 tests / 0 failures.
+
 The accumulated non-promoted generation work remains on `dev` pending combined owner runtime QA under Issue #11.
 
 ## Future considerations
 
-### Narrative starting-equipment preference
+### Narrative class-defining-choice audit
 
-The next bounded D&D Narrative slice should audit the current Class and Background equipment option shapes before deciding whether one coherent fictional/preference question can map them.
+Before adding another D&D Narrative question, audit the actual supported Level 1 Class-owned choices that materially change playstyle, including Fighting Style, Cleric Divine Order, Druid Primal Order, Warlock Invocation, and meaningful spell/cantrip selections.
 
-Do not assume option letters mean the same thing across Classes. If a shared question is justified, route its result through the existing Guided/native equipment inputs and initialize existing Guided controls during continuation. If the catalogs do not support one honest shared mapping, narrow the slice instead of fabricating common semantics.
+Determine which choices share a real player-intent discriminator, which are inherently Class-specific, and which catalogs would require further upstream narrowing because they exceed the Narrative five-choice ceiling.
 
-Keep the work D&D-owned. Do not promote a universal equipment/loadout ontology or create equipment random tables merely to exercise another mechanism.
+Do not assume that controls occupying a similar mechanical layer belong to one universal concept. If the evidence is Class-specific, prefer one narrow Class-specific Narrative branch over a shared combat-role, magic-style, personality, or class-feature ontology.
+
+Do not build a generic conditional-question engine until repeated concrete consumers justify one.
 
 ### Partial regeneration
 
