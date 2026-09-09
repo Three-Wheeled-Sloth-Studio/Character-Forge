@@ -32,7 +32,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, and random ability generation.
+    notes: D&D 5E 2024 SRD 5.2.1 native rules, generation, validation, provenance, sticky acceptable-pool randomization, and random ability generation. Next touched slice is the bounded Random-ability UX debt.
   brp:
     guidance:
       - refs/handoffs/next-dev-prompt.md
@@ -41,14 +41,14 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Remaining randomization findings are nonblocking UX debt.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Randomize All deliberately uses only Profession and Standard-Rolled characteristic seams; demographic distributions remain undefined.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
     source_roots:
       - apps/web/src
-    notes: Shared Character Forge creator workspace. D&D remains default; BRP uses the same workspace. Next slice is shared randomization orchestration over system-owned random seams, not shared rules/distributions.
+    notes: Shared Character Forge workspace now owns one Randomize All interaction. creatorRandomization.ts re-resolves field randomizers after each invocation while system-specific rules/distributions remain in existing controls. Runtime QA plus D&D Random-ability UX is next.
   project-memory:
     guidance:
       - AGENTS.md
@@ -59,15 +59,21 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Build shared creator randomization orchestration
+  - task: Continue Randomize All QA or orchestration work
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
       - apps/web/src/creatorWorkspace.ts
+      - apps/web/src/creatorRandomization.ts
+      - apps/web/src/creatorRandomization.test.ts
       - apps/web/src/guidedCreationPanel.ts
       - apps/web/src/brpCreatorPanel.ts
-      - packages/system-dnd5e/src
-      - packages/system-brp/src
+  - task: Fix D&D Random ability UX
+    look_in:
+      - refs/handoffs/currentHandoff.md
+      - apps/web/src/guidedCreationPanel.ts
+      - packages/system-dnd5e/src/randomGenerate.ts
+      - packages/system-dnd5e/src/randomGenerate.test.ts
   - task: Extend or inspect random-table consumers
     look_in:
       - refs/product/random-table-companion.md
