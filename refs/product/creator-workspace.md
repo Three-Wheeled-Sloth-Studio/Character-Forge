@@ -7,7 +7,7 @@ tags:
 ---
 # Creator Workspace
 
-Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level D&D Guided Mechanical, Guided Narrative, and Quick Generate creation modes on 2026-09-09.
+Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level D&D Guided Mechanical, Guided Narrative, and Quick Generate creation modes plus explicit Narrative -> Guided continuation on 2026-09-09.
 
 ## Core layout
 
@@ -16,7 +16,7 @@ Character Forge creation and maintenance surfaces should default to a two-part w
 - **left:** generation/editing controls;
 - **right:** the current character summary and details.
 
-The user should be able to adjust creation inputs without losing sight of the resulting character. On desktop, the character-detail surface may remain sticky while the control column scrolls. On narrow screens, the layout may collapse to one column without changing the conceptual separation.
+The user should be able to adjust creation inputs without losing sight of the resulting character. On desktop, long control and review columns should scroll independently. On narrow screens, the layout may collapse to one column without changing the conceptual separation.
 
 ## Control hierarchy
 
@@ -28,24 +28,24 @@ For D&D, the rules-system selector remains above a compact top-level creation-mo
 - `Guided Narrative` - fictional/preference-oriented recommendation flow;
 - `Quick Generate` - minimal-input system-owned generator.
 
-Within Guided Mechanical, ability generation still uses one method dropdown. Standard Array, Point Cost, Random, or Manual dynamically inserts only the controls needed by that method.
+Within Guided Mechanical, Standard Array, Point Cost, Random, and Manual remain ability-generation methods, not sibling creator modes.
 
-Quick Generate and Guided Narrative are sibling creation modes, not additional ability methods.
-
-All D&D mode surfaces remain mounted while switching so a mode toggle does not discard in-progress form state.
+All three D&D mode roots remain mounted during ordinary mode switching so a simple toggle does not discard in-progress form state.
 
 ## Guided Narrative Interaction Contract
 
 Guided Narrative is a front end over ordinary system-native choices. It must not become a second character model or duplicate the detailed Guided Mechanical editor.
 
-The first D&D implementation proves a narrow pattern:
+The D&D implementation now proves this pattern:
 
 1. system-owned Narrative questions produce explicit answer IDs;
-2. system-owned mapping code converts them into candidate/recommended ordinary D&D choices;
+2. system-owned mapping converts them into narrowed candidate/recommended ordinary D&D choices;
 3. the creator shows only the narrowed candidates for the current Narrative branch;
 4. the player may override within that branch;
 5. changing an upstream Narrative answer opens a different branch;
-6. final construction uses the ordinary guided/native generator and review/save boundary.
+6. the player may either build immediately with defined Narrative defaults or explicitly `Continue in Guided Mechanical`;
+7. continuation initializes the existing detailed editor rather than copying it;
+8. final construction still uses ordinary native generation and the normal review/save boundary.
 
 ### Choose for me
 
@@ -72,15 +72,40 @@ Use these rules:
 - hard maximum 5 presented choices at any Narrative step;
 - `Choose for me` or semantic equivalent counts toward that maximum;
 - if the next Narrative step would have more than 5 choices, add an upstream Narrative question, also within the limit, to narrow it first;
-- do not expose the full Class, Species, profession, spell, equipment, or similar rules catalog as a Narrative override when it exceeds the limit;
+- do not expose the full Class, Species, alignment, profession, spell, equipment, or similar rules catalog as a Narrative override when it exceeds the limit;
 - Narrative overrides remain within the narrowed branch;
 - once the user explicitly continues into Guided Mechanical, ordinary mechanical catalogs are outside this Narrative ceiling and may use their normal interaction patterns.
 
 The target of about 3 is a design goal. Five is the hard upper bound.
 
-The first D&D Narrative slice maps only Class, Background, and Species. Detailed class skills, spells, origin details, equipment, and ability controls remain owned by Guided Mechanical.
+## Narrative -> Guided Mechanical Continuation
 
-The next preferred interaction is `Continue in Guided Mechanical`, carrying the Narrative result and provenance into the existing detailed editor rather than copying those controls into Narrative.
+The existing D&D detailed editor is the destination for deeper mechanical customization.
+
+`Continue in Guided Mechanical` is an explicit transfer operation, not merely a mode toggle. The current implementation transfers the Narrative name and the exact pre-Guided Class, Background, and Species selections into the already-existing Guided form.
+
+The system-owned continuation record retains:
+
+- Narrative mapping ID/version;
+- Narrative seed;
+- submitted and resolved answers;
+- narrowed candidates and recommendations;
+- the exact Narrative final Class/Background/Species values before continuation.
+
+The final built CharacterDocument uses `hybrid` generation provenance. Later Guided Mechanical edits are authoritative while the Narrative starting point remains inspectable.
+
+Continuation provenance is replay-validated before being attached to a final character. It does not patch or reconstruct native state.
+
+### Direct choice versus sticky acceptable pool
+
+The current direct selection and the user-sticky acceptable random pool are separate UI concepts.
+
+- A direct current choice may be outside the sticky random pool.
+- A randomly selected choice must still come from the acceptable pool.
+- Narrative continuation may initialize the current direct choice without rewriting the persisted acceptable pool.
+- The current web implementation uses a one-shot transient selected value for this explicit transfer; it is consumed on form initialization and does not write storage.
+
+This distinction is important beyond Narrative: sticky preferences describe what the user is generally willing to randomize among, not a universal validity constraint on every direct choice.
 
 ## Choice menus
 
@@ -134,6 +159,7 @@ Prefer:
 - visible result feedback;
 - inspectable recommendation/mapping behavior;
 - small Narrative decision sets with upstream narrowing;
+- explicit transfer/controller seams rather than DOM-click automation;
 - icon-first secondary actions when meaning remains accessible through label/title/ARIA text.
 
 Avoid:
@@ -145,7 +171,8 @@ Avoid:
 - duplicating Guided Mechanical detail controls inside Narrative;
 - Narrative random choices without an explicit `Choose for me` equivalent;
 - Narrative steps with more than 5 presented choices;
-- full mechanical catalogs masquerading as Narrative overrides.
+- full mechanical catalogs masquerading as Narrative overrides;
+- rewriting sticky acceptable pools merely to initialize an explicit direct choice.
 
 ## Current evidence
 
@@ -170,6 +197,13 @@ Automated-green Narrative choice-shape refinement:
 - job: `102583371487`;
 - 42 test files / 204 tests / 0 failures.
 
-The current D&D Narrative contract enforces a maximum of 5 presented choices and mapped candidate sets. The browser now renders only narrowed Class/Background/Species candidates, and the system rejects out-of-branch Narrative overrides.
+Automated-green Narrative -> Guided Mechanical continuation:
+
+- SHA: `b56efbadc5fcfdbb353cc3f8e74ebda10f6c905b`;
+- Actions: `34388640406`;
+- job: `102591189046`;
+- 44 test files / 210 tests / 0 failures.
+
+The next useful bounded Narrative consumer is D&D alignment because its ordinary mechanical catalog exceeds the Narrative five-choice ceiling. Treat it as an upstream-narrowing proof, not a reason to weaken the ceiling or invent a generic questionnaire engine.
 
 Owner browser QA remains useful as accumulated creator QA, but these slices do not create a separate browser-QA gate.
