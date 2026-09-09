@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dnd5eSrd521Adapter } from "./adapter.js";
-import { DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
 import {
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   DND5E_GUIDED_NARRATIVE_MAPPING_ID,
@@ -9,6 +9,7 @@ import {
   DND5E_GUIDED_NARRATIVE_QUESTIONS,
   guidedNarrativeGenerateDnd5eFirstSlice,
   recommendDnd5eGuidedNarrative,
+  resolveDnd5eGuidedNarrativeEquipmentChoices,
   type Dnd5eGuidedNarrativeAnswers,
 } from "./guidedNarrative.js";
 import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
@@ -18,6 +19,7 @@ const chooseForMeAnswers: Dnd5eGuidedNarrativeAnswers = {
   role: DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   past: DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   heritage: DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
+  equipment: DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   order: DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   regard: DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
 };
@@ -26,13 +28,14 @@ const explicitAnswers: Dnd5eGuidedNarrativeAnswers = {
   role: "wield-magic",
   past: "study",
   heritage: "uncanny",
+  equipment: "prepared-gear",
   order: "personal-freedom",
   regard: "protect-others",
 };
 
 describe("D&D 5E Guided Narrative first slice", () => {
   it("offers Choose for me on every narrative question without exceeding the presentation ceiling", () => {
-    expect(DND5E_GUIDED_NARRATIVE_QUESTIONS).toHaveLength(5);
+    expect(DND5E_GUIDED_NARRATIVE_QUESTIONS).toHaveLength(6);
     for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) {
       expect(question.options.some((option) => option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID)).toBe(true);
       expect(question.options.filter((option) => option.id !== DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID).length).toBeGreaterThan(0);
@@ -81,6 +84,26 @@ describe("D&D 5E Guided Narrative first slice", () => {
     }
   });
 
+  it("maps the outfitting preference only onto existing prepared-package and starting-gold choices", () => {
+    expect(resolveDnd5eGuidedNarrativeEquipmentChoices("prepared-gear", "fighter")).toEqual({
+      preferenceId: "prepared-gear",
+      classEquipmentChoice: "A",
+      backgroundEquipmentChoice: "A",
+    });
+    expect(resolveDnd5eGuidedNarrativeEquipmentChoices("starting-gold", "fighter")).toEqual({
+      preferenceId: "starting-gold",
+      classEquipmentChoice: "C",
+      backgroundEquipmentChoice: "B:50-gp",
+    });
+
+    for (const classId of GUIDED_DND5E_CLASS_IDS) {
+      const mapping = resolveDnd5eGuidedNarrativeEquipmentChoices("starting-gold", classId);
+      expect(classChoiceRules(classId).equipmentChoices.map((option) => option.id)).toContain(mapping.classEquipmentChoice);
+      expect(mapping.backgroundEquipmentChoice).toBe("B:50-gp");
+      expect(mapping.classEquipmentChoice).toBe(classId === "fighter" ? "C" : "B");
+    }
+  });
+
   it("keeps explicit narrative mappings bounded to already-supported small candidate sets", () => {
     const recommendation = recommendDnd5eGuidedNarrative({ answers: explicitAnswers, seed: "explicit-map" });
 
@@ -93,7 +116,7 @@ describe("D&D 5E Guided Narrative first slice", () => {
     }
   });
 
-  it("generates an ordinary valid native character with mapped alignment and guided-narrative provenance", () => {
+  it("generates an ordinary valid native character with mapped alignment, equipment, and guided-narrative provenance", () => {
     const recommendation = recommendDnd5eGuidedNarrative({ answers: chooseForMeAnswers, seed: "narrative-character" });
     const character = guidedNarrativeGenerateDnd5eFirstSlice({
       name: "Narrative Test",
@@ -101,15 +124,22 @@ describe("D&D 5E Guided Narrative first slice", () => {
       seed: "narrative-character",
     });
     const payload = character.nativeStates[0].payload as Dnd5eNativeCharacter;
+    const expectedEquipment = resolveDnd5eGuidedNarrativeEquipmentChoices(recommendation.answers.equipment.resolvedId, payload.class.classId as (typeof GUIDED_DND5E_CLASS_IDS)[number]);
 
     expect(dnd5eSrd521Adapter.validateNativeState(character.nativeStates[0])).toEqual({ valid: true, issues: [] });
     expect(payload.identity.alignment).toBe(recommendation.alignmentChoice.recommendedId);
+    expect(payload.origin.backgroundEquipmentChoice).toBe(expectedEquipment.backgroundEquipmentChoice);
     expect(character.generation?.mode).toBe("guided-narrative");
     expect(character.generation?.methodId).toBe("dnd5e:guided-narrative-level-one");
-    expect(character.generation?.recipeVersion).toBe("0.2");
+    expect(character.generation?.recipeVersion).toBe("0.3");
     expect(character.generation?.seed).toBe("narrative-character");
     expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.role")?.answer).toMatchObject({
       submittedId: "choose-for-me",
+      chooseForMe: true,
+    });
+    expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.equipment")?.answer).toMatchObject({
+      submittedId: "choose-for-me",
+      resolvedId: recommendation.answers.equipment.resolvedId,
       chooseForMe: true,
     });
     expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.order")?.answer).toMatchObject({
@@ -121,6 +151,16 @@ describe("D&D 5E Guided Narrative first slice", () => {
       finalId: recommendation.alignmentChoice.recommendedId,
       overridden: false,
     });
+    expect(character.generation?.decisions.find((decision) => decision.stepId === "narrative.mapping.equipment")?.answer).toMatchObject({
+      recommendedPreferenceId: recommendation.answers.equipment.resolvedId,
+      startingClassEquipmentChoice: expectedEquipment.classEquipmentChoice,
+      startingBackgroundEquipmentChoice: expectedEquipment.backgroundEquipmentChoice,
+      finalClassEquipmentChoice: expectedEquipment.classEquipmentChoice,
+      finalBackgroundEquipmentChoice: expectedEquipment.backgroundEquipmentChoice,
+      changedAfterContinuation: false,
+    });
+    expect(character.generation?.decisions.find((decision) => decision.stepId === "class.equipment")?.choiceId).toBe(expectedEquipment.classEquipmentChoice);
+    expect(character.generation?.decisions.find((decision) => decision.stepId === "background.equipment")?.choiceId).toBe(expectedEquipment.backgroundEquipmentChoice);
     expect(character.generation?.decisions.find((decision) => decision.stepId === "alignment")?.choiceId).toBe(recommendation.alignmentChoice.recommendedId);
     expect(character.generation?.decisions.some((decision) => decision.stepId === "class.acceptable-pool")).toBe(false);
   });
