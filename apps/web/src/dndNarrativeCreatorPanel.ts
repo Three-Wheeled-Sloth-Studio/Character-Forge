@@ -2,16 +2,21 @@ import type { CharacterDocument } from "../../../packages/character-model/src/in
 import {
   createDnd5eGuidedNarrativeContinuation,
   DND5E_ALIGNMENT_OPTIONS,
+  DND5E_FIGHTING_STYLE_OPTIONS,
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
+  DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION,
   DND5E_GUIDED_NARRATIVE_QUESTIONS,
   DND5E_SRD_521_BACKGROUND_OPTIONS,
   DND5E_SRD_521_CLASS_OPTIONS,
   DND5E_SRD_521_SPECIES_OPTIONS,
   guidedNarrativeGenerateDnd5eFirstSlice,
   recommendDnd5eGuidedNarrative,
+  resolveDnd5eGuidedNarrativeFighterStyle,
   type Dnd5eGuidedNarrativeAnswers,
   type Dnd5eGuidedNarrativeContinuation,
+  type Dnd5eGuidedNarrativeFighterStyleAnswerId,
   type Dnd5eGuidedNarrativeQuestionId,
+  type Dnd5eGuidedNarrativeRecommendation,
   type GuidedDnd5eBackgroundId,
   type GuidedDnd5eClassId,
   type GuidedDnd5eSpeciesId,
@@ -47,6 +52,9 @@ export function mountDndNarrativeCreatorPanel(
         </label>
         <p class="muted">Every narrative question includes <strong>Choose for me</strong>. Narrative choice sets stay small; when the full rules catalog is larger, earlier answers narrow what is shown next.</p>
         ${DND5E_GUIDED_NARRATIVE_QUESTIONS.map(questionHtml).join("")}
+        <label id="dnd-narrative-fighter-style-row" hidden>${DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.prompt}
+          <select id="dnd-narrative-fighter-style">${DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.options.map((option) => `<option value="${option.id}"${option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID ? " selected" : ""}>${option.label}</option>`).join("")}</select>
+        </label>
         <div class="creator-system-actions">
           <button id="dnd-narrative-choose-again" type="button" class="secondary-button">Choose again</button>
         </div>
@@ -81,37 +89,65 @@ export function mountDndNarrativeCreatorPanel(
   const classSelect = requiredElement(root, "#dnd-narrative-class", HTMLSelectElement);
   const backgroundSelect = requiredElement(root, "#dnd-narrative-background", HTMLSelectElement);
   const speciesSelect = requiredElement(root, "#dnd-narrative-species", HTMLSelectElement);
+  const fighterStyleRow = requiredElement(root, "#dnd-narrative-fighter-style-row", HTMLLabelElement);
+  const fighterStyleSelect = requiredElement(root, "#dnd-narrative-fighter-style", HTMLSelectElement);
   const resolution = requiredElement(root, "#dnd-narrative-resolution", HTMLElement);
   const mappingSummary = requiredElement(root, "#dnd-narrative-mapping-summary", HTMLElement);
   const error = requiredElement(root, "#dnd-narrative-error", HTMLElement);
   const continueGuided = requiredElement(root, "#dnd-narrative-continue-guided", HTMLButtonElement);
   continueGuided.hidden = !options.onContinueToGuided;
+  let latestRecommendation: Dnd5eGuidedNarrativeRecommendation | null = null;
 
-  const refreshRecommendation = (): void => {
+  const renderBranchState = (recommendation: Dnd5eGuidedNarrativeRecommendation): void => {
+    const fighterSelected = classSelect.value === "fighter";
+    fighterStyleRow.hidden = !fighterSelected;
+
+    const resolutionParts = DND5E_GUIDED_NARRATIVE_QUESTIONS.map((question) => {
+      const answer = recommendation.answers[question.id];
+      return resolutionText(question.id, answer.submittedId, answer.resolvedId);
+    });
+    if (fighterSelected) {
+      resolutionParts.push(classSpecificResolutionText(
+        DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.prompt,
+        recommendation.fighterStyle.submittedId,
+        recommendation.fighterStyle.resolvedId,
+      ));
+    }
+    resolution.textContent = resolutionParts.join(" | ");
+
+    const equipmentSummary = recommendation.answers.equipment.resolvedId === "prepared-gear"
+      ? "Starting equipment: prepared Class and Background gear"
+      : "Starting equipment: Class starting gold plus 50 GP from Background";
+    const parts = [
+      `Class candidates: ${recommendation.classChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_CLASS_OPTIONS, id)).join(", ")}`,
+      `Background candidates: ${recommendation.backgroundChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_BACKGROUND_OPTIONS, id)).join(", ")}`,
+      `Species candidates: ${recommendation.speciesChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_SPECIES_OPTIONS, id)).join(", ")}`,
+      `Alignment: ${catalogLabel(DND5E_ALIGNMENT_OPTIONS, recommendation.alignmentChoice.recommendedId)}`,
+      equipmentSummary,
+    ];
+    if (fighterSelected) {
+      const fightingStyleFeatId = resolveDnd5eGuidedNarrativeFighterStyle(recommendation.fighterStyle.resolvedId);
+      parts.push(`Fighter style: ${catalogLabel(DND5E_FIGHTING_STYLE_OPTIONS, fightingStyleFeatId)}`);
+    }
+    mappingSummary.textContent = parts.join(" | ");
+  };
+
+  const refreshRecommendation = (preserveClassSelection = false): void => {
     error.textContent = "";
     try {
+      const priorClassId = preserveClassSelection ? classSelect.value : "";
       const recommendation = recommendDnd5eGuidedNarrative({
         answers: readAnswers(root),
+        fighterStyle: readFighterStyle(root),
         seed: seedInput.value,
       });
+      latestRecommendation = recommendation;
       seedInput.value = recommendation.seed;
       populateNarrowedCatalog(classSelect, DND5E_SRD_521_CLASS_OPTIONS, recommendation.classChoice.candidateIds, recommendation.classChoice.recommendedId);
+      if (priorClassId && recommendation.classChoice.candidateIds.includes(priorClassId as GuidedDnd5eClassId)) classSelect.value = priorClassId;
       populateNarrowedCatalog(backgroundSelect, DND5E_SRD_521_BACKGROUND_OPTIONS, recommendation.backgroundChoice.candidateIds, recommendation.backgroundChoice.recommendedId);
       populateNarrowedCatalog(speciesSelect, DND5E_SRD_521_SPECIES_OPTIONS, recommendation.speciesChoice.candidateIds, recommendation.speciesChoice.recommendedId);
-      resolution.textContent = DND5E_GUIDED_NARRATIVE_QUESTIONS.map((question) => {
-        const answer = recommendation.answers[question.id];
-        return resolutionText(question.id, answer.submittedId, answer.resolvedId);
-      }).join(" | ");
-      const equipmentSummary = recommendation.answers.equipment.resolvedId === "prepared-gear"
-        ? "Starting equipment: prepared Class and Background gear"
-        : "Starting equipment: Class starting gold plus 50 GP from Background";
-      mappingSummary.textContent = [
-        `Class candidates: ${recommendation.classChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_CLASS_OPTIONS, id)).join(", ")}`,
-        `Background candidates: ${recommendation.backgroundChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_BACKGROUND_OPTIONS, id)).join(", ")}`,
-        `Species candidates: ${recommendation.speciesChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_SPECIES_OPTIONS, id)).join(", ")}`,
-        `Alignment: ${catalogLabel(DND5E_ALIGNMENT_OPTIONS, recommendation.alignmentChoice.recommendedId)}`,
-        equipmentSummary,
-      ].join(" | ");
+      renderBranchState(recommendation);
     } catch (caught) {
       error.textContent = caught instanceof Error ? caught.message : "Guided Narrative recommendation failed.";
     }
@@ -120,6 +156,7 @@ export function mountDndNarrativeCreatorPanel(
   const continuationInput = () => ({
     seed: seedInput.value,
     answers: readAnswers(root),
+    fighterStyle: readFighterStyle(root),
     overrides: {
       classId: classSelect.value as GuidedDnd5eClassId,
       backgroundId: backgroundSelect.value as GuidedDnd5eBackgroundId,
@@ -128,9 +165,13 @@ export function mountDndNarrativeCreatorPanel(
   });
 
   for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) {
-    requiredElement(root, `#dnd-narrative-${question.id}`, HTMLSelectElement).addEventListener("change", refreshRecommendation);
+    requiredElement(root, `#dnd-narrative-${question.id}`, HTMLSelectElement).addEventListener("change", () => refreshRecommendation());
   }
-  seedInput.addEventListener("change", refreshRecommendation);
+  fighterStyleSelect.addEventListener("change", () => refreshRecommendation(true));
+  classSelect.addEventListener("change", () => {
+    if (latestRecommendation) renderBranchState(latestRecommendation);
+  });
+  seedInput.addEventListener("change", () => refreshRecommendation());
   requiredElement(root, "#dnd-narrative-choose-again", HTMLButtonElement).addEventListener("click", () => {
     seedInput.value = "";
     refreshRecommendation();
@@ -178,11 +219,21 @@ function readAnswers(root: ParentNode): Dnd5eGuidedNarrativeAnswers {
   };
 }
 
+function readFighterStyle(root: ParentNode): Dnd5eGuidedNarrativeFighterStyleAnswerId {
+  return requiredElement(root, "#dnd-narrative-fighter-style", HTMLSelectElement).value as Dnd5eGuidedNarrativeFighterStyleAnswerId;
+}
+
 function resolutionText(questionId: Dnd5eGuidedNarrativeQuestionId, submittedId: string, resolvedId: string): string {
   const question = DND5E_GUIDED_NARRATIVE_QUESTIONS.find((entry) => entry.id === questionId);
   const resolvedLabel = question?.options.find((option) => option.id === resolvedId)?.label ?? resolvedId;
   if (submittedId === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID) return `${question?.prompt ?? questionId} Choose for me -> ${resolvedLabel}`;
   return `${question?.prompt ?? questionId} ${resolvedLabel}`;
+}
+
+function classSpecificResolutionText(prompt: string, submittedId: string, resolvedId: string): string {
+  const resolvedLabel = DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.options.find((option) => option.id === resolvedId)?.label ?? resolvedId;
+  if (submittedId === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID) return `${prompt} Choose for me -> ${resolvedLabel}`;
+  return `${prompt} ${resolvedLabel}`;
 }
 
 function populateNarrowedCatalog(
