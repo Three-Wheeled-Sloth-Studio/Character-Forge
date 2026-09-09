@@ -102,11 +102,15 @@ export function mountDndNarrativeCreatorPanel(
         const answer = recommendation.answers[question.id];
         return resolutionText(question.id, answer.submittedId, answer.resolvedId);
       }).join(" | ");
+      const equipmentSummary = recommendation.answers.equipment.resolvedId === "prepared-gear"
+        ? "Starting equipment: prepared Class and Background gear"
+        : "Starting equipment: Class starting gold plus 50 GP from Background";
       mappingSummary.textContent = [
         `Class candidates: ${recommendation.classChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_CLASS_OPTIONS, id)).join(", ")}`,
         `Background candidates: ${recommendation.backgroundChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_BACKGROUND_OPTIONS, id)).join(", ")}`,
         `Species candidates: ${recommendation.speciesChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_SPECIES_OPTIONS, id)).join(", ")}`,
         `Alignment: ${catalogLabel(DND5E_ALIGNMENT_OPTIONS, recommendation.alignmentChoice.recommendedId)}`,
+        equipmentSummary,
       ].join(" | ");
     } catch (caught) {
       error.textContent = caught instanceof Error ? caught.message : "Guided Narrative recommendation failed.";
@@ -168,6 +172,7 @@ function readAnswers(root: ParentNode): Dnd5eGuidedNarrativeAnswers {
     role: requiredElement(root, "#dnd-narrative-role", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["role"],
     past: requiredElement(root, "#dnd-narrative-past", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["past"],
     heritage: requiredElement(root, "#dnd-narrative-heritage", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["heritage"],
+    equipment: requiredElement(root, "#dnd-narrative-equipment", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["equipment"],
     order: requiredElement(root, "#dnd-narrative-order", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["order"],
     regard: requiredElement(root, "#dnd-narrative-regard", HTMLSelectElement).value as Dnd5eGuidedNarrativeAnswers["regard"],
   };
