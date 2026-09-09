@@ -7,7 +7,7 @@ tags:
 ---
 # Creator Workspace
 
-Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level D&D Guided Mechanical, Guided Narrative, and Quick Generate creation modes plus explicit Narrative -> Guided continuation on 2026-09-09.
+Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level Guided Mechanical, Guided Narrative, and Quick Generate modes, explicit Narrative -> Guided continuation, and bounded Narrative alignment decomposition on 2026-09-09.
 
 ## Core layout
 
@@ -36,12 +36,12 @@ All three D&D mode roots remain mounted during ordinary mode switching so a simp
 
 Guided Narrative is a front end over ordinary system-native choices. It must not become a second character model or duplicate the detailed Guided Mechanical editor.
 
-The D&D implementation now proves this pattern:
+The D&D implementation proves this pattern:
 
 1. system-owned Narrative questions produce explicit answer IDs;
 2. system-owned mapping converts them into narrowed candidate/recommended ordinary D&D choices;
-3. the creator shows only the narrowed candidates for the current Narrative branch;
-4. the player may override within that branch;
+3. the creator shows only the narrowed candidates or mapped result for the current Narrative branch;
+4. the player may override where the branch exposes an override;
 5. changing an upstream Narrative answer opens a different branch;
 6. the player may either build immediately with defined Narrative defaults or explicitly `Continue in Guided Mechanical`;
 7. continuation initializes the existing detailed editor rather than copying it;
@@ -78,11 +78,24 @@ Use these rules:
 
 The target of about 3 is a design goal. Five is the hard upper bound.
 
+## Alignment decomposition proof
+
+D&D alignment is the first concrete proof that a mechanical catalog larger than the Narrative ceiling can be reached without weakening the ceiling.
+
+The ordinary Guided Mechanical control still contains all nine supported alignments. Guided Narrative instead asks two D&D-owned questions with three substantive choices each plus `Choose for me`:
+
+- how the character leans when structure and personal freedom conflict;
+- how the character weighs personal goals against other people's well-being.
+
+The 3 x 3 answer combinations map to the ordinary nine alignment IDs. Narrative never displays a nine-item alignment menu.
+
+This mapping is intentionally D&D-specific. It is not evidence for a universal morality, personality, psychology, or alignment ontology.
+
 ## Narrative -> Guided Mechanical Continuation
 
 The existing D&D detailed editor is the destination for deeper mechanical customization.
 
-`Continue in Guided Mechanical` is an explicit transfer operation, not merely a mode toggle. The current implementation transfers the Narrative name and the exact pre-Guided Class, Background, and Species selections into the already-existing Guided form.
+`Continue in Guided Mechanical` is an explicit transfer operation, not merely a mode toggle. The current implementation transfers the Narrative name and exact pre-Guided Class, Background, Species, and Alignment selections into the existing Guided form.
 
 The system-owned continuation record retains:
 
@@ -90,11 +103,19 @@ The system-owned continuation record retains:
 - Narrative seed;
 - submitted and resolved answers;
 - narrowed candidates and recommendations;
-- the exact Narrative final Class/Background/Species values before continuation.
+- the exact Narrative final Class/Background/Species/Alignment values before continuation.
 
 The final built CharacterDocument uses `hybrid` generation provenance. Later Guided Mechanical edits are authoritative while the Narrative starting point remains inspectable.
 
 Continuation provenance is replay-validated before being attached to a final character. It does not patch or reconstruct native state.
+
+### Transfer initialization and rerenders
+
+Class, Background, and Species use one-shot transient current selections so persisted acceptable random pools are not rewritten.
+
+Alignment is a core control that may be recreated when dependent Guided controls rerender. The D&D controller therefore initializes the existing alignment select from the Narrative result and reapplies that initial value after unrelated core rerenders until the player explicitly interacts with alignment. It does not dispatch a persistence change during initialization.
+
+Once the player changes alignment, invokes its randomizer, or edits its acceptable pool, that Guided Mechanical intent is authoritative and the controller stops reapplying the Narrative starting value.
 
 ### Direct choice versus sticky acceptable pool
 
@@ -103,9 +124,7 @@ The current direct selection and the user-sticky acceptable random pool are sepa
 - A direct current choice may be outside the sticky random pool.
 - A randomly selected choice must still come from the acceptable pool.
 - Narrative continuation may initialize the current direct choice without rewriting the persisted acceptable pool.
-- The current web implementation uses a one-shot transient selected value for this explicit transfer; it is consumed on form initialization and does not write storage.
-
-This distinction is important beyond Narrative: sticky preferences describe what the user is generally willing to randomize among, not a universal validity constraint on every direct choice.
+- Sticky preferences describe what the user is generally willing to randomize among; they are not a universal validity constraint on every direct choice.
 
 ## Choice menus
 
@@ -172,7 +191,8 @@ Avoid:
 - Narrative random choices without an explicit `Choose for me` equivalent;
 - Narrative steps with more than 5 presented choices;
 - full mechanical catalogs masquerading as Narrative overrides;
-- rewriting sticky acceptable pools merely to initialize an explicit direct choice.
+- rewriting sticky acceptable pools merely to initialize an explicit direct choice;
+- promoting one D&D preference mapping into a universal personality or equipment ontology.
 
 ## Current evidence
 
@@ -204,6 +224,13 @@ Automated-green Narrative -> Guided Mechanical continuation:
 - job: `102591189046`;
 - 44 test files / 210 tests / 0 failures.
 
-The next useful bounded Narrative consumer is D&D alignment because its ordinary mechanical catalog exceeds the Narrative five-choice ceiling. Treat it as an upstream-narrowing proof, not a reason to weaken the ceiling or invent a generic questionnaire engine.
+Automated-green Narrative alignment decomposition:
+
+- SHA: `3d9be423d46c45c00ef2eed1b7d643186ed6530a`;
+- Actions: `34392030680`;
+- job: `102602424501`;
+- 44 test files / 211 tests / 0 failures.
+
+The next bounded Narrative consumer is starting-equipment preference. Audit the actual Class/Background option semantics first; do not force one generic Narrative question if the supported equipment catalogs do not justify it.
 
 Owner browser QA remains useful as accumulated creator QA, but these slices do not create a separate browser-QA gate.

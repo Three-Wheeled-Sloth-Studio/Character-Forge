@@ -67,18 +67,24 @@ roadmap:
       - First D&D Guided Narrative mapping contract is system-owned and maps three explicit questions to already-supported Class, Background, and Species candidates/recommendations.
       - Every Guided Narrative question includes Choose for me; seeded resolution retains both submitted choose-for-me and resolved substantive answer provenance.
       - Narrative Class/Background/Species recommendations are inspectable and directly overridable before generation.
-      - Narrative generation routes through the ordinary guided/native D&D generator, using existing guided defaults and legal Standard Array/background-increase behavior rather than a narrative-specific character model.
-      - Narrative generation records mapping ID/version, seed, submitted/resolved answers, candidate/recommended/final choices, and override status while removing unused sticky acceptable-pool provenance.
-      - Shared Randomize All is suppressed in Narrative mode; per-question Choose for me owns Narrative default/random behavior.
+      - Narrative generation routes through the ordinary guided/native D&D generator rather than a narrative-specific character model.
       - Automated-green first D&D Guided Narrative checkpoint bd5de95193002cb7ad176c5b325d42d5e21ff78c, Actions 34384877186, job 102578522427, 42 test files / 203 tests / 0 failures.
-      - Narrative choice-shape contract now targets about 3 choices, enforces a hard maximum of 5 including Choose for me, and narrows Class/Background/Species overrides to the current upstream branch.
+      - Narrative choice-shape contract targets about 3 choices, enforces a hard maximum of 5 including Choose for me, and narrows Class/Background/Species overrides to the current upstream branch.
       - Automated-green Narrative choice-shape checkpoint 3ff8b064e614f964e83ff7dfc5549ce96594a33a, Actions 34386315636, job 102583371487, 42 test files / 204 tests / 0 failures.
-      - Guided Narrative now has an explicit Continue in Guided Mechanical action that initializes the existing detailed form rather than duplicating it.
+      - Guided Narrative has an explicit Continue in Guided Mechanical action that initializes the existing detailed form rather than duplicating it.
       - A replayable continuation contract retains mapping/version, seed, submitted/resolved answers, narrowed candidates/recommendations, and exact pre-Guided Class/Background/Species values.
       - Final continued characters retain hybrid Narrative + Guided provenance while authoritative native state remains the ordinary Guided Mechanical result and later Guided edits win.
-      - Direct current Class/Background/Species choices are now explicitly separate from sticky acceptable random pools; random choices still must belong to their pool.
+      - Direct current Class/Background/Species choices are explicitly separate from sticky acceptable random pools; random choices still must belong to their pool.
       - Narrative continuation uses one-shot transient direct selections so existing user-sticky acceptable pools are not rewritten during transfer.
       - Automated-green Narrative -> Guided Mechanical continuation checkpoint b56efbadc5fcfdbb353cc3f8e74ebda10f6c905b, Actions 34388640406, job 102591189046, 44 test files / 210 tests / 0 failures.
+      - D&D Alignment now proves the upstream Narrative narrowing rule without exposing its nine-item mechanical catalog.
+      - Two bounded D&D-owned questions with three substantive choices plus Choose for me map deterministically across all nine ordinary Alignment IDs.
+      - Direct Narrative Build feeds the mapped Alignment through the ordinary Guided/native alignment input instead of the prior unrelated default.
+      - Narrative mapping version is 3 and direct Narrative recipe version is 0.2; retained provenance includes order/regard answers and narrative.mapping.alignment.
+      - Narrative -> Guided continuation recipe version is 0.2 and retains the starting Alignment alongside Class/Background/Species.
+      - Guided Alignment initialization survives unrelated core-control rerenders until the player explicitly changes/randomizes/edits Alignment, without persisting over its sticky acceptable pool.
+      - Later Guided Mechanical Alignment edits remain authoritative and hybrid provenance records the Narrative starting value plus final value.
+      - Automated-green Narrative Alignment checkpoint 3d9be423d46c45c00ef2eed1b7d643186ed6530a, Actions 34392030680, job 102602424501, 44 test files / 211 tests / 0 failures.
     current_gate:
       - Mechanical SRD Level 1 breadth is complete on dev.
       - Accumulated owner runtime QA remains required before exact-SHA promotion.
@@ -86,9 +92,9 @@ roadmap:
     remaining_scope:
       - Owner runtime QA of representative classes/species and reopen behavior.
       - Owner browser QA shared Randomize All with restricted acceptable pools and dynamic dependent controls; fold findings into later touched creator slices rather than a dedicated cleanup cycle unless blocking.
-      - Owner browser QA top-level Guided/Narrative/Quick switching, Narrative branch narrowing, Narrative -> Guided continuation, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
+      - Owner browser QA top-level Guided/Narrative/Quick switching, all five Narrative questions, Alignment mapping/transfer, sticky-pool preservation, and Quick submit behavior as accumulated creator QA.
       - Do not scale the temporary six-name placeholder corpus as if it were SRD, culture, language, or species naming data.
-      - Use D&D alignment as the next bounded Narrative narrowing consumer instead of showing its full mechanical catalog in Narrative.
+      - Audit starting-equipment option semantics as the next bounded dependent Narrative consumer; do not force one universal question if Class/Background catalogs do not support it.
       - Keep every current/future Narrative question equipped with explicit Choose for me or semantic equivalent and never above 5 presented choices.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
@@ -237,7 +243,7 @@ roadmap:
       - Naming architecture is waiting on a concrete setting/campaign/content consumer rather than further generic work.
       - Do not add a BRP name randomizer until such a provider and license/source boundary exist.
       - Keep name-suggestion/0.1 unchanged unless a real second provider demonstrates a gap.
-      - Naming no longer blocks unrelated creator work; D&D Guided Narrative alignment decomposition is the next active implementation slice.
+      - Naming no longer blocks unrelated creator work; D&D Guided Narrative starting-equipment discovery is the next active implementation slice.
     guardrails:
       - Do not scale by adding hundreds of flat full-name strings.
       - Retain deterministic/random provenance.

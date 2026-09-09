@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green D&D Guided Narrative -> Guided Mechanical continuation slice.
+Continue Character Forge from the automated-green D&D Guided Narrative alignment-decomposition slice.
 
 Repository:
 
@@ -19,23 +19,24 @@ Work directly on `dev`.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative alignment decomposition"`
+`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative starting equipment preference"`
 
-Then read `refs/implementation/fileMap.yaml`, `refs/handoffs/currentHandoff.md`, `refs/product/creator-workspace.md`, `refs/product/generation-methods.md`, and only targeted source files. Prefer diff-first continuation and conserve agent context.
+Then read `refs/implementation/fileMap.yaml`, `refs/handoffs/currentHandoff.md`, `refs/product/creator-workspace.md`, `refs/product/generation-methods.md`, and only targeted D&D creator/source files. Prefer diff-first continuation and conserve agent context.
 
-## Accepted Continuation Checkpoint
+## Accepted Alignment Checkpoint
 
 Latest automated-green implementation:
 
-- SHA: `b56efbadc5fcfdbb353cc3f8e74ebda10f6c905b`
-- Actions: `34388640406`
-- job: `102591189046`
+- SHA: `3d9be423d46c45c00ef2eed1b7d643186ed6530a`
+- Actions: `34392030680`
+- job: `102602424501`
 - Verify: success
-- 44 test files / 210 tests / 0 failures
+- 44 test files / 211 tests / 0 failures
 - 170 tracked paths
+- 14 required project-memory files
 - OKF: 19 concepts / 9 indexes
-- agent context: 3,945 characters
-- build: `Character Forge build 0.0.1 b56efbad`
+- agent context: 3,959 characters
+- build: `Character Forge build 0.0.1 3d9be423`
 
 Promoted branches remain unchanged:
 
@@ -44,74 +45,76 @@ Promoted branches remain unchanged:
 
 Preserve exact-SHA `dev -> qa -> main` promotion. Do not promote unless explicitly instructed.
 
-## Current D&D Creation Flow
+## Current D&D Narrative Shape
 
-D&D has three top-level modes:
+D&D Guided Narrative now has five bounded questions:
 
-- `Guided Mechanical` - default detailed creator;
-- `Guided Narrative` - bounded fictional/preference recommendation flow;
-- `Quick Generate` - minimal-input system generator.
+- role -> Class candidates/recommendation;
+- past -> Background candidates/recommendation;
+- heritage -> Species candidates/recommendation;
+- order -> Alignment axis;
+- regard -> Alignment axis.
 
-Narrative now has an explicit `Continue in Guided Mechanical` action.
+Every question includes explicit `Choose for me` and stays at or below the five-choice ceiling. Alignment proves the upstream-decomposition rule: two 3-way fictional/preference discriminators map to the ordinary nine D&D alignments without displaying that nine-item catalog in Narrative.
 
-The continuation contract lives in `packages/system-dnd5e/src/guidedNarrativeContinuation.ts`. It retains and replay-validates the Narrative mapping ID/version, seed, submitted/resolved answers, narrowed candidate sets, recommendations, and pre-continuation Class/Background/Species choices. Final Guided Mechanical edits remain authoritative, while the hybrid generation provenance records both the Narrative starting point and later final choices.
+Narrative mapping version is `3`. Direct Narrative Build feeds Class, Background, Species, and Alignment through ordinary Guided/native construction. Narrative recipe version is `0.2`.
 
-The continuation web controller initializes the existing Guided Mechanical form rather than duplicating detailed controls. It uses one-shot transient direct selections for Class/Background/Species so the player's user-sticky acceptable random pools are not overwritten.
+Narrative -> Guided Mechanical continuation recipe version is `0.2`. It retains the Narrative starting Class, Background, Species, and Alignment and replay-validates the retained answers/mapping. Later Guided Mechanical edits remain authoritative.
 
-A direct current choice may be outside its sticky acceptable random pool. A `random` current choice must still come from that pool. Preserve this distinction.
+Alignment transfer initializes the existing Guided Mechanical alignment control without persisting a change or rewriting its sticky acceptable pool. The controller preserves that initialization through unrelated core-control rerenders until the player explicitly interacts with alignment.
 
 ## Narrative Choice-Shape Contract
 
-Treat this as a hard product constraint for Narrative flows:
+Treat this as a hard product constraint:
 
 - target about 3 choices per Narrative step where practical;
 - hard maximum 5 presented choices per Narrative step;
 - `Choose for me` or semantic equivalent counts toward that maximum;
-- if a downstream Narrative choice would exceed 5, add an upstream Narrative question, also within the limit, that narrows the downstream branch;
+- if a downstream choice set would exceed 5, add an upstream bounded discriminator rather than exposing the large mechanical catalog;
 - Narrative overrides stay inside the narrowed branch;
-- once the player explicitly continues into Guided Mechanical, normal mechanical catalogs are not subject to the Narrative ceiling;
-- direct answers and later Guided edits are authoritative;
-- system/content owners define eligible alternatives and seeded resolution behavior.
+- once the player explicitly enters Guided Mechanical, ordinary mechanical catalogs are outside the Narrative ceiling;
+- direct answers and later Guided edits remain authoritative;
+- owning system/content code defines legal mappings and seeded resolution.
 
-`DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5` remains the hard D&D validator. Do not weaken it for alignment.
+Do not weaken `DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5`.
 
-## Immediate Slice: Narrative Alignment Decomposition
+## Immediate Slice: Narrative Starting-Equipment Preference
 
-Alignment is a good next concrete consumer because the ordinary D&D alignment catalog is larger than the Narrative five-choice ceiling. Do not expose the full alignment dropdown in Narrative.
+Use starting equipment as the next concrete dependent-choice consumer. This is discovery-first because current Class and Background option shapes are not identical.
 
-Required discovery and implementation behavior:
+Required behavior and questions:
 
-1. Audit the existing supported D&D alignment IDs, labels, defaults, Guided Mechanical control, generation input, and provenance before editing.
-2. Define a small D&D-owned Narrative mapping that reaches the existing supported alignment IDs through bounded upstream questions.
-3. Prefer two small orthogonal questions if the actual catalog supports that cleanly; do not build a generic conditional-question engine merely to solve alignment.
-4. Every new Narrative question includes `Choose for me` and presents no more than 5 total choices including that option.
-5. Keep question wording fictional/preference-oriented rather than asking the player to know mechanical alignment terminology.
-6. Deterministic `Choose for me` resolution must retain submitted-versus-resolved answers and the Narrative seed.
-7. Direct Narrative Build must feed the mapped alignment into the ordinary Guided/native generator instead of continuing to use an unrelated hardcoded Guided default.
-8. Narrative -> Guided Mechanical continuation must initialize the existing alignment control from the Narrative result while keeping sticky acceptable-pool preferences separate.
-9. If the player later changes alignment in Guided Mechanical, the final mechanical choice wins while the Narrative starting recommendation remains inspectable in provenance.
-10. Version the Narrative mapping when the retained answer/mapping contract changes.
-11. Keep Class/Background/Species narrowing behavior unchanged unless alignment work exposes a concrete defect.
-12. Keep Randomize All suppressed in Narrative and Quick.
-13. Do not introduce a universal alignment, morality, personality, or psychology ontology from one D&D system.
-14. Do not add BRP Guided Narrative.
-15. Do not promote `qa` or `main`.
+1. Audit the authoritative supported SRD Background equipment choices and each supported Class starting-equipment choice before designing the Narrative question.
+2. Determine whether one small preference surface can coherently map across the supported choices, for example prepared kit, alternate supported kit where one exists, or starting gold.
+3. Do not assume every Class has the same A/B meaning. The mapping may depend on the already-resolved Class and Background.
+4. If the actual catalogs do not support one honest shared Narrative question, document the mismatch and implement a narrower equipment slice instead of fabricating semantics.
+5. Every added Narrative choice surface includes `Choose for me` and presents no more than 5 total choices.
+6. Keep wording fictional/preference-oriented rather than exposing raw mechanical option letters as Narrative concepts.
+7. Keep the mapping D&D-owned and inspectable. Do not build a generic conditional-question engine solely for equipment.
+8. Direct Narrative Build must route mapped equipment choices through existing Guided/native generation inputs. Do not patch native state afterward.
+9. Narrative -> Guided Mechanical continuation should initialize existing equipment controls where the mapping is well-defined.
+10. Preserve sticky acceptable random pools separately from explicit transferred current choices where those controls use pools.
+11. Later Guided Mechanical equipment edits remain authoritative while retained Narrative provenance shows the initial recommendation/selection.
+12. Version the Narrative mapping and continuation recipe if retained provenance shape changes.
+13. Keep Class/Background/Species/Alignment behavior unchanged unless this slice exposes a concrete defect.
+14. Keep Randomize All suppressed in Narrative and Quick.
+15. Do not introduce universal equipment/loadout ontology, pricing redesign, encumbrance redesign, or equipment random tables.
+16. Do not add BRP Guided Narrative.
+17. Do not promote `qa` or `main`.
 
 ## Foundation Guardrails
 
-Native system state is mandatory and lossless.
-
-Never reconstruct retained native state from semantic projection.
+Native system state is mandatory and lossless. Never reconstruct retained native state from semantic projection.
 
 - `character-document/0.1` remains the shared contract unless concrete cross-system evidence requires change.
-- Guided Narrative and Quick remain creation front ends over ordinary native state, not separate state formats.
-- Shared creator code coordinates interactions only; system rules, mappings, distributions, and content remain system-owned.
-- Direct current choices and sticky random acceptable pools remain separate concepts.
+- Guided Narrative and Quick remain creation front ends over ordinary native state.
+- Shared creator code coordinates interactions only; D&D rules/mappings stay system-owned.
+- Direct current choices and sticky acceptable random pools remain separate concepts.
+- Alignment decomposition remains D&D-specific, not a shared morality/personality model.
 - BRP naming remains setting/campaign/content-package owned.
-- No universal Narrative/personality/alignment schema from one D&D consumer.
 - Parchment remains system-agnostic.
 - Preserve exact-SHA promotion provenance.
-- D&D Issue #11 remains the separate accumulated runtime-QA/promotion gate.
+- D&D Issue #11 remains the accumulated runtime-QA/promotion gate.
 
 ## Relevant Files
 
@@ -137,11 +140,12 @@ Load BRP files only if a shared-workspace regression requires them.
 - BRP Guided Narrative;
 - generic questionnaire/branching engine;
 - universal alignment/morality/personality/psychology ontology;
-- broad new Narrative question sets beyond the bounded alignment slice;
+- universal equipment/loadout ontology;
+- equipment random tables merely to exercise the random-table engine;
+- broad new Narrative question sets beyond the bounded equipment slice;
 - duplicated Guided Mechanical controls inside Narrative;
 - changes to Quick Generate mechanics;
 - BRP generated names without a real setting provider;
-- random-table nesting merely for Narrative mapping;
 - unrelated creator cleanup.
 
 ## Validation

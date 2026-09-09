@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, Guided Narrative with explicit continuation into Guided Mechanical, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, Guided Mechanical, top-level Quick Generate, Guided Narrative with explicit continuation into Guided Mechanical and bounded Alignment decomposition, the system-neutral random-table evaluator, structured D&D name-suggestion provenance, and BRP naming-content ownership discovery are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -47,38 +47,54 @@ The current D&D Guided Mechanical path supports:
 - Standard Array, Point Cost, Random, or Manual as interchangeable ability methods;
 - provider/source/version/seed provenance when a generated display name is accepted.
 
-A direct current Class/Background/Species selection is not required to belong to its sticky acceptable random pool. A `random` selection is required to belong to that pool. This keeps explicit current intent separate from persistent randomization preferences.
+A direct current selection is not required to belong to its sticky acceptable random pool. A `random` selection is required to belong to that pool. This keeps explicit current intent separate from persistent randomization preferences.
 
 ### Guided Narrative
 
-The user answers fictional or preference-oriented questions and the system maps those answers into ordinary mechanical recommendations. The mapping remains inspectable, recommendations remain overridable inside the narrowed branch, and important answers/mappings are retained in generation provenance.
+The user answers fictional or preference-oriented questions and the system maps those answers into ordinary mechanical recommendations. The mapping remains inspectable, recommendations remain overridable where the current narrowed branch permits it, and important answers/mappings are retained in generation provenance.
 
 D&D Guided Narrative is a top-level creation mode beside Guided Mechanical and Quick Generate.
 
-The first implemented Narrative mapping asks small questions about:
+The current mapping asks five bounded questions about:
 
 - preferred contribution when trouble starts;
 - what kind of prior life shaped the character;
-- what kind of heritage sounds interesting to explore.
+- what kind of heritage sounds interesting to explore;
+- how the character leans when rules and personal freedom conflict;
+- how the character weighs personal goals against other people's well-being.
 
-The system-owned mapping currently targets already-supported Class, Background, and Species IDs. It exposes candidate IDs plus a recommendation. The creator presents only those narrowed candidates at the current Narrative step instead of exposing the full mechanical catalog.
+The first three map to supported Class, Background, and Species candidates/recommendations. The last two map orthogonally across the ordinary nine D&D Alignment IDs without showing a nine-item Narrative menu.
 
-Every Narrative question includes an explicit `Choose for me` option. Seeded resolution retains both the submitted `choose-for-me` answer and the resolved substantive answer.
+Every Narrative question includes explicit `Choose for me`. Seeded resolution retains both the submitted `choose-for-me` answer and the resolved substantive answer.
+
+#### Alignment decomposition
+
+Alignment demonstrates the Narrative bounded-choice rule rather than creating a new alignment system.
+
+The two three-way substantive questions map to:
+
+- structure / case-by-case / personal freedom -> lawful / neutral / chaotic direction;
+- protect others / balance needs / self-first -> good / neutral / evil direction.
+
+The actual result remains an ordinary existing D&D `alignmentId`. The mapping is D&D-owned and is not promoted into a universal morality, personality, or psychology contract.
 
 #### Build directly
 
-`guidedNarrativeGenerateDnd5eFirstSlice()` uses the ordinary Guided/native construction path. The current first slice uses:
+`guidedNarrativeGenerateDnd5eFirstSlice()` uses the ordinary Guided/native construction path. The current path uses:
 
-- current Guided defaults for detailed class/origin/species choices;
+- mapped Class, Background, Species, and Alignment;
+- current Guided defaults for the remaining detailed class/origin/species choices;
 - a legal class-prioritized Standard Array assignment;
 - a legal background +2/+1 increase plan;
 - current background equipment option A.
 
 Narrative-specific information stays in generation metadata rather than a new native model.
 
+Current Narrative generation recipe version is `0.2`, with mapping version `3`.
+
 #### Continue in Guided Mechanical
 
-The user may instead explicitly continue from Narrative into the existing detailed Guided Mechanical editor.
+The user may explicitly continue from Narrative into the existing detailed Guided Mechanical editor.
 
 `createDnd5eGuidedNarrativeContinuation()` retains a replayable transfer record containing:
 
@@ -86,13 +102,17 @@ The user may instead explicitly continue from Narrative into the existing detail
 - Narrative seed;
 - submitted/resolved answers;
 - narrowed candidate sets and recommendations;
-- exact Narrative-final Class/Background/Species selections before continuation.
+- exact Narrative-final Class/Background/Species/Alignment selections before continuation.
 
-The web controller initializes the existing Guided Mechanical form from those values. It does not duplicate detailed controls and does not overwrite user-sticky acceptable random pools.
+The web controller initializes the existing Guided Mechanical form from those values. It does not duplicate detailed controls and does not overwrite user-sticky acceptable random pools merely to transfer an explicit current choice.
 
 After ordinary Guided Mechanical generation, `applyDnd5eGuidedNarrativeContinuation()` attaches the retained Narrative provenance. Final generation uses mode `hybrid` and method ID `dnd5e:guided-narrative-to-guided-level-one`.
 
+Continuation recipe version is `0.2`.
+
 Later Guided Mechanical edits remain authoritative. Mapping provenance records the recommendation, the value at the Narrative -> Guided boundary, and the final value after detailed editing. Retained continuation provenance is replay-validated before use.
+
+Alignment uses a narrow controller initialization because that core control can be recreated by dependent form rerenders. The Narrative starting alignment is reapplied only until the player explicitly interacts with alignment; initialization itself does not persist a change to the acceptable pool.
 
 There is no Narrative CharacterDocument schema, native schema, adapter, or semantic personality model.
 
@@ -121,7 +141,7 @@ The Character Forge creator keeps generation controls in the left surface and cu
 For D&D:
 
 - Guided Mechanical owns the four ability-method choices;
-- Guided Narrative owns its question/recommendation flow plus explicit continuation into Guided Mechanical;
+- Guided Narrative owns its bounded question/recommendation flow plus explicit continuation into Guided Mechanical;
 - Quick Generate owns its minimal name/seed flow.
 
 All three remain ordinary front ends over system-native generation.
@@ -130,14 +150,14 @@ All three remain ordinary front ends over system-native generation.
 
 Every Narrative question or Narrative-choice step must expose `Choose for me` or a semantically equivalent explicit option.
 
-Narrative choice surfaces also follow a deliberate bounded-choice rule:
+Narrative choice surfaces follow a bounded-choice rule:
 
 - target about 3 presented choices per step where practical;
 - hard maximum 5 presented choices per step;
 - `Choose for me` counts toward that maximum;
 - if a downstream Narrative choice would exceed 5, insert an upstream Narrative question, also within the limit, that narrows the next branch;
 - do not present a 9-, 12-, or 20-item mechanical catalog and call that a Narrative choice;
-- Narrative overrides remain within the narrowed branch; selecting outside it requires changing an upstream Narrative answer;
+- Narrative overrides remain within the narrowed branch where an override is exposed;
 - once the user explicitly continues into Guided Mechanical, normal mechanical catalogs are not subject to the Narrative presentation ceiling.
 
 The owning system/content package defines eligible alternatives. Seeded random resolution retains replay provenance when used. Direct answers and later Guided Mechanical edits remain authoritative.
@@ -156,7 +176,7 @@ For choice-pool fields:
 - explicit transfer or direct selection may temporarily select a legal value outside the sticky pool without rewriting the pool;
 - per-character provenance and user-sticky preferences remain separate.
 
-This distinction was required by Narrative -> Guided continuation and is now covered directly by tests.
+This distinction is used by Narrative -> Guided continuation and is covered directly by tests.
 
 ## Current D&D checkpoints
 
@@ -188,22 +208,24 @@ Automated-green Narrative -> Guided Mechanical continuation:
 - job: `102591189046`;
 - 44 test files / 210 tests / 0 failures.
 
+Automated-green Narrative alignment decomposition:
+
+- SHA: `3d9be423d46c45c00ef2eed1b7d643186ed6530a`;
+- Actions: `34392030680`;
+- job: `102602424501`;
+- 44 test files / 211 tests / 0 failures.
+
 The accumulated non-promoted generation work remains on `dev` pending combined owner runtime QA under Issue #11.
 
 ## Future considerations
 
-### Narrative alignment decomposition
+### Narrative starting-equipment preference
 
-The next bounded D&D Narrative slice should use alignment as a concrete proof of upstream narrowing because the normal alignment catalog is larger than the Narrative five-choice ceiling.
+The next bounded D&D Narrative slice should audit the current Class and Background equipment option shapes before deciding whether one coherent fictional/preference question can map them.
 
-Do not show the full alignment catalog inside Narrative. Prefer a small number of D&D-owned fictional/preference discriminators, each with `Choose for me` and no more than 5 total presented options, that map to the existing supported alignment IDs.
+Do not assume option letters mean the same thing across Classes. If a shared question is justified, route its result through the existing Guided/native equipment inputs and initialize existing Guided controls during continuation. If the catalogs do not support one honest shared mapping, narrow the slice instead of fabricating common semantics.
 
-The result should:
-
-- feed direct Narrative Build through the ordinary Guided/native alignment input rather than an unrelated default;
-- initialize the existing Guided Mechanical alignment control during continuation;
-- retain Narrative alignment answers/recommendation while allowing later Guided alignment edits to win;
-- avoid a universal morality/alignment/personality ontology.
+Keep the work D&D-owned. Do not promote a universal equipment/loadout ontology or create equipment random tables merely to exercise another mechanism.
 
 ### Partial regeneration
 
