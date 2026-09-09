@@ -16,16 +16,17 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_MAPPING_ID = "character-forge.dnd5e.guided-narrative.first-slice";
-export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "1";
+export const DND5E_GUIDED_NARRATIVE_MAPPING_VERSION = "2";
 export const DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID = "choose-for-me";
+export const DND5E_GUIDED_NARRATIVE_TARGET_PRESENTED_CHOICES = 3;
+export const DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES = 5;
 
 export type Dnd5eGuidedNarrativeRoleAnswerId =
   | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
-  | "protect"
+  | "front-line"
   | "outmaneuver"
   | "wield-magic"
-  | "guide-others"
-  | "overwhelm";
+  | "guide-others";
 export type Dnd5eGuidedNarrativePastAnswerId =
   | typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID
   | "faith-service"
@@ -37,8 +38,7 @@ export type Dnd5eGuidedNarrativeHeritageAnswerId =
   | "adaptable"
   | "ancient"
   | "formidable"
-  | "uncanny"
-  | "small-lucky";
+  | "uncanny";
 export type Dnd5eGuidedNarrativeQuestionId = "role" | "past" | "heritage";
 
 export interface Dnd5eGuidedNarrativeAnswers {
@@ -69,11 +69,10 @@ export const DND5E_GUIDED_NARRATIVE_QUESTIONS: readonly Dnd5eGuidedNarrativeQues
     prompt: "When trouble starts, how do you want to contribute?",
     options: [
       CHOOSE_FOR_ME_OPTION,
-      { id: "protect", label: "Stand between danger and other people" },
+      { id: "front-line", label: "Meet danger head-on and hold the line" },
       { id: "outmaneuver", label: "Win through speed, stealth, or clever positioning" },
       { id: "wield-magic", label: "Solve problems with strange or learned magic" },
       { id: "guide-others", label: "Keep people focused, inspired, or on the right path" },
-      { id: "overwhelm", label: "Hit the problem hard and keep going" },
     ],
   },
   {
@@ -95,18 +94,16 @@ export const DND5E_GUIDED_NARRATIVE_QUESTIONS: readonly Dnd5eGuidedNarrativeQues
       { id: "adaptable", label: "Familiar, flexible, and broadly adaptable" },
       { id: "ancient", label: "Old traditions, deep memory, or subtle magic" },
       { id: "formidable", label: "Physically imposing, durable, or hard to stop" },
-      { id: "uncanny", label: "Visibly supernatural, dramatic, or touched by strange powers" },
-      { id: "small-lucky", label: "Small, surprising, and difficult to pin down" },
+      { id: "uncanny", label: "Unusual, uncanny, or unexpectedly hard to pin down" },
     ],
   },
 ] as const;
 
 const ROLE_CLASS_MAP: Record<Exclude<Dnd5eGuidedNarrativeRoleAnswerId, typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID>, readonly GuidedDnd5eClassId[]> = {
-  protect: ["fighter", "paladin"],
+  "front-line": ["barbarian", "fighter", "paladin"],
   outmaneuver: ["rogue", "ranger", "monk"],
   "wield-magic": ["wizard", "sorcerer", "warlock"],
   "guide-others": ["bard", "cleric", "druid"],
-  overwhelm: ["barbarian", "fighter"],
 };
 
 const PAST_BACKGROUND_MAP: Record<Exclude<Dnd5eGuidedNarrativePastAnswerId, typeof DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID>, readonly GuidedDnd5eBackgroundId[]> = {
@@ -120,8 +117,7 @@ const HERITAGE_SPECIES_MAP: Record<Exclude<Dnd5eGuidedNarrativeHeritageAnswerId,
   adaptable: ["human"],
   ancient: ["elf", "dwarf", "gnome"],
   formidable: ["goliath", "orc", "dragonborn"],
-  uncanny: ["tiefling", "dragonborn"],
-  "small-lucky": ["halfling", "gnome"],
+  uncanny: ["tiefling", "halfling", "gnome"],
 };
 
 export interface Dnd5eGuidedNarrativeResolvedAnswer {
@@ -167,6 +163,7 @@ export interface GuidedNarrativeGenerateDnd5eInput extends RecommendDnd5eGuidedN
 export function recommendDnd5eGuidedNarrative(
   input: RecommendDnd5eGuidedNarrativeInput,
 ): Dnd5eGuidedNarrativeRecommendation {
+  assertNarrativeQuestionShape();
   const seed = input.seed?.trim() || createGeneratedSeed("dnd5e-narrative");
   const random = createSeededRandom(`${DND5E_GUIDED_NARRATIVE_MAPPING_ID}:${DND5E_GUIDED_NARRATIVE_MAPPING_VERSION}:${seed}`);
   const role = resolveNarrativeAnswer("role", input.answers.role, random);
@@ -179,6 +176,9 @@ export function recommendDnd5eGuidedNarrative(
   if (!classCandidates || !backgroundCandidates || !speciesCandidates) {
     throw new Error("Guided Narrative resolved to an unmapped D&D answer.");
   }
+  assertPresentedChoiceCount("class", classCandidates);
+  assertPresentedChoiceCount("background", backgroundCandidates);
+  assertPresentedChoiceCount("species", speciesCandidates);
 
   return {
     mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
@@ -195,9 +195,9 @@ export function guidedNarrativeGenerateDnd5eFirstSlice(
   input: GuidedNarrativeGenerateDnd5eInput,
 ): CharacterDocument {
   const recommendation = recommendDnd5eGuidedNarrative(input);
-  const classId = resolveOverride(input.overrides?.classId, recommendation.classChoice.recommendedId, isGuidedDnd5eClassId, "class");
-  const backgroundId = resolveOverride(input.overrides?.backgroundId, recommendation.backgroundChoice.recommendedId, isGuidedDnd5eBackgroundId, "background");
-  const speciesId = resolveOverride(input.overrides?.speciesId, recommendation.speciesChoice.recommendedId, isGuidedDnd5eSpeciesId, "species");
+  const classId = resolveOverride(input.overrides?.classId, recommendation.classChoice, isGuidedDnd5eClassId, "class");
+  const backgroundId = resolveOverride(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
+  const speciesId = resolveOverride(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species");
 
   const character = guidedGenerateDnd5eFirstSlice({
     name: input.name ?? "",
@@ -313,7 +313,7 @@ function mappingDecision<TId extends string>(
     choiceId: finalId,
     answer,
     rationale: overridden
-      ? `The player overrode the Guided Narrative ${target} recommendation.`
+      ? `The player overrode the Guided Narrative ${target} recommendation within the narrowed candidate set.`
       : `The player accepted the Guided Narrative ${target} recommendation.`,
   };
 }
@@ -332,7 +332,7 @@ function rewriteMappedChoiceRationale(
 function mappedChoiceRationale(target: string, recommendedId: string, finalId: string): string {
   return recommendedId === finalId
     ? `Accepted Guided Narrative ${target} recommendation.`
-    : `Player override of Guided Narrative ${target} recommendation ${recommendedId}.`;
+    : `Player override of Guided Narrative ${target} recommendation ${recommendedId} within the narrowed candidate set.`;
 }
 
 function narrativeStandardArray(classId: GuidedDnd5eClassId): Dnd5eAbilityScores {
@@ -365,13 +365,34 @@ function narrativeBackgroundIncreases(
 
 function resolveOverride<TId extends string>(
   override: string | undefined,
-  recommendedId: TId,
+  mapping: Dnd5eGuidedNarrativeMappedChoice<TId>,
   isSupported: (value: string) => value is TId,
   label: string,
 ): TId {
-  if (override === undefined) return recommendedId;
+  if (override === undefined) return mapping.recommendedId;
   if (!isSupported(override)) throw new Error(`Unsupported Guided Narrative ${label} override.`);
+  if (!mapping.candidateIds.includes(override)) {
+    throw new Error(`Guided Narrative ${label} override must stay within the narrowed narrative candidate set.`);
+  }
   return override;
+}
+
+function assertNarrativeQuestionShape(): void {
+  for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) {
+    if (question.options.length > DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES) {
+      throw new Error(`Guided Narrative question ${question.id} exceeds the ${DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES}-choice presentation limit.`);
+    }
+    if (!question.options.some((option) => option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID)) {
+      throw new Error(`Guided Narrative question ${question.id} must include Choose for me.`);
+    }
+  }
+}
+
+function assertPresentedChoiceCount(label: string, values: readonly string[]): void {
+  if (values.length === 0) throw new Error(`Guided Narrative ${label} candidate set is empty.`);
+  if (values.length > DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES) {
+    throw new Error(`Guided Narrative ${label} candidate set exceeds the ${DND5E_GUIDED_NARRATIVE_MAX_PRESENTED_CHOICES}-choice presentation limit; add an upstream narrowing question.`);
+  }
 }
 
 function pick<T>(values: readonly T[], random: RandomSource): T {
