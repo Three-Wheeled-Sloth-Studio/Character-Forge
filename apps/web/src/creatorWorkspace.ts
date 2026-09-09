@@ -1,8 +1,12 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import { mountBrpCreatorPanel, type BrpCreatorPanelController } from "./brpCreatorPanel.js";
 import { clickCreatorRandomizers } from "./creatorRandomization.js";
-import { mountDndGuidedCreatorPanel } from "./dndGuidedCreatorPanel.js";
-import { mountDndRandomAbilityUx } from "./dndRandomAbilityUx.js";
+import {
+  defaultDndCreationMode,
+  dndCreationModeSupportsRandomizeAll,
+  mountDndCreatorPanel,
+  type DndCreationMode,
+} from "./dndCreatorPanel.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
 
@@ -27,9 +31,22 @@ export function creatorRandomizerSelector(system: CreatorSystemId): string {
   return ".icon-button[id$='-random'], #creator-random-roll";
 }
 
-export function creatorRandomizationHelp(system: CreatorSystemId): string {
+export function creatorRandomizeAllAvailable(
+  system: CreatorSystemId,
+  dndMode: DndCreationMode = defaultDndCreationMode(),
+): boolean {
+  return system === "brp-uge" || dndCreationModeSupportsRandomizeAll(dndMode);
+}
+
+export function creatorRandomizationHelp(
+  system: CreatorSystemId,
+  dndMode: DndCreationMode = defaultDndCreationMode(),
+): string {
   if (system === "brp-uge") {
     return "Randomize All uses the BRP profession suggestion and re-rolls characteristics only when Standard Rolled is selected. Scholar academic suggestions remain field-level. Age, Gender, Wealth, name, and other fields stay unchanged until explicit system-owned distributions exist.";
+  }
+  if (dndMode === "quick") {
+    return "Quick Generate owns its randomization through Generate character. Randomize All is hidden in Quick mode so hidden Guided controls are never invoked.";
   }
   return "Randomize All uses the existing D&D field randomizers and preserves every checked acceptable pool. If Random ability generation is selected, it also rolls a new ability set. Choices without an existing randomizer stay unchanged.";
 }
@@ -59,24 +76,38 @@ export function mountCreatorWorkspace(
   const randomizeAll = requiredElement(root, "#creator-randomize-all", HTMLButtonElement);
   const randomizationHelp = requiredElement(root, "#creator-randomization-help", HTMLElement);
   let brpController: BrpCreatorPanelController | null = null;
+  let dndMode = defaultDndCreationMode();
 
   const currentSystem = (): CreatorSystemId => systemSelect.value === "brp-uge" ? "brp-uge" : "dnd5e-2024";
+
+  const refreshRandomizationUi = (): void => {
+    const available = creatorRandomizeAllAvailable(currentSystem(), dndMode);
+    randomizeAll.hidden = !available;
+    randomizeAll.disabled = !available;
+    randomizationHelp.textContent = creatorRandomizationHelp(currentSystem(), dndMode);
+  };
 
   const renderSystem = (): void => {
     systemHost.innerHTML = "";
     brpController = null;
-    randomizationHelp.textContent = creatorRandomizationHelp(currentSystem());
     if (currentSystem() === "brp-uge") {
       brpController = mountBrpCreatorPanel(systemHost, onCharacter);
+      refreshRandomizationUi();
       return;
     }
-    mountDndGuidedCreatorPanel(systemHost, onCharacter);
-    mountDndRandomAbilityUx(systemHost);
+    mountDndCreatorPanel(systemHost, onCharacter, {
+      initialMode: dndMode,
+      onModeChange: (mode) => {
+        dndMode = mode;
+        refreshRandomizationUi();
+      },
+    });
   };
 
   systemSelect.value = defaultCreatorSystem();
   systemSelect.addEventListener("change", renderSystem);
   randomizeAll.addEventListener("click", () => {
+    if (!creatorRandomizeAllAvailable(currentSystem(), dndMode)) return;
     clickCreatorRandomizers(systemHost, creatorRandomizerSelector(currentSystem()));
   });
   renderSystem();

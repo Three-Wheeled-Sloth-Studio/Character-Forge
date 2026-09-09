@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
   creatorRandomizationHelp,
+  creatorRandomizeAllAvailable,
   creatorRandomizerSelector,
   creatorSystemForCharacter,
   defaultCreatorSystem,
@@ -48,5 +49,12 @@ describe("creator workspace system routing", () => {
     expect(help).toContain("Gender");
     expect(help).toContain("Wealth");
     expect(help).toContain("stay unchanged");
+  });
+
+  it("does not expose Randomize All while D&D Quick mode owns generation", () => {
+    expect(creatorRandomizeAllAvailable("dnd5e-2024", "guided")).toBe(true);
+    expect(creatorRandomizeAllAvailable("dnd5e-2024", "quick")).toBe(false);
+    expect(creatorRandomizeAllAvailable("brp-uge", "quick")).toBe(true);
+    expect(creatorRandomizationHelp("dnd5e-2024", "quick")).toContain("hidden in Quick mode");
   });
 });
