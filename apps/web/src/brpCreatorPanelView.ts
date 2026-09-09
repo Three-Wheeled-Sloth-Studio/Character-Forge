@@ -6,6 +6,7 @@ import {
   type BrpCharacteristicId,
   type BrpCharacteristicRedistributionInput,
   type BrpProfessionSuggestionProvenance,
+  type BrpScholarAcademicSuggestionRecord,
 } from "../../../packages/system-brp/src/index.js";
 import type { BrpCreatorPreview, BrpCreatorState } from "./brpCreatorState.js";
 
@@ -13,6 +14,7 @@ export function brpCreatorHtml(
   state: BrpCreatorState,
   preview: BrpCreatorPreview,
   professionSuggestion: BrpProfessionSuggestionProvenance | null = null,
+  academicSuggestions: readonly BrpScholarAcademicSuggestionRecord[] = [],
 ): string {
   return `
     <section class="creator-panel compact-creator brp-creator-panel">
@@ -24,7 +26,7 @@ export function brpCreatorHtml(
         ${state.powerLevel === "heroic" ? `<label>Retained default starting age<input id="brp-default-age" type="number" min="18" max="23" step="1" value="${state.defaultStartingAge}"><span class="muted">Heroic age causality remains retained in native state.</span></label>` : ""}
         <div class="choice-pick-row"><label>Profession<select id="brp-profession"><option value="detective"${selected(state.professionId === "detective")}>Detective</option><option value="scholar"${selected(state.professionId === "scholar")}>Scholar</option></select></label><button id="brp-profession-random" class="secondary-button" type="button" title="Suggest a profession from the BRP UGE first-slice table">Suggest</button></div>
         ${professionSuggestionHtml(professionSuggestion)}
-        <div id="brp-profession-controls">${professionControlsHtml(state)}</div>
+        <div id="brp-profession-controls">${professionControlsHtml(state, academicSuggestions)}</div>
         <div class="section-divider"></div>
         <label>Characteristic generation<select id="brp-generation-method"><option value="explicit"${selected(state.characteristicMethod === "explicit")}>Explicit</option><option value="standard-rolled"${selected(state.characteristicMethod === "standard-rolled")}>Standard Rolled</option></select></label>
         <div id="brp-characteristic-controls">${characteristicControlsHtml(state)}</div>
@@ -57,13 +59,22 @@ function professionSuggestionHtml(provenance: BrpProfessionSuggestionProvenance 
   return `<p class="muted brp-suggestion-note" title="${escapeHtml(details)}">Suggested ${label}. Change Profession to override; replay provenance is retained.</p>`;
 }
 
-function professionControlsHtml(state: BrpCreatorState): string {
+function professionControlsHtml(
+  state: BrpCreatorState,
+  academicSuggestions: readonly BrpScholarAcademicSuggestionRecord[],
+): string {
   if (state.professionId === "detective") {
     const options = BRP_DETECTIVE_ELECTIVE_SKILL_KEYS.map((skillKey) => `<label class="choice-pool-option"><input type="checkbox" data-brp-detective-elective value="${skillKey}"${checked(state.detectiveElectives.includes(skillKey))}>${escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)}</label>`).join("");
     return `<fieldset class="ability-fieldset"><legend>Detective electives: choose exactly four</legend><div class="choice-pool-grid">${options}</div></fieldset>`;
   }
-  const rows = state.scholarAcademicSkills.map((selection, index) => `<div class="brp-academic-row"><select data-brp-academic-index="${index}" data-brp-academic-parent="${index}" aria-label="Academic ${index + 1} parent"><option value="knowledge"${selected(selection.skillId === "knowledge")}>Knowledge</option><option value="science"${selected(selection.skillId === "science")}>Science</option></select><input data-brp-academic-index="${index}" data-brp-academic-id="${index}" value="${escapeHtml(selection.specialty.id)}" aria-label="Academic ${index + 1} specialty ID"><input data-brp-academic-index="${index}" data-brp-academic-label="${index}" value="${escapeHtml(selection.specialty.label)}" aria-label="Academic ${index + 1} specialty label"></div>`).join("");
-  return `<fieldset class="ability-fieldset"><legend>Scholar languages</legend><div class="brp-language-grid"><label>Own language ID<input id="brp-own-language-id" value="${escapeHtml(state.scholarOwnLanguage.id)}"></label><label>Own language label<input id="brp-own-language-label" value="${escapeHtml(state.scholarOwnLanguage.label)}"></label><label>Other language ID<input id="brp-other-language-id" value="${escapeHtml(state.scholarOtherLanguage.id)}"></label><label>Other language label<input id="brp-other-language-label" value="${escapeHtml(state.scholarOtherLanguage.label)}"></label></div></fieldset><fieldset class="ability-fieldset"><legend>Five Knowledge/Science specialties</legend><div class="brp-academic-list"><div class="brp-academic-labels"><span>Parent</span><span>Specialty ID</span><span>Label</span></div>${rows}</div></fieldset>`;
+  const rows = state.scholarAcademicSkills.map((selection, index) => {
+    const suggestion = academicSuggestions.find((record) => record.slotIndex === index);
+    const suggestionTitle = suggestion
+      ? `Suggested ${suggestion.result.label}. Table ${suggestion.provenance.tableId} v${suggestion.provenance.tableVersion}; source ${suggestion.provenance.sourceId} ${suggestion.provenance.sourceVersion}; evaluator ${suggestion.provenance.evaluatorVersion}; seed ${suggestion.provenance.seed}; draw ${suggestion.provenance.drawIndex}; entry ${suggestion.provenance.selectedEntryId}. Change any field in this row to override.`
+      : "Suggest a source-safe Knowledge or Science specialty from the current BRP first-slice table.";
+    return `<div class="brp-academic-row"><select data-brp-academic-index="${index}" data-brp-academic-parent="${index}" aria-label="Academic ${index + 1} parent"><option value="knowledge"${selected(selection.skillId === "knowledge")}>Knowledge</option><option value="science"${selected(selection.skillId === "science")}>Science</option></select><input data-brp-academic-index="${index}" data-brp-academic-id="${index}" value="${escapeHtml(selection.specialty.id)}" aria-label="Academic ${index + 1} specialty ID"><input data-brp-academic-index="${index}" data-brp-academic-label="${index}" value="${escapeHtml(selection.specialty.label)}" aria-label="Academic ${index + 1} specialty label"><button type="button" class="secondary-button brp-academic-suggest${suggestion ? " suggested" : ""}" data-brp-academic-suggest="${index}" title="${escapeHtml(suggestionTitle)}">${suggestion ? "Re-suggest" : "Suggest"}</button></div>`;
+  }).join("");
+  return `<fieldset class="ability-fieldset"><legend>Scholar languages</legend><div class="brp-language-grid"><label>Own language ID<input id="brp-own-language-id" value="${escapeHtml(state.scholarOwnLanguage.id)}"></label><label>Own language label<input id="brp-own-language-label" value="${escapeHtml(state.scholarOwnLanguage.label)}"></label><label>Other language ID<input id="brp-other-language-id" value="${escapeHtml(state.scholarOtherLanguage.id)}"></label><label>Other language label<input id="brp-other-language-label" value="${escapeHtml(state.scholarOtherLanguage.label)}"></label></div></fieldset><fieldset class="ability-fieldset"><legend>Five Knowledge/Science specialties</legend><p class="muted">Suggestions use the source-safe first-slice catalog. Manual edits remain authoritative and clear that row's suggestion provenance.</p><div class="brp-academic-list"><div class="brp-academic-labels"><span>Parent</span><span>Specialty ID</span><span>Label</span><span>Suggestion</span></div>${rows}</div></fieldset>`;
 }
 
 function characteristicControlsHtml(state: BrpCreatorState): string {

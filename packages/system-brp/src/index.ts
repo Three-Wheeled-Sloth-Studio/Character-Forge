@@ -6,4 +6,5 @@ export * from "./powerLevel.js";
 export * from "./professionSuggestion.js";
 export * from "./professions.js";
 export * from "./rulesSource.js";
+export * from "./scholarAcademicSuggestion.js";
 export * from "./skills.js";

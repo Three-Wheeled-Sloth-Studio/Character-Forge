@@ -19,8 +19,10 @@ export function ensureBrpCreatorStyles(): void {
     .brp-creator-panel .choice-pick-row > label { min-width: 0; }
     .brp-inline-grid, .brp-language-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .brp-academic-list, .brp-redistribution-list, .brp-skill-grid { display: grid; gap: 6px; }
-    .brp-academic-labels, .brp-academic-row { display: grid; grid-template-columns: .8fr 1fr 1.2fr; gap: 6px; align-items: center; }
+    .brp-academic-labels, .brp-academic-row { display: grid; grid-template-columns: .75fr .9fr 1.1fr minmax(78px, auto); gap: 6px; align-items: center; }
     .brp-academic-labels, .brp-skill-labels, .brp-review-skill-labels { color: #74685a; font-size: .68rem; font-weight: 800; }
+    .brp-academic-suggest { white-space: nowrap; }
+    .brp-academic-suggest.suggested { font-weight: 800; }
     .brp-redistribution-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(52px, 72px); gap: 6px; align-items: center; }
     .brp-budget-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
     .brp-budget-card { padding: 9px 10px; border: 1px solid #d4c8b8; border-radius: 9px; background: #f3eadc; }
@@ -41,6 +43,7 @@ export function ensureBrpCreatorStyles(): void {
     @media (max-width: 650px) {
       .brp-inline-grid, .brp-language-grid, .brp-budget-summary { grid-template-columns: 1fr; }
       .brp-academic-list, .brp-skill-grid, .brp-review-skills { overflow-x: auto; }
+      .brp-academic-labels, .brp-academic-row { min-width: 520px; }
       .brp-review-characteristics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
   `;

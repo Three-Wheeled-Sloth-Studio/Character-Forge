@@ -1,12 +1,16 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
   applyBrpProfessionSuggestion,
+  applyBrpScholarAcademicSuggestion,
   readBrpProfessionSuggestion,
+  readBrpScholarAcademicSuggestions,
   suggestBrpProfession,
+  suggestBrpScholarAcademicSkill,
   type BrpAcademicSkillSelection,
   type BrpCharacteristicId,
   type BrpDetectiveElectiveSkillKey,
   type BrpProfessionSuggestionProvenance,
+  type BrpScholarAcademicSuggestionRecord,
 } from "../../../packages/system-brp/src/index.js";
 import {
   autoAllocateBrpCreatorState,
@@ -30,9 +34,15 @@ export function mountBrpCreatorPanel(
   ensureBrpCreatorStyles();
   let state = createDefaultBrpCreatorState();
   let professionSuggestion: BrpProfessionSuggestionProvenance | null = null;
+  let academicSuggestions: BrpScholarAcademicSuggestionRecord[] = [];
 
   const render = (): void => {
-    root.innerHTML = brpCreatorHtml(state, previewBrpCreatorState(state), professionSuggestion);
+    root.innerHTML = brpCreatorHtml(
+      state,
+      previewBrpCreatorState(state),
+      professionSuggestion,
+      academicSuggestions,
+    );
     bindCurrentControls();
   };
 
@@ -47,6 +57,7 @@ export function mountBrpCreatorPanel(
     bindSelectChange("#brp-profession", (value) => {
       state.professionId = value === "scholar" ? "scholar" : "detective";
       professionSuggestion = null;
+      academicSuggestions = [];
       state.allocations = {};
       render();
     });
@@ -57,7 +68,10 @@ export function mountBrpCreatorPanel(
       const changedProfession = state.professionId !== suggestion.result.professionId;
       state.professionId = suggestion.result.professionId;
       professionSuggestion = suggestion.provenance;
-      if (changedProfession) state.allocations = {};
+      if (changedProfession) {
+        academicSuggestions = [];
+        state.allocations = {};
+      }
       render();
     });
 
@@ -112,11 +126,16 @@ export function mountBrpCreatorPanel(
       event.preventDefault();
       const preview = previewBrpCreatorState(state);
       if (preview.validCharacter) {
-        onCharacter(
-          professionSuggestion
-            ? applyBrpProfessionSuggestion(preview.validCharacter, professionSuggestion)
-            : preview.validCharacter,
-        );
+        let character = professionSuggestion
+          ? applyBrpProfessionSuggestion(preview.validCharacter, professionSuggestion)
+          : preview.validCharacter;
+        for (const record of academicSuggestions) {
+          character = applyBrpScholarAcademicSuggestion(character, record.slotIndex, {
+            result: record.result,
+            provenance: record.provenance,
+          });
+        }
+        onCharacter(character);
       }
       render();
     });
@@ -138,6 +157,30 @@ export function mountBrpCreatorPanel(
     otherId?.addEventListener("change", updateLanguages);
     otherLabel?.addEventListener("change", updateLanguages);
 
+    for (const button of root.querySelectorAll<HTMLButtonElement>("[data-brp-academic-suggest]")) {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.brpAcademicSuggest);
+        if (!Number.isInteger(index) || index < 0 || index >= state.scholarAcademicSkills.length) return;
+        const suggestion = suggestBrpScholarAcademicSkill({ drawIndex: index });
+        state.scholarAcademicSkills = state.scholarAcademicSkills.map((entry, candidate) => candidate === index
+          ? {
+              skillId: suggestion.result.selection.skillId,
+              specialty: { ...suggestion.result.selection.specialty },
+            }
+          : entry);
+        academicSuggestions = [
+          ...academicSuggestions.filter((record) => record.slotIndex !== index),
+          {
+            slotIndex: index,
+            result: suggestion.result,
+            provenance: suggestion.provenance,
+          },
+        ].sort((left, right) => left.slotIndex - right.slotIndex);
+        state.allocations = {};
+        render();
+      });
+    }
+
     for (const control of root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-brp-academic-index]")) {
       control.addEventListener("change", () => {
         const index = Number(control.dataset.brpAcademicIndex);
@@ -147,6 +190,7 @@ export function mountBrpCreatorPanel(
         const label = root.querySelector<HTMLInputElement>(`[data-brp-academic-label="${index}"]`)?.value ?? "";
         const next: BrpAcademicSkillSelection = { skillId: parent === "science" ? "science" : "knowledge", specialty: { id, label } };
         state.scholarAcademicSkills = state.scholarAcademicSkills.map((entry, candidate) => candidate === index ? next : entry);
+        academicSuggestions = academicSuggestions.filter((record) => record.slotIndex !== index);
         state.allocations = {};
         render();
       });
@@ -168,6 +212,7 @@ export function mountBrpCreatorPanel(
     openCharacter(character: CharacterDocument): void {
       state = reopenBrpCreatorState(character);
       professionSuggestion = readBrpProfessionSuggestion(character);
+      academicSuggestions = readBrpScholarAcademicSuggestions(character);
       render();
     },
   };
