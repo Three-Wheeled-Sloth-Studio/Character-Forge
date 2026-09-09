@@ -1,0 +1,85 @@
+import { describe, expect, it } from "vitest";
+import { defaultGuidedDnd5eCoreChoices } from "./guidedDefaults.js";
+import { guidedGenerateDnd5eFirstSlice } from "./guidedGenerate.js";
+import { suggestDnd5eCharacterName } from "./nameGeneration.js";
+import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
+
+const standardAssignment = { strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8 };
+
+function baseInput() {
+  return {
+    classChoice: { selectedId: "fighter" as const, acceptableIds: ["fighter"] as const, selectionMode: "direct" as const },
+    backgroundChoice: { selectedId: "soldier" as const, acceptableIds: ["soldier"] as const, selectionMode: "direct" as const },
+    speciesChoice: { selectedId: "human" as const, acceptableIds: ["human"] as const, selectionMode: "direct" as const },
+    coreChoices: defaultGuidedDnd5eCoreChoices("fighter", "soldier", "human"),
+    abilityMethod: { method: "standard-array" as const, assignment: standardAssignment },
+    backgroundIncreases: { strength: 2 as const, constitution: 1 as const },
+    backgroundEquipmentChoice: "B:50-gp" as const,
+  };
+}
+
+function nativePayload(character: ReturnType<typeof guidedGenerateDnd5eFirstSlice>): Dnd5eNativeCharacter {
+  return character.nativeStates[0]!.payload as Dnd5eNativeCharacter;
+}
+
+describe("guided D&D name suggestion provenance", () => {
+  it("retains provider provenance for the accepted creator random-name suggestion", () => {
+    const suggestion = suggestDnd5eCharacterName("creator-name-seed");
+    const character = guidedGenerateDnd5eFirstSlice({
+      ...baseInput(),
+      name: suggestion.result.displayName,
+      nameSelectionMode: "random",
+      nameSuggestion: suggestion,
+    });
+
+    expect(character.displayName).toBe(suggestion.result.displayName);
+    expect(nativePayload(character).identity.name).toBe(suggestion.result.displayName);
+    expect(character.generation?.recipeVersion).toBe("0.7");
+    expect(character.generation?.decisions).toContainEqual(expect.objectContaining({
+      stepId: "identity.name.suggestion",
+      answer: expect.objectContaining({
+        displayName: suggestion.result.displayName,
+        trigger: "explicit-randomize",
+        provenance: expect.objectContaining({
+          providerId: "dnd5e:placeholder-display-name",
+          providerVersion: "0.1",
+          seed: "creator-name-seed",
+        }),
+      }),
+    }));
+  });
+
+  it("does not retain a stale suggestion after the submitted name is manually overridden", () => {
+    const suggestion = suggestDnd5eCharacterName("stale-name-seed");
+    const character = guidedGenerateDnd5eFirstSlice({
+      ...baseInput(),
+      name: "Manual Override",
+      nameSelectionMode: "direct",
+      nameSuggestion: suggestion,
+    });
+
+    expect(character.displayName).toBe("Manual Override");
+    expect(nativePayload(character).identity.name).toBe("Manual Override");
+    expect(character.generation?.decisions.some((decision) => decision.stepId === "identity.name.suggestion")).toBe(false);
+    expect(character.generation?.decisions).toContainEqual(expect.objectContaining({
+      stepId: "identity.name",
+      answer: "Manual Override",
+      rationale: "Direct user entry.",
+    }));
+  });
+
+  it("retains a name-specific replay seed when blank-name fallback generates the display name", () => {
+    const character = guidedGenerateDnd5eFirstSlice({ ...baseInput(), name: "" });
+    const decision = character.generation?.decisions.find((entry) => entry.stepId === "identity.name.suggestion");
+
+    expect(decision?.answer).toEqual(expect.objectContaining({
+      displayName: character.displayName,
+      trigger: "blank-fallback",
+      provenance: expect.objectContaining({
+        providerId: "dnd5e:placeholder-display-name",
+        seed: expect.stringMatching(/^name-/),
+      }),
+    }));
+    expect(character.generation?.seed).toBeUndefined();
+  });
+});
