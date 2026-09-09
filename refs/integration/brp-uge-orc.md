@@ -11,7 +11,7 @@ tags:
 
 Status: Selected and implementation-pinned source contract for the second rules system.
 
-Date reviewed: 2026-09-08
+Date reviewed: 2026-09-09
 
 ## Selected rules source
 
@@ -19,6 +19,7 @@ Date reviewed: 2026-09-08
 - Creator: Chaosium Inc.; authors Jason Durall and Steve Perrin
 - Edition/version boundary: 2023 Universal Game Engine released under the ORC License
 - Canonical product/source page: https://www.chaosium.com/basic-roleplaying-universal-game-engine-pdf/
+- Free ORC Content Document: https://www.chaosium.com/content/orclicense/BasicRoleplaying-ORC-Content-Document.pdf
 - ORC license and required notice page: https://www.chaosium.com/orc-license/
 - Corrections/errata boundary implemented: `CHA2036 BRP UGE Corrections 1.05`
 - Resource page: https://www.chaosium.com/basic-roleplaying-resources/
@@ -126,6 +127,36 @@ This is an implementation boundary, not the complete BRP age system.
 - personal additional Other-language learning;
 - no EDU, Sanity, Fatigue, hit locations, cultural modifiers, non-human modifiers, powers, or optional skill-category bonuses.
 
+## BRP naming source finding
+
+The authoritative BRP ORC text does not supply a generated-name table, naming corpus, or BRP-owned culture-to-name mapping.
+
+The source instead places naming in the setting/game boundary:
+
+- the general terminology section says character names and backgrounds are determined by the player with gamemaster assistance and/or approval;
+- Character Creation, Step One says the character's name should be appropriate to the setting and game being played, and explicitly allows the player to defer choosing it;
+- the optional `Culture and Characters` section says the gamemaster may develop cultural backgrounds appropriate to an original or adapted setting, and lists language(s) as one possible cultural-background field.
+
+That is positive source evidence that BRP mechanics do not own a naming culture. The current `Human` profile is therefore creature/species identity only and must not be used as a proxy for culture, nationality, ethnicity, language, or naming convention.
+
+The source review also found no BRP naming procedure that would justify putting a generated-name dataset in `packages/system-brp`.
+
+### Ownership decision
+
+BRP generated-name content is setting/campaign/content-package owned, not `system-brp` owned.
+
+A future BRP creator may consume a caller-supplied naming provider when a concrete setting or campaign supplies one. That provider may use provider-specific setting, culture, language, or naming-convention context, but those concepts remain opaque to the shared naming mechanism unless repeated real consumers justify a shared contract.
+
+Do not create a pseudo-BRP default culture or fallback name corpus merely so `Randomize All` can change the name field. The absence of a setting naming provider is a valid state.
+
+### License/provenance consequence
+
+Chaosium states that, with limited product-identity exceptions, the text of BRP UGE is available under the ORC license. That license covers the BRP source text; it does not supply or automatically license an external setting's naming dataset.
+
+Any future naming provider must retain its own source ID/version and must have a deliberate redistribution/license basis for its dataset. Branded-game material remains excluded unless separately licensed or independently open. Provider provenance must not imply that setting/culture names are sourced from `chaosium-brp-uge-orc-1.05` when they are not.
+
+The existing `name-suggestion/0.1` provider contract is sufficient for this boundary: provider/source/version/seed are already retained and provider context is intentionally opaque. No shared naming-contract change is justified by BRP discovery.
+
 ## Current code milestone
 
 Named-language backend closure is automated-green at:
@@ -144,13 +175,16 @@ The language tests cover exact Own/Other identities, source bases, contradictory
 
 ## Next source/application probe
 
-The backend now has enough source-faithful breadth for a narrow first BRP creator UI. The next slice should expose only implemented rules and continue to use BRP-owned builders/validators as the rules authority rather than reimplementing BRP formulas in browser code.
+No BRP naming implementation should be added until a real setting/campaign/content provider exists.
 
-Do not broaden into a global language catalog, whole profession catalog, EDU, powers, Sanity, age-50+, or other optional systems as part of that UI slice unless a concrete dependency requires it.
+When such a consumer arrives, the first implementation proof should inject the concrete provider at the caller/host boundary, keep `system-brp` free of invented naming data, reuse `name-suggestion/0.1`, and retain provider/source/version/seed provenance while leaving authoritative native/display name state as ordinary strings.
+
+Until then, Character Forge should continue with an implementation slice that has an actual source/product consumer rather than adding a speculative generic content-provider layer.
 
 ## Current external references
 
 - Chaosium BRP UGE product page: https://www.chaosium.com/basic-roleplaying-universal-game-engine-pdf/
+- Chaosium free BRP ORC Content Document: https://www.chaosium.com/content/orclicense/BasicRoleplaying-ORC-Content-Document.pdf
 - Chaosium ORC License page: https://www.chaosium.com/orc-license/
 - Chaosium BRP resources and errata: https://www.chaosium.com/basic-roleplaying-resources/
 - Chaosium BRP version history: https://brp.chaosium.com/version-history/
