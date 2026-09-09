@@ -8,7 +8,7 @@ tags:
 ---
 # Structured Naming
 
-Status: The first system-neutral name-suggestion contract, D&D placeholder provider, and D&D guided-creator provenance integration are implemented on `dev`. This remains a deliberately small boundary, not a universal identity or culture model.
+Status: The first system-neutral name-suggestion contract, D&D placeholder provider, D&D guided-creator provenance integration, and BRP content-ownership discovery are complete on `dev`. This remains a deliberately small boundary, not a universal identity or culture model.
 
 ## Why this exists
 
@@ -101,13 +101,47 @@ Automated-green implementation checkpoint:
 - job: `102543733892`
 - 40 test files / 193 tests / 0 failures
 
+## BRP provider/content ownership decision
+
+BRP UGE does not define a BRP-owned naming corpus.
+
+The authoritative ORC content instead makes naming setting-dependent:
+
+- the terminology section says character names and backgrounds are determined by the player with gamemaster assistance and/or approval;
+- Character Creation, Step One says a character's name should be appropriate to the setting and game being played;
+- the optional `Culture and Characters` section says the gamemaster may develop cultural backgrounds appropriate to an original or adapted setting, with language(s) among the optional background fields.
+
+Source review found no BRP generated-name table, naming procedure, or concrete culture-to-name mapping. Therefore a generated-name dataset does not belong in `packages/system-brp` merely because the character uses BRP mechanics.
+
+The ownership boundary is:
+
+- BRP mechanics own the authoritative character name string and any BRP-native generation record that references it;
+- a concrete setting/campaign/content package owns its naming data and provider-specific context;
+- a host/caller may supply that provider to a BRP creator when such a setting exists;
+- the current BRP `Human` profile supplies no naming-culture context;
+- no pseudo-BRP fallback culture or name corpus should be invented for `Randomize All`.
+
+The existing `name-suggestion/0.1` contract already supports this design. A setting-owned provider can carry its own provider ID/version, source ID/version, seed, opaque context, and result without changing the shared contract.
+
+No separate universal content-provider layer is justified yet. The existing caller-supplied `NameSuggestionProvider<TContext, TResult>` is sufficient until a real Parchment/world/setting consumer exposes repeated needs beyond name suggestion.
+
+## Source and license consequence
+
+Chaosium's ORC release makes the applicable BRP UGE text available under the ORC license subject to the stated product-identity exclusions. That does not create a license for external setting or real-world naming datasets that are not part of BRP UGE.
+
+Every future naming provider must therefore retain its own deliberate source/license boundary. Provider provenance must not claim that setting names came from `chaosium-brp-uge-orc-1.05` unless they actually did.
+
+Call of Cthulhu, RuneQuest, Pendragon, Rivers of London, and other branded-setting content remain separate unless independently licensed/open for the intended use.
+
+Detailed BRP source evidence is recorded in `refs/integration/brp-uge-orc.md`.
+
 ## Creator and Randomize All boundary
 
 The shared creator does not understand naming providers. It coordinates existing system-owned randomizer controls.
 
 D&D's existing name button remains the participation seam for `Randomize All`. The D&D creator wrapper intercepts that same control to retain the complete provider suggestion, so the shared orchestration does not need a naming-specific branch.
 
-A future BRP name randomizer should follow the same pattern only after a legitimate provider/content boundary is chosen. The absence of a provider is a valid state; `Randomize All` must not invent names or distributions merely to be exhaustive.
+BRP should expose a name randomizer only when its caller supplies a legitimate setting/campaign/content provider. The absence of a provider is a valid state; `Randomize All` must not invent names or distributions merely to be exhaustive.
 
 ## What is intentionally not modeled yet
 
@@ -122,12 +156,13 @@ Do not add these to the shared contract without concrete cross-provider evidence
 - weighted culture mixing;
 - user-authored naming corpora/editors;
 - network or LLM-backed naming as a required core path;
-- a large D&D or BRP name corpus.
+- a large D&D or BRP name corpus;
+- a generic content-provider framework with no concrete non-name consumer.
 
 ## Next proof
 
-The next naming slice is discovery-first: decide where a legitimate BRP name provider and its content should live.
+Naming architecture is now waiting on a real setting/campaign/content consumer rather than another abstract layer.
 
-Do not assume BRP's Human profile supplies a culture or naming language. Determine whether name content should be BRP-system-owned, setting/campaign-owned, or supplied by a future shared content/provider layer. If no BRP-specific source legitimately defines names, record that fact rather than fabricating pseudo-BRP culture data.
+When one arrives, the next naming proof should inject that concrete provider from the host/caller boundary into the BRP creator, preserve manual authority and provider/source/version/seed provenance, and keep `system-brp` free of invented naming data.
 
-The existing `name-suggestion/0.1` mechanism should remain unchanged unless this second-provider discovery produces concrete evidence that it is insufficient.
+Until that consumer exists, naming should not block unrelated creator work. The next active implementation slice can return to a concrete product gap such as consolidating D&D Quick Generate as a top-level creator mode.
