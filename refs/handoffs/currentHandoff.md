@@ -17,7 +17,7 @@ Promoted branches remain unchanged:
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D, BRP, or random-table work.
+Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D, BRP, random-table, or creator-orchestration work.
 
 D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green at `55f79a1004c14eef1635e92c602e1fefa18cab15`. Issue #11 remains the separate accumulated owner runtime-QA/promotion gate.
 
@@ -28,148 +28,115 @@ BRP remains bounded to Basic Roleplaying: Universal Game Engine 2023 ORC content
 - adapter: `0.5.0`
 - no Call of Cthulhu-specific protected content
 
-The first BRP creator UI remains automated-green at `b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02`, Actions `34295950302`, job `102292513584`.
+Random-table checkpoints remain green:
 
-Owner runtime/browser QA on 2026-09-09 accepted the BRP creator for continued work with no blocking findings. Do not schedule a dedicated polish cycle for the accepted findings below; fold them into later touched slices.
+- core evaluator: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`, Actions `34364243890`, job `102508743773`;
+- BRP Profession consumer: `d4b881b29bd763d9f7fd50e56223b00b37077be2`, Actions `34366600372`, job `102516809719`;
+- BRP Scholar academic consumer: `54d471faa5a635e46ab9db90f8d05d26ac32944f`, Actions `34368120736`, job `102522033597`.
 
-## Accepted Creator QA Debt
+## Shared Creator Randomization Checkpoint
 
-D&D Random ability generation:
+The first creator-level randomization orchestration slice is automated-green:
 
-- hide the disabled `Roll First` assignment control until rolls exist;
+- checkpoint: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`
+- Actions: `34369619403`
+- job: `102527165230`
+- Verify conclusion: success
+- full suite: 36 test files / 178 tests / 0 failures
+- tracked paths: 153
+- generated agent context: 4,132 characters
+- web build identity: `Character Forge build 0.0.1 1f6ed5ae`
+
+What changed:
+
+- `creatorWorkspace` now owns one visible `Randomize All` interaction shared across systems.
+- `creatorRandomization.ts` provides a system-neutral orchestration primitive that repeatedly resolves randomizer actions after each click. This matters because one random choice can re-render and expose dependent controls during the same pass.
+- The helper coordinates interaction only. It knows no D&D classes, BRP professions, source IDs, probability distributions, or native-state semantics.
+- D&D `Randomize All` invokes the existing field randomizers already exposed by the guided creator, plus the existing random-ability roll action when the Random ability method is currently selected.
+- Because D&D field buttons already read their sticky acceptable pools, `Randomize All` does not broaden those pools or create a second random-choice implementation.
+- D&D generation provenance remains the existing provenance produced by the same field controls and system generation path.
+- BRP `Randomize All` invokes only the existing Profession suggestion and, when Standard Rolled is already selected, the existing characteristic re-roll action.
+- BRP Scholar academic suggestions intentionally remain field-level. The current source-safe table has only two academic results and cannot legally populate five unique Scholar academic slots, so orchestration does not pretend otherwise.
+- BRP Age, Gender, Wealth, name, and other fields remain unchanged because no explicit system-owned random distribution/generator exists for them yet.
+- Shared creator-shell styling now lives in `styles.css` instead of the BRP-only injected stylesheet, so the system selector and `Randomize All` control are styled consistently even while D&D remains the default system.
+
+No CharacterDocument, native schema, adapter, generator-core, system random-table dataset, dependency, or lockfile changed.
+
+## Existing Evidence Reused
+
+This slice deliberately delegates instead of duplicating:
+
+- D&D sticky choice-pool tests already prove random selection stays inside the retained acceptable pool.
+- BRP Profession suggestion tests already prove accepted random provenance is retained without native-state mutation and manual Profession selection supersedes stale suggestion state in the creator.
+- BRP Scholar academic tests already prove per-row manual override and native-state match requirements.
+- Standard D&D and BRP generation/build/adapter tests remain green.
+
+## Remaining Creator QA Debt
+
+D&D Random ability generation still has three accepted, nonblocking UX findings:
+
+- hide the disabled `Roll First` assignment controls until rolls exist;
 - move verbose per-roll dice history out of the cramped inline result display and into hover/detail text;
 - when a roll is reassigned, swap the displaced ability's roll rather than allowing two abilities to reference one roll slot.
 
-Shared creator randomization:
+BRP still has intentionally unresolved randomization gaps:
 
-- add a clear `Randomize All` interaction pattern to both systems;
-- support field-level randomizers where sensible;
-- keep the interaction pattern shared while each system owns legal/random value generation.
+- structured name generation only when the naming seam is ready;
+- Age, Gender, Wealth, and similar randomizers only after deliberate distributions are defined.
 
-BRP creator:
-
-- add name generation when the structured naming seam is ready;
-- add randomizers for Age, Gender, Wealth, and similar fields only when source/distribution semantics are explicit.
-
-The BRP left-pane containment finding is resolved. These remaining items are nonblocking UX debt, not a reason to reopen BRP architecture or expand BRP rules breadth.
-
-## Random Table Companion Checkpoints
-
-The system-neutral evaluator remains automated-green:
-
-- core checkpoint: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`
-- Actions: `34364243890`
-- job: `102508743773`
-- focused evaluator tests: 5
-
-The first real system-owned consumer remains automated-green:
-
-- consumer checkpoint: `d4b881b29bd763d9f7fd50e56223b00b37077be2`
-- Actions: `34366600372`
-- job: `102516809719`
-- focused BRP profession-suggestion tests: 4
-
-The second, richer system-owned consumer is now automated-green:
-
-- implementation checkpoint: `54d471faa5a635e46ab9db90f8d05d26ac32944f`
-- Actions: `34368120736`
-- job: `102522033597`
-- Verify conclusion: success
-- full suite: 35 test files / 173 tests / 0 failures
-- focused BRP Scholar academic-suggestion tests: 5
-
-## What The Second Consumer Proves
-
-BRP now owns `BRP_SCHOLAR_ACADEMIC_SUGGESTION_TABLE`, a source-safe table built only from academic specialty definitions already present in the first-slice BRP catalog:
-
-- Knowledge (Law), including parent skill, specialty identity, label, and base chance;
-- Science (Forensics), including parent skill, specialty identity, label, and base chance.
-
-The result is materially richer than the first profession enum-like payload. It retains:
-
-- a BRP skill key;
-- nested `BrpAcademicSkillSelection` with Knowledge/Science parent plus specialty ID/label;
-- display label;
-- source base chance.
-
-The consumer also proves multi-slot suggestion persistence:
-
-- any of the five Scholar academic slots can request a suggestion;
-- each retained decision records slot index, structured result, and full random-table provenance;
-- multiple slot records coexist independently;
-- re-suggesting one slot replaces only that slot's prior suggestion decision;
-- manual editing of a Scholar academic row clears that row's suggestion provenance in creator state;
-- creator reopen restores only suggestion records whose structured result still matches the authoritative native Scholar slot.
-
-Accepted academic suggestions still flow through the ordinary Scholar creator state and BRP builder/adapter before provenance is attached. `applyBrpScholarAcademicSuggestion()` changes only generation decisions and verifies the already-built authoritative native selection; it never patches or reconstructs native state.
-
-The generic evaluator required no changes. No shared CharacterDocument, semantic contract, BRP native schema, adapter version, dependency, or lockfile changed.
-
-## Current Evidence / Gap
-
-Two concrete BRP consumers now prove both a simple enum-like payload and a nested structured payload, including replay, manual override, multiple independent suggestion slots, and native-state safety.
-
-That is still not evidence for a universal trait/ideal/bond/flaw ontology. The structured payload remains explicitly BRP-owned. Nested/subtable evaluation is also still unneeded: the nested object shape is a result payload, not a nested random table.
-
-The next useful product slice is creator-level randomization orchestration. The UI already has several independent random/suggestion seams, but the user-facing pattern is inconsistent and there is no shared `Randomize All` interaction. This should be solved as orchestration over system-owned random functions, not by moving system rules or demographic distributions into the web shell.
-
-Do not invent random distributions for BRP Age, Gender, or Wealth merely to make `Randomize All` exhaustive. Randomize only fields with an explicit supported randomization seam; leave other fields unchanged until their distributions are deliberately defined.
+The first shared `Randomize All` interaction now needs owner browser/runtime QA for clarity and behavior, especially with restricted D&D acceptable pools and dynamic class/species controls.
 
 ## Next Slice
 
-Implement the first shared creator randomization orchestration slice on `dev`.
+Take the narrow D&D Random-ability UX debt while runtime-QA checking the new shared `Randomize All` interaction.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "creator randomization orchestration"`
+`python refs/tools/generate_agent_context.py --focus "D&D random ability UX and Randomize All QA"`
 
-Before coding:
+Priorities:
 
-1. Inventory existing D&D and BRP field-level randomizers/suggestions and distinguish shell interaction from system-owned random semantics.
-2. Define a consistent `Randomize All` and field-randomizer interaction pattern in the creator workspace without creating a cross-system rules model.
-3. Preserve D&D acceptable-pool/sticky behavior and existing provenance semantics.
-4. Reuse BRP profession, Scholar academic, and characteristic-generation seams where they are actually applicable.
-5. Do not randomize Age, Gender, Wealth, names, or other fields unless an explicit system-owned distribution/generator already exists or is separately justified.
-6. Keep random actions easy to override and replay/provenance boundaries explicit where values enter CharacterDocument generation state.
-7. Fold the accepted D&D Random ability UX findings only where the touched code makes that cheap and safe.
-
-Do not reopen the generic random-table evaluator unless this real orchestration exposes a missing generic capability.
+1. Verify `Randomize All` in D&D respects restricted class/background/species and nested acceptable pools.
+2. Verify dynamic dependent controls can appear and still be randomized in the same pass without repeated/random-loop behavior.
+3. Verify BRP `Randomize All` changes only Profession and rolled characteristics where applicable; Age/Gender/Wealth/name and Scholar academics should remain unchanged.
+4. Fix the three bounded D&D Random-ability UX findings above.
+5. Keep the Random ability rule and roll generation in `system-dnd5e`; the web change should only improve assignment/presentation interaction.
+6. Add focused tests for any new assignment-swap helper or interaction state.
+7. Do not expand this into a broader D&D creator rewrite.
 
 ## Relevant Files
 
 - `refs/handoffs/next-dev-prompt.md`
 - `refs/implementation/fileMap.yaml`
 - `refs/planning/roadmap.yaml`
-- `refs/product/random-table-companion.md`
-- `packages/generator-core/src/randomTable.ts`
-- `packages/system-brp/src/professionSuggestion.ts`
-- `packages/system-brp/src/scholarAcademicSuggestion.ts`
-- `packages/system-brp/src/scholarAcademicSuggestion.test.ts`
+- `apps/web/src/creatorWorkspace.ts`
+- `apps/web/src/creatorWorkspace.test.ts`
+- `apps/web/src/creatorRandomization.ts`
+- `apps/web/src/creatorRandomization.test.ts`
+- `apps/web/src/guidedCreationPanel.ts`
 - `apps/web/src/brpCreatorPanel.ts`
 - `apps/web/src/brpCreatorPanelView.ts`
-- `apps/web/src/guidedCreationPanel.ts`
-- `apps/web/src/creatorWorkspace.ts`
+- `apps/web/src/styles.css`
+- `packages/system-dnd5e/src/randomGenerate.ts`
 
-Load deeper system source/licensing evidence only for randomization semantics actually being changed.
+Load deeper system source only if a concrete UX fix would otherwise change rule semantics.
 
 ## Do Not Reopen Without New Evidence
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
+- Shared creator orchestration coordinates interactions only; system rules and distributions remain system-owned.
 - Random-table evaluation is a generation primitive, not a character-state format.
 - System datasets and mappings stay system-owned.
 - The generic table evaluator must not learn D&D- or BRP-specific semantics.
-- Table results feed ordinary generation decisions or structured suggestions; they do not patch native state directly.
 - Preserve explicit replay provenance and version boundaries.
-- Add nesting only when a concrete consumer requires it.
-- A nested result payload is not evidence for nested random-table evaluation.
-- BRP profession is not D&D class.
+- Do not invent distributions merely to make `Randomize All` exhaustive.
+- BRP Profession is not D&D class.
 - Keep BRP base chance, professional contribution, personal contribution, and final rating distinct.
 - Future BRP powers must not reuse D&D spell architecture.
 - Keep generator-core system-neutral and Parchment system-agnostic.
 - Do not import Call of Cthulhu-specific protected content.
 - D&D Issue #11 remains a separate promotion gate.
-- Creator QA findings above are nonblocking debt to fold into later touched work, not a dedicated cleanup cycle.
 
 ## Validation
 
