@@ -1,6 +1,7 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import { mountBrpCreatorPanel, type BrpCreatorPanelController } from "./brpCreatorPanel.js";
 import { clickCreatorRandomizers } from "./creatorRandomization.js";
+import { mountDndRandomAbilityUx } from "./dndRandomAbilityUx.js";
 import { mountGuidedCreationPanel } from "./guidedCreationPanel.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
@@ -70,6 +71,7 @@ export function mountCreatorWorkspace(
       return;
     }
     mountGuidedCreationPanel(systemHost, onCharacter);
+    mountDndRandomAbilityUx(systemHost);
   };
 
   systemSelect.value = defaultCreatorSystem();
