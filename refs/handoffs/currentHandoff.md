@@ -17,116 +17,151 @@ Promoted branches remain unchanged:
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D, BRP, random-table, creator-orchestration, or naming work.
+Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D, BRP, random-table, creator, naming, or narrative work.
 
 D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green at `55f79a1004c14eef1635e92c602e1fefa18cab15`. Issue #11 remains the separate accumulated owner runtime-QA/promotion gate.
 
-BRP remains bounded to Basic Roleplaying: Universal Game Engine 2023 ORC content with corrections 1.05:
+Important later green checkpoints include:
 
-- source ID: `chaosium-brp-uge-orc-1.05`
-- native schema: `brp-character/0.1`
-- adapter: `0.5.0`
-- no Call of Cthulhu-specific protected content
+- random-table core: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`;
+- BRP Profession consumer: `d4b881b29bd763d9f7fd50e56223b00b37077be2`;
+- BRP Scholar academic consumer: `54d471faa5a635e46ab9db90f8d05d26ac32944f`;
+- shared creator randomization: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`;
+- D&D Random-ability UX: `e66003b9b6334218fb689d2da32ae5bf133251af`;
+- structured naming provider proof: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`;
+- D&D generated-name provenance: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`;
+- D&D Quick top-level creator mode: `418db810828c6a44d7b24b88ef69a3b6ffdffc40`.
 
-Existing green checkpoints remain valid:
+## D&D Guided Narrative First Vertical Slice
 
-- random-table core: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`, Actions `34364243890`, job `102508743773`;
-- BRP Profession consumer: `d4b881b29bd763d9f7fd50e56223b00b37077be2`, Actions `34366600372`, job `102516809719`;
-- BRP Scholar academic consumer: `54d471faa5a635e46ab9db90f8d05d26ac32944f`, Actions `34368120736`, job `102522033597`;
-- shared creator randomization: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`, Actions `34369619403`, job `102527165230`;
-- D&D Random-ability UX: `e66003b9b6334218fb689d2da32ae5bf133251af`, Actions `34371712699`, job `102534309918`;
-- structured naming contract/provider proof: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`, Actions `34372897196`, job `102538304875`;
-- D&D generated-name provenance: `1a1eb5de957eabd87b63785ef8dafccafbd47a44`, Actions `34374497101`, job `102543733892`;
-- BRP naming ownership discovery docs head: `515ca38960169f3476fcfdd9ffcc9f0195f36d5b`, Actions `34379945403`, job `102562036634`.
+The first Guided Narrative slice is automated-green at:
 
-## D&D Quick Generate Top-Level Creator Mode Checkpoint
-
-The creator-mode consolidation slice is automated-green:
-
-- implementation checkpoint: `418db810828c6a44d7b24b88ef69a3b6ffdffc40`
-- Actions: `34382893940`
-- job: `102571852183`
+- implementation checkpoint: `bd5de95193002cb7ad176c5b325d42d5e21ff78c`
+- Actions: `34384877186`
+- job: `102578522427`
 - Verify conclusion: success
-- full suite: 41 test files / 197 tests / 0 failures
-- tracked paths: 164
+- full suite: 42 test files / 203 tests / 0 failures
+- tracked paths: 167
 - OKF: 19 concepts / 9 indexes
-- generated agent context: 3,809 characters
-- web build identity: `Character Forge build 0.0.1 418db810`
+- generated agent context: 3,710 characters
+- web build identity: `Character Forge build 0.0.1 bd5de951`
 
-What changed:
+One earlier checkpoint, `eb9b4c43ee11e86860f6bd6284cc165c445f3683`, failed only on `exactOptionalPropertyTypes` because an optional narrative name was explicitly passed as `undefined`. The correction passes `name: input.name ?? ""`; no system behavior changed beyond satisfying the existing guided input contract.
 
-- `apps/web/src/dndCreatorPanel.ts` now owns D&D top-level creation-mode selection.
-- D&D exposes exactly two current creation modes: `Guided Mechanical` and `Quick Generate`.
-- `Guided Mechanical` remains the default and keeps the existing detailed creator intact.
-- Standard Array, Point Cost, Random, and Manual remain ability-generation methods inside Guided Mechanical. Quick was not added to that dropdown.
-- Both D&D mode surfaces stay mounted while toggling, so switching modes does not discard the current Guided form or Quick name/seed inputs.
-- `apps/web/src/dndQuickCreatorPanel.ts` exposes only optional name and optional seed, matching the existing `quickGenerateDnd5eFirstSlice()` API.
-- Quick browser code does not reproduce the Human/Soldier/Fighter template or any randomization/rules logic. It delegates directly to the system package.
-- Quick output flows through the same `onCharacter` callback used by Guided creation, preserving the existing review, host-message, save, and Parchment persistence boundary.
-- Blank name/seed retain the system API's generated behavior. Explicit seed retains the existing deterministic-mechanics/new-opaque-ID behavior already covered by system tests.
-- No Quick Generate native mechanics, recipe, template, adapter, CharacterDocument schema, dependency, or lockfile changed.
+## What Changed
 
-## Randomize All Decision
+D&D now exposes three top-level creation modes:
 
-`Randomize All` remains available for D&D Guided Mechanical and BRP under their established semantics.
+1. `Guided Mechanical` - still the default detailed creator;
+2. `Guided Narrative` - the new narrative/preference front end;
+3. `Quick Generate` - unchanged system-owned Quick generation.
 
-While D&D Quick mode is active:
+Standard Array, Point Cost, Random, and Manual remain ability-generation methods inside Guided Mechanical only.
 
-- the workspace hides and disables `Randomize All`;
-- the click path is also guarded in code;
-- hidden Guided controls therefore cannot be triggered accidentally;
-- Quick owns its randomization through the explicit `Generate character` action.
+The new system-owned `packages/system-dnd5e/src/guidedNarrative.ts` defines the first narrative contract and mappings. Browser code renders that contract but does not own the mapping logic.
 
-No BRP Quick mode was added or implied.
+The first questionnaire contains three deliberately narrow questions:
 
-## Product Boundary Preserved
+- preferred role in trouble;
+- kind of life before adventuring;
+- kind of heritage the player wants to explore.
 
-The creator hierarchy is now explicit:
+Every narrative question includes an explicit `Choose for me` option. This is now a product requirement for narrative choice surfaces, not a one-off convenience. When chosen, the substantive answer is resolved deterministically from the visible narrative seed and both the submitted `choose-for-me` answer and resolved answer are retained.
 
-1. rules system;
-2. top-level creation mode;
-3. method-specific controls inside that mode.
+Current mappings stay entirely within already-supported D&D choices:
 
-This keeps Quick and future Guided Narrative at the correct level without destabilizing the existing Guided Mechanical form.
+- role -> Class candidates;
+- past -> Background;
+- heritage -> Species candidates.
 
-The existing left-controls/right-review workspace remains unchanged. Generation seed and provenance continue to appear in the ordinary review/inspector surface.
+The mapping result exposes candidate IDs and one deterministic recommendation. The creator shows the recommended Class, Background, and Species as ordinary editable selects so the player can override any recommendation before generation.
 
-## BRP Naming Decision Remains Closed
+## Generation And Provenance Boundary
 
-Do not reopen BRP naming architecture in the next slice.
+`guidedNarrativeGenerateDnd5eFirstSlice()` remains a front end over the existing guided/native generator.
 
-The authoritative BRP source review established that names are setting/game dependent and optional culture is GM/setting defined. There is no BRP generated-name corpus or culture-to-name mapping. Future BRP naming data is setting/campaign/content-package owned and should be caller/provider supplied through the existing `name-suggestion/0.1` seam.
+It:
+
+- uses ordinary supported Class, Background, and Species IDs;
+- calls `defaultGuidedDnd5eCoreChoices()` for the current remaining mechanical defaults;
+- uses a legal Standard Array assignment with class-aware priority;
+- derives a legal +2/+1 background ability-increase plan from the selected background and class priority;
+- uses the normal guided builder and D&D adapter path;
+- does not introduce a narrative-native schema or narrative adapter.
+
+After ordinary generation, generation metadata is made narrative-specific:
+
+- `methodId`: `dnd5e:guided-narrative-level-one`;
+- `mode`: `guided-narrative`;
+- `recipeVersion`: `0.1`;
+- narrative seed retained;
+- mapping ID/version retained;
+- submitted and resolved narrative answers retained;
+- candidate, recommended, final, and override status retained for Class, Background, and Species;
+- remaining defaulted choices explicitly recorded as first-slice behavior.
+
+Narrative generation removes the Guided Mechanical sticky acceptable-pool provenance records because those pools were not used by the narrative path. Ordinary final Class/Background/Species decisions are retained with rationale showing recommendation acceptance or player override.
+
+No CharacterDocument schema, D&D native schema, D&D adapter, BRP code, generator-core random-table contract, dependency, or lockfile changed.
+
+## Creator Behavior
+
+`apps/web/src/dndNarrativeCreatorPanel.ts`:
+
+- renders the system-owned questions;
+- defaults each question to `Choose for me`;
+- exposes the replay seed;
+- provides `Choose again` by generating a new seed;
+- shows the resolved answers and mapped candidate summary;
+- exposes overrideable Class, Background, and Species selects;
+- publishes through the same ordinary `onCharacter` review/save/host boundary as the other D&D modes.
+
+All three D&D mode surfaces remain mounted while switching, preserving in-progress form state.
+
+Shared `Randomize All` remains available only in Guided Mechanical. It is hidden/disabled and click-guarded in both Quick and Guided Narrative. Narrative uses the explicit per-question `Choose for me` behavior instead of accidentally invoking hidden Guided Mechanical controls.
+
+## Durable Narrative Choice Rule
+
+For current and future narrative questionnaires:
+
+- every narrative choice/question must include `Choose for me` or a semantically equivalent explicit option;
+- the random/default resolution must be deliberate and system/content-owner defined, never inferred from hidden browser behavior;
+- where replay matters, retain the seed and submitted-versus-resolved provenance;
+- direct player answers and later mechanical overrides remain authoritative.
+
+Do not generalize this into a universal personality or psychology schema from the first D&D consumer.
 
 ## Remaining QA Evidence
 
-Owner browser QA of the accumulated creator workspace remains useful, including mode switching and Quick submission, but remains a nonblocking accumulated QA gate rather than a dedicated implementation cycle unless a concrete blocker appears.
+Owner browser QA of accumulated creator behavior remains useful, including:
 
-D&D accumulated runtime QA remains separately tracked by Issue #11 before promotion.
+- Guided / Narrative / Quick switching;
+- Narrative `Choose for me` replay and `Choose again`;
+- Class/Background/Species narrative override behavior;
+- existing Randomize All behavior in Guided Mechanical.
+
+Keep this as accumulated nonblocking creator QA unless a concrete blocker appears. D&D Issue #11 remains the promotion gate.
 
 ## Next Slice
 
-Begin the first D&D Guided Narrative vertical slice.
+Continue Guided Narrative into the existing Guided Mechanical customization surface instead of duplicating detailed D&D controls in the narrative panel.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative first vertical slice"`
+`python refs/tools/generate_agent_context.py --focus "D&D Guided Narrative continuation into Guided Mechanical"`
 
 Priorities:
 
-1. Treat Guided Narrative as a third top-level D&D creation mode, not an ability-generation method.
-2. Start with a deliberately small set of narrative/preference questions that can map to already-supported D&D mechanical choices.
-3. Keep narrative mapping data system-owned and inspectable. Browser code should render questions and orchestrate selection, not own hidden D&D rules logic.
-4. Record the important narrative answers and resulting mapped choices in generation provenance.
-5. Route final results through existing guided/native generation APIs rather than creating a narrative-specific character-state model.
-6. Prefer mapping first to already-supported Class / Background / Species choices. Do not add new SRD mechanics merely to broaden narrative coverage.
-7. Make mapped choices inspectable and overridable before or during final generation. Narrative guidance should suggest/direct ordinary choices, not trap the user in an opaque result.
-8. Keep random/weighted behavior deterministic if randomness is introduced and retain its seed/provenance.
-9. Do not promote a universal personality, trait, ideal, bond, flaw, or psychological ontology from the first D&D questionnaire.
-10. Do not combine this slice with BRP narrative generation, BRP naming, a large random-table expansion, or general creator cleanup.
-11. Preserve Quick and Guided Mechanical behavior exactly unless a concrete integration bug requires a narrow fix.
-12. Do not promote `qa` or `main`.
-
-A good first proof is a small D&D-owned narrative mapping contract plus the minimum creator integration needed to produce ordinary Class / Background / Species selections with retained answer/mapping provenance. Keep the first question set small enough that every mapped output is already legal in the current D&D creator.
+1. Define the smallest D&D-owned/controller seam for initializing the existing Guided Mechanical Class, Background, and Species from a narrative recommendation/final selection.
+2. Add a clear `Continue in Guided Mechanical` interaction rather than copying class skills, spells, equipment, origin details, or ability controls into the narrative panel.
+3. Preserve the narrative answers, mapping ID/version, seed, recommendation, and override provenance when the user continues into detailed Guided Mechanical editing and later builds the character.
+4. Preserve direct user overrides as authoritative.
+5. Keep all existing and future narrative questions equipped with explicit `Choose for me` or semantic equivalent.
+6. Keep all three top-level D&D mode surfaces mounted and avoid losing in-progress state merely from mode switching.
+7. Keep Randomize All suppressed in Narrative and Quick; only Guided Mechanical owns the existing shared orchestration behavior.
+8. Do not create a generic questionnaire engine or universal personality/trait ontology unless repeated concrete consumers require one.
+9. Do not add BRP Guided Narrative in this slice.
+10. Do not promote `qa` or `main`.
 
 ## Relevant Files
 
@@ -134,11 +169,13 @@ A good first proof is a small D&D-owned narrative mapping contract plus the mini
 - `refs/product/generation-methods.md`
 - `refs/handoffs/next-dev-prompt.md`
 - `refs/implementation/fileMap.yaml`
+- `packages/system-dnd5e/src/guidedNarrative.ts`
+- `packages/system-dnd5e/src/guidedNarrative.test.ts`
 - `packages/system-dnd5e/src/guidedGenerate.ts`
-- `packages/system-dnd5e/src/index.ts`
+- `apps/web/src/dndNarrativeCreatorPanel.ts`
 - `apps/web/src/dndCreatorPanel.ts`
+- `apps/web/src/dndGuidedCreatorPanel.ts`
 - `apps/web/src/guidedCreationPanel.ts`
-- `apps/web/src/dndQuickCreatorPanel.ts`
 - `apps/web/src/creatorWorkspace.ts`
 
 ## Do Not Reopen Without New Evidence
@@ -146,16 +183,14 @@ A good first proof is a small D&D-owned narrative mapping contract plus the mini
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - Quick Generate and Guided Narrative are top-level creation front ends, not ability-generation methods.
+- Guided Narrative is a front end over ordinary D&D system choices, not a new character-state model.
+- Every narrative question must include an explicit `Choose for me` equivalent.
 - Shared creator code coordinates interactions only; system rules, mappings, distributions, and content stay system-owned.
-- Name suggestion is a generation primitive, not a universal identity object or character-state format.
-- BRP naming content is setting/campaign/content-package owned unless a future source explicitly says otherwise.
-- Do not equate species with culture, language, nationality, ethnicity, or naming convention.
-- Do not promote universal trait/ideal/bond/flaw or personality schemas from one D&D narrative implementation.
+- Do not promote universal personality, trait, ideal, bond, flaw, culture, or naming schemas from one D&D questionnaire.
+- BRP naming content remains setting/campaign/content-package owned.
 - Random-table evaluation remains a separate generation primitive.
 - Preserve explicit replay provenance and version boundaries.
-- Do not invent distributions merely to make `Randomize All` exhaustive.
 - BRP Profession is not D&D class.
-- Keep BRP base chance, professional contribution, personal contribution, and final rating distinct.
 - Future BRP powers must not reuse D&D spell architecture.
 - Parchment remains system-agnostic.
 - Do not import Call of Cthulhu-specific protected content.
