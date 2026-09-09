@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green D&D Random-ability UX checkpoint.
+Continue Character Forge from the automated-green structured naming discovery/contract checkpoint.
 
 Repository:
 
@@ -21,73 +21,83 @@ Do not reconstruct the full repository history.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "structured naming seam discovery"`
+`python refs/tools/generate_agent_context.py --focus "D&D generated name provenance integration"`
 
-Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, and targeted source reads. Load deeper source/licensing evidence only when the naming design actually crosses those boundaries.
+Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/handoffs/currentHandoff.md`, `refs/product/structured-naming.md`, and targeted source reads.
 
 Prefer diff-first continuation and conserve coding-agent context deliberately.
 
-## Accepted Automated-Green Checkpoints
+## Accepted Automated-Green Naming Checkpoint
 
-Shared creator randomization orchestration:
+Structured naming contract plus D&D provider proof:
 
-- checkpoint: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`
-- Actions: `34369619403`
-- job: `102527165230`
-- 36 test files / 178 tests / 0 failures
-
-D&D Random-ability UX:
-
-- implementation checkpoint: `e66003b9b6334218fb689d2da32ae5bf133251af`
-- Actions: `34371712699`
-- job: `102534309918`
+- implementation checkpoint: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`
+- Actions: `34372897196`
+- job: `102538304875`
 - Verify conclusion: success
-- 37 test files / 181 tests / 0 failures
-- build identity: `Character Forge build 0.0.1 e66003b9`
+- 39 test files / 188 tests / 0 failures
+- tracked paths: 158
+- build identity: `Character Forge build 0.0.1 978e145b`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Do not implicitly promote accumulated D&D, BRP, random-table, or creator work. Preserve exact-SHA `dev -> qa -> main` promotion.
+Do not implicitly promote accumulated D&D, BRP, random-table, creator, or naming work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## What The Last Slice Proved
+## What The Naming Discovery Slice Proved
 
-The accepted D&D Random-ability findings are now handled in a presentation-only enhancer rather than by changing D&D roll rules:
+`packages/generator-core/src/nameSuggestion.ts` defines the deliberately small `name-suggestion/0.1` boundary:
 
-- pre-roll `Roll First` assignment controls stay hidden until six rolls exist;
-- verbose roll history is removed from the cramped card line and exposed through hover/accessibility detail;
-- assignment changes use swap semantics so every rolled total remains assigned exactly once;
-- a pure `swapUniqueRandomAssignment()` helper enforces the permutation behavior with focused tests;
-- `guidedCreationPanel.ts`, `system-dnd5e` roll generation, native state, and provenance remain unchanged.
+- provider ID and version;
+- optional versioned source references;
+- caller-supplied or generated replay seed;
+- opaque provider-owned typed context;
+- provider-owned result requiring only non-empty `displayName`;
+- returned provider/source/version/seed provenance.
 
-Owner browser QA of shared `Randomize All` remains useful, but do not make it a dedicated implementation cycle. Existing automated evidence already proves pool-bounded selection and dynamic-action orchestration; fold any concrete browser finding into later touched creator work.
+The core does not persist names, patch native state, decide whether a generated suggestion overrides user input, or define culture/language/species identity semantics.
 
-## Immediate Slice: Structured Naming Seam Discovery
+The contract deliberately does not define given/family/clan parts, culture, language, nationality, ethnicity, gender/presentation, script, transliteration, or species mapping. Promote such concepts only from repeated concrete provider evidence.
 
-The goal is to define the smallest naming architecture justified by current evidence before adding more names or wiring BRP name randomization.
+D&D provides the first adapter proof:
 
-Current evidence:
+- `DND5E_PLACEHOLDER_NAME_PROVIDER`
+- provider ID `dnd5e:placeholder-display-name`
+- provider version `0.1`
+- source `character-forge.dnd5e.placeholder-names@1`
 
-- D&D already has `resolveDnd5eCharacterName`, backed by a temporary flat generated-name approach that should not be scaled.
-- BRP has no generated-name provider, and owner QA explicitly identified that gap.
-- Shared `Randomize All` now needs a clean way to invoke a system-owned name generator when one exists.
-- D&D species, BRP human identity, named BRP languages, and future Parchment/World culture-language consumers demonstrate that biological species must not be treated as equivalent to culture or naming language.
+The existing six names remain temporary Character Forge placeholder data. No corpus expansion occurred and they are not represented as WotC SRD, culture, language, or species naming data.
 
-Required discovery work:
+`resolveDnd5eCharacterName()` remains compatible: direct user input wins, and an explicit seed preserves the previous selection behavior. `suggestDnd5eCharacterName()` exposes the richer provider/provenance result.
 
-1. Audit the existing D&D name-generation function, data source, seed/random behavior, and any CharacterDocument generation provenance attached to generated names.
-2. Identify the minimum reusable contract for requesting and returning a generated display name. Prefer a provider/interface seam over a universal identity ontology.
-3. Separate reusable mechanism from datasets. Culture/language/system/setting-specific name corpora must remain owned by the appropriate provider or content pack.
-4. Preserve deterministic generation and explicit provenance capability where generated names are retained.
-5. Preserve manual override as authoritative; generated-name provenance must not force later edits back to a generated value.
-6. Define optional naming context without making species synonymous with culture. Candidate context may include system ID, culture/language tags, species/ancestry hints, gender/presentation hints where a provider uses them, and locale/style, but add only fields justified by real consumers.
-7. Decide whether any generic mechanism belongs in generator-core. Do not move naming into generator-core merely because it is reusable-looking.
-8. Define how system-owned name randomizers advertise participation in creator `Randomize All` without teaching the workspace D&D or BRP naming rules.
-9. Do not ingest a large corpus or add BRP names in this discovery slice unless the contract requires a tiny fixture to prove the boundary.
+Quick Generate was intentionally left on its existing `pickDnd5eGeneratedName()` call inside the established quick-generation random stream. Do not change random-consumption order without evidence.
 
-Expected output is primarily a durable contract/reference plus the smallest code seam or proof needed to make the architecture concrete. Avoid a naming mini-framework.
+## Immediate Slice: D&D Generated Name Provenance Integration
+
+Use the new provider seam in the existing guided creator without changing shared/native identity contracts.
+
+Required behavior:
+
+1. When the D&D name randomizer is pressed, retain the complete `suggestDnd5eCharacterName()` suggestion in creator-local state rather than only copying its display string.
+2. The ordinary guided generation call should receive enough information to retain provider/source/version/seed provenance for the current generated name.
+3. Keep `CharacterDocument.displayName` and native D&D `identity.name` exactly as ordinary string state. Generated-name provenance belongs in generation decisions, not native identity structure.
+4. Manual edits to the name field must clear/supersede any stale retained suggestion. A generated-name provenance record is valid only while its result still equals the current submitted name.
+5. Explicit randomize-name and blank-name fallback may use the same provider but should remain distinguishable in generation rationale/provenance where useful.
+6. Blank-name fallback must no longer discard its effective name-generation seed if replay provenance can be retained cheaply.
+7. Reopen/persistence must not force an old generated suggestion over the authoritative retained display/native name. If current D&D reopen does not restore creator-local name provenance, that is acceptable unless concrete UX requires it; do not reconstruct provenance from the display string.
+8. D&D's name button should continue to participate in shared `Randomize All` through the existing control convention. Do not teach `creatorWorkspace` naming rules.
+9. Preserve the existing six-name placeholder dataset and explicit-seed selection behavior.
+10. Do not add BRP names, culture mappings, or a large D&D corpus in this slice.
+
+Implementation guidance:
+
+- Prefer a small D&D-owned helper/typed input for turning a `NameSuggestion` into a `GenerationDecision` rather than leaking generic provider types throughout the creator.
+- Keep manual-vs-generated authority explicit.
+- Do not change `character-document/0.1`, `dnd5e-character/0.3`, or the D&D adapter solely to store naming provenance.
+- Avoid coupling name generation to ability-generation seed unless deliberately preserving an existing fallback behavior; name-specific provenance should identify its own effective seed.
+- If guided generation currently creates a name internally when the field is blank, refactor only enough to retain the suggestion/provenance rather than creating a parallel naming path.
 
 ## Existing Evidence To Preserve
 
@@ -98,29 +108,34 @@ Expected output is primarily a durable contract/reference plus the smallest code
 - BRP Scholar academic consumer: `54d471faa5a635e46ab9db90f8d05d26ac32944f`.
 - shared creator randomization: `1f6ed5aee24f514fbc4fd9de39f9380e8df3719b`.
 - D&D Random-ability UX: `e66003b9b6334218fb689d2da32ae5bf133251af`.
+- structured naming provider proof: `978e145bb4614cf6d0f4872cea61c9f9ede613bf`.
 
 ## Explicitly Deferred
 
 Do not add without concrete evidence:
 
 - a large D&D or BRP name corpus;
+- BRP generated names before choosing a deliberate provider/content source;
 - species-equals-culture naming assumptions;
 - universal race/ethnicity/culture ontology;
+- universal given/family/clan/patronymic fields;
+- transliteration/multi-script architecture;
+- campaign-wide name uniqueness;
 - random distributions for BRP Age, Gender, Wealth, or identity fields;
-- nested/subtable evaluation;
+- nested/subtable evaluation changes;
 - universal trait/ideal/bond/flaw ontology;
-- user-authored table persistence/editor UI;
-- direct native-state mutation from generation helpers.
+- user-authored naming/table persistence UI.
 
 ## Architecture Guardrails
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - `character-document/0.1` remains the shared contract unless concrete cross-system evidence requires change.
+- Name suggestion is a generation primitive, not a universal identity model.
+- Direct user-entered names are authoritative over generated suggestions.
 - Shared creator code coordinates interactions only; system rules, distributions, and content datasets stay system-owned.
-- Generated display name is not automatically a universal culture identity object.
 - Do not conflate species, culture, language, nationality, ethnicity, or naming convention.
-- Preserve manual override and provenance boundaries.
+- Preserve provider/source/version/seed provenance boundaries.
 - Parchment remains system-agnostic.
 - Do not import Call of Cthulhu-specific protected content.
 - Preserve exact-SHA promotion provenance.
