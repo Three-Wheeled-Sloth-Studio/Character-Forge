@@ -6,7 +6,7 @@ areas:
       - refs/architecture/character-architecture.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative and do not expand the shared contract from one system-specific power implementation.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -14,61 +14,51 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and the minimal name-suggestion provider/provenance contract. Core naming requires only displayName and opaque provider-owned context; it does not define identity or Narrative semantics.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. BRP Powers do not currently add a generator-core abstraction.
   structured-naming:
     guidance:
       - refs/product/structured-naming.md
-      - refs/product/generation-methods.md
       - refs/integration/brp-uge-orc.md
     source_roots:
       - packages/generator-core/src/nameSuggestion.ts
-      - packages/generator-core/src/nameSuggestion.test.ts
       - packages/system-dnd5e/src/nameGeneration.ts
-      - packages/system-dnd5e/src/nameGeneration.test.ts
-      - packages/system-dnd5e/src/guidedGenerate.ts
-      - packages/system-dnd5e/src/guidedNameProvenance.test.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-    notes: name-suggestion/0.1 is proven with the existing D&D placeholder provider and guided provenance. BRP naming content remains setting/campaign/content-package owned; no shared contract expansion is justified yet.
+    notes: name-suggestion/0.1 is proven with D&D. BRP naming content remains setting/campaign/content-package owned; no shared contract expansion is justified yet.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
-      - refs/product/generation-methods.md
     source_roots:
       - packages/generator-core/src/randomTable.ts
-      - packages/generator-core/src/randomTable.test.ts
       - packages/system-brp/src/professionSuggestion.ts
-      - packages/system-brp/src/professionSuggestion.test.ts
       - packages/system-brp/src/scholarAcademicSuggestion.ts
-      - packages/system-brp/src/scholarAcademicSuggestion.test.ts
-    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. No universal suggestion schema or nested-table engine is justified yet. Guided Narrative does not use this engine merely because it also has deterministic random choices.
+    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. Powers do not use this engine merely because future power selection may include randomness.
   dnd5e:
     guidance:
+      - refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md
       - refs/product/generation-methods.md
       - refs/product/creator-workspace.md
-      - refs/product/structured-naming.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 native rules and Level 1 breadth are proven. guidedNarrative.ts owns six global bounded Narrative questions, Class/Background/Species narrowing, two-question Alignment decomposition, starting-equipment preference, the conditional Fighter Fighting Style branch, mapping version 5, and the five-choice ceiling. guidedNarrativeContinuation.ts owns replayable Narrative -> Guided Mechanical provenance including Alignment, equipment, and applicable Fighter Fighting Style. guidedGenerate.ts remains the ordinary native-construction path.
+    notes: D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Guided Narrative is explicitly parked after the Fighter Fighting Style branch; do not resume Cleric/Druid work from chronology alone.
   brp:
     guidance:
+      - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
       - refs/architecture/brp-second-system-premortem.md
       - refs/integration/brp-uge-orc.md
-      - refs/product/structured-naming.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. Creator QA is owner-accepted; BRP owns profession and Scholar academic random-table consumers. Naming data remains setting/campaign/content-package owned. No BRP Guided Narrative contract exists yet.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 supports the established skill/profile/profession/language creator backend plus the first backend-only Superpowers architecture proof. superpowers.ts owns the source-defined Normal/Heroic Superpowers budget, Extra Energy, Extra Hit Points, powered construction/provenance, and powered derived effects. poweredAdapter.ts exposes adapter 0.6.0 while delegating established non-power validation to the prior adapter. Skill-construction level and Superpowers power level are deliberately independent. No BRP Guided Narrative or universal capability contract exists.
   creator-web:
     guidance:
-      - refs/handoffs/next-dev-prompt.md
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
-      - refs/product/structured-naming.md
+      - refs/integration/brp-uge-orc.md
     source_roots:
       - apps/web/src
-    notes: dndCreatorPanel owns Guided Mechanical / Guided Narrative / Quick mode switching and explicit Narrative continuation. dndNarrativeCreatorPanel renders six global bounded questions plus the Fighter-only Fighting Style branch when applicable. dndGuidedCreatorPanel initializes Class/Background/Species, Alignment, Class/Background equipment, and applicable Fighter Fighting Style into existing detailed controls. Rerender-sensitive initialization stops after explicit player interaction and does not persist over sticky acceptable pools.
+    notes: Existing D&D and BRP creator surfaces remain unchanged by the first Superpowers backend proof. Do not expose Powers UI until a user-facing power-system breadth is deliberately selected.
   project-memory:
     guidance:
       - AGENTS.md
@@ -79,95 +69,46 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Add or audit the Cleric/Druid Guided Narrative order preference
+  - task: Continue or inspect BRP power-system architecture
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/integration/brp-uge-orc.md
+      - packages/system-brp/src/superpowers.ts
+      - packages/system-brp/src/superpowers.test.ts
+      - packages/system-brp/src/poweredAdapter.ts
+      - packages/system-brp/src/adapter.ts
+      - packages/system-brp/src/nativeCharacter.ts
+      - packages/system-brp/src/firstSlice.ts
+      - packages/system-brp/src/powerLevel.ts
+  - task: Inspect the BRP Superpowers first slice
+    look_in:
+      - refs/integration/brp-uge-orc.md
+      - packages/system-brp/src/superpowers.ts
+      - packages/system-brp/src/superpowers.test.ts
+      - packages/system-brp/src/poweredAdapter.ts
+      - packages/system-brp/src/index.ts
+  - task: Resume parked D&D Guided Narrative work only when explicitly requested
+    look_in:
+      - refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - packages/system-dnd5e/src/guidedNarrative.ts
-      - packages/system-dnd5e/src/guidedNarrative.test.ts
       - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
-      - packages/system-dnd5e/src/guidedChoices.ts
-      - packages/system-dnd5e/src/guidedDefaults.ts
-      - packages/system-dnd5e/src/clericCatalog.ts
-      - packages/system-dnd5e/src/druidCatalog.ts
       - apps/web/src/dndNarrativeCreatorPanel.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/guidedCreationPanel.ts
-      - apps/web/src/stickyChoicePool.ts
-  - task: Inspect the Fighter Guided Narrative Fighting Style branch
-    look_in:
-      - refs/product/creator-workspace.md
-      - refs/product/generation-methods.md
-      - packages/system-dnd5e/src/guidedNarrative.ts
-      - packages/system-dnd5e/src/guidedNarrative.test.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
-      - packages/system-dnd5e/src/guidedChoices.ts
-      - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/guidedCreationPanel.ts
-  - task: Inspect D&D Guided Narrative starting-equipment preference
-    look_in:
-      - refs/product/creator-workspace.md
-      - refs/product/generation-methods.md
-      - packages/system-dnd5e/src/guidedNarrative.ts
-      - packages/system-dnd5e/src/guidedNarrative.test.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
-      - packages/system-dnd5e/src/guidedGenerate.ts
-      - packages/system-dnd5e/src/guidedDefaults.ts
-      - packages/system-dnd5e/src/guidedChoices.ts
-      - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/guidedCreationPanel.ts
-      - apps/web/src/stickyChoicePool.ts
-  - task: Inspect D&D Guided Narrative Alignment decomposition
-    look_in:
-      - refs/product/creator-workspace.md
-      - refs/product/generation-methods.md
-      - packages/system-dnd5e/src/guidedNarrative.ts
-      - packages/system-dnd5e/src/guidedNarrative.test.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
-      - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/guidedCreationPanel.ts
-  - task: Inspect D&D Guided Narrative continuation
-    look_in:
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.test.ts
-      - packages/system-dnd5e/src/guidedChoicePoolBoundary.test.ts
-      - packages/system-dnd5e/src/guidedGenerate.ts
-      - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndGuidedCreatorPanel.ts
-      - apps/web/src/dndCreatorPanel.ts
-      - apps/web/src/stickyChoicePool.ts
-      - apps/web/src/stickyChoicePool.test.ts
-  - task: Inspect D&D Quick top-level creator mode
-    look_in:
-      - refs/product/creator-workspace.md
-      - refs/product/generation-methods.md
-      - apps/web/src/dndCreatorPanel.ts
-      - apps/web/src/dndQuickCreatorPanel.ts
-      - apps/web/src/creatorWorkspace.ts
-      - packages/system-dnd5e/src/quickGenerate.ts
-      - packages/system-dnd5e/src/quickGenerate.test.ts
   - task: Inspect BRP naming provider/content boundary
     look_in:
       - refs/integration/brp-uge-orc.md
       - refs/product/structured-naming.md
       - packages/generator-core/src/nameSuggestion.ts
       - packages/system-brp/src
-  - task: Inspect D&D generated-name provenance
+  - task: Extend or inspect random-table consumers
     look_in:
-      - refs/product/structured-naming.md
-      - packages/system-dnd5e/src/nameGeneration.ts
-      - packages/system-dnd5e/src/guidedGenerate.ts
-      - packages/system-dnd5e/src/guidedNameProvenance.test.ts
-      - apps/web/src/dndGuidedCreatorPanel.ts
+      - refs/product/random-table-companion.md
+      - packages/generator-core/src/randomTable.ts
+      - packages/system-brp/src/professionSuggestion.ts
+      - packages/system-brp/src/scholarAcademicSuggestion.ts
   - task: Continue Randomize All QA or orchestration work
     look_in:
       - refs/handoffs/currentHandoff.md
@@ -176,20 +117,6 @@ common_tasks:
       - apps/web/src/creatorRandomization.test.ts
       - apps/web/src/guidedCreationPanel.ts
       - apps/web/src/brpCreatorPanel.ts
-  - task: Inspect or adjust D&D Random ability UX
-    look_in:
-      - refs/handoffs/currentHandoff.md
-      - apps/web/src/dndRandomAbilityUx.ts
-      - apps/web/src/dndRandomAbilityUx.test.ts
-      - apps/web/src/guidedCreationPanel.ts
-      - packages/system-dnd5e/src/randomGenerate.ts
-      - packages/system-dnd5e/src/randomGenerate.test.ts
-  - task: Extend or inspect random-table consumers
-    look_in:
-      - refs/product/random-table-companion.md
-      - packages/generator-core/src/randomTable.ts
-      - packages/system-brp/src/professionSuggestion.ts
-      - packages/system-brp/src/scholarAcademicSuggestion.ts
   - task: Fold creator QA polish into a touched slice
     look_in:
       - refs/handoffs/currentHandoff.md
