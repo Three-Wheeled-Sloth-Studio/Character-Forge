@@ -1,5 +1,5 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
-import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS } from "./guidedChoices.js";
+import { classChoiceRules, DND5E_ALIGNMENT_OPTIONS, DND5E_FIGHTING_STYLE_OPTIONS } from "./guidedChoices.js";
 import type { GuidedBackgroundEquipmentChoice } from "./guidedGenerate.js";
 import {
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
@@ -7,11 +7,12 @@ import {
   DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
   recommendDnd5eGuidedNarrative,
   resolveDnd5eGuidedNarrativeEquipmentChoices,
+  resolveDnd5eGuidedNarrativeFighterStyle,
   type Dnd5eGuidedNarrativeAnswers,
   type Dnd5eGuidedNarrativeEquipmentPreferenceId,
+  type Dnd5eGuidedNarrativeFighterStyleAnswerId,
   type Dnd5eGuidedNarrativeMappedChoice,
   type Dnd5eGuidedNarrativeOverrides,
-  type Dnd5eGuidedNarrativeQuestionId,
   type Dnd5eGuidedNarrativeRecommendation,
   type RecommendDnd5eGuidedNarrativeInput,
 } from "./guidedNarrative.js";
@@ -25,7 +26,7 @@ import {
 } from "./srdCatalog.js";
 
 export const DND5E_GUIDED_NARRATIVE_CONTINUATION_METHOD_ID = "dnd5e:guided-narrative-to-guided-level-one";
-export const DND5E_GUIDED_NARRATIVE_CONTINUATION_RECIPE_VERSION = "0.3";
+export const DND5E_GUIDED_NARRATIVE_CONTINUATION_RECIPE_VERSION = "0.4";
 
 export interface Dnd5eGuidedNarrativeContinuation extends Dnd5eGuidedNarrativeRecommendation {
   initialChoices: {
@@ -35,6 +36,7 @@ export interface Dnd5eGuidedNarrativeContinuation extends Dnd5eGuidedNarrativeRe
     alignmentId: string;
     classEquipmentChoice: string;
     backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+    fightingStyleFeatId?: string;
   };
 }
 
@@ -50,6 +52,9 @@ export function createDnd5eGuidedNarrativeContinuation(
   const backgroundId = resolveNarrowedChoice(input.overrides?.backgroundId, recommendation.backgroundChoice, isGuidedDnd5eBackgroundId, "background");
   const speciesId = resolveNarrowedChoice(input.overrides?.speciesId, recommendation.speciesChoice, isGuidedDnd5eSpeciesId, "species");
   const equipmentChoices = resolveDnd5eGuidedNarrativeEquipmentChoices(recommendation.answers.equipment.resolvedId, classId);
+  const fightingStyleFeatId = classId === "fighter"
+    ? resolveDnd5eGuidedNarrativeFighterStyle(recommendation.fighterStyle.resolvedId)
+    : undefined;
   const initialChoices = {
     classId,
     backgroundId,
@@ -57,6 +62,7 @@ export function createDnd5eGuidedNarrativeContinuation(
     alignmentId: recommendation.alignmentChoice.recommendedId,
     classEquipmentChoice: equipmentChoices.classEquipmentChoice,
     backgroundEquipmentChoice: equipmentChoices.backgroundEquipmentChoice,
+    ...(fightingStyleFeatId ? { fightingStyleFeatId } : {}),
   };
   return { ...recommendation, initialChoices };
 }
@@ -81,6 +87,9 @@ export function applyDnd5eGuidedNarrativeContinuation(
       (value): value is string => classChoiceRules(classId).equipmentChoices.some((option) => option.id === value),
     ),
     backgroundEquipmentChoice: requiredFinalChoice(generation.decisions, "background.equipment", isSupportedBackgroundEquipmentChoice),
+    ...(classId === "fighter"
+      ? { fightingStyleFeatId: requiredFinalChoice(generation.decisions, "class.fighting-style", isSupportedFightingStyle) }
+      : {}),
   };
   const baseGeneration: JsonObject = {
     methodId: generation.methodId,
@@ -121,6 +130,7 @@ function createContinuationDecisions(
     alignmentId: string;
     classEquipmentChoice: string;
     backgroundEquipmentChoice: GuidedBackgroundEquipmentChoice;
+    fightingStyleFeatId?: string;
   },
 ): GenerationDecision[] {
   return [
@@ -128,6 +138,12 @@ function createContinuationDecisions(
     answerDecision("past", continuation.answers.past),
     answerDecision("heritage", continuation.answers.heritage),
     answerDecision("equipment", continuation.answers.equipment),
+    ...(continuation.initialChoices.fightingStyleFeatId
+      ? [
+          answerDecision("fighter-style", continuation.fighterStyle),
+          continuationFighterStyleMappingDecision(continuation, finalChoices.fightingStyleFeatId),
+        ]
+      : []),
     answerDecision("order", continuation.answers.order),
     answerDecision("regard", continuation.answers.regard),
     continuationMappingDecision("class", continuation.classChoice, continuation.initialChoices.classId, finalChoices.classId),
@@ -147,6 +163,9 @@ function createContinuationDecisions(
         alignmentId: continuation.initialChoices.alignmentId,
         classEquipmentChoice: continuation.initialChoices.classEquipmentChoice,
         backgroundEquipmentChoice: continuation.initialChoices.backgroundEquipmentChoice,
+        ...(continuation.initialChoices.fightingStyleFeatId
+          ? { fightingStyleFeatId: continuation.initialChoices.fightingStyleFeatId }
+          : {}),
       },
       rationale: "The player continued from Guided Narrative into the existing Guided Mechanical editor.",
     },
@@ -154,7 +173,7 @@ function createContinuationDecisions(
 }
 
 function answerDecision(
-  questionId: Dnd5eGuidedNarrativeQuestionId,
+  questionId: string,
   resolution: { submittedId: string; resolvedId: string },
 ): GenerationDecision {
   return {
@@ -227,6 +246,29 @@ function continuationEquipmentMappingDecision(
   };
 }
 
+function continuationFighterStyleMappingDecision(
+  continuation: Dnd5eGuidedNarrativeContinuation,
+  finalFightingStyleFeatId: string | undefined,
+): GenerationDecision {
+  const startingFightingStyleFeatId = continuation.initialChoices.fightingStyleFeatId!;
+  const changedAfterContinuation = finalFightingStyleFeatId !== startingFightingStyleFeatId;
+  return {
+    stepId: "narrative.mapping.fighter-style",
+    ...(finalFightingStyleFeatId ? { choiceId: finalFightingStyleFeatId } : {}),
+    answer: {
+      mappingId: DND5E_GUIDED_NARRATIVE_MAPPING_ID,
+      mappingVersion: DND5E_GUIDED_NARRATIVE_MAPPING_VERSION,
+      recommendedPreferenceId: continuation.fighterStyle.resolvedId,
+      startingFightingStyleFeatId,
+      finalFightingStyleFeatId: finalFightingStyleFeatId ?? null,
+      changedAfterContinuation,
+    },
+    rationale: changedAfterContinuation
+      ? "Guided Narrative supplied the starting Fighter style; later Guided Mechanical Class or Fighting Style edits are authoritative."
+      : "The player retained the Fighter-specific Guided Narrative Fighting Style through Guided Mechanical.",
+  };
+}
+
 function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation): void {
   if (continuation.mappingId !== DND5E_GUIDED_NARRATIVE_MAPPING_ID
     || continuation.mappingVersion !== DND5E_GUIDED_NARRATIVE_MAPPING_VERSION) {
@@ -236,6 +278,7 @@ function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation
 
   const replay = recommendDnd5eGuidedNarrative({
     answers: submittedAnswers(continuation),
+    fighterStyle: continuation.fighterStyle.submittedId as Dnd5eGuidedNarrativeFighterStyleAnswerId,
     seed: continuation.seed,
   });
   if (!sameResolution(replay.answers.role, continuation.answers.role)
@@ -244,6 +287,7 @@ function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation
     || !sameResolution(replay.answers.equipment, continuation.answers.equipment)
     || !sameResolution(replay.answers.order, continuation.answers.order)
     || !sameResolution(replay.answers.regard, continuation.answers.regard)
+    || !sameResolution(replay.fighterStyle, continuation.fighterStyle)
     || !sameMapping(replay.classChoice, continuation.classChoice)
     || !sameMapping(replay.backgroundChoice, continuation.backgroundChoice)
     || !sameMapping(replay.speciesChoice, continuation.speciesChoice)
@@ -261,6 +305,14 @@ function assertContinuationReplay(continuation: Dnd5eGuidedNarrativeContinuation
   if (continuation.initialChoices.classEquipmentChoice !== replayedEquipment.classEquipmentChoice
     || continuation.initialChoices.backgroundEquipmentChoice !== replayedEquipment.backgroundEquipmentChoice) {
     throw new Error("Guided Narrative equipment continuation choices do not match the replayed narrative preference.");
+  }
+  if (continuation.initialChoices.classId === "fighter") {
+    const replayedFightingStyleFeatId = resolveDnd5eGuidedNarrativeFighterStyle(replay.fighterStyle.resolvedId);
+    if (continuation.initialChoices.fightingStyleFeatId !== replayedFightingStyleFeatId) {
+      throw new Error("Guided Narrative Fighter style continuation choice does not match the replayed Narrative preference.");
+    }
+  } else if (continuation.initialChoices.fightingStyleFeatId !== undefined) {
+    throw new Error("Guided Narrative non-Fighter continuation cannot retain a Fighter Fighting Style.");
   }
 }
 
@@ -319,6 +371,10 @@ function requiredFinalChoice<TId extends string>(
 
 function isSupportedBackgroundEquipmentChoice(value: string): value is GuidedBackgroundEquipmentChoice {
   return value === "A" || value === "B:50-gp";
+}
+
+function isSupportedFightingStyle(value: string): value is string {
+  return DND5E_FIGHTING_STYLE_OPTIONS.some((option) => option.id === value);
 }
 
 function isSupportedAlignment(value: string): value is string {
