@@ -7,7 +7,7 @@ tags:
 ---
 # Creator Workspace
 
-Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level Guided Mechanical, Guided Narrative, and Quick Generate modes, explicit Narrative -> Guided continuation, and bounded Narrative alignment decomposition on 2026-09-09.
+Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level Guided Mechanical, Guided Narrative, and Quick Generate modes, explicit Narrative -> Guided continuation, bounded Narrative Alignment decomposition, and Narrative starting-equipment transfer on 2026-09-09.
 
 ## Core layout
 
@@ -72,7 +72,7 @@ Use these rules:
 - hard maximum 5 presented choices at any Narrative step;
 - `Choose for me` or semantic equivalent counts toward that maximum;
 - if the next Narrative step would have more than 5 choices, add an upstream Narrative question, also within the limit, to narrow it first;
-- do not expose the full Class, Species, alignment, profession, spell, equipment, or similar rules catalog as a Narrative override when it exceeds the limit;
+- do not expose the full Class, Species, Alignment, profession, spell, equipment, or similar rules catalog as a Narrative override when it exceeds the limit;
 - Narrative overrides remain within the narrowed branch;
 - once the user explicitly continues into Guided Mechanical, ordinary mechanical catalogs are outside this Narrative ceiling and may use their normal interaction patterns.
 
@@ -80,22 +80,46 @@ The target of about 3 is a design goal. Five is the hard upper bound.
 
 ## Alignment decomposition proof
 
-D&D alignment is the first concrete proof that a mechanical catalog larger than the Narrative ceiling can be reached without weakening the ceiling.
+D&D Alignment is the first concrete proof that a mechanical catalog larger than the Narrative ceiling can be reached without weakening the ceiling.
 
-The ordinary Guided Mechanical control still contains all nine supported alignments. Guided Narrative instead asks two D&D-owned questions with three substantive choices each plus `Choose for me`:
+The ordinary Guided Mechanical control still contains all nine supported Alignments. Guided Narrative instead asks two D&D-owned questions with three substantive choices each plus `Choose for me`:
 
 - how the character leans when structure and personal freedom conflict;
 - how the character weighs personal goals against other people's well-being.
 
-The 3 x 3 answer combinations map to the ordinary nine alignment IDs. Narrative never displays a nine-item alignment menu.
+The 3 x 3 answer combinations map to the ordinary nine Alignment IDs. Narrative never displays a nine-item Alignment menu.
 
-This mapping is intentionally D&D-specific. It is not evidence for a universal morality, personality, psychology, or alignment ontology.
+This mapping is intentionally D&D-specific. It is not evidence for a universal morality, personality, psychology, or Alignment ontology.
+
+## Starting-equipment preference proof
+
+Starting equipment provides a different kind of evidence: inspect the actual rules catalogs first, then generalize only as far as their shared semantics allow.
+
+The current supported D&D catalogs show:
+
+- 11 Classes with prepared kit `A` versus starting gold `B`;
+- Fighter with prepared heavy/melee kit `A`, prepared lighter/ranged kit `B`, and starting gold `C`;
+- all four Backgrounds with prepared kit `A` versus 50 GP `B:50-gp`.
+
+That supports one small player-intent question with only two substantive choices plus `Choose for me`:
+
+- start ready with the gear supplied by training and past;
+- start with more coin and choose gear directly.
+
+The D&D-owned mapping uses only existing mechanical choices:
+
+- prepared gear -> Class `A` plus Background `A`;
+- starting gold -> each Class's existing gold choice plus Background `B:50-gp`.
+
+Fighter's alternate prepared kit `B` is intentionally not promoted into a shared Narrative concept. It is a genuine Fighter playstyle choice but has no equivalent across the other supported Classes.
+
+This slice therefore proves both sides of evidence-driven abstraction: one shared discriminator was justified, while a tempting broader equipment taxonomy was not.
 
 ## Narrative -> Guided Mechanical Continuation
 
 The existing D&D detailed editor is the destination for deeper mechanical customization.
 
-`Continue in Guided Mechanical` is an explicit transfer operation, not merely a mode toggle. The current implementation transfers the Narrative name and exact pre-Guided Class, Background, Species, and Alignment selections into the existing Guided form.
+`Continue in Guided Mechanical` is an explicit transfer operation, not merely a mode toggle. The current implementation transfers the Narrative name and exact pre-Guided Class, Background, Species, Alignment, Class-equipment, and Background-equipment selections into the existing Guided form.
 
 The system-owned continuation record retains:
 
@@ -103,7 +127,8 @@ The system-owned continuation record retains:
 - Narrative seed;
 - submitted and resolved answers;
 - narrowed candidates and recommendations;
-- the exact Narrative final Class/Background/Species/Alignment values before continuation.
+- the exact Narrative final Class/Background/Species/Alignment values before continuation;
+- the exact Narrative starting Class and Background equipment choices.
 
 The final built CharacterDocument uses `hybrid` generation provenance. Later Guided Mechanical edits are authoritative while the Narrative starting point remains inspectable.
 
@@ -113,9 +138,13 @@ Continuation provenance is replay-validated before being attached to a final cha
 
 Class, Background, and Species use one-shot transient current selections so persisted acceptable random pools are not rewritten.
 
-Alignment is a core control that may be recreated when dependent Guided controls rerender. The D&D controller therefore initializes the existing alignment select from the Narrative result and reapplies that initial value after unrelated core rerenders until the player explicitly interacts with alignment. It does not dispatch a persistence change during initialization.
+Alignment is a core control that may be recreated when dependent Guided controls rerender. The D&D controller initializes the existing Alignment select from the Narrative result and reapplies that initial value after unrelated core rerenders until the player explicitly interacts with Alignment. It does not dispatch a persistence change during initialization.
 
-Once the player changes alignment, invokes its randomizer, or edits its acceptable pool, that Guided Mechanical intent is authoritative and the controller stops reapplying the Narrative starting value.
+Class equipment now follows the same current-choice-versus-sticky-pool boundary. Narrative initialization sets the existing Class-equipment control directly without dispatching a persisted change. If dependent controls rerender Class equipment before the player touches it, the controller reapplies the Narrative equipment preference against the current Class so the value remains legal. This matters because Fighter uses `C` for starting gold while the other currently supported Classes use `B`.
+
+Once the player changes Class equipment, invokes its randomizer, or edits its acceptable pool, that Guided Mechanical intent is authoritative and the controller stops reapplying the Narrative equipment value.
+
+Background equipment is the existing direct selector rather than a sticky choice pool. Narrative initializes that selector until the player explicitly changes it.
 
 ### Direct choice versus sticky acceptable pool
 
@@ -125,6 +154,8 @@ The current direct selection and the user-sticky acceptable random pool are sepa
 - A randomly selected choice must still come from the acceptable pool.
 - Narrative continuation may initialize the current direct choice without rewriting the persisted acceptable pool.
 - Sticky preferences describe what the user is generally willing to randomize among; they are not a universal validity constraint on every direct choice.
+
+This boundary now applies to both Alignment and Class equipment transfer.
 
 ## Choice menus
 
@@ -192,7 +223,7 @@ Avoid:
 - Narrative steps with more than 5 presented choices;
 - full mechanical catalogs masquerading as Narrative overrides;
 - rewriting sticky acceptable pools merely to initialize an explicit direct choice;
-- promoting one D&D preference mapping into a universal personality or equipment ontology.
+- promoting one D&D preference mapping into a universal personality, class-feature, or equipment ontology.
 
 ## Current evidence
 
@@ -224,13 +255,20 @@ Automated-green Narrative -> Guided Mechanical continuation:
 - job: `102591189046`;
 - 44 test files / 210 tests / 0 failures.
 
-Automated-green Narrative alignment decomposition:
+Automated-green Narrative Alignment decomposition:
 
 - SHA: `3d9be423d46c45c00ef2eed1b7d643186ed6530a`;
 - Actions: `34392030680`;
 - job: `102602424501`;
 - 44 test files / 211 tests / 0 failures.
 
-The next bounded Narrative consumer is starting-equipment preference. Audit the actual Class/Background option semantics first; do not force one generic Narrative question if the supported equipment catalogs do not justify it.
+Automated-green Narrative starting-equipment preference:
+
+- SHA: `5760a079ad8e188320997dcc02ddf8f683bd1d99`;
+- Actions: `34395268461`;
+- job: `102613297986`;
+- 44 test files / 213 tests / 0 failures.
+
+The next bounded Narrative work should begin with a class-defining-choice audit. Inspect the actual Level 1 Class-owned choices before adding another Narrative question, and prefer a narrow Class-specific branch over a false shared class-feature ontology if that is what the data supports.
 
 Owner browser QA remains useful as accumulated creator QA, but these slices do not create a separate browser-QA gate.
