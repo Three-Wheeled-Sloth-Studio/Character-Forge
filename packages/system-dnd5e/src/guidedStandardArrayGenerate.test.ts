@@ -47,7 +47,7 @@ describe("guided SRD class and species generation", () => {
     }
   });
 
-  it("rejects a selected choice that is outside its acceptable pool", () => {
-    expect(() => guidedStandardArrayGenerateDnd5eFirstSlice({ name: "Nope", classChoice: { selectedId: "fighter", acceptableIds: ["barbarian"], selectionMode: "direct" }, speciesChoice: { selectedId: "human", acceptableIds: ["human"], selectionMode: "direct" }, assignment, backgroundIncreases: { strength: 2, constitution: 1 } })).toThrow("Selected class must be included");
+  it("rejects a random selected choice that is outside its acceptable pool", () => {
+    expect(() => guidedStandardArrayGenerateDnd5eFirstSlice({ name: "Nope", classChoice: { selectedId: "fighter", acceptableIds: ["barbarian"], selectionMode: "random" }, speciesChoice: { selectedId: "human", acceptableIds: ["human"], selectionMode: "direct" }, assignment, backgroundIncreases: { strength: 2, constitution: 1 } })).toThrow("Randomly selected class must be included in the acceptable class pool");
   });
 });
