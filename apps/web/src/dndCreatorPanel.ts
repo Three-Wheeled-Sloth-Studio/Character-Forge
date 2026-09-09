@@ -49,11 +49,6 @@ export function mountDndCreatorPanel(
   const narrativeHost = requiredElement(root, "#dnd-narrative-mode-host", HTMLElement);
   const quickHost = requiredElement(root, "#dnd-quick-mode-host", HTMLElement);
 
-  mountDndGuidedCreatorPanel(guidedHost, onCharacter);
-  mountDndRandomAbilityUx(guidedHost);
-  mountDndNarrativeCreatorPanel(narrativeHost, onCharacter);
-  mountDndQuickCreatorPanel(quickHost, onCharacter);
-
   const applyMode = (mode: DndCreationMode): void => {
     modeSelect.value = mode;
     guidedHost.hidden = mode !== "guided";
@@ -61,6 +56,16 @@ export function mountDndCreatorPanel(
     quickHost.hidden = mode !== "quick";
     options.onModeChange?.(mode);
   };
+
+  const guidedController = mountDndGuidedCreatorPanel(guidedHost, onCharacter);
+  mountDndRandomAbilityUx(guidedHost);
+  mountDndNarrativeCreatorPanel(narrativeHost, onCharacter, {
+    onContinueToGuided: (transfer) => {
+      guidedController.initializeFromNarrative(transfer);
+      applyMode("guided");
+    },
+  });
+  mountDndQuickCreatorPanel(quickHost, onCharacter);
 
   modeSelect.addEventListener("change", () => {
     const value = modeSelect.value;

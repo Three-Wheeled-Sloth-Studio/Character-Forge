@@ -3,6 +3,7 @@ import {
   loadStickyChoicePool,
   pickFromAcceptablePool,
   saveStickyChoicePool,
+  setTransientChoicePoolSelection,
   type ChoicePoolStorage,
 } from "./stickyChoicePool.js";
 
@@ -35,6 +36,22 @@ describe("sticky choice pools", () => {
 
     expect(loadStickyChoicePool(storage, "test", ["a", "b"] as const, ["b"], "b")).toEqual({
       acceptableIds: ["a"],
+      selectedId: "a",
+    });
+  });
+
+  it("applies a one-shot transient direct selection without changing the sticky acceptable pool", () => {
+    const storage = new MemoryStorage();
+    const allowed = ["a", "b", "c"] as const;
+    saveStickyChoicePool(storage, "transfer", { acceptableIds: ["a", "b"], selectedId: "a" });
+
+    setTransientChoicePoolSelection("transfer", "c");
+    expect(loadStickyChoicePool(storage, "transfer", allowed, allowed, "a")).toEqual({
+      acceptableIds: ["a", "b"],
+      selectedId: "c",
+    });
+    expect(loadStickyChoicePool(storage, "transfer", allowed, allowed, "a")).toEqual({
+      acceptableIds: ["a", "b"],
       selectedId: "a",
     });
   });

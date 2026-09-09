@@ -1,5 +1,6 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
+  createDnd5eGuidedNarrativeContinuation,
   DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID,
   DND5E_GUIDED_NARRATIVE_QUESTIONS,
   DND5E_SRD_521_BACKGROUND_OPTIONS,
@@ -8,15 +9,26 @@ import {
   guidedNarrativeGenerateDnd5eFirstSlice,
   recommendDnd5eGuidedNarrative,
   type Dnd5eGuidedNarrativeAnswers,
+  type Dnd5eGuidedNarrativeContinuation,
   type Dnd5eGuidedNarrativeQuestionId,
   type GuidedDnd5eBackgroundId,
   type GuidedDnd5eClassId,
   type GuidedDnd5eSpeciesId,
 } from "../../../packages/system-dnd5e/src/index.js";
 
+export interface DndNarrativeToGuidedTransfer {
+  name: string;
+  continuation: Dnd5eGuidedNarrativeContinuation;
+}
+
+export interface DndNarrativeCreatorPanelOptions {
+  onContinueToGuided?: (transfer: DndNarrativeToGuidedTransfer) => void;
+}
+
 export function mountDndNarrativeCreatorPanel(
   root: HTMLElement,
   onCharacter: (character: CharacterDocument) => void,
+  options: DndNarrativeCreatorPanelOptions = {},
 ): void {
   root.innerHTML = `
     <section class="creator-panel compact-creator dnd-narrative-creator">
@@ -53,9 +65,12 @@ export function mountDndNarrativeCreatorPanel(
           </label>
           <p id="dnd-narrative-mapping-summary" class="muted"></p>
         </fieldset>
-        <p class="muted">This first slice maps only Class, Background, and Species. Remaining legal Level 1 choices use the existing Guided Mechanical defaults and Standard Array path.</p>
+        <p class="muted">Build now to use the current Guided Narrative defaults, or continue into Guided Mechanical to customize the remaining legal Level 1 choices in the existing detailed editor.</p>
         <p id="dnd-narrative-error" class="form-error" role="alert"></p>
-        <button type="submit" class="primary-action">Build character</button>
+        <div class="creator-system-actions">
+          <button id="dnd-narrative-continue-guided" type="button" class="secondary-button">Continue in Guided Mechanical</button>
+          <button type="submit" class="primary-action">Build character</button>
+        </div>
       </form>
     </section>`;
 
@@ -68,6 +83,8 @@ export function mountDndNarrativeCreatorPanel(
   const resolution = requiredElement(root, "#dnd-narrative-resolution", HTMLElement);
   const mappingSummary = requiredElement(root, "#dnd-narrative-mapping-summary", HTMLElement);
   const error = requiredElement(root, "#dnd-narrative-error", HTMLElement);
+  const continueGuided = requiredElement(root, "#dnd-narrative-continue-guided", HTMLButtonElement);
+  continueGuided.hidden = !options.onContinueToGuided;
 
   const refreshRecommendation = (): void => {
     error.textContent = "";
@@ -95,6 +112,16 @@ export function mountDndNarrativeCreatorPanel(
     }
   };
 
+  const continuationInput = () => ({
+    seed: seedInput.value,
+    answers: readAnswers(root),
+    overrides: {
+      classId: classSelect.value as GuidedDnd5eClassId,
+      backgroundId: backgroundSelect.value as GuidedDnd5eBackgroundId,
+      speciesId: speciesSelect.value as GuidedDnd5eSpeciesId,
+    },
+  });
+
   for (const question of DND5E_GUIDED_NARRATIVE_QUESTIONS) {
     requiredElement(root, `#dnd-narrative-${question.id}`, HTMLSelectElement).addEventListener("change", refreshRecommendation);
   }
@@ -104,19 +131,24 @@ export function mountDndNarrativeCreatorPanel(
     refreshRecommendation();
   });
 
+  continueGuided.addEventListener("click", () => {
+    error.textContent = "";
+    try {
+      const continuation = createDnd5eGuidedNarrativeContinuation(continuationInput());
+      seedInput.value = continuation.seed;
+      options.onContinueToGuided?.({ name: nameInput.value, continuation });
+    } catch (caught) {
+      error.textContent = caught instanceof Error ? caught.message : "Unable to continue Guided Narrative into Guided Mechanical.";
+    }
+  });
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     error.textContent = "";
     try {
       onCharacter(guidedNarrativeGenerateDnd5eFirstSlice({
         name: nameInput.value,
-        seed: seedInput.value,
-        answers: readAnswers(root),
-        overrides: {
-          classId: classSelect.value as GuidedDnd5eClassId,
-          backgroundId: backgroundSelect.value as GuidedDnd5eBackgroundId,
-          speciesId: speciesSelect.value as GuidedDnd5eSpeciesId,
-        },
+        ...continuationInput(),
       }));
     } catch (caught) {
       error.textContent = caught instanceof Error ? caught.message : "Guided Narrative character generation failed.";

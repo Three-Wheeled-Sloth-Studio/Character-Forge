@@ -8,6 +8,14 @@ export interface ChoicePoolStorage {
   setItem(key: string, value: string): void;
 }
 
+const transientSelections = new Map<string, string>();
+
+export function setTransientChoicePoolSelection(key: string, selectedId: string): void {
+  if (!key.trim()) throw new Error("Transient choice-pool key must not be empty.");
+  if (!selectedId.trim()) throw new Error("Transient choice-pool selection must not be empty.");
+  transientSelections.set(key, selectedId);
+}
+
 export function loadStickyChoicePool<TId extends string>(
   storage: ChoicePoolStorage,
   key: string,
@@ -18,24 +26,35 @@ export function loadStickyChoicePool<TId extends string>(
   const allowed = new Set<string>(allowedIds);
   const fallbackAcceptable = unique(defaultIds.filter((id) => allowed.has(id)));
   const fallback = fallbackAcceptable.length > 0 ? fallbackAcceptable : [defaultSelectedId];
+  let state: StickyChoicePoolState<TId>;
 
   try {
     const raw = storage.getItem(key);
-    if (!raw) return { acceptableIds: [...fallback], selectedId: defaultSelectedId };
-    const parsed = JSON.parse(raw) as { acceptableIds?: unknown; selectedId?: unknown };
-    const acceptableIds = Array.isArray(parsed.acceptableIds)
-      ? unique(parsed.acceptableIds.filter((id): id is TId => typeof id === "string" && allowed.has(id)))
-      : [];
-    const sanitizedAcceptable = acceptableIds.length > 0 ? acceptableIds : [...fallback];
-    const selectedId = typeof parsed.selectedId === "string"
-      && allowed.has(parsed.selectedId)
-      && sanitizedAcceptable.includes(parsed.selectedId as TId)
-      ? parsed.selectedId as TId
-      : sanitizedAcceptable[0]!;
-    return { acceptableIds: sanitizedAcceptable, selectedId };
+    if (!raw) {
+      state = { acceptableIds: [...fallback], selectedId: defaultSelectedId };
+    } else {
+      const parsed = JSON.parse(raw) as { acceptableIds?: unknown; selectedId?: unknown };
+      const acceptableIds = Array.isArray(parsed.acceptableIds)
+        ? unique(parsed.acceptableIds.filter((id): id is TId => typeof id === "string" && allowed.has(id)))
+        : [];
+      const sanitizedAcceptable = acceptableIds.length > 0 ? acceptableIds : [...fallback];
+      const selectedId = typeof parsed.selectedId === "string"
+        && allowed.has(parsed.selectedId)
+        && sanitizedAcceptable.includes(parsed.selectedId as TId)
+        ? parsed.selectedId as TId
+        : sanitizedAcceptable[0]!;
+      state = { acceptableIds: sanitizedAcceptable, selectedId };
+    }
   } catch {
-    return { acceptableIds: [...fallback], selectedId: defaultSelectedId };
+    state = { acceptableIds: [...fallback], selectedId: defaultSelectedId };
   }
+
+  const transientSelectedId = transientSelections.get(key);
+  transientSelections.delete(key);
+  if (transientSelectedId && allowed.has(transientSelectedId)) {
+    return { acceptableIds: [...state.acceptableIds], selectedId: transientSelectedId as TId };
+  }
+  return state;
 }
 
 export function saveStickyChoicePool<TId extends string>(
