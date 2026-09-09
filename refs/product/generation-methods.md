@@ -7,7 +7,7 @@ tags:
 ---
 # Generation Methods
 
-Status: Base D&D ability-generation methods and the first guided class/background/species path are implemented on `dev`. This remains product direction rather than a frozen engine API.
+Status: Base D&D ability-generation methods, the first guided class/background/species path, and the first system-neutral random-table evaluator are implemented on `dev`. This remains product direction rather than a frozen engine API.
 
 ## Initial families
 
@@ -98,6 +98,8 @@ Do not generalize a full dependency graph until guided creation creates enough r
 
 ### Random-table companion
 
-Random tables are expected to become a companion generation capability for traits, ideals, bonds, flaws, equipment/trinket suggestions, and other structured flavor choices.
+The first system-neutral random-table evaluator now exists in `generator-core`; `refs/product/random-table-companion.md` is the current contract.
 
-Do not implement that companion until concrete mechanical and narrative consumers define what a table result must contain. The generic table evaluator should eventually remain system-neutral while D&D datasets/mappings stay D&D-owned. Table results should feed inspectable generation decisions/suggestions with provenance rather than patching native state directly.
+It supports versioned weighted tables, deterministic seed plus explicit draw-index replay, source/table/evaluator provenance, and arbitrary typed result payloads. The core does not know trait/ideal/bond/flaw/equipment semantics and never patches native character state directly.
+
+The next step is a narrow system-owned consumer that feeds an ordinary generation decision or structured suggestion. Keep system datasets/mappings system-owned. Do not add nesting, roll-range syntax, universal suggestion ontology, or user-authored table infrastructure until a concrete consumer requires them.

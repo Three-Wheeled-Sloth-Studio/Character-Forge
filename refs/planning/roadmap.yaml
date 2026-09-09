@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-08
+updated: 2026-09-09
 principles:
   - Ship small vertical slices and revise architecture from evidence.
   - Keep native system state lossless even while the semantic bridge evolves.
@@ -8,6 +8,7 @@ principles:
   - Keep sticky user choice preferences separate from authoritative character state and per-character provenance.
   - Keep generation controls in the creator workspace and character details in a persistent adjacent review surface.
   - On desktop, long creator-control and character-review columns should scroll independently.
+  - Random-table results feed ordinary generation decisions or structured suggestions; the generic evaluator never patches native state directly.
 
 roadmap:
   - id: foundation-0-repository-baseline
@@ -47,6 +48,10 @@ roadmap:
       - Structured naming architecture later; do not scale the temporary flat name list.
       - Consolidate Quick Generate as a top-level creator mode.
       - Add guided narrative generation through ordinary system APIs.
+      - Hide the disabled Random-ability "Roll First" assignment control until rolls exist.
+      - Move verbose 4d6 roll-history detail out of the cramped inline result display and into hover/detail affordance.
+      - When a Random ability roll is reassigned, swap the displaced roll instead of allowing two abilities to point at one roll slot.
+      - Add a shared Randomize All interaction pattern and field-level randomizers where appropriate without moving system rules into the shell.
       - Keep the system-neutral random-table companion active as a parallel thread.
     tracking:
       guided_workspace_issue: 9
@@ -89,12 +94,15 @@ roadmap:
       - BRP creator preview and validity feedback use BRP-owned profession, generation, power-profile, skill, budget, builder, and adapter seams rather than browser-owned rules formulas.
       - BRP CharacterDocument reopen restores supported creator state from authoritative BRP native state, including generation provenance, rules profile, age causality, language identities, specialties, and contribution layers.
       - Automated-green first creator UI checkpoint b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02, Actions 34295950302, job 102292513584, 32 test files / 159 tests / 0 failures.
-    current_slice:
-      - Run owner/runtime browser QA of the first BRP creator UI before expanding backend rules breadth.
-      - Exercise explicit/rolled Detective/Scholar, Normal/Heroic age causality, legal/illegal redistribution, languages/specialties, skill budgets/caps, review, and reopen.
-      - Confirm switching back to D&D preserves existing defaults and sticky-choice behavior.
-      - Patch only concrete clarity, ergonomics, responsive-layout, feedback, or reopen findings from runtime evidence.
-      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out of the QA/polish slice.
+      - Owner runtime/browser QA accepted the first BRP creator UI on 2026-09-09 with no blocking findings.
+    current_gate:
+      - The first BRP creator UI is accepted for continued dev work; no dedicated polish cycle is required.
+      - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
+    remaining_scope:
+      - Add BRP name generation when the naming architecture has an appropriate consumer seam.
+      - Add field-level randomizers for Age, Gender, Wealth, and a shared Randomize All pattern when creator randomization is next touched.
+      - Fix creator left-pane containment so BRP controls cannot render wider than the column or hide under the review surface.
+      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, powers, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
       - Preserve effective rules-profile and character-specific age context natively.
@@ -107,17 +115,34 @@ roadmap:
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 
   - id: companion-random-tables
-    horizon: next
-    status: ready_for_discovery
+    horizon: now
+    status: in_progress
     goal: Provide reusable provenance-bearing random-table evaluation for character flavor and structured suggestions without patching native character state directly.
     trigger:
       - D&D mechanical Level 1 breadth is automated-green.
       - Concrete consumers include traits, ideals, bonds, flaws, equipment/trinkets, tags/native IDs, weighted results, and subtable references.
+    completed:
+      - Discovery contract documented in refs/product/random-table-companion.md.
+      - Generic evaluator implemented in generator-core rather than a system package.
+      - Tables carry stable ID/version plus source ID/version and stable entry IDs.
+      - Positive weighted entries default to weight 1 and may return arbitrary caller-owned typed payloads.
+      - Evaluation is deterministic from evaluator/table/source versions plus caller seed and explicit drawIndex.
+      - Returned provenance records evaluator version, table/source identity, seed, drawIndex, selected entry ID, selected weight, and total weight.
+      - drawIndex makes partial replay independent of hidden global evaluation order.
+      - Table validation rejects empty identity, duplicate entry IDs, empty tables, invalid weights, invalid random-source values, empty seeds, and invalid draw indexes.
+      - Automated-green core checkpoint 0ace3aacc7e23a420377b6c4c8f2b9b243ec945e, Actions 34364243890, job 102508743773.
+    current_slice:
+      - Select one narrow source-safe system-owned consumer and prove how a table result becomes an ordinary generation decision or structured suggestion.
+      - Prefer a consumer that can exercise structured payloads and provenance without requiring a universal trait/ideal/flaw schema.
+      - Keep system datasets/mappings system-owned.
+      - Do not wire the evaluator directly to CharacterDocument or native-state mutation.
+      - Preserve deterministic replay and retained source/table/evaluator provenance.
     guardrails:
       - Generic table engine remains system-neutral.
       - System datasets/mappings remain system-owned.
       - Results feed ordinary generation decisions or structured suggestions and retain seed/source/table provenance.
       - Add nesting only when a concrete consumer requires it.
+      - Do not add roll-range authoring, uniqueness sampling, conditional graphs, or user-authored table persistence until evidence requires them.
 
   - id: naming-system-watch
     horizon: watch

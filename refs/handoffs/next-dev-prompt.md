@@ -7,7 +7,7 @@ tags:
 ---
 # Next Development Prompt
 
-Continue Character Forge from the automated-green first BRP creator UI checkpoint.
+Continue Character Forge from the automated-green first random-table evaluator checkpoint.
 
 Repository:
 
@@ -21,112 +21,112 @@ Do not reconstruct the full repository history.
 
 Start with:
 
-`python refs/tools/generate_agent_context.py --focus "BRP creator runtime QA"`
+`python refs/tools/generate_agent_context.py --focus "first random table consumer"`
 
-Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, targeted source reads/searches, and this handoff. Load deeper architecture, roadmap, BRP source material, or historical evidence only if a concrete finding crosses those boundaries.
+Treat that packet as derived orientation only. Then use `refs/implementation/fileMap.yaml`, this handoff, `refs/product/random-table-companion.md`, and targeted source reads. Load deeper architecture, system source material, or historical evidence only if the selected consumer crosses those boundaries.
 
 Prefer diff-first continuation from the accepted checkpoint and conserve coding-agent context deliberately.
 
-## Accepted Automated-Green Implementation Checkpoint
+## Accepted Automated-Green Checkpoint
 
-- code checkpoint: `b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02`
-- Actions: `34295950302`
-- job: `102292513584`
-- 32 test files / 159 tests / 0 failures
-- 35 system-BRP tests plus 5 BRP creator-state tests
-- tracked-path guard: 144 tracked paths collision-free
-- required project-memory files: 14
-- OKF: 17 concepts / 9 indexes
-- bounded re-entry packet: 3,395 characters
-- strict TypeScript: green
-- web build: green
-- build identity: `Character Forge build 0.0.1 b5cb07ab`
+Random-table core:
+
+- code checkpoint: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`
+- Actions: `34364243890`
+- job: `102508743773`
+- Verify conclusion: success
+- new evaluator suite: 5 focused tests
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Do not implicitly promote accumulated D&D or BRP work. Preserve exact-SHA `dev -> qa -> main` promotion.
+Do not implicitly promote accumulated D&D, BRP, or companion work. Preserve exact-SHA `dev -> qa -> main` promotion.
 
-## What The First BRP UI Now Supports
+The first BRP creator runtime/browser QA was owner-accepted on 2026-09-09 with no blocking findings. Its remaining UI findings are recorded in `refs/handoffs/currentHandoff.md` as nonblocking debt to fold into later touched slices.
 
-The existing creator workspace exposes BRP UGE without broadening the backend rules surface:
+## What The Random-Table Core Supports
 
-- shared rules-system selector with D&D 5E 2024 still the default;
-- left-side generation controls and right-side persistent review;
-- display name, age, gender, Average/Affluent wealth;
-- Normal/Heroic power level and retained Heroic default starting age;
-- Detective/Scholar profession controls;
-- Explicit and Standard Rolled characteristic generation;
-- seed, re-roll, raw roll visibility, and up-to-three-point redistribution input;
-- Detective four-of-seven electives;
-- Scholar Own/Other language IDs and labels;
-- five open Knowledge/Science specialty selections;
-- professional/personal contribution controls with budget, remaining-point, starting-cap, and validity feedback;
-- `Fill legal example` convenience that still passes through BRP-owned construction/validation;
-- BRP review for final characteristics, derived state, skills, causal contribution layers, rules profile, languages/specialties, generation state, and native provenance;
-- reopen directly from authoritative BRP primary native state.
+`packages/generator-core/src/randomTable.ts` now provides a system-neutral weighted evaluator:
 
-Browser code uses BRP-owned profession resolution, characteristic generation, power-level profile, skill definitions/base chances, personal-budget helper, builders, and adapter validation. Do not move those formulas into the UI.
+- stable table ID and table version;
+- source/dataset ID and source version;
+- stable entry IDs;
+- optional positive weights, defaulting to 1;
+- arbitrary typed result payloads owned by the caller;
+- caller seed plus explicit non-negative `drawIndex`;
+- deterministic replay scoped by evaluator/table/source versions and draw identity;
+- returned provenance containing evaluator version, table/source identity, seed, drawIndex, selected entry ID, selected weight, and total weight;
+- validation for malformed tables, invalid weights, invalid random-source values, empty seeds, and invalid draw indexes.
 
-No shared CharacterDocument or semantic contract change was required.
+The core does not know trait/ideal/bond/flaw/equipment semantics and does not modify CharacterDocument or native state.
 
-## Immediate Slice: Runtime QA And Evidence-Driven Polish
+## Immediate Slice: First System-Owned Consumer
 
-Use the actual creator as the source of truth for the next changes. Do not add rules breadth during this slice.
+Select and implement one narrow source-safe consumer from D&D or BRP.
 
-Exercise at least these paths:
+The purpose is to prove the ownership and persistence boundary, not to build a large random-table catalog.
 
-- explicit Detective, Normal;
-- explicit Scholar, Normal;
-- standard-rolled Detective;
-- standard-rolled Scholar;
-- Heroic with retained default starting age and age-derived professional budget;
-- legal and illegal redistribution;
-- Detective elective under/over-selection feedback;
-- exact Scholar Own/Other language identities;
-- exact open Knowledge/Science specialty identities;
-- manual professional/personal allocation, starting-cap feedback, and `Fill legal example`;
-- generation into the right-side review;
-- JSON/native-state inspection and reopen;
-- switching back to D&D and confirming existing defaults/sticky-choice behavior remain intact.
+Required shape:
 
-Patch concrete findings around clarity, control ergonomics, responsive layout, feedback, or reopen behavior. Favor easy-to-do/easy-to-undo interactions and inline feedback. Do not introduce broad E2E infrastructure unless existing unit/browser seams cannot cover an observed risk.
+1. The owning system package defines the table dataset and result payload type.
+2. The dataset has explicit source/version provenance appropriate to that system.
+3. The system calls the generic evaluator rather than duplicating weighted/random logic.
+4. The selected result becomes either:
+   - an ordinary system generation decision; or
+   - a structured suggestion that the creator can inspect/accept/override.
+5. If accepted into character state, it must pass through the ordinary native builder/adapter path.
+6. Replay-relevant provenance retains evaluator/table/source versions, seed, drawIndex, and selected entry identity.
+7. Add focused tests proving deterministic replay, system ownership, and no direct native-state patching.
 
-## Explicitly Out Of Scope
+Prefer a consumer that already has source-safe content available in the repository or licensed source boundary. Do not begin a major content-ingestion project merely to feed the evaluator.
 
-Do not expose or invent support for:
+If no current source-safe consumer is small enough, stop after documenting that evidence and identify the smallest required content slice rather than inventing public rules text.
 
-- EDU;
-- Sanity;
-- Fatigue;
-- hit locations;
-- BRP powers;
-- non-human rules;
-- age-50+ aging;
-- below-starting-age penalties beyond current backend boundaries;
-- cultural modifiers;
-- skill-category bonuses;
-- broad profession-catalog ingestion.
+## Explicitly Deferred
 
-Do not use the older 2020 BRP SRD as implementation authority. Do not import Call of Cthulhu-specific protected content.
+Do not add without concrete consumer evidence:
+
+- nested/subtable evaluation;
+- dice-range table authoring syntax;
+- without-replacement or uniqueness sampling;
+- conditional table graphs;
+- universal trait/ideal/bond/flaw ontology;
+- user-authored table persistence or editor UI;
+- direct CharacterDocument mutation from the generic evaluator;
+- large structured naming work.
+
+The structured naming watch remains separate. Do not scale the temporary D&D flat name list as the random-table consumer.
+
+## Creator QA Debt To Fold Opportunistically
+
+Do not create a cleanup-only cycle, but if the touched code naturally intersects these items:
+
+- D&D Random: hide disabled `Roll First` until rolls exist;
+- D&D Random: move verbose roll history to hover/detail text;
+- D&D Random: swap displaced roll assignments rather than duplicate one roll slot;
+- shared: introduce a consistent `Randomize All` and field-randomizer interaction pattern where appropriate;
+- BRP: add name generation only through the proper naming seam;
+- BRP: randomize Age/Gender/Wealth when creator randomization is next touched;
+- BRP: constrain left-panel controls to the generation column width.
 
 ## Architecture Guardrails
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
 - `character-document/0.1` remains the shared contract unless concrete cross-system evidence requires change.
+- The random-table evaluator is a generation primitive, not a state model.
+- System datasets/mappings remain system-owned.
+- Generic evaluator code remains system-neutral.
+- Table results feed normal decisions/suggestions and never patch native state directly.
+- Preserve replay provenance and explicit version boundaries.
+- Add nesting only when a real consumer requires it.
 - BRP profession is not D&D class.
-- Keep skill base chance, professional contribution, personal contribution, and final rating distinct.
-- Keep open specialties and language identities BRP-owned.
-- Preserve language subject identity and Own/Other role.
-- Preserve effective rules profile and character-specific age causality.
 - Future BRP powers must not reuse D&D spell architecture.
-- `generator-core` remains system-neutral.
 - Parchment remains system-agnostic.
+- Do not import Call of Cthulhu-specific protected content.
 - Preserve exact-SHA promotion provenance.
-- Keep the random-table companion `ready_for_discovery`.
 - D&D Issue #11 remains a separate runtime-QA/promotion gate.
 
 ## Before Stopping
@@ -137,4 +137,4 @@ Run:
 
 Do not claim green unless the exact committed SHA passes GitHub Actions.
 
-Update the delta-oriented `refs/handoffs/currentHandoff.md` with accepted baseline, what changed, evidence/gaps, next slice, relevant files, do-not-reopen constraints, and validation SHA/run/job. Update this prompt and roadmap only where new runtime evidence changes their truth. Do not promote `qa` or `main` unless explicitly instructed.
+Update the delta-oriented `refs/handoffs/currentHandoff.md` with accepted baseline, what changed, evidence/gaps, next slice, relevant files, do-not-reopen constraints, and validation SHA/run/job. Update this prompt, roadmap, product references, and file map only where new evidence changes their truth. Do not promote `qa` or `main` unless explicitly instructed.

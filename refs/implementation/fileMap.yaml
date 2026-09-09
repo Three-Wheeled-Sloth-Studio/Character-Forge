@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-08
+updated: 2026-09-09
 areas:
   character-contract:
     guidance:
@@ -10,9 +10,18 @@ areas:
   generator-core:
     guidance:
       - refs/product/generation-methods.md
+      - refs/product/random-table-companion.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness and dice-expression primitives only.
+    notes: System-neutral seeded randomness, dice-expression primitives, and deterministic provenance-bearing random-table evaluation.
+  random-table-companion:
+    guidance:
+      - refs/product/random-table-companion.md
+      - refs/product/generation-methods.md
+    source_roots:
+      - packages/generator-core/src/randomTable.ts
+      - packages/generator-core/src/randomTable.test.ts
+    notes: Generic weighted evaluator only. System datasets and result mappings stay system-owned; first concrete system consumer is the next slice.
   dnd5e:
     guidance:
       - refs/product/generation-methods.md
@@ -28,14 +37,14 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
-    notes: BRP UGE 2023 ORC plus corrections 1.05. First creator UI is automated-green; current slice is runtime QA and evidence-driven polish without rules expansion.
+    notes: BRP UGE 2023 ORC plus corrections 1.05. First creator runtime QA is owner-accepted; remaining findings are nonblocking UX debt to fold into later work.
   creator-web:
     guidance:
       - refs/handoffs/next-dev-prompt.md
       - refs/product/generation-methods.md
     source_roots:
       - apps/web/src
-    notes: Shared Character Forge creator workspace. D&D remains the default; BRP uses the same workspace. Keep rules formulas in system-owned packages.
+    notes: Shared Character Forge creator workspace. D&D remains the default; BRP uses the same workspace. Keep rules formulas in system-owned packages and fold accepted nonblocking QA polish into future touched slices.
   project-memory:
     guidance:
       - AGENTS.md
@@ -46,11 +55,18 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Run BRP creator runtime QA and evidence-driven polish
+  - task: Build the first system-owned random-table consumer
+    look_in:
+      - refs/product/random-table-companion.md
+      - refs/handoffs/currentHandoff.md
+      - packages/generator-core/src/randomTable.ts
+      - packages/system-dnd5e/src
+      - packages/system-brp/src
+  - task: Fold creator QA polish into a touched slice
     look_in:
       - refs/handoffs/currentHandoff.md
-      - refs/handoffs/next-dev-prompt.md
       - apps/web/src
+      - packages/system-dnd5e/src
       - packages/system-brp/src
   - task: Run or diagnose D&D accumulated runtime QA
     look_in:

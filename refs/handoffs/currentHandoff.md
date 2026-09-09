@@ -7,7 +7,7 @@ tags:
 ---
 # Current Handoff
 
-Date: 2026-09-08
+Date: 2026-09-09
 Branch: `dev`
 
 ## Accepted Baseline
@@ -17,9 +17,9 @@ Promoted branches remain unchanged:
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D or BRP work.
+Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D, BRP, or random-table work.
 
-D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green at code checkpoint `55f79a1004c14eef1635e92c602e1fefa18cab15`. Issue #11 remains open for accumulated owner runtime QA and exact-SHA promotion.
+D&D 5E 2024 mechanical SRD Level 1 breadth remains automated-green at `55f79a1004c14eef1635e92c602e1fefa18cab15`. Issue #11 remains the separate accumulated owner runtime-QA/promotion gate.
 
 BRP remains bounded to Basic Roleplaying: Universal Game Engine 2023 ORC content with corrections 1.05:
 
@@ -28,96 +28,115 @@ BRP remains bounded to Basic Roleplaying: Universal Game Engine 2023 ORC content
 - adapter: `0.5.0`
 - no Call of Cthulhu-specific protected content
 
-First BRP creator UI automated-green implementation checkpoint:
+The first BRP creator UI remains automated-green at `b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02`, Actions `34295950302`, job `102292513584`.
 
-- code checkpoint: `b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02`
-- Actions: `34295950302`
-- job: `102292513584`
-- 32 test files / 159 tests / 0 failures
-- 35 system-BRP tests plus 5 BRP creator-state tests
-- tracked-path case guard: 144 tracked paths collision-free
-- required project-memory files: 14
-- OKF: 17 concepts / 9 indexes
-- bounded re-entry packet: 3,395 characters
-- strict TypeScript: green
-- web build: green
-- build identity: `Character Forge build 0.0.1 b5cb07ab`
+Owner runtime/browser QA on 2026-09-09 accepted the BRP creator for continued work with no blocking findings. Do not schedule a dedicated polish cycle for the accepted findings below; fold them into later touched slices.
 
-## What Landed
+## Accepted Creator QA Debt
 
-The existing Character Forge creator workspace now hosts both systems without making a second BRP application:
+D&D Random ability generation:
 
-- a rules-system selector keeps D&D 5E 2024 as the default and mounts BRP UGE only when selected;
-- the existing D&D guided creator module was left unchanged, and existing sticky-choice tests remain green;
-- BRP controls cover display name, age, gender, Average/Affluent wealth, Normal/Heroic power level, retained Heroic default starting age, Detective/Scholar, Explicit/Standard Rolled characteristics, seed/re-roll, raw roll visibility, legal redistribution input, profession-specific choices, and professional/personal skill allocation;
-- budget, remaining-point, starting-cap, and invalid-state feedback are inline;
-- `Fill legal example` provides a deterministic convenience for reaching a legal supported allocation without weakening BRP validation;
-- the right review surface shows retained characteristics, derived state, skills, causal contribution layers, rules profile, age causality, languages/specialties, generation state, and native document provenance;
-- reopening a BRP CharacterDocument restores supported creator state directly from the authoritative BRP primary native payload, never from semantic projection.
+- hide the disabled `Roll First` assignment control until rolls exist;
+- move verbose per-roll dice history out of the cramped inline result display and into hover/detail text;
+- when a roll is reassigned, swap the displaced ability's roll rather than allowing two abilities to reference one roll slot.
 
-A narrow BRP-owned `calculateBrpPersonalSkillPoints()` helper was added so browser feedback does not duplicate the `INT x 10` rule. Existing BRP-owned profession resolvers, characteristic generation, power-profile logic, skill definitions/base chances, builders, and adapter validation remain authoritative.
+Shared creator randomization:
 
-No shared CharacterDocument, semantic contract, generator-core contract, dependency, or lockfile change was required.
+- add a clear `Randomize All` interaction pattern to both systems;
+- support field-level randomizers where sensible;
+- keep the interaction pattern shared while each system owns legal/random value generation.
+
+BRP creator:
+
+- add name generation when the structured naming seam is ready;
+- add randomizers for Age, Gender, Wealth, and similar fields when creator randomization is next touched;
+- fix left-pane containment so controls cannot render wider than the generation column or disappear under the review surface.
+
+These are nonblocking UX debt, not a reason to reopen BRP architecture or expand BRP rules breadth.
+
+## Random Table Companion Checkpoint
+
+The first system-neutral random-table evaluator is automated-green on `dev`:
+
+- code checkpoint: `0ace3aacc7e23a420377b6c4c8f2b9b243ec945e`
+- Actions: `34364243890`
+- job: `102508743773`
+- Verify conclusion: success
+- new evaluator test suite: 5 focused tests
+
+What landed in `generator-core`:
+
+- `RandomTable<TResult>` with stable table ID/version, source ID/version, stable entry IDs, optional positive weights, and arbitrary typed result payloads;
+- deterministic `evaluateRandomTable()` driven by caller seed plus explicit non-negative `drawIndex`;
+- evaluator/table/source identity is included in the deterministic seed domain so replay does not depend on hidden global draw order;
+- provenance records evaluator version, table/source identity and versions, caller seed, draw index, selected entry ID, selected weight, and total weight;
+- low-level weighted selection remains system-neutral and validates the random source is in `[0, 1)`;
+- table validation rejects empty identity, duplicate entry IDs, empty tables, invalid weights, non-finite total weight, empty seeds, and invalid draw indexes;
+- the evaluator returns the caller-owned typed result unchanged and never patches CharacterDocument or native state.
+
+The contract is documented in `refs/product/random-table-companion.md`.
+
+No shared CharacterDocument, semantic contract, rules adapter, system-native schema, dependency, or lockfile change was required.
 
 ## Current Evidence / Gap
 
-Automated coverage proves explicit and standard-rolled Detective/Scholar creation, Normal/Heroic profile retention, Heroic age causality, exact Scholar language/specialty identities, budget/cap agreement with backend validation, invalid allocation rejection, authoritative native-state reopen, D&D default routing, and unchanged D&D sticky-choice tests.
+The generic evaluator seam is now proven, but there is intentionally no system-owned dataset or creator UI consumer yet.
 
-The remaining gap is owner runtime/browser QA of the first BRP creator UI. Treat visual friction, control clarity, responsive behavior, and reopen ergonomics as evidence-driven polish work. Do not expand BRP rules breadth merely because the first UI exists.
+Do not invent a universal trait/ideal/bond/flaw schema from the generic engine. The next evidence must come from one real source-safe system-owned consumer that maps the selected result into an ordinary generation decision or structured suggestion.
 
-The D&D Issue #11 runtime-QA/promotion gate remains separate and open.
+Subtable references remain a known likely requirement, but nesting is still deferred until an actual table requires it. The same applies to roll-range authoring, uniqueness sampling, conditional graphs, and user-authored table persistence.
 
 ## Next Slice
 
-Run a focused BRP creator runtime-QA and polish pass on `dev`.
+Build the first narrow system-owned random-table consumer on `dev`.
 
 Start routine work with:
 
-`python refs/tools/generate_agent_context.py --focus "BRP creator runtime QA"`
+`python refs/tools/generate_agent_context.py --focus "first random table consumer"`
 
-Exercise at least:
+Before coding:
 
-- explicit Detective and Scholar;
-- standard-rolled Detective and Scholar;
-- Normal and Heroic, including retained default starting age and age-derived budget;
-- legal and illegal redistribution;
-- Scholar Own/Other language identity and open Knowledge/Science specialties;
-- professional/personal budgets, cap feedback, and `Fill legal example`;
-- generated review details and JSON/native provenance;
-- reopen from a retained BRP CharacterDocument;
-- switching back to D&D with existing defaults/sticky behavior intact.
+1. Identify one source-safe existing D&D or BRP consumer that benefits from a structured random suggestion.
+2. Keep the dataset and result payload type in the owning system package.
+3. Use `generator-core` only for evaluation and replay provenance.
+4. Feed the result through an ordinary generation decision or suggestion seam rather than mutating native state directly.
+5. Retain seed, table/source/evaluator versions, draw index, and selected entry identity wherever replayability matters.
 
-Patch only concrete runtime/UX findings. Keep unsupported BRP rules out of this QA slice. Do not promote `qa` or `main` without explicit instruction.
+Prefer a consumer small enough to prove the boundary without dragging in a large content-ingestion or naming project.
+
+Do not add nested tables merely because the engine could support them. Add nesting only if the chosen real consumer requires it.
 
 ## Relevant Files
 
 - `refs/handoffs/next-dev-prompt.md`
 - `refs/implementation/fileMap.yaml`
-- `apps/web/src/creatorWorkspace.ts`
-- `apps/web/src/brpCreatorPanel.ts`
-- `apps/web/src/brpCreatorPanelView.ts`
-- `apps/web/src/brpCreatorState.ts`
-- `apps/web/src/brpCreatorStyles.ts`
-- `apps/web/src/main.ts`
-- `packages/system-brp/src/powerLevel.ts`
+- `refs/planning/roadmap.yaml`
+- `refs/product/random-table-companion.md`
+- `refs/product/generation-methods.md`
+- `packages/generator-core/src/randomTable.ts`
+- `packages/generator-core/src/randomTable.test.ts`
+- `packages/system-dnd5e/src/`
 - `packages/system-brp/src/`
 
-Load deeper architecture/source evidence only if a system boundary, semantic claim, or source-fidelity question actually requires it.
+Load deeper system source/licensing evidence only for the concrete consumer being selected.
 
 ## Do Not Reopen Without New Evidence
 
 - Native system state is mandatory and lossless.
 - Never reconstruct retained native state from semantic projection.
+- Random-table evaluation is a generation primitive, not a character-state format.
+- System datasets and mappings stay system-owned.
+- The generic table evaluator must not learn D&D- or BRP-specific semantics.
+- Table results feed ordinary generation decisions or structured suggestions; they do not patch native state directly.
+- Preserve explicit replay provenance and version boundaries.
+- Add nesting only when a concrete consumer requires it.
 - BRP profession is not D&D class.
-- Keep base chance, professional contribution, personal contribution, and final rating distinct.
-- Keep open specialties and language identities BRP-owned.
-- Preserve effective rules profile and character-specific age causality.
+- Keep BRP base chance, professional contribution, personal contribution, and final rating distinct.
 - Future BRP powers must not reuse D&D spell architecture.
 - Keep generator-core system-neutral and Parchment system-agnostic.
 - Do not import Call of Cthulhu-specific protected content.
-- Do not broaden the profession catalog during UI polish without new evidence.
-- Random-table companion remains `ready_for_discovery`.
-- D&D runtime QA remains its own promotion gate.
+- D&D Issue #11 remains a separate promotion gate.
+- Creator QA findings above are nonblocking debt to fold into later touched work, not a dedicated cleanup cycle.
 
 ## Validation
 
@@ -125,4 +144,4 @@ Milestone gate:
 
 `npm run verify`
 
-The gate includes tracked-path case-collision validation, durable refs/OKF validation, bounded agent-context validation, strict TypeScript, unit tests, and the web build.
+Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
