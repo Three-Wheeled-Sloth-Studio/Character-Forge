@@ -32,7 +32,7 @@ export function mountDndNarrativeCreatorPanel(
         <label>Narrative seed
           <input id="dnd-narrative-seed" type="text" maxlength="160" placeholder="Generated automatically" autocomplete="off" />
         </label>
-        <p class="muted">Every narrative question includes <strong>Choose for me</strong>. The seed makes those choices and mapped recommendations replayable.</p>
+        <p class="muted">Every narrative question includes <strong>Choose for me</strong>. Narrative choice sets stay small; when the full rules catalog is larger, earlier answers narrow what is shown next.</p>
         ${DND5E_GUIDED_NARRATIVE_QUESTIONS.map(questionHtml).join("")}
         <div class="creator-system-actions">
           <button id="dnd-narrative-choose-again" type="button" class="secondary-button">Choose again</button>
@@ -41,15 +41,15 @@ export function mountDndNarrativeCreatorPanel(
         <div class="section-divider"></div>
         <fieldset>
           <legend>Mapped mechanical choices</legend>
-          <p class="muted">These start from the narrative mapping. Change any selection to override the recommendation before generation.</p>
+          <p class="muted">These choices have already been narrowed by your narrative answers. Change a selection within the narrowed set, or change an earlier answer to explore a different branch.</p>
           <label>Class
-            <select id="dnd-narrative-class">${catalogOptions(DND5E_SRD_521_CLASS_OPTIONS)}</select>
+            <select id="dnd-narrative-class"></select>
           </label>
           <label>Background
-            <select id="dnd-narrative-background">${catalogOptions(DND5E_SRD_521_BACKGROUND_OPTIONS)}</select>
+            <select id="dnd-narrative-background"></select>
           </label>
           <label>Species
-            <select id="dnd-narrative-species">${catalogOptions(DND5E_SRD_521_SPECIES_OPTIONS)}</select>
+            <select id="dnd-narrative-species"></select>
           </label>
           <p id="dnd-narrative-mapping-summary" class="muted"></p>
         </fieldset>
@@ -77,9 +77,9 @@ export function mountDndNarrativeCreatorPanel(
         seed: seedInput.value,
       });
       seedInput.value = recommendation.seed;
-      classSelect.value = recommendation.classChoice.recommendedId;
-      backgroundSelect.value = recommendation.backgroundChoice.recommendedId;
-      speciesSelect.value = recommendation.speciesChoice.recommendedId;
+      populateNarrowedCatalog(classSelect, DND5E_SRD_521_CLASS_OPTIONS, recommendation.classChoice.candidateIds, recommendation.classChoice.recommendedId);
+      populateNarrowedCatalog(backgroundSelect, DND5E_SRD_521_BACKGROUND_OPTIONS, recommendation.backgroundChoice.candidateIds, recommendation.backgroundChoice.recommendedId);
+      populateNarrowedCatalog(speciesSelect, DND5E_SRD_521_SPECIES_OPTIONS, recommendation.speciesChoice.candidateIds, recommendation.speciesChoice.recommendedId);
       resolution.textContent = [
         resolutionText("role", recommendation.answers.role.submittedId, recommendation.answers.role.resolvedId),
         resolutionText("past", recommendation.answers.past.submittedId, recommendation.answers.past.resolvedId),
@@ -87,7 +87,7 @@ export function mountDndNarrativeCreatorPanel(
       ].join(" | ");
       mappingSummary.textContent = [
         `Class candidates: ${recommendation.classChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_CLASS_OPTIONS, id)).join(", ")}`,
-        `Background: ${catalogLabel(DND5E_SRD_521_BACKGROUND_OPTIONS, recommendation.backgroundChoice.recommendedId)}`,
+        `Background candidates: ${recommendation.backgroundChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_BACKGROUND_OPTIONS, id)).join(", ")}`,
         `Species candidates: ${recommendation.speciesChoice.candidateIds.map((id) => catalogLabel(DND5E_SRD_521_SPECIES_OPTIONS, id)).join(", ")}`,
       ].join(" | ");
     } catch (caught) {
@@ -145,8 +145,16 @@ function resolutionText(questionId: Dnd5eGuidedNarrativeQuestionId, submittedId:
   return `${question?.prompt ?? questionId} ${resolvedLabel}`;
 }
 
-function catalogOptions(options: readonly { id: string; label: string; guidedSupported: boolean }[]): string {
-  return options.filter((option) => option.guidedSupported).map((option) => `<option value="${option.id}">${option.label}</option>`).join("");
+function populateNarrowedCatalog(
+  select: HTMLSelectElement,
+  options: readonly { id: string; label: string; guidedSupported: boolean }[],
+  candidateIds: readonly string[],
+  selectedId: string,
+): void {
+  const candidates = candidateIds.map((id) => options.find((option) => option.id === id && option.guidedSupported));
+  if (candidates.some((option) => !option)) throw new Error("Guided Narrative candidate is not available in the supported catalog.");
+  select.innerHTML = candidates.map((option) => `<option value="${option!.id}">${option!.label}</option>`).join("");
+  select.value = selectedId;
 }
 
 function catalogLabel(options: readonly { id: string; label: string }[], id: string): string {
