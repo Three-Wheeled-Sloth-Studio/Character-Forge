@@ -144,10 +144,10 @@ describe("BRP UGE Superpowers architecture slice", () => {
     expect(brpUge105Adapter.validateNativeState(document.nativeStates[0])).toEqual({ valid: true, issues: [] });
   });
 
-  it("keeps existing non-powered brp-character/0.1 documents valid under adapter 0.6", () => {
+  it("keeps existing non-powered brp-character/0.1 documents valid under adapter 0.7", () => {
     const document = buildBrpFirstSliceCharacter(explicitInput());
 
-    expect(brpUge105Adapter.adapterVersion).toBe("0.6.0");
+    expect(brpUge105Adapter.adapterVersion).toBe("0.7.0");
     expect(brpUge105Adapter.validateNativeState(document.nativeStates[0])).toEqual({ valid: true, issues: [] });
   });
 
