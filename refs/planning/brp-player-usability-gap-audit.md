@@ -28,8 +28,9 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 | Professional/personal causality | supported | Base, professional, personal, and final skill values remain separate and validated; personal points can use the broader supported skill surface. |
 | Equipment finishing | supported | `equipment` remains a lossless native string-ID list backed by a source-audited BRP catalog. The creator can retain play-important gear, armor, and bounded modern pistols; weapon possession is checked against the source starting-skill threshold. |
 | Equipment table projection | supported | The character review resolves retained item IDs into useful weapon attack/damage/range/ammo/malfunction or armor AV/burden/ENC details without making review state canonical. |
-| Save/reopen | supported | The creator reconstructs rules state from the authoritative BRP primary native state, while the equipment companion reconstructs retained item IDs from that same payload. |
-| Final on-screen review | supported | Character review shows characteristics, derived values, identity, budgets, skill causality, and selected equipment details. |
+| Identity/background finishing | supported | Optional native finishing state retains size/build, appearance, mannerisms/motto, reputation, personal item/keepsake, background, and beliefs. The fields follow BRP Steps Nine and Ten while remaining setting-neutral and player-authored. |
+| Save/reopen | supported | The creator reconstructs rules state from the authoritative BRP primary native state, while equipment and finishing companions reconstruct their retained native values from that same payload. |
+| Final on-screen review | supported | Character review shows characteristics, derived values, identity, budgets, skill causality, selected equipment details, and populated finishing details. |
 | Rules-profile foundation | supported | Power level, characteristic method, enabled options, and enabled power systems are already retained in BRP native state. |
 
 ## Missing for v0.1
@@ -37,7 +38,6 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 | Capability | Classification | Bounded v0.1 need |
 | --- | --- | --- |
 | Further profession/skill breadth | missing for v0.1 | Credible generic coverage exists, but some source professions still depend on skills or specialties outside the bounded catalog. Add only when they improve actual player coverage. |
-| Identity/background finishing | missing for v0.1 | Name and gender exist, but BRP finishing calls for personal/background/distinctive details. Keep these BRP-native or clearly Character Forge-authored, not setting-generated names. |
 | Allocation UX and validation clarity | missing for v0.1 | Legal allocation is enforced and example-filled, but a player still needs clearer progress/error guidance than raw numeric rows provide. |
 | Print/export | missing for v0.1 | On-screen review exists, but there is no player-facing print/export projection. Export must project authoritative native state rather than becoming another rules model. |
 | Campaign/rules-profile selection seam | missing for v0.1 | The native rules profile is a good foundation, but the creator does not yet select a named campaign/content profile. Keep this seam narrow so the later Investigative Horror profile can configure BRP rather than fork it. |
@@ -46,6 +46,7 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 
 - Characters under 18 and age 50+ aging/characteristic adjustments.
 - Full optional skill-category systems and every era-specific base-chance variant.
+- The optional CHA-driven Distinctive Features subsystem and exhaustive cosmetic feature tables; freeform appearance remains supported without enabling that optional rule.
 - Exhaustive profession, weapon, armor, vehicle, and specialty catalogs in the first pass.
 - Complete Superpowers/Psychic catalogs and Magic, Mutations, or Sorcery.
 - Broad non-human support.
@@ -73,6 +74,22 @@ The bounded source-audited catalog includes:
 
 Starting pistols require the related Handgun skill at 50% or better in this creator. Selected equipment IDs are canonical native state; creator controls and the readable character sheet are projections over those IDs and the source-owned catalog.
 
+## Fourth implementation slice
+
+BRP Steps Nine and Ten explicitly make size/build, physical and mental description, reputation, background, and similar details flexible: players may fill out as many or as few as matter. Step Eight also expects a personal item connected to family or background.
+
+The bounded creator therefore adds a compact optional finishing block with seven player-authored fields:
+
+1. size/build;
+2. appearance;
+3. mannerisms or motto;
+4. reputation;
+5. personal item or keepsake;
+6. background, with prompts covering origin, education, family, organizations, and interesting past; and
+7. beliefs, when relevant.
+
+These fields are stored losslessly as descriptive BRP native state, omitted when entirely blank, reconstructed from native state on reopen, and projected into the character review only when populated. They do not create a setting-owned naming corpus, culture model, universal personality ontology, or implied mechanical effects. The optional CHA-driven Distinctive Features subsystem remains deferred rather than being silently enabled.
+
 ## Next bounded slice
 
-Identity/background finishing is now the highest-value remaining Step Eight product gap. Prefer a small set of player-authored fields or source-safe prompts for personal description, important relationships/background, and distinctive details. Do not turn this into setting-owned name generation or a universal personality ontology. After that, tighten allocation guidance and move to print/export.
+Allocation UX and validation clarity is now the highest-value remaining creator gap. Make professional and personal progress/error state easier to understand and correct without weakening system-owned legality. After that, finish player-facing print/export and the narrow campaign/rules-profile seam required for Investigative Horror.
