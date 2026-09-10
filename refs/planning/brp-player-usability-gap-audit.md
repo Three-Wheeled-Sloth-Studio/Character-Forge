@@ -38,7 +38,7 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 
 | Capability | Classification | Bounded v0.1 need |
 | --- | --- | --- |
-| Print/export | missing for v0.1 | On-screen review exists, but there is no complete player-facing print/export projection. Export must project authoritative native state rather than becoming another rules model. |
+| Adaptive sheet framework + BRP print/export proof | missing for v0.1 | Build a shared presentation/rendering framework, but prove only the descriptor features BRP needs now. BRP native state must project through a BRP-owned sheet description into a clean two-page play-oriented print view. Browser print/Save as PDF and existing CharacterDocument JSON export are preferred over a new PDF dependency. See `refs/architecture/adaptive-character-sheet-framework.md`. |
 | Campaign/rules-profile selection seam | missing for v0.1 | The native rules profile is a good foundation, but the creator does not yet select a named campaign/content profile. Keep this seam narrow so the later Investigative Horror profile can configure BRP rather than fork it. |
 
 ## Deferred
@@ -51,6 +51,9 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 - Complete Superpowers/Psychic catalogs and Magic, Mutations, or Sorcery.
 - Broad non-human support.
 - Setting-owned generated names.
+- D&D retrofit to the adaptive sheet framework until the BRP proof is accepted.
+- Multiple complete sheet modes beyond the first useful BRP play/print projection.
+- Deterministic server-side PDF generation unless product evidence requires it.
 - Fate Condensed implementation and Universal Grammar v0.1 freeze.
 
 ## First implementation slice
@@ -75,6 +78,20 @@ BRP Steps Nine and Ten explicitly make size/build, physical and mental descripti
 
 The allocation UX pass leaves all point arithmetic and legality in the established BRP builders/adapters while making that state actionable to a player. Professional and personal budget cards now show spent/total, progress, and exact spend/remove/ready guidance. Skill rows identify profession eligibility, show current legal input ceilings, and expose remaining cap headroom or overage. A blocking checklist names budget and cap problems before the disabled Generate action, while the existing rules validation remains visible as the authoritative detail.
 
+## Accepted output architecture direction
+
+The next output slice should not create a BRP-only printing dead end or a universal character rules model. Character Forge will use a shared adaptive character-sheet renderer with system-owned sheet projections:
+
+```text
+native system state -> system sheet projection -> shared renderer -> screen / print / PDF-via-print
+```
+
+The shared framework owns presentation mechanics such as page geometry, typography, layout primitives, print behavior, overflow, and accessibility. BRP owns which fields appear, their labels, grouping, priority, and rules meaning. Broad presentation-role hints such as `identity`, `primary_stats`, `resources`, `actions`, `equipment`, `abilities`, `conditions`, `narrative`, `notes`, and `provenance` are rendering vocabulary only, not Universal Grammar.
+
+BRP is the first proof. D&D can later expose BRP-specific assumptions in the shared renderer, while Fate remains the stronger architecture stress test before Universal Grammar is frozen.
+
 ## Next bounded slice
 
-Player-facing print/export is now the highest-value remaining v0.1 product gap. Reuse the existing review/native state rather than creating another character model. After that, add only the narrow campaign/rules-profile selection seam required to configure the future Investigative Horror profile, then run representative owner browser QA and Issue #14 closeout.
+Implement the adaptive character-sheet framework, proven first with BRP. Keep the implementation acceptance BRP-sized: a readable two-page default with Page 1 optimized for at-the-table play and Page 2 for equipment/background/logistics, clean browser printing, and reuse of existing JSON export where suitable. Do not build a universal layout solver, retrofit D&D, or add a PDF-generation dependency unless evidence requires it.
+
+After that, add only the narrow campaign/rules-profile selection seam required to configure the future Investigative Horror profile, then run representative owner browser QA and Issue #14 closeout.

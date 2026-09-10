@@ -7,7 +7,23 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers, Psychic Abilities, player-core professions, and bounded equipment all fit without changing the shared contract; Universal Grammar remains a derived translation layer and is not frozen until D&D + BRP + Fate evidence is reviewed.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers, Psychic Abilities, player-core professions, bounded equipment, and descriptive finishing all fit without changing the shared contract; Universal Grammar remains a derived translation layer and is not frozen until D&D + BRP + Fate evidence is reviewed.
+  character-sheet:
+    guidance:
+      - refs/architecture/adaptive-character-sheet-framework.md
+      - refs/handoffs/currentHandoff.md
+      - refs/planning/brp-player-usable-core.md
+    source_roots:
+      - apps/web/src
+      - packages/system-brp
+    notes: >-
+      Accepted direction is a universal character-sheet framework, not a single
+      universal sheet or rules model. Authoritative native state projects through
+      a system-owned sheet projection into shared presentation/rendering code.
+      The shared layer may own page geometry, typography, section/table primitives,
+      overflow, print behavior, and accessibility; systems retain rules meaning,
+      labels, grouping, and priority. BRP is the first proof. Presentation roles
+      are layout vocabulary only and must not become Universal Grammar.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -42,13 +58,15 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Guided Narrative is explicitly parked after the Fighter Fighting Style branch; do not resume Cleric/Druid work from chronology alone.
+    notes: D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Guided Narrative is explicitly parked after the Fighter Fighting Style branch; do not resume Cleric/Druid work from chronology alone. D&D may later validate the adaptive sheet renderer after the BRP-first proof, but do not pull that retrofit into the current BRP slice.
   brp:
     guidance:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/architecture/adaptive-character-sheet-framework.md
       - refs/planning/brp-to-universal-grammar-path.md
       - refs/planning/brp-player-usable-core.md
+      - refs/planning/brp-player-usability-gap-audit.md
       - refs/planning/brp-investigative-horror-profile.md
       - refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md
       - refs/architecture/brp-second-system-premortem.md
@@ -59,38 +77,39 @@ areas:
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. The second-system architecture
       stress test is complete and Issue #13 is closed. brp-character/0.1 and
-      canonical adapter 0.7 remain stable; bounded starting-equipment validation
-      is layered over the established non-powered creator, player-core professions,
-      Superpowers, and Psychic grammars without shared-model changes. Issue #14 BRP
-      Player-Usable Core now has profession/skill breadth plus finish-the-character
-      equipment coverage. Identity/background finishing is the next bounded gap,
-      followed by allocation guidance and print/export. The accepted sequence after
-      this epic remains BRP Investigative Horror, a bounded Fate Condensed probe,
-      then Universal Grammar v0.1. Do not auto-expand Powers or redesign proven
-      native seams without product evidence.
+      canonical adapter 0.7 remain stable. Issue #14 Player-Usable Core now has
+      profession/skill breadth, equipment, identity/background finishing, and
+      actionable allocation UX. The next bounded gap is the adaptive character-sheet
+      framework proven first with a two-page BRP play/print projection, followed by
+      the narrow campaign/rules-profile seam and owner browser QA. The accepted
+      sequence after this epic remains BRP Investigative Horror, a bounded Fate
+      Condensed probe, then Universal Grammar v0.1.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
+      - refs/architecture/adaptive-character-sheet-framework.md
       - refs/integration/brp-uge-orc.md
       - refs/planning/brp-player-usable-core.md
     source_roots:
       - apps/web/src
     notes: >-
-      BRP productization uses focused companion controls for finish-the-character
-      equipment and projects retained native equipment IDs into readable table-use
-      details. Continue with identity/background finishing, clearer allocation UX,
-      and print/export. UI/review/export remain projections; BRP rules stay system-owned.
+      BRP productization now covers equipment/finishing and allocation guidance.
+      Next establish a shared sheet presentation renderer plus BRP-owned projection.
+      UI, review, sheet, and export remain projections; shared sheet code owns
+      presentation mechanics only and BRP rules stay system-owned. Prefer browser
+      print / Save as PDF and existing JSON export before adding PDF dependencies.
   fate-third-system:
     guidance:
       - refs/planning/brp-to-universal-grammar-path.md
       - refs/planning/fate-third-system-probe.md
       - refs/planning/universal-grammar-v0.1.md
       - refs/architecture/translation-bridge-rpg-notes.md
+      - refs/architecture/adaptive-character-sheet-framework.md
     source_roots:
       - packages
       - apps/web/src
-    notes: Planned only after BRP Investigative Horror. Fate Condensed is a bounded architecture probe selected to stress Aspects, Stunts, Stress, Consequences, and narrative-mechanical state before Universal Grammar v0.1 is frozen. Do not build a full Fate product by chronology.
+    notes: Planned only after BRP Investigative Horror. Fate Condensed is a bounded architecture probe selected to stress Aspects, Stunts, Stress, Consequences, narrative-mechanical state, and later the sheet-renderer assumptions before Universal Grammar v0.1 is frozen. Do not build a full Fate product by chronology.
   project-memory:
     guidance:
       - AGENTS.md
@@ -105,16 +124,22 @@ common_tasks:
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/architecture/adaptive-character-sheet-framework.md
       - refs/planning/brp-player-usable-core.md
+      - refs/planning/brp-player-usability-gap-audit.md
       - refs/planning/brp-to-universal-grammar-path.md
       - refs/integration/brp-uge-orc.md
       - packages/system-brp/src
-      - packages/system-brp/src/equipment.ts
-      - packages/system-brp/src/equipmentAdapter.ts
-      - apps/web/src/brpCreatorPanel.ts
-      - apps/web/src/brpCreatorState.ts
-      - apps/web/src/brpEquipmentControls.ts
-      - apps/web/src/brpEquipmentReview.ts
+      - apps/web/src
+  - task: Implement or inspect adaptive character-sheet rendering
+    look_in:
+      - refs/architecture/adaptive-character-sheet-framework.md
+      - refs/handoffs/currentHandoff.md
+      - refs/handoffs/next-dev-prompt.md
+      - refs/planning/brp-player-usable-core.md
+      - packages/character-model/src
+      - packages/system-brp/src
+      - apps/web/src
   - task: Inspect BRP Investigative Horror boundary
     look_in:
       - refs/planning/brp-investigative-horror-profile.md
@@ -136,6 +161,7 @@ common_tasks:
     look_in:
       - refs/planning/fate-third-system-probe.md
       - refs/planning/universal-grammar-v0.1.md
+      - refs/architecture/adaptive-character-sheet-framework.md
       - refs/architecture/translation-bridge-rpg-notes.md
       - refs/architecture/character-architecture.md
   - task: Develop or review Universal Grammar evidence
