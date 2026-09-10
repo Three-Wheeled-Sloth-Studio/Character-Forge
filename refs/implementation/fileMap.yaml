@@ -4,9 +4,10 @@ areas:
   character-contract:
     guidance:
       - refs/architecture/character-architecture.md
+      - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers and Psychic Abilities both fit without changing the shared contract; do not generalize a universal capability schema from BRP-native evidence alone.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers and Psychic Abilities both fit without changing the shared contract; Universal Grammar remains a derived translation layer and is not frozen until D&D + BRP + Fate evidence is reviewed.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -14,16 +15,17 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. BRP Powers currently require no generator-core abstraction.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. BRP productization should reuse these seams only when a concrete player-facing need exists.
   structured-naming:
     guidance:
       - refs/product/structured-naming.md
       - refs/integration/brp-uge-orc.md
+      - refs/planning/brp-investigative-horror-profile.md
     source_roots:
       - packages/generator-core/src/nameSuggestion.ts
       - packages/system-dnd5e/src/nameGeneration.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-    notes: name-suggestion/0.1 is proven with D&D. BRP naming content remains setting/campaign/content-package owned; no shared contract expansion is justified yet.
+    notes: name-suggestion/0.1 is proven with D&D. BRP naming content remains setting/campaign/content-package owned; Investigative Horror does not justify inventing a BRP or CoC-derived name corpus.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -31,7 +33,7 @@ areas:
       - packages/generator-core/src/randomTable.ts
       - packages/system-brp/src/professionSuggestion.ts
       - packages/system-brp/src/scholarAcademicSuggestion.ts
-    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. Powers do not use this engine merely because future power selection may include randomness.
+    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. Add tables only for concrete product consumers; results remain suggestions/provenance rather than direct native patches.
   dnd5e:
     guidance:
       - refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md
@@ -45,31 +47,44 @@ areas:
     guidance:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/planning/brp-player-usable-core.md
+      - refs/planning/brp-investigative-horror-profile.md
+      - refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md
       - refs/architecture/brp-second-system-premortem.md
       - refs/integration/brp-uge-orc.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
     notes: >-
-      BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 now proves two
-      distinct backend-only power grammars without shared-model changes.
-      superpowers.ts owns Normal/Heroic character-point purchasing for Extra
-      Energy / Extra Hit Points. poweredAdapter.ts is the Superpowers-aware 0.6
-      layer. psychicAbilities.ts owns the bounded Normal Psychic creation
-      grammar: two abilities, POW x1 bases, personal INT x10 reallocation, and
-      Empathy/Mind Shield metadata. psychicAdapter.ts is canonical adapter 0.7
-      and validates Psychic plus combined personal-pool causality while
-      delegating non-powered/Superpowers states. Skill-construction profile and
-      power-system level remain deliberately independent. No universal
-      capability contract exists.
+      BRP UGE 2023 ORC plus corrections 1.05. The second-system architecture
+      stress test is complete and Issue #13 is closed. brp-character/0.1 and
+      canonical adapter 0.7 support the established non-powered creator plus
+      distinct Superpowers and Psychic grammars without shared-model changes.
+      The active product line is Issue #14, BRP Player-Usable Core: run a bounded
+      source-backed usability gap audit, then implement the highest-value missing
+      vertical slice. The accepted sequence after that is BRP Investigative Horror,
+      a bounded Fate Condensed third-system probe, then Universal Grammar v0.1.
+      Do not auto-expand Powers or redesign proven native seams without product evidence.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - refs/integration/brp-uge-orc.md
+      - refs/planning/brp-player-usable-core.md
     source_roots:
       - apps/web/src
-    notes: Existing D&D and BRP creator surfaces remain unchanged by the backend Powers architecture probes. Do not expose Powers UI until a deliberate user-facing power-system breadth is selected.
+    notes: BRP productization should make the existing creator credible for players: broader supported choices, finish-the-character flow, clearer allocation UX, readable review, and print/export projection. UI/review/export remain projections; BRP rules stay system-owned.
+  fate-third-system:
+    guidance:
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/planning/fate-third-system-probe.md
+      - refs/planning/universal-grammar-v0.1.md
+      - refs/architecture/translation-bridge-rpg-notes.md
+    source_roots:
+      - packages
+      - apps/web/src
+    notes: Planned only after BRP Investigative Horror. Fate Condensed is a bounded architecture probe selected to stress Aspects, Stunts, Stress, Consequences, and narrative-mechanical state before Universal Grammar v0.1 is frozen. Do not build a full Fate product by chronology.
   project-memory:
     guidance:
       - AGENTS.md
@@ -80,10 +95,24 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue or inspect BRP power-system architecture
+  - task: Continue BRP Player-Usable Core
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/planning/brp-player-usable-core.md
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/integration/brp-uge-orc.md
+      - packages/system-brp/src
+      - apps/web/src/brpCreatorPanel.ts
+      - apps/web/src/brpCreatorState.ts
+  - task: Inspect BRP Investigative Horror boundary
+    look_in:
+      - refs/planning/brp-investigative-horror-profile.md
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/integration/brp-uge-orc.md
+  - task: Inspect completed BRP power-system architecture
+    look_in:
+      - refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md
       - refs/integration/brp-uge-orc.md
       - packages/system-brp/src/superpowers.ts
       - packages/system-brp/src/superpowers.test.ts
@@ -93,25 +122,19 @@ common_tasks:
       - packages/system-brp/src/psychicAdapter.ts
       - packages/system-brp/src/adapter.ts
       - packages/system-brp/src/nativeCharacter.ts
-      - packages/system-brp/src/firstSlice.ts
-      - packages/system-brp/src/powerLevel.ts
-  - task: Inspect the BRP Superpowers architecture proof
+  - task: Prepare or inspect Fate third-system probe
     look_in:
-      - refs/integration/brp-uge-orc.md
-      - packages/system-brp/src/superpowers.ts
-      - packages/system-brp/src/superpowers.test.ts
-      - packages/system-brp/src/poweredAdapter.ts
-      - packages/system-brp/src/index.ts
-  - task: Inspect the BRP Psychic Abilities architecture proof
+      - refs/planning/fate-third-system-probe.md
+      - refs/planning/universal-grammar-v0.1.md
+      - refs/architecture/translation-bridge-rpg-notes.md
+      - refs/architecture/character-architecture.md
+  - task: Develop or review Universal Grammar evidence
     look_in:
-      - refs/integration/brp-uge-orc.md
-      - packages/system-brp/src/psychicAbilities.ts
-      - packages/system-brp/src/psychicAbilities.test.ts
-      - packages/system-brp/src/psychicAdapter.ts
-      - packages/system-brp/src/poweredAdapter.ts
-      - packages/system-brp/src/firstSlice.ts
-      - packages/system-brp/src/skills.ts
-      - packages/system-brp/src/index.ts
+      - refs/planning/universal-grammar-v0.1.md
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/architecture/translation-bridge-rpg-notes.md
+      - packages/system-dnd5e/src
+      - packages/system-brp/src
   - task: Resume parked D&D Guided Narrative work only when explicitly requested
     look_in:
       - refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md
@@ -125,6 +148,7 @@ common_tasks:
     look_in:
       - refs/integration/brp-uge-orc.md
       - refs/product/structured-naming.md
+      - refs/planning/brp-investigative-horror-profile.md
       - packages/generator-core/src/nameSuggestion.ts
       - packages/system-brp/src
   - task: Extend or inspect random-table consumers
@@ -155,6 +179,7 @@ common_tasks:
   - task: Update translation or bridge-RPG evidence
     look_in:
       - refs/architecture/translation-bridge-rpg-notes.md
+      - refs/planning/universal-grammar-v0.1.md
       - packages/system-dnd5e/src
       - packages/system-brp/src
   - task: Change repository guidance or validation infrastructure
