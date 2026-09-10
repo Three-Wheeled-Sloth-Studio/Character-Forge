@@ -1,3 +1,12 @@
+---
+type: "Implementation Audit"
+title: "BRP Player-Usability Gap Audit"
+tags:
+- character-forge
+- brp
+- player-usability
+- creator
+---
 # BRP Player-Usability Gap Audit
 
 Date: 2026-09-09
