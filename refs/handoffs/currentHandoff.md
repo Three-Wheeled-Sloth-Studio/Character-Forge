@@ -9,167 +9,115 @@ tags:
 ---
 # Current Handoff
 
-Date: 2026-09-09
+Date: 2026-09-10
 Branch: `dev`
-Current product status: **The BRP second-system architecture stress test is complete; the next active line is BRP Player-Usable Core (Issue #14), followed by BRP Investigative Horror, a bounded Fate Condensed third-system probe, then Universal Grammar v0.1.**
+Active epic: GitHub Issue #14 - **Make BRP UGE a player-usable core character generator**
 
 ## Current Direction
 
-Accepted sequence:
+The BRP second-system architecture stress test is complete. The active work is productizing the existing BRP UGE 2023 ORC / corrections 1.05 implementation into a narrow, credible player-facing character generator.
 
-1. **BRP Player-Usable Core** — turn the architecture proof into a character generator players could reasonably use for an actual BRP game;
-2. **BRP Investigative Horror** — add a legally clean BRP-native horror profile without Call of Cthulhu branding/protected content;
-3. **Fate Condensed third-system probe** — deliberately stress D&D/BRP assumptions with Aspects, Stunts, Stress, and Consequences;
-4. **Universal Grammar v0.1** — formalize the semantic/translation layer only after D&D + BRP + Fate evidence is reviewed.
+Accepted sequence remains:
 
-Authoritative planning references:
+1. BRP Player-Usable Core;
+2. BRP Investigative Horror;
+3. bounded Fate Condensed third-system probe;
+4. Universal Grammar v0.1 from D&D + BRP + Fate evidence.
 
-- `refs/planning/brp-to-universal-grammar-path.md`
-- `refs/planning/brp-player-usable-core.md`
-- `refs/planning/brp-investigative-horror-profile.md`
-- `refs/planning/fate-third-system-probe.md`
-- `refs/planning/universal-grammar-v0.1.md`
+Do not skip ahead by chronology.
 
-Active tracking:
+## Current BRP Player-Usable Core State
 
-- GitHub Issue #14: **Make BRP UGE a player-usable core character generator**
+The bounded usability audit is at `refs/planning/brp-player-usability-gap-audit.md`.
 
-The completed BRP architecture stress-test state is archived at:
+Completed player-facing slices now include:
 
-- `refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md`
+1. broader ordinary skill support plus correct professional/personal allocation causality;
+2. Athlete, Beggar, and source-shaped Custom Profession, while preserving Detective and Scholar;
+3. bounded source-audited equipment, armor, and modern pistol finishing with table-usable review projection; and
+4. optional identity/background finishing fields for size/build, appearance, mannerisms/motto, reputation, personal item/keepsake, background, and beliefs.
+
+The finishing slice follows BRP Steps Eight through Ten without introducing setting-owned name generation, a universal personality ontology, or implied mechanics for descriptive fields. The optional CHA-driven Distinctive Features rules remain deferred.
+
+## Accepted Finishing Implementation Checkpoint
+
+- SHA: `12277113316ac73ce89f34e5da1434a6ed431c70`
+- Actions: `34518584917`
+- Job: `103010142551`
+- `npm run verify`: green
+- 50 test files
+- 247 tests passed
+- 0 failures
+- 199 tracked paths
+- 14 required project-memory files
+- OKF: 27 concepts / 10 indexes
+- Agent context: 3651 characters
+- Build: `Character Forge build 0.0.1 12277113`
+
+The documentation-only commits after that checkpoint do not change the accepted implementation behavior and still require their own exact-head Verify before being called the current green head.
 
 ## Immediate Next Work Package
 
-Start Issue #14 with a bounded **BRP player-usability gap audit** against the authoritative BRP ORC 1.05 character-creation flow.
+The next bounded slice is **allocation UX and validation clarity**.
 
-Classify each relevant capability as:
+Improve the existing BRP skill-allocation surface without weakening legality or replacing system-owned calculations. Prefer a small vertical UX pass that makes it obvious:
 
-- supported;
-- missing for v0.1;
-- deferred.
+- how many professional points remain or are over budget;
+- how many personal points remain or are over budget;
+- which rows are profession-eligible versus personal-only;
+- when a skill is at or above the current starting cap;
+- what specific condition prevents generation; and
+- what the player should change to resolve that condition.
 
-The audit is only large enough to select implementation work. Do not create a giant catalog backlog before coding.
+Keep the current exact-budget and starting-cap validation authoritative. Do not move BRP rules into shared creator code merely to make the UI easier.
 
-At minimum evaluate:
+After allocation UX, the remaining v0.1 priorities are:
 
-- profession breadth and source-supported profession customization;
-- ordinary skill/specialty breadth;
-- age and wealth boundaries;
-- equipment, weapons, and armor required for table use;
-- identity/background/finishing details;
-- professional/personal allocation UX and validation clarity;
-- final character review;
-- print/export projection;
-- save/reopen behavior;
-- campaign/rules-profile seam needed by the future Investigative Horror phase.
+1. player-facing print/export projection;
+2. the narrow campaign/rules-profile selection seam needed by Investigative Horror; and
+3. representative owner browser QA / closeout.
 
-After the audit, implement the highest-value missing vertical slice rather than continuing analysis by default.
+Further profession/skill breadth should be added only when it closes a concrete player-use gap rather than as catalog completion for its own sake.
 
-## BRP Product Acceptance Target
+## Architecture Baseline To Preserve
 
-A player unfamiliar with the repository should be able to create, finish, review, save, reopen, and export/print a generic BRP character that feels like a usable product rather than an architecture demonstration.
+- Native schema remains `brp-character/0.1`.
+- Canonical adapter identity remains `0.7.0`; later validation layers preserve that established adapter-version contract.
+- Native BRP state is canonical and lossless.
+- UI, review, and future export are projections over native state.
+- Profession is not class.
+- Open specialties and languages remain source-owned.
+- Equipment remains a native stable-ID list backed by source-owned catalog metadata.
+- Descriptive finishing state remains optional and non-mechanical.
+- Shared creator code coordinates interaction only; BRP owns BRP rules and content.
+- No shared CharacterDocument change has been required.
+- No universal power/capability/personality ontology should be inferred from the BRP implementation.
 
-Do **not** block that target on complete Powers, every BRP optional subsystem, non-human breadth, setting-owned generated names, or Universal Grammar.
+## Source / Licensing Boundary
 
-## Investigative Horror Boundary
+Implementation authority remains the Basic Roleplaying: Universal Game Engine ORC Content Document, 2023, pinned to corrections 1.05.
 
-The later horror profile is deliberately **BRP: Universal Game Engine — Investigative Horror**, not Call of Cthulhu support.
+Do not import Call of Cthulhu-only or other branded-game content. The later Investigative Horror profile is deliberately BRP-native and legally separate from Call of Cthulhu support.
 
-Use only current BRP ORC material plus independently authored/sourced content with explicit provenance. The simplified BRP Sanity rules may be source-audited from BRP ORC; Call of Cthulhu-specific rules, branding, trade dress, occupations/content copied from CoC books, and Chaosium Mythos material remain out of scope without a separate license.
+## Branch / Promotion Boundary
 
-Keep BRP-system rules, Character Forge original content, and setting/content-package material separate.
+Work directly on `dev`.
 
-See `refs/planning/brp-investigative-horror-profile.md` for the durable boundary.
-
-## Third-System / Universal Grammar Decision
-
-Do **not** use CoC or Pathfinder as the third architecture probe merely because they are obvious market systems; they are too close to BRP and D&D respectively to provide the highest-value evidence.
-
-Fate Condensed is the selected small third-system probe because it challenges:
-
-- mechanically authoritative freeform Aspects;
-- Stunts that resist a universal spell/feat/power/skill bucket;
-- Stress and Consequences rather than conventional HP assumptions;
-- narrative state as first-class mechanics.
-
-Universal Grammar work may continue as an evidence ledger, but **do not freeze v0.1 before Fate has been implemented and reviewed**.
-
-Native system state remains canonical and lossless. Universal Grammar is a derived portable semantic/translation layer with explicit translation-loss reporting, not a replacement CharacterDocument.
-
-## Accepted BRP Architecture Baseline
-
-The completed stress test established:
-
-- native schema: `brp-character/0.1`;
-- canonical BRP adapter: `0.7.0`;
-- explicit and standard-rolled characteristics;
-- Normal/Heroic skill construction;
-- Detective/Scholar profession grammars;
-- open specialties and named languages;
-- separate base/professional/personal/final skill causality;
-- BRP creator save/reopen;
-- BRP random-table consumers;
-- Superpowers character-point grammar;
-- Psychic Abilities percentile/personal-pool grammar;
-- no shared CharacterDocument change;
-- no universal power/capability ontology.
-
-Psychic implementation checkpoint:
-
-- SHA `ae35b556dfc177f12e9f934fedd455803c6b74c7`
-- Actions `34417631582`
-- job `102685926895`
-- 46 test files / 231 tests / 0 failures
-
-Stress-test closeout roadmap checkpoint:
-
-- SHA `aa7e6e54aa2dcd6dd2e029e90e2863bea0a29cb8`
-- Actions `34420511173`
-- job `102694668708`
-
-Last exact-head validation before this planning increment:
-
-- SHA `852df83c8fce571e2b0394c50f3b87f72de94c29`
-- Actions `34420623648`
-- job `102695013725`
-- 46 test files / 231 tests / 0 failures
-
-## Preserved Branch Boundary
-
-No `qa` or `main` promotion has occurred.
-
-Promoted branches remain:
+Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion.
+Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D or BRP work.
 
-## Other Parked Work
-
-D&D Guided Narrative remains intentionally parked. Its retained state is:
-
-- `refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md`
-
-Do not resume it by chronology.
-
-D&D Issue #11 remains the separate accumulated owner runtime-QA/promotion gate.
-
-## Foundation Guardrails
-
-- Native system state is mandatory and lossless.
-- Never reconstruct retained native state from semantic projection.
-- Shared creator code coordinates interactions only; rules, mappings, distributions, and content remain system-owned.
-- Parchment remains system-agnostic.
-- Random-table evaluation remains a separate generation primitive.
-- Naming mechanism/context/data remain separable.
-- Do not generalize a universal capability or damage model from superficial similarities.
-- Keep generation provenance separate from runtime ontology unless source evidence requires otherwise.
+D&D Guided Narrative remains intentionally parked. Do not resume it by chronology.
 
 ## Validation
 
 Milestone gate:
 
-`npm run verify`
+```bash
+npm run verify
+```
 
 Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
