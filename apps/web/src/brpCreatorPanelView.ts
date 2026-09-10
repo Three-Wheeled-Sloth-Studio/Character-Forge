@@ -18,7 +18,7 @@ export function brpCreatorHtml(
 ): string {
   return `
     <section class="creator-panel compact-creator brp-creator-panel">
-      <div class="creator-heading"><p class="eyebrow">Basic Roleplaying</p><h2>BRP UGE creator</h2><p>2023 ORC rules profile, corrections 1.05. Only the currently supported narrow human character surface is exposed.</p></div>
+      <div class="creator-heading"><p class="eyebrow">Basic Roleplaying</p><h2>BRP UGE creator</h2><p>2023 ORC rules profile, corrections 1.05. The core creator exposes only source-audited BRP choices currently supported by native state.</p></div>
       <form id="brp-creator-form" class="creator-form">
         <label>Display name<input id="brp-name" value="${escapeHtml(state.displayName)}" autocomplete="off"></label>
         <div class="brp-inline-grid"><label>Age<input id="brp-age" type="number" min="18" max="49" step="1" value="${state.age}"></label><label>Gender<input id="brp-gender" value="${escapeHtml(state.gender)}" autocomplete="off"></label></div>
@@ -32,7 +32,7 @@ export function brpCreatorHtml(
         <div id="brp-characteristic-controls">${characteristicControlsHtml(state)}</div>
         <div class="section-divider"></div>
         <div class="brp-budget-summary">${budgetCard("Professional", preview.professionalSpent, preview.professionalBudget, preview.professionalRemaining)}${budgetCard("Personal", preview.personalSpent, preview.personalBudget, preview.personalRemaining)}<div class="brp-budget-card"><span>Starting cap</span><strong>${preview.startingSkillCap || "-"}%</strong><small>System profile</small></div></div>
-        <div class="brp-skill-heading"><div><strong>Skill allocation</strong><p class="muted">Base, professional contribution, personal contribution, and final rating remain separate.</p></div><button id="brp-auto-allocate" class="secondary-button" type="button"${preview.skillRows.length ? "" : " disabled"}>Fill legal example</button></div>
+        <div class="brp-skill-heading"><div><strong>Skill allocation</strong><p class="muted">Professional points are limited to profession skills. Personal points may be spent on any currently supported ordinary skill. Base, professional, personal, and final ratings remain separate.</p></div><button id="brp-auto-allocate" class="secondary-button" type="button"${preview.skillRows.length ? "" : " disabled"}>Fill legal example</button></div>
         <div class="brp-skill-grid">${skillRowsHtml(preview.skillRows, preview.startingSkillCap)}</div>
         <p id="brp-validation" class="form-error ${preview.validCharacter ? "valid-feedback" : ""}">${escapeHtml(preview.validationMessage)}</p>
         <button id="brp-generate" class="primary-action" type="submit"${preview.validCharacter ? "" : " disabled"}>Generate BRP character</button>
@@ -65,7 +65,7 @@ function professionControlsHtml(
 ): string {
   if (state.professionId === "detective") {
     const options = BRP_DETECTIVE_ELECTIVE_SKILL_KEYS.map((skillKey) => `<label class="choice-pool-option"><input type="checkbox" data-brp-detective-elective value="${skillKey}"${checked(state.detectiveElectives.includes(skillKey))}>${escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)}</label>`).join("");
-    return `<fieldset class="ability-fieldset"><legend>Detective electives: choose exactly four</legend><div class="choice-pool-grid">${options}</div></fieldset>`;
+    return `<fieldset class="ability-fieldset"><legend>Detective electives: choose exactly four</legend><p class="muted">This list is the currently implemented source-backed subset of the BRP Detective choices. Broader specialty substitution remains a later core slice.</p><div class="choice-pool-grid">${options}</div></fieldset>`;
   }
   const rows = state.scholarAcademicSkills.map((selection, index) => {
     const suggestion = academicSuggestions.find((record) => record.slotIndex === index);
@@ -99,7 +99,7 @@ function redistributionRowHtml(transfer: BrpCharacteristicRedistributionInput | 
 
 function skillRowsHtml(rows: BrpCreatorPreview["skillRows"], startingCap: number): string {
   if (!rows.length) return `<p class="muted">Complete the profession and characteristic choices to expose BRP-owned legal skill rows.</p>`;
-  return `<div class="brp-skill-labels"><span>Skill</span><span>Base</span><span>Prof.</span><span>Personal</span><span>Final</span></div>${rows.map((row, index) => `<div class="brp-skill-row${row.overCap ? " over-cap" : ""}"><span class="brp-skill-name">${escapeHtml(row.label)}</span><span>${row.baseChance}</span><input type="number" min="0" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="professionalPoints" value="${row.professionalPoints}" aria-label="${escapeHtml(row.label)} professional points"><input type="number" min="0" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="personalPoints" value="${row.personalPoints}" aria-label="${escapeHtml(row.label)} personal points"><strong>${row.finalRating}${row.overCap ? ` / cap ${startingCap}` : ""}</strong></div>`).join("")}`;
+  return `<div class="brp-skill-labels"><span>Skill</span><span>Base</span><span>Prof.</span><span>Personal</span><span>Final</span></div>${rows.map((row, index) => `<div class="brp-skill-row${row.overCap ? " over-cap" : ""}"><span class="brp-skill-name">${escapeHtml(row.label)}${row.professionalEligible ? "" : " <small>personal</small>"}</span><span>${row.baseChance}</span><input type="number" min="0" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="professionalPoints" value="${row.professionalPoints}" aria-label="${escapeHtml(row.label)} professional points"${row.professionalEligible ? "" : " disabled title=\"Not a selected profession skill\""}><input type="number" min="0" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="personalPoints" value="${row.personalPoints}" aria-label="${escapeHtml(row.label)} personal points"><strong>${row.finalRating}${row.overCap ? ` / cap ${startingCap}` : ""}</strong></div>`).join("")}`;
 }
 
 function budgetCard(label: string, spent: number, total: number, remaining: number): string {

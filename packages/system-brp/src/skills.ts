@@ -9,7 +9,7 @@ import type {
 export interface BrpStaticSkillDefinitionTemplate {
   skillId: string;
   label: string;
-  baseChance: number;
+  baseChance: number | "DEXx2";
   specialty: BrpSkillSpecialty | null;
 }
 
@@ -22,12 +22,25 @@ export interface BrpResolvedSkillDefinition {
 }
 
 export const BRP_FIRST_SLICE_SKILL_CATALOG = {
+  appraise: { skillId: "appraise", label: "Appraise", baseChance: 15, specialty: null },
+  bargain: { skillId: "bargain", label: "Bargain", baseChance: 5, specialty: null },
+  brawl: { skillId: "brawl", label: "Brawl", baseChance: 25, specialty: null },
+  climb: { skillId: "climb", label: "Climb", baseChance: 40, specialty: null },
+  command: { skillId: "command", label: "Command", baseChance: 5, specialty: null },
+  disguise: { skillId: "disguise", label: "Disguise", baseChance: 1, specialty: null },
+  dodge: { skillId: "dodge", label: "Dodge", baseChance: "DEXx2", specialty: null },
+  "fast-talk": { skillId: "fast-talk", label: "Fast Talk", baseChance: 5, specialty: null },
   "firearm:handgun": {
     skillId: "firearm",
     label: "Firearm (Handgun)",
     baseChance: 20,
     specialty: { id: "handgun", label: "Handgun" },
   },
+  "first-aid": { skillId: "first-aid", label: "First Aid", baseChance: 30, specialty: null },
+  grapple: { skillId: "grapple", label: "Grapple", baseChance: 25, specialty: null },
+  hide: { skillId: "hide", label: "Hide", baseChance: 10, specialty: null },
+  insight: { skillId: "insight", label: "Insight", baseChance: 5, specialty: null },
+  jump: { skillId: "jump", label: "Jump", baseChance: 25, specialty: null },
   "knowledge:law": {
     skillId: "knowledge",
     label: "Knowledge (Law)",
@@ -35,23 +48,31 @@ export const BRP_FIRST_SLICE_SKILL_CATALOG = {
     specialty: { id: "law", label: "Law" },
   },
   listen: { skillId: "listen", label: "Listen", baseChance: 25, specialty: null },
+  medicine: { skillId: "medicine", label: "Medicine", baseChance: 5, specialty: null },
+  navigate: { skillId: "navigate", label: "Navigate", baseChance: 10, specialty: null },
   persuade: { skillId: "persuade", label: "Persuade", baseChance: 15, specialty: null },
-  spot: { skillId: "spot", label: "Spot", baseChance: 25, specialty: null },
   research: { skillId: "research", label: "Research", baseChance: 25, specialty: null },
-  brawl: { skillId: "brawl", label: "Brawl", baseChance: 25, specialty: null },
-  "fast-talk": { skillId: "fast-talk", label: "Fast Talk", baseChance: 5, specialty: null },
-  hide: { skillId: "hide", label: "Hide", baseChance: 10, specialty: null },
-  insight: { skillId: "insight", label: "Insight", baseChance: 5, specialty: null },
+  sense: { skillId: "sense", label: "Sense", baseChance: 10, specialty: null },
   "science:forensics": {
     skillId: "science",
     label: "Science (Forensics)",
     baseChance: 1,
     specialty: { id: "forensics", label: "Forensics" },
   },
+  "sleight-of-hand": { skillId: "sleight-of-hand", label: "Sleight of Hand", baseChance: 5, specialty: null },
+  spot: { skillId: "spot", label: "Spot", baseChance: 25, specialty: null },
+  status: { skillId: "status", label: "Status", baseChance: 15, specialty: null },
   stealth: { skillId: "stealth", label: "Stealth", baseChance: 10, specialty: null },
-  track: { skillId: "track", label: "Track", baseChance: 10, specialty: null },
-  "first-aid": { skillId: "first-aid", label: "First Aid", baseChance: 30, specialty: null },
+  swim: { skillId: "swim", label: "Swim", baseChance: 25, specialty: null },
   teach: { skillId: "teach", label: "Teach", baseChance: 10, specialty: null },
+  "technical:computer-use": {
+    skillId: "technical",
+    label: "Technical (Computer Use)",
+    baseChance: 5,
+    specialty: { id: "computer-use", label: "Computer Use" },
+  },
+  throw: { skillId: "throw", label: "Throw", baseChance: 25, specialty: null },
+  track: { skillId: "track", label: "Track", baseChance: 10, specialty: null },
 } as const satisfies Record<string, BrpStaticSkillDefinitionTemplate>;
 
 export type BrpFirstSliceSkillKey = keyof typeof BRP_FIRST_SLICE_SKILL_CATALOG;
@@ -88,7 +109,7 @@ export function brpSkillIdentityKey(skillId: string, specialty: BrpSkillSpecialt
 
 export function resolveBrpStaticSkillDefinition(
   skillKey: BrpFirstSliceSkillKey,
-  _characteristics: BrpCharacteristicValues,
+  characteristics: BrpCharacteristicValues,
 ): BrpResolvedSkillDefinition {
   const definition = BRP_FIRST_SLICE_SKILL_CATALOG[skillKey];
   const specialty = definition.specialty ? { ...definition.specialty } : null;
@@ -96,7 +117,7 @@ export function resolveBrpStaticSkillDefinition(
     key: brpSkillIdentityKey(definition.skillId, specialty),
     skillId: definition.skillId,
     label: definition.label,
-    baseChance: definition.baseChance,
+    baseChance: definition.baseChance === "DEXx2" ? characteristics.DEX * 2 : definition.baseChance,
     specialty,
   };
 }

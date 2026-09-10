@@ -3,6 +3,7 @@ import {
   BRP_CHARACTERISTIC_IDS,
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
+  BRP_FIRST_SLICE_SKILL_CATALOG,
   BRP_SCHOLAR_FIXED_SKILL_KEYS,
   brpSkillIdentityKey,
   brpUge105Adapter,
@@ -70,6 +71,7 @@ export interface BrpCreatorSkillRow {
   personalPoints: number;
   finalRating: number;
   overCap: boolean;
+  professionalEligible: boolean;
 }
 
 export interface BrpCreatorPreview {
@@ -125,9 +127,16 @@ export function previewBrpCreatorState(state: BrpCreatorState): BrpCreatorPrevie
       state.age,
       state.powerLevel === "heroic" ? state.defaultStartingAge : undefined,
     );
-    const skillInputs = professionalSkillInputs(state, characteristics);
+    const professionalInputs = professionalSkillInputs(state, characteristics);
+    const professionalKeys = new Set(
+      professionalInputs.map((input) => resolveIdentity(input, characteristics).key),
+    );
+    const skillInputs = dedupeAllocationIdentities(
+      [...professionalInputs, ...personalSkillInputs(state, characteristics)],
+      characteristics,
+    );
     const skillRows = skillInputs.map((allocation) => {
-      const definition = resolveBrpAllocationSkillDefinition(allocationWithPoints(allocation, 1), characteristics);
+      const definition = resolveIdentity(allocation, characteristics);
       const saved = state.allocations[definition.key] ?? zeroAllocation();
       const finalRating = definition.baseChance + saved.professionalPoints + saved.personalPoints;
       return {
@@ -138,6 +147,7 @@ export function previewBrpCreatorState(state: BrpCreatorState): BrpCreatorPrevie
         personalPoints: saved.personalPoints,
         finalRating,
         overCap: finalRating > profile.startingSkillCap,
+        professionalEligible: professionalKeys.has(definition.key),
       };
     });
     const professionalSpent = sum(skillRows.map((row) => row.professionalPoints));
@@ -192,9 +202,10 @@ export function previewBrpCreatorState(state: BrpCreatorState): BrpCreatorPrevie
 
 export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocument {
   const characteristics = resolvedCharacteristics(state);
-  const skillInputs = professionalSkillInputs(state, characteristics);
-  const professionalAllocations = withPoints(skillInputs, state, "professionalPoints", characteristics);
-  const personalAllocations = withPoints(skillInputs, state, "personalPoints", characteristics);
+  const professionalInputs = professionalSkillInputs(state, characteristics);
+  const personalInputs = personalSkillInputs(state, characteristics);
+  const professionalAllocations = withPoints(professionalInputs, state, "professionalPoints", characteristics);
+  const personalAllocations = withPoints(personalInputs, state, "personalPoints", characteristics);
   const common = {
     characterId: state.characterId,
     nativeStateId: state.nativeStateId,
@@ -246,13 +257,14 @@ export function autoAllocateBrpCreatorState(state: BrpCreatorState): BrpCreatorS
     state.age,
     state.powerLevel === "heroic" ? state.defaultStartingAge : undefined,
   );
-  const inputs = professionalSkillInputs(state, characteristics);
+  const professionalInputs = professionalSkillInputs(state, characteristics);
+  const personalInputs = personalSkillInputs(state, characteristics);
   const allocations: Record<string, BrpCreatorAllocationState> = {};
   let professionalRemaining = profile.professionalSkillPoints;
   let personalRemaining = calculateBrpPersonalSkillPoints(characteristics.INT);
 
-  for (const input of inputs) {
-    const definition = resolveBrpAllocationSkillDefinition(allocationWithPoints(input, 1), characteristics);
+  for (const input of professionalInputs) {
+    const definition = resolveIdentity(input, characteristics);
     const professionalPoints = Math.min(professionalRemaining, profile.startingSkillCap - definition.baseChance);
     allocations[definition.key] = { professionalPoints, personalPoints: 0 };
     professionalRemaining -= professionalPoints;
@@ -261,8 +273,8 @@ export function autoAllocateBrpCreatorState(state: BrpCreatorState): BrpCreatorS
     throw new Error("Current BRP profession does not have enough legal starting-cap room for the professional budget.");
   }
 
-  for (const input of inputs) {
-    const definition = resolveBrpAllocationSkillDefinition(allocationWithPoints(input, 1), characteristics);
+  for (const input of personalInputs) {
+    const definition = resolveIdentity(input, characteristics);
     const current = allocations[definition.key] ?? zeroAllocation();
     const personalPoints = Math.min(
       personalRemaining,
@@ -272,7 +284,7 @@ export function autoAllocateBrpCreatorState(state: BrpCreatorState): BrpCreatorS
     personalRemaining -= personalPoints;
   }
   if (personalRemaining !== 0) {
-    throw new Error("Current BRP profession does not have enough legal starting-cap room for the personal budget.");
+    throw new Error("Current BRP skill surface does not have enough legal starting-cap room for the personal budget.");
   }
 
   return { ...state, allocations };
@@ -376,6 +388,41 @@ function professionalSkillInputs(
   return inputs;
 }
 
+function personalSkillInputs(
+  state: BrpCreatorState,
+  characteristics: BrpCharacteristicValues,
+): BrpAllocationIdentity[] {
+  const staticInputs = (Object.keys(BRP_FIRST_SLICE_SKILL_CATALOG) as BrpFirstSliceSkillKey[])
+    .map((skillKey) => ({ skillKey }) satisfies BrpAllocationIdentity);
+  const openProfessionInputs = state.professionId === "scholar"
+    ? [
+      { language: { role: "own" as const, language: { ...state.scholarOwnLanguage } } },
+      { language: { role: "other" as const, language: { ...state.scholarOtherLanguage } } },
+      ...state.scholarAcademicSkills.map((skill) => ({ skill: cloneAcademic(skill) })),
+    ] satisfies BrpAllocationIdentity[]
+    : [];
+  return dedupeAllocationIdentities([...staticInputs, ...openProfessionInputs], characteristics);
+}
+
+function dedupeAllocationIdentities(
+  inputs: BrpAllocationIdentity[],
+  characteristics: BrpCharacteristicValues,
+): BrpAllocationIdentity[] {
+  const seen = new Set<string>();
+  const result: BrpAllocationIdentity[] = [];
+  for (const input of inputs) {
+    const key = resolveIdentity(input, characteristics).key;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(input);
+  }
+  return result;
+}
+
+function resolveIdentity(identity: BrpAllocationIdentity, characteristics: BrpCharacteristicValues) {
+  return resolveBrpAllocationSkillDefinition(allocationWithPoints(identity, 1), characteristics);
+}
+
 function withPoints(
   inputs: BrpAllocationIdentity[],
   state: BrpCreatorState,
@@ -384,7 +431,7 @@ function withPoints(
 ): BrpSkillAllocationInput[] {
   const result: BrpSkillAllocationInput[] = [];
   for (const input of inputs) {
-    const definition = resolveBrpAllocationSkillDefinition(allocationWithPoints(input, 1), characteristics);
+    const definition = resolveIdentity(input, characteristics);
     const points = state.allocations[definition.key]?.[source] ?? 0;
     if (points <= 0) continue;
     result.push(allocationWithPoints(input, points));

@@ -27,11 +27,16 @@ export const BRP_DETECTIVE_REQUIRED_SKILL_KEYS = [
 
 export const BRP_DETECTIVE_ELECTIVE_SKILL_KEYS = [
   "brawl",
+  "disguise",
+  "dodge",
   "fast-talk",
+  "grapple",
   "hide",
   "insight",
+  "medicine",
   "science:forensics",
   "stealth",
+  "technical:computer-use",
   "track",
 ] as const satisfies readonly BrpFirstSliceSkillKey[];
 
