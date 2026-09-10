@@ -1,8 +1,10 @@
 export { brpUge105Adapter as brpUge105BaseAdapter } from "./adapter.js";
 export { brpUge105Adapter as brpUge105PoweredAdapter } from "./poweredAdapter.js";
 export { brpUge105Adapter as brpUge105PsychicAdapter } from "./psychicAdapter.js";
-export { brpUge105Adapter } from "./playerCoreAdapter.js";
+export { brpUge105Adapter as brpUge105PlayerCoreAdapter } from "./playerCoreAdapter.js";
+export { brpUge105Adapter } from "./equipmentAdapter.js";
 export * from "./characteristicGeneration.js";
+export * from "./equipment.js";
 export * from "./firstSlice.js";
 export * from "./nativeCharacter.js";
 export * from "./playerCoreBuilder.js";
