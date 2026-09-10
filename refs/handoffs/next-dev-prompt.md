@@ -9,7 +9,7 @@ tags:
 ---
 # Next Development Prompt
 
-The bounded BRP Superpowers and Psychic Abilities architecture probes are complete and automated-green on `dev`.
+The BRP second-system architecture stress test is complete, Issue #13 is closed as completed, and the bounded Superpowers and Psychic Abilities probes are automated-green on `dev`.
 
 There is **no automatic follow-on implementation authorized by chronology**. Follow the user's explicitly selected product line.
 
@@ -95,18 +95,25 @@ For rolled characters, Psychic base rating uses final starting POW after redistr
 
 `brp-character/0.1` remains sufficient and shared CharacterDocument remains unchanged.
 
-## Stress-Test Decision Point
+## Stress-Test Closeout
 
-The original BRP second-system architecture stress-test goal is now substantially complete.
+The original BRP second-system architecture stress-test goal is complete. Issue #13 is closed with state reason `completed`.
 
-Do not continue implementing BRP features merely to make the stress-test issue larger. Future BRP work should be one of:
+Roadmap closeout checkpoint:
+
+- SHA `aa7e6e54aa2dcd6dd2e029e90e2863bea0a29cb8`
+- Actions `34420511173`
+- job `102694668708`
+- Verify: success
+
+Do not continue implementing BRP features merely to accumulate architecture evidence. Future BRP work should be one of:
 
 - explicit product breadth;
-- a deliberately selected source-supported architecture probe;
+- a deliberately selected source-supported architecture probe with a concrete unanswered question;
 - creator/runtime work required by a real user-facing BRP target;
 - eventual exact-SHA promotion after the user decides accumulated BRP is ready.
 
-A future Sorcery or Magic probe could test prepared/list-based capability grammars, but that is **not** automatically next and may provide less architecture value than defining the intended BRP product breadth.
+A future Sorcery or Magic slice may still be worthwhile as product functionality, but it is **not** an automatic architecture next step.
 
 ## Do Not Add By Default
 
@@ -127,12 +134,12 @@ Do not automatically add:
 
 Each needs explicit product intent and a bounded source audit.
 
-## Other Independently Selectable Product Lines
+## Independently Selectable Product Lines
 
-The user may instead explicitly select:
+The user may explicitly select:
 
-- close/reframe BRP Issue #13 and spin future BRP breadth into separate epics;
-- BRP creator product breadth;
+- BRP creator product breadth, preferably tracked in a new narrowly scoped issue or epic when implementation begins;
+- a specific BRP power-system/catalog/runtime slice;
 - random-table companion work with a real consumer;
 - structured naming when a real setting/campaign provider exists;
 - Foundry integration;
