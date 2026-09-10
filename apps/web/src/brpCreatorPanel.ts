@@ -2,15 +2,19 @@ import type { CharacterDocument } from "../../../packages/character-model/src/in
 import {
   applyBrpProfessionSuggestion,
   applyBrpScholarAcademicSuggestion,
+  applyBrpStartingEquipment,
   defaultBrpWealthForProfession,
+  filterBrpStartingEquipmentSelection,
   readBrpProfessionSuggestion,
   readBrpScholarAcademicSuggestions,
+  readBrpStartingEquipment,
   suggestBrpProfession,
   suggestBrpScholarAcademicSkill,
   type BrpAcademicSkillSelection,
   type BrpAthleteElectiveSkillKey,
   type BrpCharacteristicId,
   type BrpDetectiveElectiveSkillKey,
+  type BrpEquipmentId,
   type BrpFirstSliceSkillKey,
   type BrpProfessionId,
   type BrpProfessionSuggestionProvenance,
@@ -25,6 +29,7 @@ import {
   rerollBrpCreatorState,
   type BrpCreatorState,
 } from "./brpCreatorState.js";
+import { mountBrpEquipmentControls } from "./brpEquipmentControls.js";
 import { brpCreatorHtml, readBrpRedistribution } from "./brpCreatorPanelView.js";
 import { ensureBrpCreatorStyles } from "./brpCreatorStyles.js";
 
@@ -40,14 +45,23 @@ export function mountBrpCreatorPanel(
   let state = createDefaultBrpCreatorState();
   let professionSuggestion: BrpProfessionSuggestionProvenance | null = null;
   let academicSuggestions: BrpScholarAcademicSuggestionRecord[] = [];
+  let equipmentIds: BrpEquipmentId[] = [];
 
   const render = (): void => {
+    const preview = previewBrpCreatorState(state);
+    if (preview.validCharacter) {
+      equipmentIds = filterBrpStartingEquipmentSelection(preview.validCharacter, equipmentIds);
+    }
     root.innerHTML = brpCreatorHtml(
       state,
-      previewBrpCreatorState(state),
+      preview,
       professionSuggestion,
       academicSuggestions,
     );
+    mountBrpEquipmentControls(root, preview.validCharacter, equipmentIds, (next) => {
+      equipmentIds = next;
+      render();
+    });
     bindCurrentControls();
   };
 
@@ -175,6 +189,7 @@ export function mountBrpCreatorPanel(
             provenance: record.provenance,
           });
         }
+        character = applyBrpStartingEquipment(character, equipmentIds);
         onCharacter(character);
       }
       render();
@@ -253,6 +268,7 @@ export function mountBrpCreatorPanel(
       state = reopenBrpCreatorState(character);
       professionSuggestion = readBrpProfessionSuggestion(character);
       academicSuggestions = readBrpScholarAcademicSuggestions(character);
+      equipmentIds = readBrpStartingEquipment(character);
       render();
     },
   };
