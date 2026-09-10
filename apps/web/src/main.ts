@@ -2,6 +2,7 @@ import { dnd5eSrd521Adapter, type Dnd5eNativeCharacter } from "../../../packages
 import { BRP_CHARACTERISTIC_IDS, brpUge105Adapter, type BrpNativeCharacter } from "../../../packages/system-brp/src/index.js";
 import type { CharacterDocument, NativeSystemState } from "../../../packages/character-model/src/index.js";
 import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
+import { appendBrpEquipmentReview } from "./brpEquipmentReview.js";
 import { parseCharacterOpenMessage, resolveHostOrigin } from "./characterForgeHostBridge.js";
 import { mountCreatorWorkspace } from "./creatorWorkspace.js";
 
@@ -152,6 +153,7 @@ function renderBrpCharacter(character: CharacterDocument, nativeState: NativeSys
     </div>
     ${rolled ? `<details class="document-inspector"><summary>Inspect retained characteristic rolls</summary><pre>${escapeHtml(JSON.stringify(rolled, null, 2))}</pre></details>` : ""}
     <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
+  appendBrpEquipmentReview(resultElement, payload);
 }
 
 function classResourceDetails(payload: Dnd5eNativeCharacter): string {
