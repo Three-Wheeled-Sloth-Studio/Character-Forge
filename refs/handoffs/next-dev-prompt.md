@@ -5,166 +5,177 @@ tags:
 - character-forge
 - handoffs
 - brp
-- powers
+- productization
 ---
 # Next Development Prompt
 
-The BRP second-system architecture stress test is complete, Issue #13 is closed as completed, and the bounded Superpowers and Psychic Abilities probes are automated-green on `dev`.
+Continue implementation in:
 
-There is **no automatic follow-on implementation authorized by chronology**. Follow the user's explicitly selected product line.
+`https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge`
+
+Work directly on `dev`.
+
+The BRP second-system architecture stress test is complete and GitHub Issue #13 is closed. The next active epic is GitHub Issue #14: **Make BRP UGE a player-usable core character generator**.
+
+The accepted longer sequence is:
+
+1. BRP Player-Usable Core;
+2. BRP Investigative Horror profile within BRP ORC/licensing boundaries;
+3. bounded Fate Condensed third-system architecture probe;
+4. Universal Grammar v0.1 from D&D + BRP + Fate evidence.
+
+Do not skip ahead by chronology.
 
 ## Bounded Re-entry
 
-For any BRP continuation, begin with:
+First run:
 
-`python refs/tools/generate_agent_context.py --focus "BRP current product line"`
+```bash
+python refs/tools/generate_agent_context.py --focus "BRP player usable core"
+```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/integration/brp-uge-orc.md`
-3. `refs/implementation/fileMap.yaml`
-4. the system-owned files for the explicitly selected slice.
+2. `refs/planning/brp-player-usable-core.md`
+3. `refs/planning/brp-to-universal-grammar-path.md`
+4. `refs/integration/brp-uge-orc.md`
+5. `refs/implementation/fileMap.yaml`
+6. GitHub Issue #14
+7. only the BRP source/creator files needed by the selected first slice.
 
-If the selected work concerns Powers, inspect:
+Do not reread the entire repository history.
 
-- `packages/system-brp/src/superpowers.ts`
-- `packages/system-brp/src/poweredAdapter.ts`
-- `packages/system-brp/src/superpowers.test.ts`
-- `packages/system-brp/src/psychicAbilities.ts`
-- `packages/system-brp/src/psychicAdapter.ts`
-- `packages/system-brp/src/psychicAbilities.test.ts`
+## First Task — Bounded Player-Usability Gap Audit
 
-Prefer diff-first continuation and conserve agent context.
+Before editing, compare the authoritative BRP ORC 1.05 character-creation flow against the current BRP creator and classify relevant capabilities as:
 
-## Accepted Psychic Checkpoint
+- **supported**;
+- **missing for v0.1**;
+- **deferred**.
 
-Implementation checkpoint:
+At minimum evaluate:
 
-- SHA: `ae35b556dfc177f12e9f934fedd455803c6b74c7`
-- Actions: `34417631582`
-- job: `102685926895`
-- Verify: success
+- profession breadth and source-supported profession customization;
+- ordinary skills/specialties needed by credible generic professions;
+- age and wealth boundaries;
+- equipment, weapons, and armor needed to leave the creator with a table-usable character;
+- identity/background/finishing details;
+- professional/personal skill-allocation UX and validation clarity;
+- final character review;
+- print/export projection;
+- save/reopen behavior;
+- campaign/rules-profile seam needed by the later Investigative Horror profile.
+
+Keep this audit bounded. Its purpose is to select the highest-value next implementation slice, not to generate an exhaustive BRP backlog.
+
+## Then Implement
+
+After the audit, implement the highest-value missing vertical slice in the same thread unless the audit exposes a genuine architecture/product decision requiring user input.
+
+Likely priority order, subject to evidence:
+
+1. profession + skill breadth;
+2. finish-the-character/equipment breadth;
+3. allocation UX/validation clarity;
+4. final review + print/export;
+5. campaign/rules-profile seam.
+
+Prefer source-backed vertical product value over abstraction-first work.
+
+## BRP v0.1 Acceptance Target
+
+A player unfamiliar with the repository should be able to create, finish, review, save, reopen, and export/print a generic BRP character that feels like a usable product rather than an architecture demonstration.
+
+Do not block that target on:
+
+- complete Superpowers/Psychic catalogs;
+- Magic, Mutations, or Sorcery;
+- every BRP optional subsystem;
+- non-human breadth;
+- setting-owned generated-name content;
+- Fate;
+- Universal Grammar v0.1.
+
+## Preserved BRP Architecture Baseline
+
+The completed architecture work already proves:
+
+- `brp-character/0.1` native state;
+- canonical adapter `0.7.0`;
+- explicit and standard-rolled characteristics;
+- Normal/Heroic skill construction;
+- Detective/Scholar profession grammars;
+- open specialties/languages;
+- separate base/professional/personal/final skill causality;
+- creator save/reopen;
+- random-table consumers;
+- Superpowers character-point grammar;
+- Psychic Abilities percentile/personal-pool grammar;
+- no shared CharacterDocument change;
+- no universal power/capability ontology.
+
+Do not redesign those seams without concrete product evidence.
+
+Accepted Psychic checkpoint:
+
+- SHA `ae35b556dfc177f12e9f934fedd455803c6b74c7`
+- Actions `34417631582`
+- job `102685926895`
 - 46 test files / 231 tests / 0 failures
-- 178 tracked paths
-- 14 required project-memory files
-- OKF: 20 concepts / 10 indexes
-- agent context: 3,818 characters
-- build: `Character Forge build 0.0.1 ae35b556`
 
-The final documentation head may be newer; use the current `dev` head at re-entry and preserve the implementation checkpoint above as the tested code milestone.
+The completed stress-test handoff is archived at:
 
-Promoted branches remain unchanged unless an explicit promotion decision is made:
+- `refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md`
+
+## Later Investigative Horror Boundary
+
+Do not import Call of Cthulhu-branded/protected content while productizing BRP.
+
+The accepted future product is **BRP: Universal Game Engine — Investigative Horror**, using BRP ORC rules plus independently authored/sourced content with explicit provenance. See:
+
+- `refs/planning/brp-investigative-horror-profile.md`
+
+The simplified BRP Sanity rules may be source-audited from BRP ORC; Call of Cthulhu-specific Sanity/rules expression, branding, trade dress, copied occupation/content lists, and Chaosium Mythos material remain outside the BRP adapter absent a separate license.
+
+## Later Fate / Universal Grammar Boundary
+
+Do not freeze Universal Grammar before the bounded Fate Condensed probe has been reviewed.
+
+Fate was chosen because it adds high-information evidence around freeform Aspects, Stunts, Stress, Consequences, and narrative-mechanical state. It is an architecture probe first, not an automatic full production implementation.
+
+See:
+
+- `refs/planning/fate-third-system-probe.md`
+- `refs/planning/universal-grammar-v0.1.md`
+
+Native system state remains canonical. Universal Grammar is a derived semantic/translation layer with explicit loss reporting.
+
+## Branch / Promotion Boundary
+
+No accumulated BRP work has been promoted.
+
+Promoted branches remain:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion.
+Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D or BRP work.
 
-## What The Two Powers Probes Proved
+## Parked D&D Work
 
-BRP skill-construction level and power-system level are independent dimensions.
+D&D Guided Narrative remains parked at:
 
-The existing `rulesProfile.powerLevel` remains the established Normal/Heroic skill-construction profile. Individual BRP power systems retain their own source-native state.
+- `refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md`
 
-### Superpowers
-
-The first probe uses a separate character-point grammar:
-
-- source-derived character-point budget from initial characteristics;
-- Normal/Heroic Superpowers levels independent of skill profile;
-- Extra Energy;
-- Extra Hit Points;
-- direct powered effects on Power Points / Hit Points / Major Wound level.
-
-### Psychic Abilities
-
-The second probe uses a different grammar:
-
-- Normal Psychic profile only in the current proof;
-- exactly two starting abilities;
-- Empathy and Mind Shield;
-- base rating `POW x 1`;
-- percentile ratings kept outside ordinary `skills`;
-- personal `INT x 10` skill points may be reallocated into Psychic Ability training;
-- ordinary personal skill spend plus Psychic training must equal the single personal pool;
-- skill-construction starting cap still governs the resulting Psychic rating;
-- Power Point use belongs to the ability's power semantics rather than ordinary skill state.
-
-For rolled characters, Psychic base rating uses final starting POW after redistribution. This intentionally differs from Superpowers budgeting, which uses initial characteristics before redistribution.
-
-`brp-character/0.1` remains sufficient and shared CharacterDocument remains unchanged.
-
-## Stress-Test Closeout
-
-The original BRP second-system architecture stress-test goal is complete. Issue #13 is closed with state reason `completed`.
-
-Roadmap closeout checkpoint:
-
-- SHA `aa7e6e54aa2dcd6dd2e029e90e2863bea0a29cb8`
-- Actions `34420511173`
-- job `102694668708`
-- Verify: success
-
-Do not continue implementing BRP features merely to accumulate architecture evidence. Future BRP work should be one of:
-
-- explicit product breadth;
-- a deliberately selected source-supported architecture probe with a concrete unanswered question;
-- creator/runtime work required by a real user-facing BRP target;
-- eventual exact-SHA promotion after the user decides accumulated BRP is ready.
-
-A future Sorcery or Magic slice may still be worthwhile as product functionality, but it is **not** an automatic architecture next step.
-
-## Do Not Add By Default
-
-Do not automatically add:
-
-- more Superpowers entries;
-- more Psychic Abilities;
-- Heroic/Epic/Superhuman Psychic profiles;
-- Psychic professional-pool training;
-- Scholar Psychic support;
-- multiple simultaneous power systems/power sets;
-- Magic, Mutations, or Sorcery;
-- runtime Psychic activation/resistance/combat handling;
-- BRP Powers creator UI;
-- power randomization;
-- D&D spell-state reuse;
-- a universal cross-system power/capability ontology.
-
-Each needs explicit product intent and a bounded source audit.
-
-## Independently Selectable Product Lines
-
-The user may explicitly select:
-
-- BRP creator product breadth, preferably tracked in a new narrowly scoped issue or epic when implementation begins;
-- a specific BRP power-system/catalog/runtime slice;
-- random-table companion work with a real consumer;
-- structured naming when a real setting/campaign provider exists;
-- Foundry integration;
-- character advancement/maintenance;
-- D&D accumulated runtime QA/promotion;
-- a deliberate resumption of parked D&D Guided Narrative.
-
-Do not choose among these merely because one appears later in the roadmap.
-
-## D&D Parking State
-
-D&D Guided Narrative remains parked. Do not resume Cleric/Druid order-preference work unless explicitly instructed.
-
-D&D Issue #11 remains the accumulated owner runtime-QA/promotion gate.
-
-## Foundation Guardrails
-
-Native system state is mandatory and lossless.
-
-Never reconstruct retained native state from semantic projection. Shared creator code coordinates interactions only; system-owned rules, mappings, distributions, and content remain system-owned. Parchment remains system-agnostic. BRP power systems remain BRP-native until repeated cross-system evidence justifies anything shared. Preserve exact-SHA promotion provenance.
+Do not resume it unless explicitly selected.
 
 ## Validation
 
-For any future implementation milestone:
+For every implementation milestone:
 
-`npm run verify`
+```bash
+npm run verify
+```
 
 Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
