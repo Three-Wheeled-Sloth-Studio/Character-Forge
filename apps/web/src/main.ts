@@ -1,8 +1,13 @@
-import { dnd5eSrd521Adapter, type Dnd5eNativeCharacter } from "../../../packages/system-dnd5e/src/index.js";
-import { BRP_CHARACTERISTIC_IDS, brpUge105Adapter, type BrpNativeCharacter } from "../../../packages/system-brp/src/index.js";
+import { renderCharacterSheet } from "../../../packages/character-sheet/src/index.js";
 import type { CharacterDocument, NativeSystemState } from "../../../packages/character-model/src/index.js";
+import { buildBrpCharacterSheet, brpUge105Adapter } from "../../../packages/system-brp/src/index.js";
+import { dnd5eSrd521Adapter, type Dnd5eNativeCharacter } from "../../../packages/system-dnd5e/src/index.js";
 import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
-import { appendBrpEquipmentReview } from "./brpEquipmentReview.js";
+import {
+  bindCharacterDocumentControls,
+  characterDocumentControlsHtml,
+  characterDocumentJson,
+} from "./characterSheetControls.js";
 import { parseCharacterOpenMessage, resolveHostOrigin } from "./characterForgeHostBridge.js";
 import { mountCreatorWorkspace } from "./creatorWorkspace.js";
 
@@ -81,6 +86,7 @@ function renderDnd5eCharacter(character: CharacterDocument, nativeState: NativeS
 
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
+    ${characterDocumentControlsHtml()}
     <div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2><p>${humanize(payload.origin.speciesId)} · ${humanize(payload.origin.backgroundId)} · ${humanize(payload.class.classId)} 1</p></div><span class="validation-pill valid">Native state valid</span></div>
     <div class="ability-grid">${abilityCard("STR", abilities.strength)}${abilityCard("DEX", abilities.dexterity)}${abilityCard("CON", abilities.constitution)}${abilityCard("INT", abilities.intelligence)}${abilityCard("WIS", abilities.wisdom)}${abilityCard("CHA", abilities.charisma)}</div>
     <div class="stat-grid">${statCard("HP", String(payload.resources.hitPointsMaximum))}${statCard("AC", String(payload.derived.armorClass))}${statCard("Initiative", signed(payload.derived.initiativeModifier))}${statCard("Passive Perception", String(payload.derived.passivePerception))}</div>
@@ -115,45 +121,20 @@ function renderDnd5eCharacter(character: CharacterDocument, nativeState: NativeS
       <div><strong>Currency</strong><span>${payload.currencyGp} GP</span></div>
       ${seed ? `<div><strong>Generation seed</strong><code>${escapeHtml(seed)}</code></div>` : ""}
     </div>
-    <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
+    <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
+  bindCharacterDocumentControls(resultElement, character);
 }
 
 function renderBrpCharacter(character: CharacterDocument, nativeState: NativeSystemState): void {
   const validation = brpUge105Adapter.validateNativeState(nativeState);
   if (!validation.valid) { renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "BRP native state validation failed."); return; }
-  const payload = nativeState.payload as BrpNativeCharacter;
-  const profession = payload.identity.profession;
-  const rolled = payload.characteristicGenerationState.method === "standard-rolled" ? payload.characteristicGenerationState : null;
-  const ageBasis = payload.identity.ageBasis;
 
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
-    <div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2><p>Human · ${humanize(profession.professionId)} · BRP UGE</p></div><span class="validation-pill valid">Native state valid</span></div>
-    <div class="ability-grid brp-review-characteristics">${BRP_CHARACTERISTIC_IDS.map((id) => brpCharacteristicCard(id, payload.characteristics[id].final)).join("")}</div>
-    <div class="stat-grid">${statCard("HP", String(payload.derived.hitPoints))}${statCard("Major Wound", String(payload.derived.majorWoundLevel))}${statCard("Power Points", String(payload.derived.powerPoints))}${statCard("Move", String(payload.derived.move))}</div>
-    <div class="result-details">
-      <div><strong>Power level</strong><span>${humanize(payload.rulesProfile.powerLevel)}</span></div>
-      <div><strong>Characteristic method</strong><span>${humanize(payload.rulesProfile.characteristicGeneration)}</span></div>
-      <div><strong>Age / gender</strong><span>${payload.identity.age} / ${escapeHtml(payload.identity.gender)}</span></div>
-      <div><strong>Wealth</strong><span>${humanize(profession.wealth)}</span></div>
-      <div><strong>Damage modifier</strong><span>${escapeHtml(payload.derived.damageModifier)}</span></div>
-      <div><strong>Experience bonus</strong><span>${payload.derived.experienceBonus}</span></div>
-      <div><strong>Professional budget</strong><span>${payload.skillBudgets.professional.spent} / ${payload.skillBudgets.professional.total}</span></div>
-      <div><strong>Personal budget</strong><span>${payload.skillBudgets.personal.spent} / ${payload.skillBudgets.personal.total}</span></div>
-      ${ageBasis ? `<div><strong>Age causality</strong><span>Default ${ageBasis.defaultStartingAge}; +${ageBasis.addedYears} years; +${ageBasis.professionalSkillPointAdjustment} professional points</span></div>` : ""}
-      ${profession.professionId === "detective" ? `<div><strong>Detective electives</strong><span>${profession.selectedElectiveSkillIds.map(humanize).join(", ")}</span></div>` : ""}
-      ${profession.professionId === "scholar" ? `<div><strong>Own language</strong><span>${escapeHtml(profession.ownLanguage.label)} <code>${escapeHtml(profession.ownLanguage.id)}</code></span></div><div><strong>Other language</strong><span>${escapeHtml(profession.otherLanguage.label)} <code>${escapeHtml(profession.otherLanguage.id)}</code></span></div><div><strong>Academic specialties</strong><span>${profession.selectedAcademicSkills.map((entry) => `${humanize(entry.skillId)} (${escapeHtml(entry.specialty.label)})`).join(", ")}</span></div>` : ""}
-      ${rolled ? `<div><strong>Generation seed</strong><code>${escapeHtml(rolled.seed)}</code></div><div><strong>Redistribution</strong><span>${rolled.redistribution.length ? rolled.redistribution.map((entry) => `${entry.points} ${entry.from} to ${entry.to}`).join(", ") : "None"}</span></div>` : ""}
-      <div><strong>Rules source</strong><code>${payload.rulesSourceIds.map(escapeHtml).join(", ")}</code></div>
-    </div>
-    <div class="brp-review-skills">
-      <h3>Skills</h3>
-      <div class="brp-review-skill-labels"><span>Skill</span><span>Base</span><span>Prof.</span><span>Personal</span><span>Final</span></div>
-      ${payload.skills.map((skill) => `<div class="brp-review-skill-row"><span>${escapeHtml(skill.label)}${skill.specialty ? ` <small>${escapeHtml(skill.specialty.id)}</small>` : ""}</span><span>${skill.baseChance}</span><span>${skill.contributions.professional}</span><span>${skill.contributions.personal}</span><strong>${skill.finalRating}</strong></div>`).join("")}
-    </div>
-    ${rolled ? `<details class="document-inspector"><summary>Inspect retained characteristic rolls</summary><pre>${escapeHtml(JSON.stringify(rolled, null, 2))}</pre></details>` : ""}
-    <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
-  appendBrpEquipmentReview(resultElement, payload);
+    ${characterDocumentControlsHtml(true)}
+    ${renderCharacterSheet(buildBrpCharacterSheet(character))}
+    <details class="document-inspector no-print"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
+  bindCharacterDocumentControls(resultElement, character);
 }
 
 function classResourceDetails(payload: Dnd5eNativeCharacter): string {
@@ -170,11 +151,10 @@ function resourceRow(label: string, value: string): string { return `<div><stron
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
   resultElement.classList.remove("empty-result");
-  resultElement.innerHTML = `<div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2></div><span class="validation-pill invalid">Validation failed</span></div><p>${escapeHtml(message)}</p><details class="document-inspector"><summary>Inspect retained character document</summary><pre>${escapeHtml(JSON.stringify(character, null, 2))}</pre></details>`;
+  resultElement.innerHTML = `<div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2></div><span class="validation-pill invalid">Validation failed</span></div><p>${escapeHtml(message)}</p><details class="document-inspector"><summary>Inspect retained character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
 }
 function postCharacterToHost(character: CharacterDocument): void { if (window.parent !== window) window.parent.postMessage({ type: CHARACTER_GENERATED_MESSAGE, payload: { projectId, character } }, hostOrigin ?? "*"); }
 function abilityCard(label: string, score: number): string { const modifier = Math.floor((score - 10) / 2); return `<div class="ability-card"><span>${label}</span><strong>${score}</strong><small>${signed(modifier)}</small></div>`; }
-function brpCharacteristicCard(label: string, score: number): string { return `<div class="ability-card"><span>${label}</span><strong>${score}</strong></div>`; }
 function statCard(label: string, value: string): string { return `<div class="stat-card"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`; }
 function signed(value: number): string { return value >= 0 ? `+${value}` : String(value); }
 function humanize(value: string): string { return value.split(":").at(-1)!.split("-").map((part) => part ? part[0]!.toUpperCase() + part.slice(1) : part).join(" "); }
