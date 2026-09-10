@@ -21,11 +21,12 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 | --- | --- | --- |
 | Characteristic construction | supported | Explicit and standard-rolled characteristics, retained roll provenance, and legal redistribution are system-owned. |
 | Normal and Heroic creation | supported | Professional budgets, starting caps, and retained Heroic age causality are enforced by BRP native state and adapter validation. |
-| Profession grammar foundation | supported | Detective and Scholar retain their source-shaped choices; the player-core slice adds Athlete, Beggar, and BRP-native Custom Profession rather than flattening professions into a universal class model. |
+| Profession and generic skill breadth | supported | Detective, Scholar, Athlete, Beggar, and Custom Profession provide credible generic coverage. Custom Profession keeps additional concepts available without flattening profession into a universal class model. Add more source professions only for demonstrated player gaps. |
 | Profession customization seam | supported | Custom Profession retains a player-authored title, description/social role, wealth, and exactly ten essential source-supported skills in BRP native state. |
 | Wealth boundaries | supported | Profession-specific creation supports Destitute, Poor, Average, Affluent, and Wealthy where the implemented source profiles allow them. |
 | Knowledge/Science specialties and languages | supported | Scholar specialties and language identities remain open, named, and lossless in native state. |
 | Professional/personal causality | supported | Base, professional, personal, and final skill values remain separate and validated; personal points can use the broader supported skill surface. |
+| Allocation UX and validation clarity | supported | Budget cards show spent/total plus spend/remove/ready guidance, rows identify profession eligibility, numeric inputs expose current legal ceilings, cap headroom is visible, and a blocking checklist explains why Generate is unavailable. Builders and adapters remain authoritative. |
 | Equipment finishing | supported | `equipment` remains a lossless native string-ID list backed by a source-audited BRP catalog. The creator can retain play-important gear, armor, and bounded modern pistols; weapon possession is checked against the source starting-skill threshold. |
 | Equipment table projection | supported | The character review resolves retained item IDs into useful weapon attack/damage/range/ammo/malfunction or armor AV/burden/ENC details without making review state canonical. |
 | Identity/background finishing | supported | Optional native finishing state retains size/build, appearance, mannerisms/motto, reputation, personal item/keepsake, background, and beliefs. The fields follow BRP Steps Nine and Ten while remaining setting-neutral and player-authored. |
@@ -37,17 +38,16 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 
 | Capability | Classification | Bounded v0.1 need |
 | --- | --- | --- |
-| Further profession/skill breadth | missing for v0.1 | Credible generic coverage exists, but some source professions still depend on skills or specialties outside the bounded catalog. Add only when they improve actual player coverage. |
-| Allocation UX and validation clarity | missing for v0.1 | Legal allocation is enforced and example-filled, but a player still needs clearer progress/error guidance than raw numeric rows provide. |
-| Print/export | missing for v0.1 | On-screen review exists, but there is no player-facing print/export projection. Export must project authoritative native state rather than becoming another rules model. |
+| Print/export | missing for v0.1 | On-screen review exists, but there is no complete player-facing print/export projection. Export must project authoritative native state rather than becoming another rules model. |
 | Campaign/rules-profile selection seam | missing for v0.1 | The native rules profile is a good foundation, but the creator does not yet select a named campaign/content profile. Keep this seam narrow so the later Investigative Horror profile can configure BRP rather than fork it. |
 
 ## Deferred
 
 - Characters under 18 and age 50+ aging/characteristic adjustments.
 - Full optional skill-category systems and every era-specific base-chance variant.
+- Additional source professions and specialty breadth unless owner/browser QA exposes a concrete generic-use gap.
 - The optional CHA-driven Distinctive Features subsystem and exhaustive cosmetic feature tables; freeform appearance remains supported without enabling that optional rule.
-- Exhaustive profession, weapon, armor, vehicle, and specialty catalogs in the first pass.
+- Exhaustive weapon, armor, vehicle, and specialty catalogs in the first pass.
 - Complete Superpowers/Psychic catalogs and Magic, Mutations, or Sorcery.
 - Broad non-human support.
 - Setting-owned generated names.
@@ -65,31 +65,16 @@ The second slice broadened professions with Athlete, Beggar, all needed wealth l
 
 The finish-the-character equipment slice preserves `brp-character/0.1`. Existing `equipment: string[]` becomes a stable native item-ID projection rather than being replaced by a second inventory schema.
 
-The bounded source-audited catalog includes:
-
-1. First Aid Kit and rope as useful play-important gear;
-2. Heavy Clothing and Soft Leather with retained armor value, burden, ENC, skill modifier, and value metadata;
-3. Light, Medium, and Heavy Pistols with retained BRP weapon-table damage, attacks, range, ammo, malfunction, and related Handgun skill identity; and
-4. player-facing guidance that ordinary clothing and Wealth-based pocket money are implicit, while above-Wealth items may still be justified through Status, GM approval, or profession-issued equipment.
-
-Starting pistols require the related Handgun skill at 50% or better in this creator. Selected equipment IDs are canonical native state; creator controls and the readable character sheet are projections over those IDs and the source-owned catalog.
+The bounded source-audited catalog includes First Aid Kit and rope, Heavy Clothing and Soft Leather, and Light, Medium, and Heavy Pistols. Starting pistols require the related Handgun skill at 50% or better in this creator. Selected equipment IDs are canonical native state; creator controls and the readable character sheet are projections over those IDs and the source-owned catalog.
 
 ## Fourth implementation slice
 
-BRP Steps Nine and Ten explicitly make size/build, physical and mental description, reputation, background, and similar details flexible: players may fill out as many or as few as matter. Step Eight also expects a personal item connected to family or background.
+BRP Steps Nine and Ten explicitly make size/build, physical and mental description, reputation, background, and similar details flexible. The bounded creator therefore adds optional player-authored size/build, appearance, mannerisms or motto, reputation, personal item or keepsake, background, and beliefs. These values are retained losslessly in BRP native state and projected into review only when populated. The optional CHA-driven Distinctive Features subsystem remains deferred.
 
-The bounded creator therefore adds a compact optional finishing block with seven player-authored fields:
+## Fifth implementation slice
 
-1. size/build;
-2. appearance;
-3. mannerisms or motto;
-4. reputation;
-5. personal item or keepsake;
-6. background, with prompts covering origin, education, family, organizations, and interesting past; and
-7. beliefs, when relevant.
-
-These fields are stored losslessly as descriptive BRP native state, omitted when entirely blank, reconstructed from native state on reopen, and projected into the character review only when populated. They do not create a setting-owned naming corpus, culture model, universal personality ontology, or implied mechanical effects. The optional CHA-driven Distinctive Features subsystem remains deferred rather than being silently enabled.
+The allocation UX pass leaves all point arithmetic and legality in the established BRP builders/adapters while making that state actionable to a player. Professional and personal budget cards now show spent/total, progress, and exact spend/remove/ready guidance. Skill rows identify profession eligibility, show current legal input ceilings, and expose remaining cap headroom or overage. A blocking checklist names budget and cap problems before the disabled Generate action, while the existing rules validation remains visible as the authoritative detail.
 
 ## Next bounded slice
 
-Allocation UX and validation clarity is now the highest-value remaining creator gap. Make professional and personal progress/error state easier to understand and correct without weakening system-owned legality. After that, finish player-facing print/export and the narrow campaign/rules-profile seam required for Investigative Horror.
+Player-facing print/export is now the highest-value remaining v0.1 product gap. Reuse the existing review/native state rather than creating another character model. After that, add only the narrow campaign/rules-profile selection seam required to configure the future Investigative Horror profile, then run representative owner browser QA and Issue #14 closeout.
