@@ -7,7 +7,7 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers, Psychic Abilities, player-core professions, bounded equipment, descriptive finishing, and adaptive sheet projection all fit without changing the shared character contract; Universal Grammar remains a derived translation layer and is not frozen until D&D + BRP + Fate evidence is reviewed.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. BRP profile provenance, powers, player-core professions, equipment, finishing, and adaptive sheet projection fit without changing the shared character contract; Universal Grammar remains later and evidence-driven.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md
@@ -21,13 +21,9 @@ areas:
     notes: >-
       The BRP-first adaptive sheet proof is implemented. Authoritative native
       state projects through a BRP-owned sheet projection into shared
-      presentation-only descriptor/rendering code. The shared layer owns page
-      geometry, typography, section/table primitives, overflow, print behavior,
-      and accessibility; systems retain rules meaning, labels, grouping,
-      priority, page assignment, and conditional content. Presentation roles are
-      layout vocabulary only and must not become Universal Grammar. Browser print
-      / Save as PDF and full CharacterDocument JSON export are the current output
-      paths; no PDF dependency or universal layout solver is present.
+      presentation-only rendering. Browser print / Save as PDF and full
+      CharacterDocument JSON export are the current output paths. Presentation
+      roles remain layout vocabulary only and are not Universal Grammar.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -35,7 +31,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. BRP productization should reuse these seams only when a concrete player-facing need exists.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. Add consumers only for concrete product needs.
   structured-naming:
     guidance:
       - refs/product/structured-naming.md
@@ -45,7 +41,7 @@ areas:
       - packages/generator-core/src/nameSuggestion.ts
       - packages/system-dnd5e/src/nameGeneration.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-    notes: name-suggestion/0.1 is proven with D&D. BRP naming content remains setting/campaign/content-package owned; Investigative Horror does not justify inventing a BRP or CoC-derived name corpus.
+    notes: name-suggestion/0.1 is proven with D&D. BRP naming content remains setting/campaign/content-package owned.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -53,7 +49,7 @@ areas:
       - packages/generator-core/src/randomTable.ts
       - packages/system-brp/src/professionSuggestion.ts
       - packages/system-brp/src/scholarAcademicSuggestion.ts
-    notes: Generic weighted evaluator plus two BRP-owned consumers are proven. Add tables only for concrete product consumers; results remain suggestions/provenance rather than direct native patches.
+    notes: Generic weighted evaluator plus BRP-owned consumers are proven. Results remain suggestions/provenance rather than direct native patches.
   dnd5e:
     guidance:
       - refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md
@@ -62,7 +58,7 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Guided Narrative is explicitly parked after the Fighter Fighting Style branch; do not resume Cleric/Druid work from chronology alone. D&D may later validate the adaptive sheet renderer after the BRP-first proof, but do not pull that retrofit into the current BRP epic.
+    notes: D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Guided Narrative remains parked. Do not resume it by chronology or pull a D&D adaptive-sheet retrofit into BRP closeout.
   brp:
     guidance:
       - refs/handoffs/currentHandoff.md
@@ -73,38 +69,36 @@ areas:
       - refs/planning/brp-player-usability-gap-audit.md
       - refs/planning/brp-investigative-horror-profile.md
       - refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md
-      - refs/architecture/brp-second-system-premortem.md
       - refs/integration/brp-uge-orc.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
+      - packages/system-brp/src/campaignProfile.ts
     notes: >-
-      BRP UGE 2023 ORC plus corrections 1.05. The second-system architecture
-      stress test is complete and Issue #13 is closed. brp-character/0.1 and
-      canonical adapter 0.7 remain stable. Issue #14 Player-Usable Core now has
-      profession/skill breadth, equipment, identity/background finishing,
-      actionable allocation UX, adaptive two-page sheet rendering, browser print,
-      and full CharacterDocument JSON controls. The only remaining implementation
-      gap for v0.1 is the narrow campaign/rules-profile selection seam, followed by
-      representative owner/browser QA. The accepted sequence after this epic
-      remains BRP Investigative Horror, a bounded Fate Condensed probe, then
-      Universal Grammar v0.1.
+      BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
+      adapter 0.7 remain stable. Issue #14 implementation now includes
+      profession/skill breadth, equipment, finishing, actionable allocation UX,
+      adaptive two-page sheet rendering, browser print, full CharacterDocument
+      JSON controls, and the versioned BRP campaign/rules-profile seam. Generic
+      BRP Core is the only current active profile. Profile provenance is distinct
+      from authoritative effective BrpRulesProfile state; reopen never re-resolves
+      the current profile catalog. The only remaining Issue #14 gate is
+      representative real-browser QA and bounded acceptance fixes.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - refs/architecture/adaptive-character-sheet-framework.md
-      - refs/integration/brp-uge-orc.md
       - refs/planning/brp-player-usable-core.md
     source_roots:
       - apps/web/src
       - apps/web/sheet.css
     notes: >-
-      BRP productization covers equipment/finishing, allocation guidance, adaptive
-      sheet review, browser Print / Save as PDF, and full CharacterDocument JSON
-      controls. UI/review/sheet/export remain projections; shared sheet code owns
-      presentation mechanics only and BRP rules stay system-owned. The next web
-      change should be only what the BRP campaign/rules-profile seam demonstrates.
+      BRP creator productization includes profile selection, equipment/finishing,
+      allocation guidance, adaptive sheet review, browser Print / Save as PDF,
+      and full CharacterDocument JSON controls. UI/review/sheet/export/profile
+      controls remain projections or interaction layers over native rules state.
+      Next work is representative browser QA, not new architecture.
   fate-third-system:
     guidance:
       - refs/planning/brp-to-universal-grammar-path.md
@@ -115,7 +109,7 @@ areas:
     source_roots:
       - packages
       - apps/web/src
-    notes: Planned only after BRP Investigative Horror. Fate Condensed is a bounded architecture probe selected to stress Aspects, Stunts, Stress, Consequences, narrative-mechanical state, and later the sheet-renderer assumptions before Universal Grammar v0.1 is frozen. Do not build a full Fate product by chronology.
+    notes: Planned only after BRP Investigative Horror. Fate Condensed remains the bounded architecture stress test before Universal Grammar v0.1 is frozen.
   project-memory:
     guidance:
       - AGENTS.md
@@ -126,60 +120,60 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue BRP Player-Usable Core
+  - task: Continue BRP Player-Usable Core closeout
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
       - refs/planning/brp-player-usable-core.md
       - refs/planning/brp-player-usability-gap-audit.md
       - refs/planning/brp-investigative-horror-profile.md
-      - refs/planning/brp-to-universal-grammar-path.md
-      - refs/integration/brp-uge-orc.md
-      - packages/system-brp/src
-      - apps/web/src
+      - packages/system-brp/src/campaignProfile.ts
+      - packages/system-brp/src/sheetProjection.ts
+      - apps/web/src/brpCreatorState.ts
+      - apps/web/src/brpCreatorPanel.ts
+      - apps/web/src/brpCreatorPanelView.ts
+      - apps/web/src/main.ts
+      - apps/web/sheet.css
+  - task: Run BRP player-usable browser QA
+    look_in:
+      - refs/handoffs/currentHandoff.md
+      - refs/handoffs/next-dev-prompt.md
+      - refs/planning/brp-player-usability-gap-audit.md
+      - apps/web/src/brpCreatorPanel.ts
+      - apps/web/src/brpCreatorState.ts
+      - apps/web/src/brpCharacterSheet.test.ts
+      - apps/web/src/brpCampaignProfile.test.ts
+      - apps/web/src/characterSheetControls.ts
+      - apps/web/src/main.ts
+      - apps/web/sheet.css
+  - task: Inspect BRP campaign/rules-profile seam
+    look_in:
+      - refs/planning/brp-player-usable-core.md
+      - refs/planning/brp-investigative-horror-profile.md
+      - packages/system-brp/src/campaignProfile.ts
+      - apps/web/src/brpCreatorState.ts
+      - apps/web/src/brpCreatorPanel.ts
+      - apps/web/src/brpCreatorPanelView.ts
+      - apps/web/src/brpCampaignProfile.test.ts
   - task: Implement or inspect adaptive character-sheet rendering
     look_in:
       - refs/architecture/adaptive-character-sheet-framework.md
-      - refs/handoffs/currentHandoff.md
-      - refs/planning/brp-player-usable-core.md
       - packages/character-sheet/src
       - packages/system-brp/src/sheetProjection.ts
       - apps/web/src/characterSheetControls.ts
       - apps/web/sheet.css
-  - task: Implement BRP campaign/rules-profile selection seam
-    look_in:
-      - refs/handoffs/currentHandoff.md
-      - refs/handoffs/next-dev-prompt.md
-      - refs/planning/brp-player-usable-core.md
-      - refs/planning/brp-investigative-horror-profile.md
-      - refs/integration/brp-uge-orc.md
-      - packages/system-brp/src
-      - apps/web/src/brpCreatorState.ts
-      - apps/web/src/brpCreatorPanel.ts
   - task: Inspect BRP Investigative Horror boundary
     look_in:
       - refs/planning/brp-investigative-horror-profile.md
       - refs/planning/brp-to-universal-grammar-path.md
       - refs/integration/brp-uge-orc.md
-  - task: Inspect completed BRP power-system architecture
-    look_in:
-      - refs/handoffs/archive/brp-second-system-stress-test-complete-2026-09-09.md
-      - refs/integration/brp-uge-orc.md
-      - packages/system-brp/src/superpowers.ts
-      - packages/system-brp/src/superpowers.test.ts
-      - packages/system-brp/src/poweredAdapter.ts
-      - packages/system-brp/src/psychicAbilities.ts
-      - packages/system-brp/src/psychicAbilities.test.ts
-      - packages/system-brp/src/psychicAdapter.ts
-      - packages/system-brp/src/adapter.ts
-      - packages/system-brp/src/nativeCharacter.ts
+      - packages/system-brp/src/campaignProfile.ts
   - task: Prepare or inspect Fate third-system probe
     look_in:
       - refs/planning/fate-third-system-probe.md
       - refs/planning/universal-grammar-v0.1.md
       - refs/architecture/adaptive-character-sheet-framework.md
       - refs/architecture/translation-bridge-rpg-notes.md
-      - refs/architecture/character-architecture.md
   - task: Develop or review Universal Grammar evidence
     look_in:
       - refs/planning/universal-grammar-v0.1.md
@@ -193,47 +187,7 @@ common_tasks:
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - packages/system-dnd5e/src/guidedNarrative.ts
-      - packages/system-dnd5e/src/guidedNarrativeContinuation.ts
       - apps/web/src/dndNarrativeCreatorPanel.ts
-      - apps/web/src/dndGuidedCreatorPanel.ts
-  - task: Inspect BRP naming provider/content boundary
-    look_in:
-      - refs/integration/brp-uge-orc.md
-      - refs/product/structured-naming.md
-      - refs/planning/brp-investigative-horror-profile.md
-      - packages/generator-core/src/nameSuggestion.ts
-      - packages/system-brp/src
-  - task: Extend or inspect random-table consumers
-    look_in:
-      - refs/product/random-table-companion.md
-      - packages/generator-core/src/randomTable.ts
-      - packages/system-brp/src/professionSuggestion.ts
-      - packages/system-brp/src/scholarAcademicSuggestion.ts
-  - task: Continue Randomize All QA or orchestration work
-    look_in:
-      - refs/handoffs/currentHandoff.md
-      - apps/web/src/creatorWorkspace.ts
-      - apps/web/src/creatorRandomization.ts
-      - apps/web/src/creatorRandomization.test.ts
-      - apps/web/src/guidedCreationPanel.ts
-      - apps/web/src/brpCreatorPanel.ts
-  - task: Fold creator QA polish into a touched slice
-    look_in:
-      - refs/handoffs/currentHandoff.md
-      - apps/web/src
-      - packages/system-dnd5e/src
-      - packages/system-brp/src
-  - task: Run or diagnose D&D accumulated runtime QA
-    look_in:
-      - refs/handoffs/currentHandoff.md
-      - packages/system-dnd5e/src
-      - apps/web/src
-  - task: Update translation or bridge-RPG evidence
-    look_in:
-      - refs/architecture/translation-bridge-rpg-notes.md
-      - refs/planning/universal-grammar-v0.1.md
-      - packages/system-dnd5e/src
-      - packages/system-brp/src
   - task: Change repository guidance or validation infrastructure
     look_in:
       - AGENTS.md

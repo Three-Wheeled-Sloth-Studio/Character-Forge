@@ -6,7 +6,7 @@ tags:
 - handoffs
 - brp
 - productization
-- rules-profile
+- browser-qa
 ---
 # Next Development Prompt
 
@@ -23,7 +23,7 @@ The active epic is GitHub Issue #14: **Make BRP UGE a player-usable core charact
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "BRP campaign rules profile seam"
+python refs/tools/generate_agent_context.py --focus "BRP player usable browser QA print reopen"
 ```
 
 Then read only:
@@ -31,112 +31,96 @@ Then read only:
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/brp-player-usability-gap-audit.md`
 3. `refs/planning/brp-player-usable-core.md`
-4. `refs/planning/brp-investigative-horror-profile.md`
-5. `refs/integration/brp-uge-orc.md`
+4. `refs/architecture/adaptive-character-sheet-framework.md`
+5. `refs/planning/brp-investigative-horror-profile.md`
 6. `refs/implementation/fileMap.yaml`
 7. GitHub Issue #14
-8. only BRP rules-profile/native-state/creator code needed for this seam.
+8. only web/review/save/reopen/print/profile code needed to diagnose defects found by QA.
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
-## Green Implementation Checkpoint
+## Exact Green Starting Checkpoint
 
-The adaptive character-sheet first proof is green at:
+The BRP campaign/rules-profile seam is green at:
 
-- SHA: `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb`
-- Actions: `34525124229`
-- Job: `103032033580`
+- SHA: `fabbc6567ffa8a9d4d24af9a940baa17a86a1b03`
+- Actions: `34527156423`
+- Job: `103038733378`
 - `npm run verify`: green
-- 52 test files / 256 tests / 0 failures
-- 206 tracked paths
+- 53 test files / 263 tests / 0 failures
+- 208 tracked paths
 - 14 required project-memory files
 - OKF: 28 concepts / 10 indexes
-- agent context: 3725 characters
-- build: `Character Forge build 0.0.1 d6ba965b`
+- agent context: 3807 characters
+- build: `Character Forge build 0.0.1 fabbc656`
 
 Documentation may be ahead of this implementation checkpoint. Validate the exact current `dev` SHA before declaring a new milestone green.
 
-## Player-Usable Core State
+## Current Product State
 
-Implemented and retained through authoritative BRP native state:
+The bounded BRP Player-Usable Core implementation now includes:
 
 - explicit and standard-rolled characteristics;
-- Normal and Heroic skill construction;
+- Normal and Heroic creation;
 - Detective, Scholar, Athlete, Beggar, and Custom Profession;
-- broader ordinary skill surface and open Scholar specialties/languages;
-- exact professional/personal skill causality;
-- actionable allocation status and validation guidance;
-- bounded equipment, armor, and modern pistols with starting-skill eligibility;
+- broad ordinary skills plus open Scholar specialties/languages;
+- exact professional/personal allocation causality and actionable validation UX;
+- bounded equipment, armor, modern pistols, and weapon eligibility;
 - optional identity/background finishing details;
-- save/reopen for supported creator state;
-- adaptive two-page BRP sheet projection through shared presentation-only rendering;
-- browser-native Print / Save as PDF with application/debug chrome removed; and
-- lossless full CharacterDocument Copy JSON / Download JSON controls.
+- lossless save/reopen;
+- adaptive two-page BRP sheet through the shared presentation-only renderer;
+- browser Print / Save as PDF;
+- full CharacterDocument Copy JSON / Download JSON; and
+- a BRP-owned versioned campaign/rules-profile seam with `Generic BRP Core` as the only current active profile.
 
-Preserve `brp-character/0.1` and canonical adapter identity `0.7.0` unless concrete evidence proves them insufficient.
+The profile reference is provenance, not authority. Reopen reconstructs the exact effective `BrpRulesProfile` from native state and does not reapply today's profile definition. Explicit profile selection is the action that applies current defaults.
 
-## Immediate Task - Narrow Campaign / Rules-Profile Selection Seam
+## Immediate Task - Representative Browser QA And Issue #14 Closeout
 
-Do not implement Investigative Horror content in this slice. Implement only the configuration seam it will need.
-
-The architecture target from `refs/planning/brp-investigative-horror-profile.md` is:
-
-- a profile selects a coherent set of BRP-native options/defaults;
-- native state retains the actual effective rules/configuration;
-- the profile label does not replace source-native state;
-- profile switching/creation cannot silently reinterpret an existing character; and
-- setting-owned flavor remains separable from BRP-system mechanics.
-
-### Audit first
-
-Before editing, inspect:
-
-- current `BrpRulesProfile` shape and validation;
-- `resolveBrpPowerLevelProfile` and other existing option/default resolution seams;
-- creator state/default construction and save/reopen reconstruction;
-- any existing profile-like IDs in generation provenance; and
-- where the rules-system selector currently hands off to the BRP creator.
-
-### Smallest acceptable seam
-
-Prefer a BRP-owned profile definition/catalog with a stable ID and explicit source-native configuration mapping. The base/generic profile should be the only fully active product profile in this slice unless a second inert/test fixture is necessary to prove switching semantics.
-
-A likely bounded shape is conceptually:
+Run the actual web experience through the complete player journey:
 
 ```text
-BrpCampaignProfileDefinition
-  -> stable profile ID / label
-  -> BRP-native rules/default configuration
-  -> creator initialization
-  -> effective BrpRulesProfile in native state
+create -> finish -> review -> save -> reopen -> print/export
 ```
 
-Naming may differ to match the repo.
+This is a product acceptance pass, not another architecture expansion.
 
-Keep the profile identity distinct from `BrpRulesProfile`. `BrpRulesProfile` remains the effective rules state. A profile ID may be retained as creation/provenance context if useful, but must not become the authority for interpreting an existing character.
+### Representative cases
 
-### Required behavior
+Exercise at least three characters:
 
-- generic/base BRP profile is explicitly selectable or clearly represented in the creator;
-- profile mapping is deterministic and system-owned;
-- creating under a profile produces the mapped effective BRP rules state;
-- save/reopen retains the character's effective rules configuration losslessly;
-- reopening does not recalculate old characters from a possibly changed future profile definition;
-- changing a profile for a new creation may apply its defaults, but must not silently mutate or reinterpret an already-created/reopened character;
-- the seam is ready for a later `investigative-horror` profile without containing that profile's substantive rules/content now.
+1. Detective, Normal, explicit characteristics, selected pistol and armor, populated finishing details.
+2. Scholar, standard-rolled characteristics, deliberately long language/specialty labels, equipment, and background text.
+3. Athlete, Beggar, or Custom Profession, preferably Heroic for one case, with enough content to stress the sheet and reopen path.
 
-### Tests
+For each useful case verify:
 
-Add focused structural tests for:
+- Generate becomes available through understandable allocation guidance.
+- Review shows the expected native-state-derived data.
+- Profile selector shows the retained/current profile context without implying the label is canonical rules state.
+- Save and reopen preserve effective BRP rules, profession choices, skills, equipment, and finishing information.
+- Copy JSON and Download JSON operate on the complete CharacterDocument.
+- Browser Print and Save as PDF preview contain only the character sheet, not creator/application/debug chrome.
+- Page 1 remains table-usable and Page 2 contains depth/logistics content.
+- No clipping, unreadable overlap, accidental blank sections, or pathological page breaks occur.
+- Long skill/specialty/background content behaves acceptably.
+- Grayscale/ordinary office-printer readability is acceptable.
 
-- stable base profile identity and mapping;
-- profile -> effective native rules state;
-- save/reopen behavior;
-- separation between profile label/provenance and authoritative rules state;
-- switching/reset semantics; and
-- canonical adapter/version/schema preservation.
+### Fix boundary
 
-Do not introduce a universal campaign/profile abstraction unless code evidence from another system already requires one.
+If QA exposes a defect, make the smallest evidence-backed correction and add a structural regression test where practical. Do not broaden catalogs or architecture simply because a browser pass is being run.
+
+Do not implement Investigative Horror substantive content during this QA slice.
+
+## Issue #14 Acceptance
+
+If representative browser QA succeeds after any bounded fixes:
+
+1. update the maintained audit and handoff documents with exact final provenance;
+2. record the acceptance evidence on Issue #14; and
+3. close Issue #14.
+
+If a material player-usable defect remains, keep Issue #14 open and document the specific blocker.
 
 ## Guardrails
 
@@ -144,26 +128,19 @@ Do not introduce a universal campaign/profile abstraction unless code evidence f
 - Native BRP state remains canonical and lossless.
 - Preserve `brp-character/0.1`.
 - Preserve canonical adapter identity `0.7.0`.
-- Profession is not class.
+- Preserve exact-SHA `dev -> qa -> main` promotion.
+- Profile identity is provenance/configuration context, not effective rules authority.
 - Campaign/profile is not Universal Grammar.
+- Profession is not class.
 - Do not import Call of Cthulhu-only/branded content.
-- Do not enable BRP Sanity or other optional systems in this seam unless the generic/base profile already requires them from current implemented behavior.
-- Do not modify the adaptive sheet architecture unless the profile seam exposes a concrete presentation bug.
+- Do not implement Investigative Horror before Issue #14 closeout.
 - Do not retrofit D&D to the adaptive sheet renderer.
 - Do not implement Fate early.
-- Do not add a PDF-generation dependency.
+- Do not add a PDF-generation dependency unless browser output has demonstrated a concrete unresolved need.
 
-## After This Slice
+## After Issue #14
 
-Run representative owner/browser QA across:
-
-```text
-create -> finish -> review -> save -> reopen -> print/export
-```
-
-Exercise multiple professions and representative long/filled content. Confirm actual browser pagination, printable density, grayscale/readability, JSON controls, profile persistence, and reopen behavior.
-
-If that QA satisfies the player-usable acceptance target, update documentation and close Issue #14. Then proceed to BRP Investigative Horror, followed by the bounded Fate Condensed probe and only then Universal Grammar v0.1.
+Proceed to BRP Investigative Horror using the now-proven profile seam. Re-check current official BRP ORC/license sources before implementing that profile's substantive rules/content. After Investigative Horror, proceed to the bounded Fate Condensed probe and only then Universal Grammar v0.1.
 
 ## Branch / Promotion Boundary
 
@@ -172,11 +149,11 @@ Promoted branches remain unchanged:
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion.
+Do not promote either branch unless explicitly requested.
 
 ## Validation
 
-For every implementation milestone:
+For every repair or milestone:
 
 ```bash
 npm run verify

@@ -21,79 +21,83 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 | --- | --- | --- |
 | Characteristic construction | supported | Explicit and standard-rolled characteristics, retained roll provenance, and legal redistribution are system-owned. |
 | Normal and Heroic creation | supported | Professional budgets, starting caps, and retained Heroic age causality are enforced by BRP native state and adapter validation. |
-| Profession and generic skill breadth | supported | Detective, Scholar, Athlete, Beggar, and Custom Profession provide credible generic coverage. Custom Profession keeps additional concepts available without flattening profession into a universal class model. Add more source professions only for demonstrated player gaps. |
-| Profession customization seam | supported | Custom Profession retains a player-authored title, description/social role, wealth, and exactly ten essential source-supported skills in BRP native state. |
-| Wealth boundaries | supported | Profession-specific creation supports Destitute, Poor, Average, Affluent, and Wealthy where the implemented source profiles allow them. |
+| Profession and generic skill breadth | supported | Detective, Scholar, Athlete, Beggar, and Custom Profession provide credible generic coverage without flattening profession into class. |
+| Wealth boundaries | supported | Profession-specific creation supports the implemented Destitute through Wealthy ranges where source profiles allow them. |
 | Knowledge/Science specialties and languages | supported | Scholar specialties and language identities remain open, named, and lossless in native state. |
-| Professional/personal causality | supported | Base, professional, personal, and final skill values remain separate and validated; personal points can use the broader supported skill surface. |
-| Allocation UX and validation clarity | supported | Budget cards show spent/total plus spend/remove/ready guidance, rows identify profession eligibility, numeric inputs expose current legal ceilings, cap headroom is visible, and a blocking checklist explains why Generate is unavailable. Builders and adapters remain authoritative. |
-| Equipment finishing | supported | `equipment` remains a lossless native string-ID list backed by a source-audited BRP catalog. The creator can retain play-important gear, armor, and bounded modern pistols; weapon possession is checked against the source starting-skill threshold. |
-| Equipment table projection | supported | Sheet projection resolves retained item IDs into useful weapon attack/damage/range/ammo/malfunction and armor AV/burden/ENC details without making rendered state canonical. |
-| Identity/background finishing | supported | Optional native finishing state retains size/build, appearance, mannerisms/motto, reputation, personal item/keepsake, background, and beliefs. The fields follow BRP Steps Nine and Ten while remaining setting-neutral and player-authored. |
-| Save/reopen | supported | The creator reconstructs rules state from the authoritative BRP primary native state, while equipment and finishing companions reconstruct their retained native values from that same payload. |
-| Adaptive character sheet and browser print | supported | `packages/system-brp` owns BRP sheet content and deterministic two-page assignment; `packages/character-sheet` owns presentation primitives only. Page 1 prioritizes identity, characteristics/derived values, final skills, weapons/armor, and concise profile context. Page 2 carries equipment/wealth, finishing/background, and source context. Empty optional sections collapse and dedicated print CSS removes application/debug chrome. |
-| CharacterDocument JSON export | supported | Compact Copy JSON and Download JSON controls operate on the complete current CharacterDocument. The same document utility is available from current D&D review without moving D&D onto the adaptive sheet renderer. |
-| Rules-profile foundation | supported | Power level, characteristic method, enabled options, and enabled power systems are already retained in BRP native state. |
+| Professional/personal causality | supported | Base, professional, personal, and final skill values remain separate and validated. |
+| Allocation UX and validation clarity | supported | Budget progress, spend/remove guidance, profession eligibility, legal ceilings, cap headroom, and blocking corrections are visible while builders/adapters remain authoritative. |
+| Equipment finishing | supported | Native stable equipment IDs cover bounded useful gear, armor, and modern pistols with starting-weapon skill eligibility. |
+| Identity/background finishing | supported | Optional size/build, appearance, mannerisms/motto, reputation, personal item, background, and beliefs are retained losslessly. |
+| Save/reopen | supported | Creator reconstruction starts from authoritative BRP native state; equipment, finishing, profile context, rules state, and allocations round-trip. |
+| Adaptive character sheet and browser print | supported | BRP owns a deterministic two-page sheet projection; shared rendering is presentation-only. Empty optional sections collapse and print CSS removes application/debug chrome. |
+| CharacterDocument JSON export | supported | Copy JSON and Download JSON operate on the complete current CharacterDocument. |
+| Campaign/rules-profile selection seam | supported | `packages/system-brp/src/campaignProfile.ts` provides a BRP-owned versioned profile catalog. `Generic BRP Core` (`generic`, v0.1) maps deterministically to source-native defaults. Profile provenance is separate from the authoritative effective `BrpRulesProfile`; reopen never recalculates an existing character from the current catalog, and explicit profile selection is the action that reapplies current defaults. |
+| Canonical schema/adapter preservation | supported | The profile and sheet work preserve `brp-character/0.1` and canonical adapter identity `0.7.0`. |
 
-## Missing for v0.1
+## Remaining v0.1 Acceptance Gate
 
-| Capability | Classification | Bounded v0.1 need |
-| --- | --- | --- |
-| Campaign/rules-profile selection seam | missing for v0.1 | The native rules profile is a good foundation, but the creator does not yet select a named campaign/content profile. Keep this seam narrow so the later Investigative Horror profile can configure BRP rather than fork it. |
+No planned implementation capability remains missing for the bounded generic BRP v0.1 target.
+
+Representative real-browser QA is still required before Issue #14 closeout. It must cover create -> finish -> review -> save -> reopen -> print/export with multiple professions, representative long labels/content, equipment, finishing details, profile persistence, JSON controls, and actual print pagination/readability.
+
+Any defect found by that pass should be classified as a bounded acceptance fix or as deferred breadth. Do not turn browser QA into a new speculative backlog.
 
 ## Deferred
 
 - Characters under 18 and age 50+ aging/characteristic adjustments.
 - Full optional skill-category systems and every era-specific base-chance variant.
-- Additional source professions and specialty breadth unless owner/browser QA exposes a concrete generic-use gap.
-- The optional CHA-driven Distinctive Features subsystem and exhaustive cosmetic feature tables; freeform appearance remains supported without enabling that optional rule.
-- Exhaustive weapon, armor, vehicle, and specialty catalogs in the first pass.
+- Additional source professions and specialty breadth unless browser QA exposes a concrete generic-use gap.
+- The optional CHA-driven Distinctive Features subsystem and exhaustive cosmetic feature tables.
+- Exhaustive weapon, armor, vehicle, and specialty catalogs.
 - Complete Superpowers/Psychic catalogs and Magic, Mutations, or Sorcery.
 - Broad non-human support.
 - Setting-owned generated names.
-- D&D retrofit to the adaptive sheet framework until the BRP proof is accepted.
-- Multiple complete sheet modes beyond the first useful BRP play/print projection.
+- D&D adaptive-sheet retrofit.
+- Multiple complete sheet modes beyond the current useful BRP play/print projection.
 - Deterministic server-side PDF generation unless product evidence requires it.
+- Investigative Horror substantive rules/content until Issue #14 closes.
 - Fate Condensed implementation and Universal Grammar v0.1 freeze.
 
-## First implementation slice
+## Implemented Slice History
 
-The first slice expanded the source-backed ordinary skill catalog and corrected professional versus personal allocation. Professional points remain profession-bound while personal points can use the broader currently supported BRP skill surface. The UI marks personal-only rows and adapter validation preserves base/professional/personal/final causality.
+### 1. Skill breadth and causality
 
-## Second implementation slice
+Expanded the ordinary skill catalog and corrected professional versus personal allocation while preserving source-native contribution causality.
 
-The second slice broadened professions with Athlete, Beggar, all needed wealth levels, and Custom Profession. Custom Profession retains title, description/social role, wealth, and exactly ten supported essential skills without introducing a universal class model. The player-core builder/validator layer leaves the earlier Detective/Scholar and power-system probes bounded.
+### 2. Profession breadth
 
-## Third implementation slice
+Added Athlete, Beggar, and BRP-native Custom Profession while retaining Detective and Scholar and keeping profession distinct from class.
 
-The finish-the-character equipment slice preserves `brp-character/0.1`. Existing `equipment: string[]` becomes a stable native item-ID projection rather than being replaced by a second inventory schema.
+### 3. Equipment finishing
 
-The bounded source-audited catalog includes First Aid Kit and rope, Heavy Clothing and Soft Leather, and Light, Medium, and Heavy Pistols. Starting pistols require the related Handgun skill at 50% or better in this creator. Selected equipment IDs are canonical native state; creator controls and the readable character sheet are projections over those IDs and the source-owned catalog.
+Retained `equipment: string[]` as stable native item IDs backed by a bounded source-audited catalog with play-useful weapon and armor projection.
 
-## Fourth implementation slice
+### 4. Identity/background finishing
 
-BRP Steps Nine and Ten explicitly make size/build, physical and mental description, reputation, background, and similar details flexible. The bounded creator therefore adds optional player-authored size/build, appearance, mannerisms or motto, reputation, personal item or keepsake, background, and beliefs. These values are retained losslessly in BRP native state and projected into review only when populated. The optional CHA-driven Distinctive Features subsystem remains deferred.
+Added optional player-authored finishing details from BRP Steps Nine and Ten without enabling the optional Distinctive Features subsystem.
 
-## Fifth implementation slice
+### 5. Allocation UX
 
-The allocation UX pass leaves all point arithmetic and legality in the established BRP builders/adapters while making that state actionable to a player. Professional and personal budget cards now show spent/total, progress, and exact spend/remove/ready guidance. Skill rows identify profession eligibility, show current legal input ceilings, and expose remaining cap headroom or overage. A blocking checklist names budget and cap problems before the disabled Generate action, while the existing rules validation remains visible as the authoritative detail.
+Exposed budget progress, legal input ceilings, profession eligibility, cap headroom/overage, and actionable blockers while leaving arithmetic and legality in BRP builders/adapters.
 
-## Sixth implementation slice
+### 6. Adaptive character sheet
 
-The adaptive sheet first proof preserves the accepted boundary:
+Implemented the accepted path:
 
 ```text
 native system state -> system sheet projection -> shared renderer -> screen / print / PDF-via-print
 ```
 
-BRP owns its sheet projection in `packages/system-brp/src/sheetProjection.ts`. Shared `packages/character-sheet/src/index.ts` contains only presentation descriptors and rendering primitives. The first proof implements deterministic two-page assignment, preferred-column hints, splittable skill content, tables, details, stats/ratings, presentation roles, and clean browser print behavior without a universal rules model or layout solver.
+BRP owns sheet meaning and shared code owns presentation mechanics only. Browser-native Print / Save as PDF and full CharacterDocument JSON export remain the output paths.
 
-The screen review and print path use the same projection. Browser-native Print / Save as PDF is preferred, and no PDF-generation dependency was added. Full CharacterDocument JSON copy/download was implemented as a separate document utility rather than a reduced sheet export.
+Adaptive-sheet implementation checkpoint `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb` passed Actions `34525124229`, job `103032033580`, with 52 test files / 256 tests / 0 failures.
 
-Implementation checkpoint `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb` passed Actions `34525124229`, job `103032033580`, with 52 test files / 256 tests / 0 failures.
+### 7. Campaign/rules-profile seam
 
-## Next bounded slice
+Added a versioned BRP-owned profile catalog and creator selector. `Generic BRP Core` is currently the only active profile. Creating under a profile retains both its versioned provenance reference and the effective source-native rules configuration. Reopen restores effective rules from native state rather than re-resolving the catalog, including for legacy/no-profile provenance. Explicit profile selection reapplies current defaults; a post-construction context operation refuses to reinterpret mechanically significant rules.
 
-Add only the narrow campaign/rules-profile selection seam required to configure the future Investigative Horror profile. Do not implement Investigative Horror content in that seam.
+Profile-seam implementation checkpoint `fabbc6567ffa8a9d4d24af9a940baa17a86a1b03` passed Actions `34527156423`, job `103038733378`, with 53 test files / 263 tests / 0 failures.
 
-After the seam, run representative owner/browser QA across create -> finish -> review -> save -> reopen -> print/export. Pay special attention to actual browser pagination and print density for characters with long skill/specialty names and populated equipment/background. Close Issue #14 only if the player-usable acceptance target is met.
+## Next bounded step
+
+Run representative owner/browser QA and make only evidence-backed acceptance fixes. Close Issue #14 only if the resulting full player flow feels like a usable generic BRP product rather than an architecture demonstration.
