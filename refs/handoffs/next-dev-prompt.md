@@ -140,6 +140,7 @@ Do not introduce a universal campaign/profile abstraction unless code evidence f
 
 ## Guardrails
 
+- Native system state is mandatory and lossless.
 - Native BRP state remains canonical and lossless.
 - Preserve `brp-character/0.1`.
 - Preserve canonical adapter identity `0.7.0`.
