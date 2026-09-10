@@ -11,7 +11,7 @@ tags:
 
 Date: 2026-09-09
 Branch: `dev`
-Current product status: **BRP Superpowers and Psychic Abilities architecture probes are implemented and automated-green; D&D Guided Narrative remains parked.**
+Current product status: **The BRP second-system architecture stress test is complete and Issue #13 is closed; Superpowers and Psychic Abilities probes are automated-green; D&D Guided Narrative remains parked.**
 
 ## Accepted BRP Psychic Abilities Checkpoint
 
@@ -164,11 +164,20 @@ Do not infer or automatically add:
 
 Any of those requires an explicit product slice and source audit.
 
-## Stress-Test Status
+## Stress-Test Closeout
 
-The original BRP second-system architecture stress-test objective is now substantially satisfied. BRP has already forced and proven non-D&D shapes for percentile skills, professions, open specialties/languages, skill-construction profiles, Superpowers character-point capabilities, and Psychic skill-rated capabilities without requiring shared CharacterDocument distortion.
+The original BRP second-system architecture stress-test objective is complete. Issue #13 is closed with state reason `completed`.
 
-Further BRP work should be selected as **product breadth** or as a deliberately named additional architecture probe, not assumed necessary merely to keep Issue #13 growing.
+BRP forced and proved non-D&D shapes for percentile skills, professions, open specialties/languages, skill-construction profiles, Superpowers character-point capabilities, and Psychic skill-rated capabilities without requiring shared CharacterDocument distortion.
+
+The roadmap records `system-6-second-stress-test` as completed at closeout commit:
+
+- `aa7e6e54aa2dcd6dd2e029e90e2863bea0a29cb8`
+- Actions `34420511173`
+- job `102694668708`
+- Verify: success
+
+Further BRP work is **product breadth**, not continuation required to prove the second-system architecture. Select it explicitly and, where useful, track it in a new narrowly scoped issue or epic.
 
 ## D&D Narrative Parking State
 
