@@ -97,6 +97,7 @@ Add or change system-package code only if the UI exposes a genuine missing BRP r
 
 ## Guardrails
 
+- Native system state is mandatory and lossless.
 - Native BRP state remains canonical.
 - UI/review/export are projections.
 - Profession is not class.
