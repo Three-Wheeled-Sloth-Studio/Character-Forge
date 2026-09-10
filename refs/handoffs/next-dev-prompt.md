@@ -149,7 +149,9 @@ See:
 - `refs/planning/fate-third-system-probe.md`
 - `refs/planning/universal-grammar-v0.1.md`
 
-Native system state remains canonical. Universal Grammar is a derived semantic/translation layer with explicit loss reporting.
+Native system state is mandatory and lossless.
+
+Universal Grammar is a derived semantic/translation layer with explicit loss reporting; it does not replace authoritative native system state.
 
 ## Branch / Promotion Boundary
 
