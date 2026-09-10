@@ -1,10 +1,13 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
+  applyBrpFinishingDetails,
   applyBrpProfessionSuggestion,
   applyBrpScholarAcademicSuggestion,
   applyBrpStartingEquipment,
+  createEmptyBrpFinishingDetails,
   defaultBrpWealthForProfession,
   filterBrpStartingEquipmentSelection,
+  readBrpFinishingDetails,
   readBrpProfessionSuggestion,
   readBrpScholarAcademicSuggestions,
   readBrpStartingEquipment,
@@ -15,6 +18,7 @@ import {
   type BrpCharacteristicId,
   type BrpDetectiveElectiveSkillKey,
   type BrpEquipmentId,
+  type BrpFinishingDetails,
   type BrpFirstSliceSkillKey,
   type BrpProfessionId,
   type BrpProfessionSuggestionProvenance,
@@ -30,6 +34,7 @@ import {
   type BrpCreatorState,
 } from "./brpCreatorState.js";
 import { mountBrpEquipmentControls } from "./brpEquipmentControls.js";
+import { mountBrpFinishingControls } from "./brpFinishingControls.js";
 import { brpCreatorHtml, readBrpRedistribution } from "./brpCreatorPanelView.js";
 import { ensureBrpCreatorStyles } from "./brpCreatorStyles.js";
 
@@ -46,6 +51,7 @@ export function mountBrpCreatorPanel(
   let professionSuggestion: BrpProfessionSuggestionProvenance | null = null;
   let academicSuggestions: BrpScholarAcademicSuggestionRecord[] = [];
   let equipmentIds: BrpEquipmentId[] = [];
+  let finishingDetails: BrpFinishingDetails = createEmptyBrpFinishingDetails();
 
   const render = (): void => {
     const preview = previewBrpCreatorState(state);
@@ -61,6 +67,9 @@ export function mountBrpCreatorPanel(
     mountBrpEquipmentControls(root, preview.validCharacter, equipmentIds, (next) => {
       equipmentIds = next;
       render();
+    });
+    mountBrpFinishingControls(root, finishingDetails, (next) => {
+      finishingDetails = next;
     });
     bindCurrentControls();
   };
@@ -190,6 +199,7 @@ export function mountBrpCreatorPanel(
           });
         }
         character = applyBrpStartingEquipment(character, equipmentIds);
+        character = applyBrpFinishingDetails(character, finishingDetails);
         onCharacter(character);
       }
       render();
@@ -269,6 +279,7 @@ export function mountBrpCreatorPanel(
       professionSuggestion = readBrpProfessionSuggestion(character);
       academicSuggestions = readBrpScholarAcademicSuggestions(character);
       equipmentIds = readBrpStartingEquipment(character);
+      finishingDetails = readBrpFinishingDetails(character);
       render();
     },
   };
