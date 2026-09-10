@@ -1,5 +1,6 @@
 import {
   brpEquipmentReviewLine,
+  brpFinishingReviewRows,
   isBrpEquipmentId,
   type BrpNativeCharacter,
 } from "../../../packages/system-brp/src/index.js";
@@ -7,6 +8,13 @@ import {
 export function appendBrpEquipmentReview(root: HTMLElement, payload: BrpNativeCharacter): void {
   const details = root.querySelector<HTMLElement>(".result-details");
   if (!details) return;
+
+  for (const finishing of brpFinishingReviewRows(payload)) {
+    const row = document.createElement("div");
+    row.innerHTML = `<strong>${escapeHtml(finishing.label)}</strong><span>${escapeHtml(finishing.value)}</span>`;
+    details.append(row);
+  }
+
   const row = document.createElement("div");
   const lines = payload.equipment
     .filter(isBrpEquipmentId)
