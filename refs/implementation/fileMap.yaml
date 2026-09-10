@@ -74,7 +74,11 @@ areas:
       - refs/planning/brp-player-usable-core.md
     source_roots:
       - apps/web/src
-    notes: BRP productization should make the existing creator credible for players: broader supported choices, finish-the-character flow, clearer allocation UX, readable review, and print/export projection. UI/review/export remain projections; BRP rules stay system-owned.
+    notes: >-
+      BRP productization should make the existing creator credible for players
+      with broader supported choices, finish-the-character flow, clearer
+      allocation UX, readable review, and print/export projection.
+      UI/review/export remain projections; BRP rules stay system-owned.
   fate-third-system:
     guidance:
       - refs/planning/brp-to-universal-grammar-path.md
