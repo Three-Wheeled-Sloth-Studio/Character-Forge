@@ -36,11 +36,12 @@ export function brpCreatorHtml(
         <label>Characteristic generation<select id="brp-generation-method"><option value="explicit"${selected(state.characteristicMethod === "explicit")}>Explicit</option><option value="standard-rolled"${selected(state.characteristicMethod === "standard-rolled")}>Standard Rolled</option></select></label>
         <div id="brp-characteristic-controls">${characteristicControlsHtml(state)}</div>
         <div class="section-divider"></div>
-        <div class="brp-budget-summary">${budgetCard("Professional", preview.professionalSpent, preview.professionalBudget, preview.professionalRemaining)}${budgetCard("Personal", preview.personalSpent, preview.personalBudget, preview.personalRemaining)}<div class="brp-budget-card"><span>Starting cap</span><strong>${preview.startingSkillCap || "-"}%</strong><small>System profile</small></div></div>
-        <div class="brp-skill-heading"><div><strong>Skill allocation</strong><p class="muted">Professional points are limited to profession skills. Personal points may be spent on any currently supported ordinary skill. Base, professional, personal, and final ratings remain separate.</p></div><button id="brp-auto-allocate" class="secondary-button" type="button"${preview.skillRows.length ? "" : " disabled"}>Fill legal example</button></div>
+        <div class="brp-budget-summary">${budgetCard("Professional", preview.professionalSpent, preview.professionalBudget, preview.professionalRemaining)}${budgetCard("Personal", preview.personalSpent, preview.personalBudget, preview.personalRemaining)}<div class="brp-budget-card"><span>Starting cap</span><strong>${preview.startingSkillCap || "-"}%</strong><small>Maximum starting rating per skill</small></div></div>
+        <div class="brp-skill-heading"><div><strong>Skill allocation</strong><p class="muted">Professional points are limited to profession skills. Personal points may be spent on any currently supported ordinary skill. Each budget must be exact, and no final skill may exceed the starting cap.</p></div><button id="brp-auto-allocate" class="secondary-button" type="button"${preview.skillRows.length ? "" : " disabled"}>Fill legal example</button></div>
+        ${allocationGuidanceHtml(preview)}
         <div class="brp-skill-grid">${skillRowsHtml(preview.skillRows, preview.startingSkillCap)}</div>
-        <p id="brp-validation" class="form-error ${preview.validCharacter ? "valid-feedback" : ""}">${escapeHtml(preview.validationMessage)}</p>
-        <button id="brp-generate" class="primary-action" type="submit"${preview.validCharacter ? "" : " disabled"}>Generate BRP character</button>
+        <p id="brp-validation" class="brp-validation-detail ${preview.validCharacter ? "valid-feedback" : "form-error"}"><strong>Rules check:</strong> ${escapeHtml(preview.validationMessage)}</p>
+        <button id="brp-generate" class="primary-action" type="submit"${preview.validCharacter ? "" : " disabled"}>${preview.validCharacter ? "Generate BRP character" : "Resolve highlighted items to generate"}</button>
       </form>
     </section>`;
 }
@@ -127,14 +128,57 @@ function redistributionRowHtml(transfer: BrpCharacteristicRedistributionInput | 
   return `<div class="brp-redistribution-row"><select data-brp-redistribution data-brp-redistribution-from="${index}" aria-label="Redistribution ${index + 1} from">${options(from)}</select><span>to</span><select data-brp-redistribution data-brp-redistribution-to="${index}" aria-label="Redistribution ${index + 1} to">${options(to)}</select><select data-brp-redistribution data-brp-redistribution-points="${index}" aria-label="Redistribution ${index + 1} points">${[0, 1, 2, 3].map((value) => `<option value="${value}"${selected(points === value)}>${value}</option>`).join("")}</select></div>`;
 }
 
+function allocationGuidanceHtml(preview: BrpCreatorPreview): string {
+  const blockers: string[] = [];
+  blockers.push(...budgetGuidance("Professional", preview.professionalRemaining));
+  blockers.push(...budgetGuidance("Personal", preview.personalRemaining));
+  const overCap = preview.skillRows.filter((row) => row.overCap);
+  if (overCap.length) {
+    blockers.push(`${overCap.length} skill${overCap.length === 1 ? " is" : "s are"} over the ${preview.startingSkillCap}% starting cap: ${overCap.map((row) => row.label).join(", ")}.`);
+  }
+
+  if (preview.validCharacter) {
+    return `<div class="brp-allocation-status ready" data-allocation-status="ready"><strong>Allocation ready</strong><span>Professional and personal budgets are exact, and every starting skill is within the ${preview.startingSkillCap}% cap.</span></div>`;
+  }
+
+  if (!blockers.length && preview.validationMessage) blockers.push(preview.validationMessage);
+  const items = blockers.length
+    ? blockers.map((message) => `<li>${escapeHtml(message)}</li>`).join("")
+    : `<li>Complete the profession and characteristic choices to expose the legal allocation.</li>`;
+  return `<div class="brp-allocation-status blocked" data-allocation-status="blocked"><strong>Before you can generate</strong><ul>${items}</ul></div>`;
+}
+
+function budgetGuidance(label: string, remaining: number): string[] {
+  if (remaining === 0) return [];
+  if (remaining > 0) return [`Spend ${remaining} more ${label.toLowerCase()} point${remaining === 1 ? "" : "s"}.`];
+  const excess = Math.abs(remaining);
+  return [`Remove ${excess} ${label.toLowerCase()} point${excess === 1 ? "" : "s"}.`];
+}
+
 function skillRowsHtml(rows: BrpCreatorPreview["skillRows"], startingCap: number): string {
   if (!rows.length) return `<p class="muted">Complete the profession and characteristic choices to expose BRP-owned legal skill rows.</p>`;
-  return `<div class="brp-skill-labels"><span>Skill</span><span>Base</span><span>Prof.</span><span>Personal</span><span>Final</span></div>${rows.map((row, index) => `<div class="brp-skill-row${row.overCap ? " over-cap" : ""}"><span class="brp-skill-name">${escapeHtml(row.label)}${row.professionalEligible ? "" : " <small>personal</small>"}</span><span>${row.baseChance}</span><input type="number" min="0" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="professionalPoints" value="${row.professionalPoints}" aria-label="${escapeHtml(row.label)} professional points"${row.professionalEligible ? "" : " disabled title=\"Not a selected profession skill\""}><input type="number" min="0" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="personalPoints" value="${row.personalPoints}" aria-label="${escapeHtml(row.label)} personal points"><strong>${row.finalRating}${row.overCap ? ` / cap ${startingCap}` : ""}</strong></div>`).join("")}`;
+  return `<div class="brp-skill-labels"><span>Skill</span><span>Base</span><span>Prof.</span><span>Personal</span><span>Final</span></div>${rows.map((row, index) => {
+    const maxProfessional = Math.max(0, startingCap - row.baseChance - row.personalPoints);
+    const maxPersonal = Math.max(0, startingCap - row.baseChance - row.professionalPoints);
+    const headroom = startingCap - row.finalRating;
+    const capNote = row.overCap
+      ? `Over cap by ${Math.abs(headroom)}`
+      : headroom === 0
+        ? "At cap"
+        : `${headroom} room`;
+    return `<div class="brp-skill-row${row.overCap ? " over-cap" : headroom === 0 ? " at-cap" : ""}" data-brp-professional-eligible="${row.professionalEligible}"><span class="brp-skill-name">${escapeHtml(row.label)}<small class="brp-skill-eligibility">${row.professionalEligible ? "Profession + personal" : "Personal only"}</small></span><span>${row.baseChance}%</span><input type="number" min="0" max="${maxProfessional}" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="professionalPoints" value="${row.professionalPoints}" aria-label="${escapeHtml(row.label)} professional points"${row.professionalEligible ? ` title="Up to ${maxProfessional} professional points with the current personal allocation"` : " disabled title=\"Not a selected profession skill\""}><input type="number" min="0" max="${maxPersonal}" step="1" data-brp-allocation-row="${index}" data-brp-allocation-source="personalPoints" value="${row.personalPoints}" aria-label="${escapeHtml(row.label)} personal points" title="Up to ${maxPersonal} personal points with the current professional allocation"><strong class="brp-skill-final">${row.finalRating}%<small>${capNote}</small></strong></div>`;
+  }).join("")}`;
 }
 
 function budgetCard(label: string, spent: number, total: number, remaining: number): string {
-  const status = remaining === 0 ? "exact" : remaining < 0 ? "over" : "remaining";
-  return `<div class="brp-budget-card${remaining < 0 ? " over-budget" : ""}"><span>${label}</span><strong>${spent} / ${total}</strong><small>${Math.abs(remaining)} ${status}</small></div>`;
+  const status = remaining === 0 ? "complete" : remaining < 0 ? "over" : "incomplete";
+  const guidance = remaining === 0
+    ? "Ready"
+    : remaining < 0
+      ? `Remove ${Math.abs(remaining)} point${remaining === -1 ? "" : "s"}`
+      : `Spend ${remaining} more point${remaining === 1 ? "" : "s"}`;
+  const progress = total > 0 ? Math.min(Math.max(spent, 0), total) : 0;
+  return `<div class="brp-budget-card ${status}" data-budget-status="${status}"><span>${label}</span><strong>${spent} / ${total}</strong><progress max="${Math.max(total, 1)}" value="${progress}" aria-label="${label} allocation progress"></progress><small>${guidance}</small></div>`;
 }
 
 function humanizeLabel(value: string): string {
