@@ -8,6 +8,7 @@ import {
   autoAllocateBrpCreatorState,
   buildBrpCreatorCharacter,
   createDefaultBrpCreatorState,
+  previewBrpCreatorState,
   reopenBrpCreatorState,
 } from "./brpCreatorState.js";
 
@@ -42,7 +43,7 @@ describe("BRP player-usable profession breadth", () => {
     });
     const payload = native(buildBrpCreatorCharacter(state)).payload as BrpNativeCharacter;
     expect(payload.identity.profession).toEqual({ professionId: "beggar", wealth: "destitute" });
-    expect(payload.skills.some((skill) => skill.label === "Knowledge (Region: Local Area)" && skill.contributions.professional > 0)).toBe(true);
+    expect(previewBrpCreatorState(state).skillRows.some((skill) => skill.label === "Knowledge (Region: Local Area)" && skill.professionalEligible)).toBe(true);
     expect(BRP_BEGGAR_SKILL_KEYS).toHaveLength(10);
   });
 
