@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-09
+updated: 2026-09-10
 areas:
   character-contract:
     guidance:
@@ -7,7 +7,7 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers and Psychic Abilities both fit without changing the shared contract; Universal Grammar remains a derived translation layer and is not frozen until D&D + BRP + Fate evidence is reviewed.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. Superpowers, Psychic Abilities, player-core professions, and bounded equipment all fit without changing the shared contract; Universal Grammar remains a derived translation layer and is not frozen until D&D + BRP + Fate evidence is reviewed.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -58,14 +58,16 @@ areas:
       - packages/system-brp
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. The second-system architecture
-      stress test is complete and Issue #13 is closed. brp-character/0.1 and
-      canonical adapter 0.7 support the established non-powered creator plus
-      distinct Superpowers and Psychic grammars without shared-model changes.
-      The active product line is Issue #14, BRP Player-Usable Core: run a bounded
-      source-backed usability gap audit, then implement the highest-value missing
-      vertical slice. The accepted sequence after that is BRP Investigative Horror,
-      a bounded Fate Condensed third-system probe, then Universal Grammar v0.1.
-      Do not auto-expand Powers or redesign proven native seams without product evidence.
+      stress test is complete and Issue #13 is closed. brp-character/0.1 remains
+      canonical; adapter 0.8 layers bounded starting-equipment validation over
+      the established non-powered creator, player-core professions, Superpowers,
+      and Psychic grammars without shared-model changes. Issue #14 BRP
+      Player-Usable Core now has profession/skill breadth plus finish-the-character
+      equipment coverage. Identity/background finishing is the next bounded gap,
+      followed by allocation guidance and print/export. The accepted sequence after
+      this epic remains BRP Investigative Horror, a bounded Fate Condensed probe,
+      then Universal Grammar v0.1. Do not auto-expand Powers or redesign proven
+      native seams without product evidence.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
@@ -75,10 +77,10 @@ areas:
     source_roots:
       - apps/web/src
     notes: >-
-      BRP productization should make the existing creator credible for players
-      with broader supported choices, finish-the-character flow, clearer
-      allocation UX, readable review, and print/export projection.
-      UI/review/export remain projections; BRP rules stay system-owned.
+      BRP productization uses focused companion controls for finish-the-character
+      equipment and projects retained native equipment IDs into readable table-use
+      details. Continue with identity/background finishing, clearer allocation UX,
+      and print/export. UI/review/export remain projections; BRP rules stay system-owned.
   fate-third-system:
     guidance:
       - refs/planning/brp-to-universal-grammar-path.md
@@ -107,8 +109,12 @@ common_tasks:
       - refs/planning/brp-to-universal-grammar-path.md
       - refs/integration/brp-uge-orc.md
       - packages/system-brp/src
+      - packages/system-brp/src/equipment.ts
+      - packages/system-brp/src/equipmentAdapter.ts
       - apps/web/src/brpCreatorPanel.ts
       - apps/web/src/brpCreatorState.ts
+      - apps/web/src/brpEquipmentControls.ts
+      - apps/web/src/brpEquipmentReview.ts
   - task: Inspect BRP Investigative Horror boundary
     look_in:
       - refs/planning/brp-investigative-horror-profile.md
