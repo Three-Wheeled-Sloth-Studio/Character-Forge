@@ -28,17 +28,17 @@ This is a bounded implementation-selection audit, not an exhaustive BRP backlog.
 | Professional/personal causality | supported | Base, professional, personal, and final skill values remain separate and validated; personal points can use the broader supported skill surface. |
 | Allocation UX and validation clarity | supported | Budget cards show spent/total plus spend/remove/ready guidance, rows identify profession eligibility, numeric inputs expose current legal ceilings, cap headroom is visible, and a blocking checklist explains why Generate is unavailable. Builders and adapters remain authoritative. |
 | Equipment finishing | supported | `equipment` remains a lossless native string-ID list backed by a source-audited BRP catalog. The creator can retain play-important gear, armor, and bounded modern pistols; weapon possession is checked against the source starting-skill threshold. |
-| Equipment table projection | supported | The character review resolves retained item IDs into useful weapon attack/damage/range/ammo/malfunction or armor AV/burden/ENC details without making review state canonical. |
+| Equipment table projection | supported | Sheet projection resolves retained item IDs into useful weapon attack/damage/range/ammo/malfunction and armor AV/burden/ENC details without making rendered state canonical. |
 | Identity/background finishing | supported | Optional native finishing state retains size/build, appearance, mannerisms/motto, reputation, personal item/keepsake, background, and beliefs. The fields follow BRP Steps Nine and Ten while remaining setting-neutral and player-authored. |
 | Save/reopen | supported | The creator reconstructs rules state from the authoritative BRP primary native state, while equipment and finishing companions reconstruct their retained native values from that same payload. |
-| Final on-screen review | supported | Character review shows characteristics, derived values, identity, budgets, skill causality, selected equipment details, and populated finishing details. |
+| Adaptive character sheet and browser print | supported | `packages/system-brp` owns BRP sheet content and deterministic two-page assignment; `packages/character-sheet` owns presentation primitives only. Page 1 prioritizes identity, characteristics/derived values, final skills, weapons/armor, and concise profile context. Page 2 carries equipment/wealth, finishing/background, and source context. Empty optional sections collapse and dedicated print CSS removes application/debug chrome. |
+| CharacterDocument JSON export | supported | Compact Copy JSON and Download JSON controls operate on the complete current CharacterDocument. The same document utility is available from current D&D review without moving D&D onto the adaptive sheet renderer. |
 | Rules-profile foundation | supported | Power level, characteristic method, enabled options, and enabled power systems are already retained in BRP native state. |
 
 ## Missing for v0.1
 
 | Capability | Classification | Bounded v0.1 need |
 | --- | --- | --- |
-| Adaptive sheet framework + BRP print/export proof | missing for v0.1 | Build a shared presentation/rendering framework, but prove only the descriptor features BRP needs now. BRP native state must project through a BRP-owned sheet description into a clean two-page play-oriented print view. Browser print/Save as PDF and existing CharacterDocument JSON export are preferred over a new PDF dependency. See `refs/architecture/adaptive-character-sheet-framework.md`. |
 | Campaign/rules-profile selection seam | missing for v0.1 | The native rules profile is a good foundation, but the creator does not yet select a named campaign/content profile. Keep this seam narrow so the later Investigative Horror profile can configure BRP rather than fork it. |
 
 ## Deferred
@@ -78,20 +78,22 @@ BRP Steps Nine and Ten explicitly make size/build, physical and mental descripti
 
 The allocation UX pass leaves all point arithmetic and legality in the established BRP builders/adapters while making that state actionable to a player. Professional and personal budget cards now show spent/total, progress, and exact spend/remove/ready guidance. Skill rows identify profession eligibility, show current legal input ceilings, and expose remaining cap headroom or overage. A blocking checklist names budget and cap problems before the disabled Generate action, while the existing rules validation remains visible as the authoritative detail.
 
-## Accepted output architecture direction
+## Sixth implementation slice
 
-The next output slice should not create a BRP-only printing dead end or a universal character rules model. Character Forge will use a shared adaptive character-sheet renderer with system-owned sheet projections:
+The adaptive sheet first proof preserves the accepted boundary:
 
 ```text
 native system state -> system sheet projection -> shared renderer -> screen / print / PDF-via-print
 ```
 
-The shared framework owns presentation mechanics such as page geometry, typography, layout primitives, print behavior, overflow, and accessibility. BRP owns which fields appear, their labels, grouping, priority, and rules meaning. Broad presentation-role hints such as `identity`, `primary_stats`, `resources`, `actions`, `equipment`, `abilities`, `conditions`, `narrative`, `notes`, and `provenance` are rendering vocabulary only, not Universal Grammar.
+BRP owns its sheet projection in `packages/system-brp/src/sheetProjection.ts`. Shared `packages/character-sheet/src/index.ts` contains only presentation descriptors and rendering primitives. The first proof implements deterministic two-page assignment, preferred-column hints, splittable skill content, tables, details, stats/ratings, presentation roles, and clean browser print behavior without a universal rules model or layout solver.
 
-BRP is the first proof. D&D can later expose BRP-specific assumptions in the shared renderer, while Fate remains the stronger architecture stress test before Universal Grammar is frozen.
+The screen review and print path use the same projection. Browser-native Print / Save as PDF is preferred, and no PDF-generation dependency was added. Full CharacterDocument JSON copy/download was implemented as a separate document utility rather than a reduced sheet export.
+
+Implementation checkpoint `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb` passed Actions `34525124229`, job `103032033580`, with 52 test files / 256 tests / 0 failures.
 
 ## Next bounded slice
 
-Implement the adaptive character-sheet framework, proven first with BRP. Keep the implementation acceptance BRP-sized: a readable two-page default with Page 1 optimized for at-the-table play and Page 2 for equipment/background/logistics, clean browser printing, and reuse of existing JSON export where suitable. Do not build a universal layout solver, retrofit D&D, or add a PDF-generation dependency unless evidence requires it.
+Add only the narrow campaign/rules-profile selection seam required to configure the future Investigative Horror profile. Do not implement Investigative Horror content in that seam.
 
-After that, add only the narrow campaign/rules-profile selection seam required to configure the future Investigative Horror profile, then run representative owner browser QA and Issue #14 closeout.
+After the seam, run representative owner/browser QA across create -> finish -> review -> save -> reopen -> print/export. Pay special attention to actual browser pagination and print density for characters with long skill/specialty names and populated equipment/background. Close Issue #14 only if the player-usable acceptance target is met.

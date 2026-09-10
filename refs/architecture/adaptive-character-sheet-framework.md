@@ -12,7 +12,7 @@ tags:
 # Adaptive Character Sheet Framework
 
 Date: 2026-09-10
-Status: accepted direction, BRP-first implementation pending
+Status: accepted direction, BRP-first proof implemented on dev
 
 ## Decision
 
@@ -50,7 +50,7 @@ System packages retain ownership of rules meaning, labels, grouping, prioritizat
 
 ## Presentation roles, not a game ontology
 
-A system sheet projection may use a small set of broad **presentation roles** to help the renderer make layout decisions. Initial vocabulary may include:
+A system sheet projection may use a small set of broad **presentation roles** to help the renderer make layout decisions. Initial vocabulary includes:
 
 - `identity`
 - `primary_stats`
@@ -75,48 +75,57 @@ Universal Grammar remains a later derived translation layer and must not be infe
 
 ## System-owned sheet projection
 
-The system projection should produce a renderer-facing description from authoritative native state. It may supply bounded layout hints such as:
+The system projection produces a renderer-facing description from authoritative native state. The first proof demonstrates only the hints BRP currently needs:
 
 - section title and presentation role;
-- priority;
-- preferred page or region;
+- explicit priority/order metadata;
+- deterministic page assignment by the system projection;
 - preferred columns;
-- minimum useful row/space requirement;
+- section omission by the system projection when optional content is empty;
 - whether a section can split across pages;
-- whether headers repeat;
-- conditional visibility; and
-- optional reference/help content.
+- table headers suitable for print repetition; and
+- optional reference/help content in the shared renderer contract.
 
-Implement only the hints required by demonstrated layouts. Do not build a general constraint solver or speculative automatic layout engine in the first slice.
+Do not build a general constraint solver or speculative automatic layout engine until a later system demonstrates that need.
 
 ## BRP first proof
 
-BRP is the first implementation proof because its player-usable core is already close to complete and its native state is stable.
+The BRP first proof landed on `dev` at implementation checkpoint `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb`.
 
-The BRP projection should target a readable two-page default rather than reproducing the dense official BRP form.
+Implementation boundaries:
+
+- `packages/character-sheet/src/index.ts` owns presentation-only descriptor types and semantic HTML rendering;
+- `packages/system-brp/src/sheetProjection.ts` owns BRP labels, grouping, page assignment, final skill projection, equipment interpretation, finishing details, and rules context;
+- `apps/web/src/characterSheetControls.ts` owns browser print plus lossless full-CharacterDocument JSON copy/download controls;
+- `apps/web/sheet.css` owns screen sheet styling and dedicated print behavior; and
+- `apps/web/src/main.ts` routes validated BRP characters through the projection and shared renderer while leaving native state canonical.
+
+No CharacterDocument schema, BRP native schema, or adapter-version change was required. `brp-character/0.1` and canonical BRP adapter identity `0.7.0` remain intact.
+
+The projection targets a readable two-page default rather than reproducing the dense official BRP form.
 
 ### Page 1 - at-the-table play
 
-Prioritize information expected to be referenced repeatedly during play:
+The implemented page prioritizes:
 
 - character identity and profession;
 - characteristics and derived values;
 - frequently changing resources/state;
-- final skills;
-- weapons and armor; and
-- concise rules/profile identity where useful.
+- final skills only, rather than creation-budget causality;
+- selected weapons and armor when present; and
+- concise rules/profile identity.
 
 ### Page 2 - character depth and logistics
 
-Use the second page for lower-frequency or longer-form information:
+The implemented second page carries:
 
 - equipment and wealth;
-- appearance and descriptive finishing details;
-- reputation, background, beliefs, and keepsake/personal item;
-- source/profile information; and
-- optional provenance only when it benefits the player rather than debug inspection.
+- populated appearance and descriptive finishing details;
+- populated reputation, background, beliefs, and keepsake/personal item;
+- custom profession context when present; and
+- useful BRP source/profile information.
 
-The projection should omit empty optional sections rather than reserve permanent blank boxes for unsupported or unused BRP subsystems.
+Empty optional weapon, armor, appearance, background, and custom-profession-context sections are omitted rather than reserving permanent blank boxes.
 
 ## Layout inspiration
 
@@ -133,58 +142,56 @@ Use these as design-pattern evidence only. Do not copy protected trade dress, br
 
 ## Output modes
 
-The architecture should leave room for multiple projections of the same authoritative character:
+The architecture leaves room for multiple projections of the same authoritative character:
 
 - **Play** - high-frequency table use;
 - **Reference** - play sheet plus compact rules reminders;
 - **Compact** - constrained one-page/tablet/convention use;
 - **Archive** - fuller character/background/provenance record.
 
-For the first implementation slice, build only what BRP v0.1 needs. Do not implement four modes merely because the framework can eventually support them.
+Only the BRP v0.1 two-page play-oriented projection is implemented. Do not implement the other modes merely because the framework can eventually support them.
 
 ## Export strategy
 
-Prefer browser-native printing and existing CharacterDocument JSON export before adding a PDF-generation dependency.
-
-The first useful path should be:
+Browser-native printing and full CharacterDocument JSON export are the implemented first path:
 
 1. project authoritative BRP native state into the system sheet description;
 2. render it with shared character-sheet primitives;
-3. apply dedicated `@media print` behavior that removes application controls and navigation; and
+3. apply dedicated `@media print` behavior that removes application controls, creator chrome, and debug inspection; and
 4. let the browser print or Save as PDF.
 
-If later evidence requires deterministic server-side PDFs, the same system projection should feed that renderer rather than creating a second canonical sheet model.
+CharacterDocument JSON copy/download operates on the complete current document and is a document utility, not a reduced sheet export or second canonical model.
+
+No PDF-generation dependency was added. If later evidence requires deterministic server-side PDFs, the same system projection should feed that renderer rather than creating a second canonical sheet model.
 
 ## Evidence-driven rollout
 
-The framework is intentionally proven in stages:
+The framework remains intentionally proven in stages:
 
-1. **BRP** establishes the first shared renderer and only the descriptor features BRP needs.
-2. **D&D** is the next validation opportunity. Retrofitting D&D should expose any BRP-specific assumptions accidentally placed in the shared renderer.
+1. **BRP** has established the first shared renderer and only the descriptor features BRP needs.
+2. **D&D** is the next validation opportunity, but is not part of the current BRP epic. Retrofitting D&D should expose any BRP-specific assumptions accidentally placed in the shared renderer.
 3. **Fate Condensed** remains the stronger architecture stress test because Aspects, Stunts, Stress, Consequences, and narrative-mechanical state challenge conventional stat/skill-sheet assumptions.
 4. **Universal Grammar** is still derived later from multi-system evidence. The character-sheet framework must not preempt it.
 
-## Initial implementation acceptance
+## First-proof acceptance status
 
-The first slice is complete when:
+Automated structural acceptance is green at implementation checkpoint `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb`:
 
-- a generic BRP character can project from authoritative native state into the shared sheet renderer;
-- the resulting sheet is materially more readable than printing the existing web review directly;
-- Page 1 supports credible at-the-table BRP use;
-- Page 2 carries lower-frequency equipment/background material without crowding Page 1;
-- empty optional sections collapse cleanly;
-- browser print produces a clean result without creator/debug UI;
-- existing CharacterDocument JSON copy/download remains available or is reused where suitable;
-- no new canonical character or BRP sheet schema is introduced; and
-- focused tests prove projection content and renderer behavior at the structural level.
+- authoritative BRP native state projects into the shared renderer without mutation;
+- deterministic Page 1/Page 2 assignment is tested;
+- final skills, weapons, armor, equipment, and finishing details are tested;
+- empty optional sections collapse;
+- semantic page/section markers and table headers are tested;
+- print controls and full CharacterDocument JSON controls are tested; and
+- the complete repository Verify gate passed with 52 test files / 256 tests / 0 failures.
 
-Visual owner/browser QA remains required before Issue #14 closeout.
+Visual owner/browser QA remains required before Issue #14 closeout, especially to confirm real-browser pagination and print density with representative characters.
 
 ## Explicit non-goals for the first slice
 
 - a fully automatic universal layout optimizer;
 - a universal RPG semantic ontology;
-- retrofitting D&D immediately;
+- retrofitting D&D to the adaptive sheet renderer;
 - implementing Fate sheets early;
 - four complete output modes;
 - deterministic server-side PDF generation;

@@ -10,7 +10,7 @@ tags:
 # BRP Player-Usable Core
 
 Date: 2026-09-10
-Status: active product line
+Status: active product line, implementation nearly complete
 
 Parent direction: `refs/planning/brp-to-universal-grammar-path.md`
 Output architecture: `refs/architecture/adaptive-character-sheet-framework.md`
@@ -48,20 +48,22 @@ The BRP Player-Usable Core now has:
 1. broader ordinary skill support and correct professional/personal allocation causality;
 2. Detective, Scholar, Athlete, Beggar, and BRP-native Custom Profession coverage;
 3. bounded source-audited equipment, armor, and modern pistol support with table-use projection;
-4. optional identity/background finishing details retained in native state; and
-5. allocation UX that exposes budget progress, professional eligibility, legal ceilings, cap headroom/overage, and blocking corrections without moving BRP rules into UI code.
+4. optional identity/background finishing details retained in native state;
+5. allocation UX that exposes budget progress, professional eligibility, legal ceilings, cap headroom/overage, and blocking corrections without moving BRP rules into UI code; and
+6. an adaptive character-sheet first proof with a BRP-owned two-page projection, shared presentation-only renderer, browser-native Print / Save as PDF, and lossless full CharacterDocument JSON copy/download.
+
+The adaptive sheet implementation checkpoint is `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb`, green in Actions `34525124229`, job `103032033580`, with 52 test files / 256 tests / 0 failures.
 
 ## Remaining implementation priorities
 
-1. **Adaptive character-sheet framework, proven first with BRP.** Build a shared renderer and a BRP-owned sheet projection rather than a BRP-only print template or universal character rules model. The BRP acceptance target remains a practical two-page play-oriented print/export result.
-2. **Campaign/rules-profile selection seam.** Add only the named profile/configuration boundary needed by the later Investigative Horror phase.
-3. **Representative owner/browser QA and closeout.** Confirm create, finish, review, save, reopen, print/export, and profile behavior in the actual web experience before closing Issue #14.
+1. **Campaign/rules-profile selection seam.** Add only the named profile/configuration boundary needed by the later Investigative Horror phase. A selected profile may configure source-native BRP options/defaults, but it must not replace the effective native rules state or silently reinterpret an existing character.
+2. **Representative owner/browser QA and closeout.** Confirm create, finish, review, save, reopen, print/export, and profile behavior in the actual web experience before closing Issue #14. Include real-browser print pagination with representative long skills, equipment, and finishing content.
 
 Further profession/skill/catalog breadth is evidence-driven and should not displace these remaining product gaps.
 
 ## Adaptive sheet boundary
 
-The accepted output path is:
+The implemented output path is:
 
 ```text
 authoritative native state
@@ -70,22 +72,36 @@ authoritative native state
     -> screen / browser print / PDF-via-print
 ```
 
-The shared renderer may own page geometry, typography, section/table primitives, overflow, print CSS, accessibility, and other presentation mechanics. BRP owns labels, rules meaning, grouping, ordering, and which data appears.
+The shared renderer owns page geometry, typography, section/table primitives, overflow, print CSS, accessibility, and other presentation mechanics. BRP owns labels, rules meaning, grouping, ordering, page assignment, conditional section inclusion, and which data appears.
 
 Broad presentation-role hints are permitted for layout but are not Universal Grammar. Do not infer a universal RPG ontology from `identity`, `primary_stats`, `resources`, `actions`, `equipment`, `abilities`, `conditions`, `narrative`, `notes`, or `provenance` rendering roles.
 
-BRP should prove only the descriptor capabilities it actually needs. D&D can later validate whether BRP-specific assumptions leaked into the shared renderer. Fate remains the stronger architecture stress test before Universal Grammar v0.1 is frozen.
+BRP has proven only the descriptor capabilities it currently needs. D&D can later validate whether BRP-specific assumptions leaked into the shared renderer. Fate remains the stronger architecture stress test before Universal Grammar v0.1 is frozen.
 
-## BRP sheet acceptance target
+## BRP sheet first-proof result
 
-The first adaptive-sheet proof should produce a readable default two-page BRP result:
+The default BRP result is deliberately two-page and play-oriented:
 
-- **Page 1 - at-the-table play:** identity/profession, characteristics and derived values, high-frequency resources/state, final skills, weapons and armor, concise profile identity.
-- **Page 2 - depth/logistics:** equipment and wealth, appearance/finishing details, reputation/background/beliefs/personal item, useful source/profile context, and only player-relevant provenance.
+- **Page 1 - at-the-table play:** identity/profession, characteristics and derived values, high-frequency resources/state, final skills, selected weapons and armor, concise profile identity.
+- **Page 2 - depth/logistics:** equipment and wealth, populated appearance/finishing details, reputation/background/beliefs/personal item, custom profession context when present, and useful source/profile context.
 
-Empty optional sections should collapse rather than reserve permanent blank space. Browser print should remove creator/debug/navigation chrome. Existing CharacterDocument JSON copy/download should be reused where suitable.
+Empty optional sections collapse rather than reserve permanent blank space. Dedicated print CSS removes creator, application, export-control, and debug-inspector chrome. The same BRP projection feeds screen and print output.
 
-Do not make a deterministic PDF library, universal layout optimizer, D&D retrofit, Fate sheet, or four-mode sheet system part of this initial acceptance target.
+No deterministic PDF library, universal layout optimizer, D&D adaptive-sheet retrofit, Fate sheet, four-mode sheet system, new CharacterDocument schema, or new BRP native schema was introduced.
+
+## Narrow rules-profile seam requirements
+
+The next slice should establish only what the later Investigative Horror profile demonstrably needs:
+
+- a stable profile identity distinct from the effective BRP rules configuration;
+- a small system-owned catalog/registry of supported BRP profiles;
+- creator selection of the generic/base profile plus future profile-ready plumbing;
+- explicit mapping from profile to BRP-native options/defaults;
+- save/reopen preservation without profile labels replacing source-native state;
+- switching behavior that never silently reinterprets an already-created character; and
+- focused tests proving profile selection and retained effective configuration.
+
+Do not implement Investigative Horror content, Call of Cthulhu content, or a universal campaign/profile abstraction in this seam.
 
 ## Not required for this epic
 
@@ -105,6 +121,7 @@ Do not make a deterministic PDF library, universal layout optimizer, D&D retrofi
 
 - Native system state is mandatory and lossless.
 - Preserve `brp-character/0.1` unless product evidence proves it insufficient.
+- Preserve canonical adapter identity `0.7.0` unless concrete evidence proves it insufficient.
 - Keep the current adapter stack and contribution causality unless a concrete gap requires change.
 - Profession is not class.
 - Open specialties/languages remain open/source-owned.

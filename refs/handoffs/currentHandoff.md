@@ -16,55 +16,22 @@ Active epic: GitHub Issue #14 - **Make BRP UGE a player-usable core character ge
 
 ## Current Direction
 
-The BRP second-system architecture stress test is complete. The active work is productizing the existing BRP UGE 2023 ORC / corrections 1.05 implementation into a narrow, credible player-facing character generator.
+The BRP second-system architecture stress test is complete. BRP Player-Usable Core is now down to one narrow implementation seam plus representative browser QA.
 
 Accepted sequence remains:
 
-1. BRP Player-Usable Core;
+1. finish BRP Player-Usable Core;
 2. BRP Investigative Horror;
 3. bounded Fate Condensed third-system probe;
 4. Universal Grammar v0.1 from D&D + BRP + Fate evidence.
 
-Do not skip ahead by chronology.
+D&D Guided Narrative remains intentionally parked. Do not resume it by chronology.
 
-## Current BRP Player-Usable Core State
+## Adaptive Character Sheet First Proof - Landed
 
-The bounded usability audit is at `refs/planning/brp-player-usability-gap-audit.md`.
+The adaptive character-sheet framework is implemented and proven first with BRP.
 
-Completed player-facing slices now include:
-
-1. broader ordinary skill support plus correct professional/personal allocation causality;
-2. Athlete, Beggar, and source-shaped Custom Profession, while preserving Detective and Scholar;
-3. bounded source-audited equipment, armor, and modern pistol finishing with table-usable review projection;
-4. optional identity/background finishing fields for size/build, appearance, mannerisms/motto, reputation, personal item/keepsake, background, and beliefs; and
-5. allocation UX that turns exact-budget, profession-eligibility, and starting-cap validation into visible player actions without moving rules out of BRP-owned builders/adapters.
-
-## Accepted Green Starting Checkpoint
-
-The documentation-prep slice starts from exact green `dev` head:
-
-- SHA: `beba1b5a735e4e271f6c5c9c4e7ac052de0c5b27`
-- Actions: `34520469695`
-- Job: `103016416753`
-- `npm run verify`: green
-- 51 test files
-- 251 tests passed
-- 0 failures
-- 200 tracked paths
-- 14 required project-memory files
-- OKF: 27 concepts / 10 indexes
-- Agent context: 4120 characters
-- Build: `Character Forge build 0.0.1 beba1b5a`
-
-The commits after this checkpoint are documentation preparation for the next implementation slice and require their own exact-head Verify before being called the current green head.
-
-## Output Architecture Decision
-
-Before implementing print/export, the product direction was broadened from a BRP-specific printed sheet to an **adaptive character-sheet framework, proven first with BRP**.
-
-Read `refs/architecture/adaptive-character-sheet-framework.md` as the design contract.
-
-The accepted boundary is:
+Accepted architecture remains:
 
 ```text
 authoritative native character state
@@ -73,106 +40,97 @@ authoritative native character state
     -> screen / browser print / PDF-via-print
 ```
 
-This is deliberately **not** a universal character sheet and **not** a universal character rules model.
+Implementation checkpoint:
 
-The shared renderer owns presentation mechanics such as page geometry, typography, section/table primitives, overflow, print behavior, and accessibility. Each system owns the projection that decides what appears, what it means, how important it is, and how it is grouped for play.
+- SHA: `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb`
+- Actions: `34525124229`
+- Job: `103032033580`
+- `npm run verify`: green
+- 52 test files
+- 256 tests passed
+- 0 failures
+- 206 tracked paths
+- 14 required project-memory files
+- OKF: 28 concepts / 10 indexes
+- Agent context: 3725 characters
+- Build: `Character Forge build 0.0.1 d6ba965b`
 
-Broad sheet roles such as `identity`, `primary_stats`, `resources`, `actions`, `equipment`, `abilities`, `conditions`, `narrative`, `notes`, and `provenance` are layout vocabulary only. They must not be treated as Universal Grammar or semantic equivalence between systems.
+The sheet slice added:
+
+- presentation-only shared descriptor/rendering primitives in `packages/character-sheet/src/index.ts`;
+- BRP-owned projection in `packages/system-brp/src/sheetProjection.ts`;
+- deterministic BRP Page 1 at-the-table and Page 2 depth/logistics assignment;
+- final skill projection without creation-budget noise;
+- conditional weapon, armor, appearance, background, and custom-profession sections;
+- screen and dedicated browser-print styling in `apps/web/sheet.css`;
+- browser Print / Save as PDF without a PDF dependency;
+- full current CharacterDocument Copy JSON / Download JSON controls; and
+- focused structural tests for projection, omission, equipment/finishing, page assignment, rendering, and export controls.
+
+The same document-level JSON controls are also available from the current D&D review, but D&D was not moved onto the adaptive sheet renderer.
+
+## Boundaries Preserved
+
+- Native system state remains mandatory and lossless.
+- BRP native schema remains `brp-character/0.1`.
+- Canonical BRP adapter identity remains `0.7.0`.
+- Rendered sheet state is not canonical.
+- Shared sheet roles are presentation hints only, not Universal Grammar.
+- BRP owns BRP labels, grouping, priority, page assignment, rules meaning, and source interpretation.
+- Shared renderer owns presentation mechanics only.
+- No universal layout solver was introduced.
+- No deterministic PDF library was introduced.
+- No D&D adaptive-sheet retrofit or Fate implementation was introduced.
+- No optional BRP subsystem was enabled merely to fill sheet space.
+
+## Current Player-Usable BRP Coverage
+
+Completed player-facing slices now include:
+
+1. broader ordinary skill support and correct professional/personal allocation causality;
+2. Detective, Scholar, Athlete, Beggar, and source-shaped Custom Profession;
+3. bounded source-audited equipment, armor, and modern pistols;
+4. optional identity/background finishing fields;
+5. actionable allocation UX and validation clarity; and
+6. adaptive two-page character sheet, browser print/Save as PDF, and lossless JSON export controls.
+
+See `refs/planning/brp-player-usability-gap-audit.md` for the maintained bounded gap audit.
 
 ## Immediate Next Work Package
 
-The next bounded slice is **adaptive character-sheet framework, BRP-first proof**.
+Implement the **narrow campaign/rules-profile selection seam** required by later Investigative Horror. Do not implement Investigative Horror content yet.
 
-Keep the implementation ruthlessly BRP-sized while putting the shared seam in the right place.
+Read `refs/planning/brp-investigative-horror-profile.md` for the downstream evidence target.
 
-### First inspect existing output affordances
+The seam should prove only:
 
-- existing CharacterDocument JSON copy/download behavior;
-- current BRP review projection and any reusable view helpers;
-- current web application layout and print CSS behavior;
-- how creator controls/debug/native-state inspectors are separated from review content; and
-- existing styling primitives that can be reused without coupling the sheet renderer to BRP.
+- stable profile identity distinct from the effective BRP rules configuration;
+- a small BRP-owned profile catalog/registry;
+- creator selection of the generic/base profile plus future-profile-ready plumbing;
+- explicit profile -> BRP-native options/default mapping;
+- save/reopen preservation;
+- no profile label replacing source-native effective state; and
+- no silent reinterpretation of an existing character when profile selection changes.
 
-### Target architecture
+Do not create a universal campaign/profile ontology. Keep the implementation in BRP ownership unless a genuinely shared interaction primitive is demonstrated.
 
-Prefer a small shared renderer plus a BRP-owned sheet projection/descriptor. Do not route through a new universal character model.
+## After The Profile Seam
 
-Only implement descriptor hints that BRP demonstrates a need for. Reasonable first candidates include:
+Run representative owner/browser QA across:
 
-- presentation role;
-- priority/order;
-- preferred page/region;
-- preferred columns;
-- conditional visibility;
-- split/repeat-header behavior where required; and
-- optional compact reference/help text.
+```text
+create -> finish -> review -> save -> reopen -> print/export
+```
 
-Do not build a layout constraint solver.
+Include multiple BRP professions and at least one character with populated equipment, long skill/specialty names, and finishing/background fields. Confirm real browser print pagination and grayscale/readability rather than relying only on structural tests.
 
-### BRP acceptance target
-
-Default to a readable two-page sheet inspired by best-in-class layout patterns without copying another game's trade dress:
-
-**Page 1 - at-the-table play**
-
-- identity and profession;
-- characteristics and derived values;
-- frequently changing resources/state;
-- final skills;
-- weapons and armor;
-- concise BRP profile/source identity where useful.
-
-**Page 2 - depth and logistics**
-
-- equipment and wealth;
-- appearance and finishing details;
-- reputation, background, beliefs, personal item/keepsake;
-- useful source/profile context; and
-- generation provenance only if it benefits the player rather than debug inspection.
-
-Empty optional sections should collapse instead of leaving permanent blank boxes for unused subsystems.
-
-Prefer browser-native print / Save as PDF and existing JSON export over a new PDF-generation dependency.
-
-### Evidence sequence after BRP
-
-Do not retrofit other systems in this slice. The intended future validation sequence is:
-
-1. BRP proves the first renderer and only the features it needs;
-2. D&D later exposes BRP-specific assumptions that leaked into shared rendering; and
-3. Fate Condensed remains the stronger architecture stress test before Universal Grammar v0.1 is frozen.
-
-## Remaining v0.1 Work After The Sheet Slice
-
-1. narrow campaign/rules-profile selection seam needed by Investigative Horror;
-2. representative owner/browser QA covering create -> finish -> review -> save -> reopen -> print/export; and
-3. Issue #14 closeout if acceptance is met.
-
-Further profession/skill/catalog breadth remains evidence-driven.
-
-## Architecture Baseline To Preserve
-
-- Native system state is mandatory and lossless.
-- Native schema remains `brp-character/0.1`.
-- Canonical adapter identity remains `0.7.0`; later validation layers preserve that established adapter-version contract.
-- Native BRP state is canonical and lossless.
-- UI, review, sheet, and export are projections over native state.
-- Profession is not class.
-- Open specialties and languages remain source-owned.
-- Equipment remains a native stable-ID list backed by source-owned catalog metadata.
-- Descriptive finishing state remains optional and non-mechanical.
-- Shared creator code coordinates interaction only; BRP owns BRP rules and content.
-- Shared sheet code owns presentation mechanics only; system projections own game-specific sheet meaning.
-- No universal power/capability/personality/allocation/sheet ontology should be inferred from the BRP implementation.
-- Universal Grammar remains later and evidence-driven.
+Close Issue #14 only if that QA satisfies the player-usable acceptance target.
 
 ## Source / Licensing Boundary
 
 Implementation authority remains the Basic Roleplaying: Universal Game Engine ORC Content Document, 2023, pinned to corrections 1.05.
 
 Do not import Call of Cthulhu-only or other branded-game content. The later Investigative Horror profile is deliberately BRP-native and legally separate from Call of Cthulhu support.
-
-Layout references may inspire hierarchy, density, page organization, and print behavior, but do not copy protected trade dress or proprietary content from Mothership, Blades in the Dark, Fate, Call of Cthulhu, D&D, or other games.
 
 ## Branch / Promotion Boundary
 
@@ -181,11 +139,9 @@ Work directly on `dev`.
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
-- `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
+- `main`: `c7b64ac774b9f903f0ca1882812`
 
 Preserve exact-SHA `dev -> qa -> main` promotion. Do not implicitly promote accumulated D&D or BRP work.
-
-D&D Guided Narrative remains intentionally parked. Do not resume it by chronology.
 
 ## Validation
 
@@ -195,4 +151,4 @@ Milestone gate:
 npm run verify
 ```
 
-Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
+Do not call a milestone green unless the exact committed SHA passes GitHub Actions. The implementation checkpoint above is green; any later documentation or implementation head requires its own exact-head Verify.
