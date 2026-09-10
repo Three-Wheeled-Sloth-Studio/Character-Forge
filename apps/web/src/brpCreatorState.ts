@@ -1,5 +1,8 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
+  BRP_ATHLETE_ELECTIVE_SKILL_KEYS,
+  BRP_ATHLETE_FIXED_SKILL_KEYS,
+  BRP_BEGGAR_SKILL_KEYS,
   BRP_CHARACTERISTIC_IDS,
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
@@ -8,14 +11,20 @@ import {
   brpSkillIdentityKey,
   brpUge105Adapter,
   buildBrpFirstSliceCharacter,
+  buildBrpPlayerCoreProfessionCharacter,
   buildBrpStandardRolledFirstSliceCharacter,
+  buildBrpStandardRolledPlayerCoreProfessionCharacter,
   calculateBrpPersonalSkillPoints,
   generateBrpStandardRolledCharacteristics,
   resolveBrpAllocationSkillDefinition,
+  resolveBrpAthleteProfession,
+  resolveBrpBeggarProfession,
+  resolveBrpCustomProfession,
   resolveBrpDetectiveProfession,
   resolveBrpPowerLevelProfile,
   resolveBrpScholarProfession,
   type BrpAcademicSkillSelection,
+  type BrpAthleteElectiveSkillKey,
   type BrpCharacteristicId,
   type BrpCharacteristicRedistributionInput,
   type BrpCharacteristicValues,
@@ -25,11 +34,12 @@ import {
   type BrpLanguageSkillSelection,
   type BrpNativeCharacter,
   type BrpPowerLevel,
+  type BrpProfessionId,
   type BrpSkillAllocationInput,
   type BrpWealthLevel,
 } from "../../../packages/system-brp/src/index.js";
 
-export type BrpCreatorProfessionId = "detective" | "scholar";
+export type BrpCreatorProfessionId = BrpProfessionId;
 export type BrpCreatorCharacteristicMethod = "explicit" | "standard-rolled";
 
 type BrpAllocationIdentity =
@@ -57,6 +67,10 @@ export interface BrpCreatorState {
   rollSeed: string;
   redistribution: BrpCharacteristicRedistributionInput[];
   detectiveElectives: BrpDetectiveElectiveSkillKey[];
+  athleteElectives: BrpAthleteElectiveSkillKey[];
+  customProfessionTitle: string;
+  customProfessionDescription: string;
+  customProfessionalSkillKeys: BrpFirstSliceSkillKey[];
   scholarOwnLanguage: BrpLanguageIdentity;
   scholarOtherLanguage: BrpLanguageIdentity;
   scholarAcademicSkills: BrpAcademicSkillSelection[];
@@ -112,6 +126,10 @@ export function createDefaultBrpCreatorState(): BrpCreatorState {
     rollSeed: "brp-creator",
     redistribution: [],
     detectiveElectives: [...BRP_DETECTIVE_ELECTIVE_SKILL_KEYS.slice(0, 4)],
+    athleteElectives: [...BRP_ATHLETE_ELECTIVE_SKILL_KEYS.slice(0, 5)],
+    customProfessionTitle: "Custom Profession",
+    customProfessionDescription: "A player-defined profession using ten source-supported BRP skills.",
+    customProfessionalSkillKeys: defaultCustomProfessionalSkills(),
     scholarOwnLanguage: { id: "language-1", label: "Language 1" },
     scholarOtherLanguage: { id: "language-2", label: "Language 2" },
     scholarAcademicSkills: defaultAcademicSkills(),
@@ -236,6 +254,49 @@ export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocum
         });
   }
 
+  if (state.professionId === "athlete") {
+    const profession = {
+      ...common,
+      professionId: "athlete" as const,
+      athleteElectiveSkillKeys: [...state.athleteElectives],
+    };
+    return state.characteristicMethod === "explicit"
+      ? buildBrpPlayerCoreProfessionCharacter({ ...profession, characteristics: { ...state.characteristics } })
+      : buildBrpStandardRolledPlayerCoreProfessionCharacter({
+          ...profession,
+          seed: state.rollSeed,
+          redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
+        });
+  }
+
+  if (state.professionId === "beggar") {
+    const profession = { ...common, professionId: "beggar" as const };
+    return state.characteristicMethod === "explicit"
+      ? buildBrpPlayerCoreProfessionCharacter({ ...profession, characteristics: { ...state.characteristics } })
+      : buildBrpStandardRolledPlayerCoreProfessionCharacter({
+          ...profession,
+          seed: state.rollSeed,
+          redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
+        });
+  }
+
+  if (state.professionId === "custom") {
+    const profession = {
+      ...common,
+      professionId: "custom" as const,
+      customProfessionTitle: state.customProfessionTitle,
+      customProfessionDescription: state.customProfessionDescription,
+      customProfessionalSkillKeys: [...state.customProfessionalSkillKeys],
+    };
+    return state.characteristicMethod === "explicit"
+      ? buildBrpPlayerCoreProfessionCharacter({ ...profession, characteristics: { ...state.characteristics } })
+      : buildBrpStandardRolledPlayerCoreProfessionCharacter({
+          ...profession,
+          seed: state.rollSeed,
+          redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
+        });
+  }
+
   const profession = {
     ...common,
     professionId: "detective" as const,
@@ -333,6 +394,18 @@ export function reopenBrpCreatorState(character: CharacterDocument): BrpCreatorS
     detectiveElectives: profession.professionId === "detective"
       ? profession.selectedElectiveSkillIds.filter(isDetectiveElective)
       : [...BRP_DETECTIVE_ELECTIVE_SKILL_KEYS.slice(0, 4)],
+    athleteElectives: profession.professionId === "athlete"
+      ? profession.selectedElectiveSkillIds.filter(isAthleteElective)
+      : [...BRP_ATHLETE_ELECTIVE_SKILL_KEYS.slice(0, 5)],
+    customProfessionTitle: profession.professionId === "custom"
+      ? profession.title
+      : "Custom Profession",
+    customProfessionDescription: profession.professionId === "custom"
+      ? profession.description
+      : "A player-defined profession using ten source-supported BRP skills.",
+    customProfessionalSkillKeys: profession.professionId === "custom"
+      ? profession.selectedProfessionalSkillIds.filter(isFirstSliceSkillKey)
+      : defaultCustomProfessionalSkills(),
     scholarOwnLanguage: profession.professionId === "scholar"
       ? { ...profession.ownLanguage }
       : { id: "language-1", label: "Language 1" },
@@ -367,6 +440,37 @@ function professionalSkillInputs(
       throw new Error("BRP Detective profession skill resolution did not match retained choices.");
     }
     return keys.map((skillKey) => ({ skillKey }));
+  }
+
+  if (state.professionId === "athlete") {
+    const profession = resolveBrpAthleteProfession(state.wealth, state.athleteElectives, characteristics);
+    const keys = [...BRP_ATHLETE_FIXED_SKILL_KEYS, ...state.athleteElectives];
+    if (profession.allowedProfessionalSkills.size !== keys.length) {
+      throw new Error("BRP Athlete profession skill resolution did not match retained choices.");
+    }
+    return keys.map((skillKey) => ({ skillKey }));
+  }
+
+  if (state.professionId === "beggar") {
+    const profession = resolveBrpBeggarProfession(state.wealth, characteristics);
+    if (profession.allowedProfessionalSkills.size !== BRP_BEGGAR_SKILL_KEYS.length) {
+      throw new Error("BRP Beggar profession skill resolution did not match the source profile.");
+    }
+    return BRP_BEGGAR_SKILL_KEYS.map((skillKey) => ({ skillKey }));
+  }
+
+  if (state.professionId === "custom") {
+    const profession = resolveBrpCustomProfession(
+      state.wealth,
+      state.customProfessionTitle,
+      state.customProfessionDescription,
+      state.customProfessionalSkillKeys,
+      characteristics,
+    );
+    if (profession.allowedProfessionalSkills.size !== state.customProfessionalSkillKeys.length) {
+      throw new Error("Custom BRP profession skill resolution did not match retained choices.");
+    }
+    return state.customProfessionalSkillKeys.map((skillKey) => ({ skillKey }));
   }
 
   const profession = resolveBrpScholarProfession(
@@ -460,6 +564,21 @@ function defaultAcademicSkills(): BrpAcademicSkillSelection[] {
   ];
 }
 
+function defaultCustomProfessionalSkills(): BrpFirstSliceSkillKey[] {
+  return [
+    "bargain",
+    "brawl",
+    "climb",
+    "dodge",
+    "first-aid",
+    "insight",
+    "listen",
+    "persuade",
+    "spot",
+    "stealth",
+  ];
+}
+
 function createId(prefix: string): string {
   const randomPart = typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
@@ -477,6 +596,14 @@ function cloneAcademic(value: BrpAcademicSkillSelection): BrpAcademicSkillSelect
 
 function isDetectiveElective(value: string): value is BrpDetectiveElectiveSkillKey {
   return (BRP_DETECTIVE_ELECTIVE_SKILL_KEYS as readonly string[]).includes(value);
+}
+
+function isAthleteElective(value: string): value is BrpAthleteElectiveSkillKey {
+  return (BRP_ATHLETE_ELECTIVE_SKILL_KEYS as readonly string[]).includes(value);
+}
+
+function isFirstSliceSkillKey(value: string): value is BrpFirstSliceSkillKey {
+  return Object.prototype.hasOwnProperty.call(BRP_FIRST_SLICE_SKILL_CATALOG, value);
 }
 
 function zeroAllocation(): BrpCreatorAllocationState {

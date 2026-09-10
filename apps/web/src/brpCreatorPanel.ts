@@ -2,15 +2,20 @@ import type { CharacterDocument } from "../../../packages/character-model/src/in
 import {
   applyBrpProfessionSuggestion,
   applyBrpScholarAcademicSuggestion,
+  defaultBrpWealthForProfession,
   readBrpProfessionSuggestion,
   readBrpScholarAcademicSuggestions,
   suggestBrpProfession,
   suggestBrpScholarAcademicSkill,
   type BrpAcademicSkillSelection,
+  type BrpAthleteElectiveSkillKey,
   type BrpCharacteristicId,
   type BrpDetectiveElectiveSkillKey,
+  type BrpFirstSliceSkillKey,
+  type BrpProfessionId,
   type BrpProfessionSuggestionProvenance,
   type BrpScholarAcademicSuggestionRecord,
+  type BrpWealthLevel,
 } from "../../../packages/system-brp/src/index.js";
 import {
   autoAllocateBrpCreatorState,
@@ -51,11 +56,16 @@ export function mountBrpCreatorPanel(
     bindText("#brp-name", (value) => { state.displayName = value; });
     bindText("#brp-gender", (value) => { state.gender = value; });
     bindNumberChange("#brp-age", (value) => { state.age = value; render(); });
-    bindSelectChange("#brp-wealth", (value) => { state.wealth = value === "affluent" ? "affluent" : "average"; render(); });
+    bindSelectChange("#brp-wealth", (value) => {
+      state.wealth = parseBrpWealthLevel(value);
+      state.allocations = {};
+      render();
+    });
     bindSelectChange("#brp-power", (value) => { state.powerLevel = value === "heroic" ? "heroic" : "normal"; render(); });
     bindNumberChange("#brp-default-age", (value) => { state.defaultStartingAge = value; render(); });
     bindSelectChange("#brp-profession", (value) => {
-      state.professionId = value === "scholar" ? "scholar" : "detective";
+      state.professionId = parseBrpProfessionId(value);
+      state.wealth = defaultBrpWealthForProfession(state.professionId);
       professionSuggestion = null;
       academicSuggestions = [];
       state.allocations = {};
@@ -69,6 +79,7 @@ export function mountBrpCreatorPanel(
       state.professionId = suggestion.result.professionId;
       professionSuggestion = suggestion.provenance;
       if (changedProfession) {
+        state.wealth = defaultBrpWealthForProfession(state.professionId);
         academicSuggestions = [];
         state.allocations = {};
       }
@@ -98,11 +109,40 @@ export function mountBrpCreatorPanel(
 
     for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-brp-detective-elective]")) {
       checkbox.addEventListener("change", () => {
-        state.detectiveElectives = [...root.querySelectorAll<HTMLInputElement>("[data-brp-detective-elective]:checked")].map((item) => item.value as BrpDetectiveElectiveSkillKey);
+        state.detectiveElectives = [...root.querySelectorAll<HTMLInputElement>("[data-brp-detective-elective]:checked")]
+          .map((item) => item.value as BrpDetectiveElectiveSkillKey);
         state.allocations = {};
         render();
       });
     }
+
+    for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-brp-athlete-elective]")) {
+      checkbox.addEventListener("change", () => {
+        state.athleteElectives = [...root.querySelectorAll<HTMLInputElement>("[data-brp-athlete-elective]:checked")]
+          .map((item) => item.value as BrpAthleteElectiveSkillKey);
+        state.allocations = {};
+        render();
+      });
+    }
+
+    for (const checkbox of root.querySelectorAll<HTMLInputElement>("[data-brp-custom-skill]")) {
+      checkbox.addEventListener("change", () => {
+        state.customProfessionalSkillKeys = [...root.querySelectorAll<HTMLInputElement>("[data-brp-custom-skill]:checked")]
+          .map((item) => item.value as BrpFirstSliceSkillKey);
+        state.allocations = {};
+        render();
+      });
+    }
+    root.querySelector<HTMLInputElement>("#brp-custom-title")?.addEventListener("change", (event) => {
+      state.customProfessionTitle = (event.currentTarget as HTMLInputElement).value;
+      state.allocations = {};
+      render();
+    });
+    root.querySelector<HTMLTextAreaElement>("#brp-custom-description")?.addEventListener("change", (event) => {
+      state.customProfessionDescription = (event.currentTarget as HTMLTextAreaElement).value;
+      state.allocations = {};
+      render();
+    });
 
     bindScholarControls();
     for (const input of root.querySelectorAll<HTMLInputElement>("[data-brp-allocation-row]")) {
@@ -216,6 +256,16 @@ export function mountBrpCreatorPanel(
       render();
     },
   };
+}
+
+function parseBrpProfessionId(value: string): BrpProfessionId {
+  if (value === "scholar" || value === "athlete" || value === "beggar" || value === "custom") return value;
+  return "detective";
+}
+
+function parseBrpWealthLevel(value: string): BrpWealthLevel {
+  if (value === "destitute" || value === "poor" || value === "affluent" || value === "wealthy") return value;
+  return "average";
 }
 
 function requiredElement<T extends Element>(root: ParentNode, selector: string, type: { new (...args: never[]): T }): T {

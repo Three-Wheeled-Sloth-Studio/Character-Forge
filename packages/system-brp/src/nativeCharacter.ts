@@ -2,9 +2,9 @@ import type { JsonObject } from "../../character-model/src/index.js";
 
 export type BrpPowerLevel = "normal" | "heroic";
 export type BrpCharacteristicGeneration = "explicit" | "standard-rolled";
-export type BrpWealthLevel = "average" | "affluent";
+export type BrpWealthLevel = "destitute" | "poor" | "average" | "affluent" | "wealthy";
 export type BrpCharacteristicId = "STR" | "CON" | "SIZ" | "INT" | "POW" | "DEX" | "CHA";
-export type BrpProfessionId = "detective" | "scholar";
+export type BrpProfessionId = "detective" | "scholar" | "athlete" | "beggar" | "custom";
 export type BrpLanguageRole = "own" | "other";
 
 export interface BrpRulesProfile extends JsonObject {
@@ -151,7 +151,31 @@ export interface BrpScholarProfessionState extends JsonObject {
   selectedAcademicSkills: BrpAcademicSkillSelection[];
 }
 
-export type BrpProfessionState = BrpDetectiveProfessionState | BrpScholarProfessionState;
+export interface BrpAthleteProfessionState extends JsonObject {
+  professionId: "athlete";
+  wealth: BrpWealthLevel;
+  selectedElectiveSkillIds: string[];
+}
+
+export interface BrpBeggarProfessionState extends JsonObject {
+  professionId: "beggar";
+  wealth: BrpWealthLevel;
+}
+
+export interface BrpCustomProfessionState extends JsonObject {
+  professionId: "custom";
+  wealth: BrpWealthLevel;
+  title: string;
+  description: string;
+  selectedProfessionalSkillIds: string[];
+}
+
+export type BrpProfessionState =
+  | BrpDetectiveProfessionState
+  | BrpScholarProfessionState
+  | BrpAthleteProfessionState
+  | BrpBeggarProfessionState
+  | BrpCustomProfessionState;
 
 export interface BrpAgeBasisState extends JsonObject {
   method: "default-starting-age";

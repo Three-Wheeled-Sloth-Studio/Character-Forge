@@ -47,6 +47,12 @@ export const BRP_FIRST_SLICE_SKILL_CATALOG = {
     baseChance: 5,
     specialty: { id: "law", label: "Law" },
   },
+  "knowledge:region-local": {
+    skillId: "knowledge",
+    label: "Knowledge (Region: Local Area)",
+    baseChance: 5,
+    specialty: { id: "region-local", label: "Region: Local Area" },
+  },
   listen: { skillId: "listen", label: "Listen", baseChance: 25, specialty: null },
   medicine: { skillId: "medicine", label: "Medicine", baseChance: 5, specialty: null },
   navigate: { skillId: "navigate", label: "Navigate", baseChance: 10, specialty: null },

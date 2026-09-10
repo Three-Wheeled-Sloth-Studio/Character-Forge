@@ -1,10 +1,15 @@
 import {
+  BRP_ATHLETE_ELECTIVE_SKILL_KEYS,
+  BRP_ATHLETE_FIXED_SKILL_KEYS,
+  BRP_BEGGAR_SKILL_KEYS,
   BRP_CHARACTERISTIC_IDS,
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_FIRST_SLICE_SKILL_CATALOG,
+  allowedBrpWealthLevels,
   generateBrpStandardRolledCharacteristics,
   type BrpCharacteristicId,
   type BrpCharacteristicRedistributionInput,
+  type BrpFirstSliceSkillKey,
   type BrpProfessionSuggestionProvenance,
   type BrpScholarAcademicSuggestionRecord,
 } from "../../../packages/system-brp/src/index.js";
@@ -22,9 +27,9 @@ export function brpCreatorHtml(
       <form id="brp-creator-form" class="creator-form">
         <label>Display name<input id="brp-name" value="${escapeHtml(state.displayName)}" autocomplete="off"></label>
         <div class="brp-inline-grid"><label>Age<input id="brp-age" type="number" min="18" max="49" step="1" value="${state.age}"></label><label>Gender<input id="brp-gender" value="${escapeHtml(state.gender)}" autocomplete="off"></label></div>
-        <div class="brp-inline-grid"><label>Wealth<select id="brp-wealth"><option value="average"${selected(state.wealth === "average")}>Average</option><option value="affluent"${selected(state.wealth === "affluent")}>Affluent</option></select></label><label>Power level<select id="brp-power"><option value="normal"${selected(state.powerLevel === "normal")}>Normal</option><option value="heroic"${selected(state.powerLevel === "heroic")}>Heroic</option></select></label></div>
+        <div class="brp-inline-grid"><label>Wealth<select id="brp-wealth">${wealthOptionsHtml(state)}</select></label><label>Power level<select id="brp-power"><option value="normal"${selected(state.powerLevel === "normal")}>Normal</option><option value="heroic"${selected(state.powerLevel === "heroic")}>Heroic</option></select></label></div>
         ${state.powerLevel === "heroic" ? `<label>Retained default starting age<input id="brp-default-age" type="number" min="18" max="23" step="1" value="${state.defaultStartingAge}"><span class="muted">Heroic age causality remains retained in native state.</span></label>` : ""}
-        <div class="choice-pick-row"><label>Profession<select id="brp-profession"><option value="detective"${selected(state.professionId === "detective")}>Detective</option><option value="scholar"${selected(state.professionId === "scholar")}>Scholar</option></select></label><button id="brp-profession-random" class="secondary-button" type="button" title="Suggest a profession from the BRP UGE first-slice table">Suggest</button></div>
+        <div class="choice-pick-row"><label>Profession<select id="brp-profession"><option value="detective"${selected(state.professionId === "detective")}>Detective</option><option value="scholar"${selected(state.professionId === "scholar")}>Scholar</option><option value="athlete"${selected(state.professionId === "athlete")}>Athlete</option><option value="beggar"${selected(state.professionId === "beggar")}>Beggar</option><option value="custom"${selected(state.professionId === "custom")}>Custom Profession</option></select></label><button id="brp-profession-random" class="secondary-button" type="button" title="Suggest Detective or Scholar from the existing source-backed suggestion table">Suggest</button></div>
         ${professionSuggestionHtml(professionSuggestion)}
         <div id="brp-profession-controls">${professionControlsHtml(state, academicSuggestions)}</div>
         <div class="section-divider"></div>
@@ -65,8 +70,27 @@ function professionControlsHtml(
 ): string {
   if (state.professionId === "detective") {
     const options = BRP_DETECTIVE_ELECTIVE_SKILL_KEYS.map((skillKey) => `<label class="choice-pool-option"><input type="checkbox" data-brp-detective-elective value="${skillKey}"${checked(state.detectiveElectives.includes(skillKey))}>${escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)}</label>`).join("");
-    return `<fieldset class="ability-fieldset"><legend>Detective electives: choose exactly four</legend><p class="muted">This list is the currently implemented source-backed subset of the BRP Detective choices. Broader specialty substitution remains a later core slice.</p><div class="choice-pool-grid">${options}</div></fieldset>`;
+    return `<fieldset class="ability-fieldset"><legend>Detective electives: choose exactly four</legend><p class="muted">This list is the currently implemented source-backed subset of the BRP Detective choices. Broader specialty substitution remains incremental breadth.</p><div class="choice-pool-grid">${options}</div></fieldset>`;
   }
+
+  if (state.professionId === "athlete") {
+    const fixed = BRP_ATHLETE_FIXED_SKILL_KEYS.map((skillKey) => escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)).join(", ");
+    const options = BRP_ATHLETE_ELECTIVE_SKILL_KEYS.map((skillKey) => `<label class="choice-pool-option"><input type="checkbox" data-brp-athlete-elective value="${skillKey}"${checked(state.athleteElectives.includes(skillKey))}>${escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)}</label>`).join("");
+    return `<fieldset class="ability-fieldset"><legend>Athlete profession</legend><p class="muted">Fixed skills: ${fixed}. Choose exactly five electives below. Ride and Martial Arts remain outside the bounded static catalog for now.</p><div class="choice-pool-grid">${options}</div></fieldset>`;
+  }
+
+  if (state.professionId === "beggar") {
+    const skills = BRP_BEGGAR_SKILL_KEYS.map((skillKey) => escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)).join(", ");
+    return `<fieldset class="ability-fieldset"><legend>Beggar profession</legend><p class="muted">Fixed professional skills: ${skills}.</p></fieldset>`;
+  }
+
+  if (state.professionId === "custom") {
+    const options = (Object.keys(BRP_FIRST_SLICE_SKILL_CATALOG) as BrpFirstSliceSkillKey[])
+      .map((skillKey) => `<label class="choice-pool-option"><input type="checkbox" data-brp-custom-skill value="${skillKey}"${checked(state.customProfessionalSkillKeys.includes(skillKey))}>${escapeHtml(BRP_FIRST_SLICE_SKILL_CATALOG[skillKey].label)}</label>`)
+      .join("");
+    return `<fieldset class="ability-fieldset"><legend>Custom profession</legend><p class="muted">BRP explicitly supports creating a profession from a title, description or social role, wealth, and ten essential skills. This picker is bounded to the current source-audited static catalog.</p><label>Profession title<input id="brp-custom-title" value="${escapeHtml(state.customProfessionTitle)}" autocomplete="off"></label><label>Description / training / social role<textarea id="brp-custom-description" rows="3">${escapeHtml(state.customProfessionDescription)}</textarea></label><div class="brp-skill-heading"><strong>Essential professional skills</strong><span class="muted">${state.customProfessionalSkillKeys.length} / 10 selected</span></div><div class="choice-pool-grid">${options}</div></fieldset>`;
+  }
+
   const rows = state.scholarAcademicSkills.map((selection, index) => {
     const suggestion = academicSuggestions.find((record) => record.slotIndex === index);
     const suggestionTitle = suggestion
@@ -75,6 +99,12 @@ function professionControlsHtml(
     return `<div class="brp-academic-row"><select data-brp-academic-index="${index}" data-brp-academic-parent="${index}" aria-label="Academic ${index + 1} parent"><option value="knowledge"${selected(selection.skillId === "knowledge")}>Knowledge</option><option value="science"${selected(selection.skillId === "science")}>Science</option></select><input data-brp-academic-index="${index}" data-brp-academic-id="${index}" value="${escapeHtml(selection.specialty.id)}" aria-label="Academic ${index + 1} specialty ID"><input data-brp-academic-index="${index}" data-brp-academic-label="${index}" value="${escapeHtml(selection.specialty.label)}" aria-label="Academic ${index + 1} specialty label"><button type="button" class="secondary-button brp-academic-suggest${suggestion ? " suggested" : ""}" data-brp-academic-suggest="${index}" title="${escapeHtml(suggestionTitle)}">${suggestion ? "Re-suggest" : "Suggest"}</button></div>`;
   }).join("");
   return `<fieldset class="ability-fieldset"><legend>Scholar languages</legend><div class="brp-language-grid"><label>Own language ID<input id="brp-own-language-id" value="${escapeHtml(state.scholarOwnLanguage.id)}"></label><label>Own language label<input id="brp-own-language-label" value="${escapeHtml(state.scholarOwnLanguage.label)}"></label><label>Other language ID<input id="brp-other-language-id" value="${escapeHtml(state.scholarOtherLanguage.id)}"></label><label>Other language label<input id="brp-other-language-label" value="${escapeHtml(state.scholarOtherLanguage.label)}"></label></div></fieldset><fieldset class="ability-fieldset"><legend>Five Knowledge/Science specialties</legend><p class="muted">Suggestions use the source-safe first-slice catalog. Manual edits remain authoritative and clear that row's suggestion provenance.</p><div class="brp-academic-list"><div class="brp-academic-labels"><span>Parent</span><span>Specialty ID</span><span>Label</span><span>Suggestion</span></div>${rows}</div></fieldset>`;
+}
+
+function wealthOptionsHtml(state: BrpCreatorState): string {
+  return allowedBrpWealthLevels(state.professionId)
+    .map((wealth) => `<option value="${wealth}"${selected(state.wealth === wealth)}>${humanizeLabel(wealth)}</option>`)
+    .join("");
 }
 
 function characteristicControlsHtml(state: BrpCreatorState): string {
@@ -105,6 +135,10 @@ function skillRowsHtml(rows: BrpCreatorPreview["skillRows"], startingCap: number
 function budgetCard(label: string, spent: number, total: number, remaining: number): string {
   const status = remaining === 0 ? "exact" : remaining < 0 ? "over" : "remaining";
   return `<div class="brp-budget-card${remaining < 0 ? " over-budget" : ""}"><span>${label}</span><strong>${spent} / ${total}</strong><small>${Math.abs(remaining)} ${status}</small></div>`;
+}
+
+function humanizeLabel(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1).replaceAll("-", " ");
 }
 
 function selected(value: boolean): string { return value ? " selected" : ""; }
