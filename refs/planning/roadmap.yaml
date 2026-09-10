@@ -15,6 +15,7 @@ principles:
   - Shared creator randomization coordinates existing controls only; legal random semantics and distributions remain system-owned.
   - Random-table results feed ordinary generation decisions or structured suggestions; the generic evaluator never patches native state directly.
   - Naming mechanism, naming context, and name datasets must remain separable; species is not synonymous with culture or naming language.
+  - Native system state remains canonical; Universal Grammar is a derived semantic/translation layer with explicit translation loss.
 
 roadmap:
   - id: foundation-0-repository-baseline
@@ -87,7 +88,7 @@ roadmap:
       - Later Guided Mechanical Alignment edits remain authoritative and hybrid provenance records the Narrative starting value plus final value.
       - Automated-green Narrative Alignment checkpoint 3d9be423d46c45c00ef2eed1b7d643186ed6530a, Actions 34392030680, job 102602424501, 44 test files / 211 tests / 0 failures.
       - Starting-equipment audit found 11 Classes with prepared kit A versus starting gold B, Fighter with two prepared kits A/B plus starting gold C, and all four Backgrounds with prepared kit A versus 50 GP B:50-gp.
-      - Guided Narrative adds one bounded equipment preference with two substantive choices plus Choose for me: prepared gear or starting gold.
+      - Guided Narrative adds one bounded equipment preference with two substantive choices plus Choose for me; prepared gear or starting gold.
       - Prepared gear maps to existing Class A plus Background A; starting gold maps to each Class's existing legal gold option plus Background B:50-gp, including Fighter C.
       - Fighter prepared kit B remains a detailed Guided Mechanical playstyle choice rather than a fake universal alternate-kit category.
       - Direct Narrative Build routes mapped Class and Background equipment through ordinary Guided/native inputs; Narrative mapping version is 4 and direct recipe version is 0.3.
@@ -155,12 +156,12 @@ roadmap:
       - Native schema remains brp-character/0.1 across explicit/rolled, Normal/Heroic, Detective/Scholar, open specialty, and named-language slices.
       - Automated-green named-language checkpoint 1ce3387491ccf859f56d7a0e92217c7737a56bf0, Actions 34291613617, job 102279178820, 30 test files / 152 tests / 0 failures, 35 BRP tests.
       - First BRP creator UI landed in the existing creator workspace with D&D 5E 2024 preserved as the default system and the existing D&D guided creator left unchanged.
-      - BRP creator exposes the supported Human profile only: Normal/Heroic, explicit/standard-rolled characteristics, Detective/Scholar, current age boundary, Average/Affluent wealth, open Scholar specialties/languages, and professional/personal contribution controls.
+      - BRP creator exposes the supported Human profile only; Normal/Heroic, explicit/standard-rolled characteristics, Detective/Scholar, current age boundary, Average/Affluent wealth, open Scholar specialties/languages, and professional/personal contribution controls.
       - BRP creator preview and validity feedback use BRP-owned profession, generation, power-profile, skill, budget, builder, and adapter seams rather than browser-owned rules formulas.
       - BRP CharacterDocument reopen restores supported creator state from authoritative BRP native state, including generation provenance, rules profile, age causality, language identities, specialties, and contribution layers.
       - Automated-green first creator UI checkpoint b5cb07ab7c8873694e438bcc6e3ab799bfdf3c02, Actions 34295950302, job 102292513584, 32 test files / 159 tests / 0 failures.
       - Owner runtime/browser QA accepted the first BRP creator UI on 2026-09-09 with no blocking findings.
-      - BRP owns the first concrete random-table consumer: a source-safe Detective/Scholar profession suggestion table using the generic evaluator and retained generation provenance.
+      - BRP owns the first concrete random-table consumer; a source-safe Detective/Scholar profession suggestion table using the generic evaluator and retained generation provenance.
       - BRP profession suggestion is creator-visible, manually overridable, replayable on reopen, and never patches authoritative native state directly.
       - BRP creator controls are constrained to the left generation column.
       - Automated-green profession-suggestion checkpoint d4b881b29bd763d9f7fd50e56223b00b37077be2, Actions 34366600372, job 102516809719, 34 test files / 168 tests / 0 failures.
@@ -178,7 +179,7 @@ roadmap:
       - name-suggestion/0.1 is sufficient for a future caller-supplied provider, so no shared naming-contract or speculative generic content-provider layer is justified.
       - First BRP Powers architecture proof adds Superpowers as an optional BRP-native tagged power-system state without changing brp-character/0.1 or CharacterDocument.
       - Existing rulesProfile.powerLevel remains the skill-construction profile; Superpowers retains an independent Normal/Heroic power level, with a test proving Normal skill construction plus Heroic Superpowers.
-      - Superpowers character-point budgets are source-derived from initial characteristics: Normal uses half the highest initial characteristic rounded up, Heroic uses the highest initial characteristic, and unused points may remain.
+      - Superpowers character-point budgets are source-derived from initial characteristics; Normal uses half the highest initial characteristic rounded up, Heroic uses the highest initial characteristic, and unused points may remain.
       - Extra Energy and Extra Hit Points are the first bounded Superpowers entries, affecting Power Points and Hit Points/Major Wound level through retained exact levels and costs.
       - Standard-rolled powered generation proves the Superpowers budget uses initial characteristic values before redistribution rather than final redistributed values.
       - Package adapter 0.6.0 validates both unchanged non-powered documents and powered Superpowers state, including budget and derived-state tampering.
@@ -191,18 +192,16 @@ roadmap:
       - Automated-green Psychic architecture checkpoint ae35b556dfc177f12e9f934fedd455803c6b74c7, Actions 34417631582, job 102685926895, 46 test files / 231 tests / 0 failures.
       - Two materially different BRP power grammars now fit the existing BRP-native tagged-state boundary without changing CharacterDocument or introducing a universal cross-system capability ontology.
     current_gate:
-      - The original BRP second-system architecture stress-test objective is complete.
+      - The original BRP second-system architecture stress-test objective is complete and Issue 13 is closed.
       - The first BRP creator UI, random-table consumers, bounded Randomize All participation, naming-content ownership decision, Superpowers proof, and Psychic Abilities proof are accepted on dev.
       - Further BRP implementation is product breadth, not required architecture-proof scope.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
-      - Do not auto-start another BRP power system merely to accumulate architecture evidence; product direction should choose future BRP breadth explicitly.
+      - The selected next BRP product line is Issue 14; BRP Player-Usable Core.
+      - Do not auto-start another BRP power system merely to accumulate architecture evidence.
       - Powers creator UI, full Superpowers catalog ingestion, broader Psychic catalog/runtime activation, power failings/modifiers, Epic/Superhuman power levels, and fixed GM budgets remain separately prioritized work.
       - Magic, Mutations, and Sorcery remain unimplemented and should each begin with a bounded source audit if selected.
-      - When a real setting/campaign provider exists, inject it at the host/caller boundary and retain provider/source/version/seed provenance without putting invented data in system-brp.
-      - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
-      - Keep Scholar academic suggestions field-level until source-safe content or another system-owned strategy can satisfy uniqueness legally.
-      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
+      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized by a product slice.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
       - Preserve effective rules-profile and character-specific age context natively.
@@ -217,6 +216,65 @@ roadmap:
       - Do not infer a universal power activation/resource model from Psychic Power Point use.
       - Keep generation method provenance separate from runtime ontology unless a source proves otherwise.
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
+
+  - id: brp-6-player-usable-core
+    horizon: now
+    status: in_progress
+    goal: Turn the proven BRP UGE implementation into a narrow but credible player-facing character generator.
+    tracking_issue: 14
+    guidance:
+      - refs/planning/brp-player-usable-core.md
+      - refs/planning/brp-to-universal-grammar-path.md
+    current_slice:
+      - Run a bounded BRP ORC 1.05 player-usability gap audit and classify relevant capabilities as supported, missing for v0.1, or deferred.
+      - After the audit, implement the highest-value missing vertical slice in the same thread unless a genuine product/architecture decision blocks it.
+    acceptance:
+      - A player unfamiliar with the repository can create, finish, review, save, reopen, and export/print a generic BRP character that feels like a usable product rather than an architecture demonstration.
+    likely_priorities:
+      - Profession and skill breadth.
+      - Finish-the-character and equipment breadth.
+      - Allocation UX and validation clarity.
+      - Final review and print/export projection.
+      - Campaign/rules-profile seam required by the later Investigative Horror profile.
+    guardrails:
+      - Preserve brp-character/0.1 unless concrete product evidence proves it insufficient.
+      - Do not block v0.1 on complete Powers, every BRP optional subsystem, non-humans, setting-owned generated names, Fate, or Universal Grammar.
+      - Native state remains canonical; creator review and export are projections.
+
+  - id: brp-6-investigative-horror-profile
+    horizon: near
+    status: planned
+    goal: Add a coherent BRP-native investigative-horror character profile without Call of Cthulhu branding or CoC-only protected content.
+    guidance:
+      - refs/planning/brp-investigative-horror-profile.md
+      - refs/planning/brp-to-universal-grammar-path.md
+    trigger:
+      - BRP Player-Usable Core is credible enough that the horror profile is configuration/product breadth rather than a workaround for missing core flow.
+    guardrails:
+      - Use BRP ORC rules and independently authored/sourced content with explicit provenance.
+      - Source-audit BRP Sanity from BRP ORC; do not copy Call of Cthulhu-specific Sanity rules or other CoC-only expression.
+      - Keep BRP-system content, Character Forge original content, and setting/content-package material separate.
+      - Do not market the feature as Call of Cthulhu or CoC support absent a separate license.
+
+  - id: system-third-probe-fate
+    horizon: near
+    status: planned
+    goal: Implement a deliberately small Fate Condensed third-system probe before freezing Universal Grammar v0.1.
+    guidance:
+      - refs/planning/fate-third-system-probe.md
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/planning/universal-grammar-v0.1.md
+    trigger:
+      - BRP Player-Usable Core and Investigative Horror have supplied their intended product/profile evidence.
+    architecture_questions:
+      - Mechanically authoritative freeform Aspects.
+      - Stunts that resist a universal spell/feat/power/skill taxonomy.
+      - Stress and Consequences rather than conventional HP assumptions.
+      - Narrative statements as first-class mechanical state.
+    guardrails:
+      - Use official Fate SRD licensing and freeze exact source/version/attribution before importing content.
+      - Keep the probe bounded; it is not an automatic commitment to a full Fate product.
+      - Update translation evidence before changing shared semantic contracts.
 
   - id: companion-random-tables
     horizon: now
@@ -318,14 +376,24 @@ roadmap:
     goal: Support advancement, durable edits, revision history, and system-native maintenance without losing provenance.
 
   - id: semantic-5-cross-system-language
-    horizon: after-evidence
+    horizon: after-fate-probe
     status: planned
-    goal: Promote sufficiently repeated cross-system concepts into a versioned semantic character language with explicit translation-loss reporting.
+    goal: Formalize Universal Grammar v0.1 from D&D, BRP, and Fate evidence with explicit translation-loss reporting while native state remains canonical.
+    guidance:
+      - refs/planning/universal-grammar-v0.1.md
+      - refs/planning/brp-to-universal-grammar-path.md
+      - refs/architecture/translation-bridge-rpg-notes.md
+    trigger:
+      - The bounded Fate Condensed third-system probe has been implemented and its translation evidence reviewed.
+    guardrails:
+      - Keep the evidence ledger current before this gate, but do not freeze Universal Grammar v0.1 before Fate.
+      - Promote concepts from repeated semantic evidence, not matching labels or UI placement.
+      - Support exact, one-to-many, many-to-one, approximate, contextual, and omitted mappings with explicit loss/assumption data.
 
   - id: system-7-pathfinder
     horizon: later
     status: planned
-    goal: Add Pathfinder after the semantic layer has already been stressed by a less D&D-like system.
+    goal: Add Pathfinder after Universal Grammar has already been stressed by a less D&D-like third system rather than using Pathfinder as the third architecture probe.
 
   - id: bridge-rpg-8-design-synthesis
     horizon: later
