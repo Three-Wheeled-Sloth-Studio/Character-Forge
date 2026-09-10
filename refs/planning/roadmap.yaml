@@ -125,8 +125,8 @@ roadmap:
       workspace_qa_polish_issue: 12
 
   - id: system-6-second-stress-test
-    horizon: now
-    status: in_progress
+    horizon: completed
+    status: completed
     goal: Implement BRP Universal Game Engine as a structurally different second RPG and use evidence to break D&D-shaped assumptions before expanding shared semantics.
     selected_system: Basic Roleplaying Universal Game Engine
     rules_boundary: 2023 UGE ORC content with corrections 1.05
@@ -183,19 +183,26 @@ roadmap:
       - Standard-rolled powered generation proves the Superpowers budget uses initial characteristic values before redistribution rather than final redistributed values.
       - Package adapter 0.6.0 validates both unchanged non-powered documents and powered Superpowers state, including budget and derived-state tampering.
       - Automated-green Superpowers architecture checkpoint bc0a05fb9b96c9777a73726100828712cd8bbb41, Actions 34413436457, job 102672848273, 45 test files / 223 tests / 0 failures.
+      - Second BRP Powers architecture proof adds Psychic Abilities as a separate BRP-native tagged power system rather than another Superpowers purchase grammar.
+      - The bounded Psychic slice supports Empathy and Mind Shield with POW x 1 base ratings, percentile skill-style training, Power Point use metadata, and source-owned ability identity without inserting them into the ordinary BRP skill list.
+      - Psychic creation shares the character's single personal INT x 10 point pool with ordinary personal skill allocation; generation explicitly reallocates retained personal points and validation proves combined spend causality.
+      - Skill-construction profile and Psychic power-system level remain independent; tests prove Heroic skill construction combined with a Normal Psychic profile.
+      - Package adapter 0.7.0 validates non-powered, Superpowers, and Psychic states while preserving backward compatibility and brp-character/0.1.
+      - Automated-green Psychic architecture checkpoint ae35b556dfc177f12e9f934fedd455803c6b74c7, Actions 34417631582, job 102685926895, 46 test files / 231 tests / 0 failures.
+      - Two materially different BRP power grammars now fit the existing BRP-native tagged-state boundary without changing CharacterDocument or introducing a universal cross-system capability ontology.
     current_gate:
-      - The first BRP creator UI, both random-table consumers, bounded Randomize All participation, naming-content ownership decision, and first Superpowers backend architecture proof are accepted for continued dev work.
-      - BRP Powers UI is not part of the first architecture proof.
-      - No automatic follow-on Powers implementation is authorized by chronology.
+      - The original BRP second-system architecture stress-test objective is complete.
+      - The first BRP creator UI, random-table consumers, bounded Randomize All participation, naming-content ownership decision, Superpowers proof, and Psychic Abilities proof are accepted on dev.
+      - Further BRP implementation is product breadth, not required architecture-proof scope.
       - Keep accumulated BRP work on dev until an explicit exact-SHA promotion decision.
     remaining_scope:
-      - If BRP Powers architecture is explicitly continued, verify Psychic Abilities next as the strongest contrasting grammar before broadening the Superpowers catalog.
-      - Treat Psychic Abilities as a separate BRP power system unless source evidence proves otherwise; do not assume skill rating implies ordinary-skill identity.
-      - Keep full Superpowers catalog ingestion, power failings/modifiers, Epic/Superhuman power levels, fixed GM budgets, and Powers creator UI out until separately prioritized.
+      - Do not auto-start another BRP power system merely to accumulate architecture evidence; product direction should choose future BRP breadth explicitly.
+      - Powers creator UI, full Superpowers catalog ingestion, broader Psychic catalog/runtime activation, power failings/modifiers, Epic/Superhuman power levels, and fixed GM budgets remain separately prioritized work.
+      - Magic, Mutations, and Sorcery remain unimplemented and should each begin with a bounded source audit if selected.
       - When a real setting/campaign provider exists, inject it at the host/caller boundary and retain provider/source/version/seed provenance without putting invented data in system-brp.
       - Add field-level randomizers for Age, Gender, Wealth only when their distributions are explicitly defined; do not invent them to satisfy Randomize All.
       - Keep Scholar academic suggestions field-level until source-safe content or another system-owned strategy can satisfy uniqueness legally.
-      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, age-50+, cultural/category modifiers, broad profession ingestion, and unimplemented Magic/Mutations/Sorcery/Psychic systems out until separately prioritized.
+      - Keep unsupported EDU, Sanity, Fatigue, hit locations, non-human rules, age-50+, cultural/category modifiers, and broad profession ingestion out until separately prioritized.
     guardrails:
       - Keep Call of Cthulhu-specific protected content out of the BRP adapter.
       - Preserve effective rules-profile and character-specific age context natively.
@@ -206,6 +213,8 @@ roadmap:
       - Keep BRP power-system state BRP-native and tagged; do not model it through D&D spell-state structures.
       - Do not collapse BRP skill-construction level and power-system level into one universal powerLevel concept.
       - Do not assume all BRP power systems use character-point purchasing because Superpowers does.
+      - Do not treat Psychic Abilities as ordinary BRP skills merely because they are percentile-rated or trained from the personal skill-point pool.
+      - Do not infer a universal power activation/resource model from Psychic Power Point use.
       - Keep generation method provenance separate from runtime ontology unless a source proves otherwise.
       - Do not change shared CharacterDocument or semantic contracts without concrete cross-system evidence.
 
