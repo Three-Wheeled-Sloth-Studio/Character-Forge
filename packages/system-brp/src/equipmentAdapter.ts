@@ -15,7 +15,6 @@ import { brpUge105Adapter as brpUge105PlayerCoreAdapter } from "./playerCoreAdap
 
 export const brpUge105Adapter: RulesSystemAdapter = {
   ...brpUge105PlayerCoreAdapter,
-  adapterVersion: "0.8.0",
   validateNativeState,
 };
 
