@@ -2,6 +2,7 @@ import {
   BRP_ATHLETE_ELECTIVE_SKILL_KEYS,
   BRP_ATHLETE_FIXED_SKILL_KEYS,
   BRP_BEGGAR_SKILL_KEYS,
+  BRP_CAMPAIGN_PROFILE_CATALOG,
   BRP_CHARACTERISTIC_IDS,
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_FIRST_SLICE_SKILL_CATALOG,
@@ -25,6 +26,7 @@ export function brpCreatorHtml(
     <section class="creator-panel compact-creator brp-creator-panel">
       <div class="creator-heading"><p class="eyebrow">Basic Roleplaying</p><h2>BRP UGE creator</h2><p>2023 ORC rules profile, corrections 1.05. The core creator exposes only source-audited BRP choices currently supported by native state.</p></div>
       <form id="brp-creator-form" class="creator-form">
+        ${campaignProfileHtml(state)}
         <label>Display name<input id="brp-name" value="${escapeHtml(state.displayName)}" autocomplete="off"></label>
         <div class="brp-inline-grid"><label>Age<input id="brp-age" type="number" min="18" max="49" step="1" value="${state.age}"></label><label>Gender<input id="brp-gender" value="${escapeHtml(state.gender)}" autocomplete="off"></label></div>
         <div class="brp-inline-grid"><label>Wealth<select id="brp-wealth">${wealthOptionsHtml(state)}</select></label><label>Power level<select id="brp-power"><option value="normal"${selected(state.powerLevel === "normal")}>Normal</option><option value="heroic"${selected(state.powerLevel === "heroic")}>Heroic</option></select></label></div>
@@ -56,6 +58,25 @@ export function readBrpRedistribution(root: HTMLElement): BrpCharacteristicRedis
     if (from && to) result.push({ from, to, points });
   }
   return result;
+}
+
+function campaignProfileHtml(state: BrpCreatorState): string {
+  const retained = state.campaignProfile;
+  const active = retained
+    ? BRP_CAMPAIGN_PROFILE_CATALOG.find((profile) => profile.id === retained.id)
+    : undefined;
+  const preserved = !active
+    ? `<option value="" selected disabled>${escapeHtml(retained
+        ? `Existing profile ${retained.id} v${retained.version}`
+        : "Existing BRP rules - no retained profile provenance")}</option>`
+    : "";
+  const options = BRP_CAMPAIGN_PROFILE_CATALOG
+    .map((profile) => `<option value="${escapeHtml(profile.id)}"${selected(active?.id === profile.id)}>${escapeHtml(profile.label)}</option>`)
+    .join("");
+  const note = active
+    ? `${active.description} Retained profile ${retained?.id ?? active.id} v${retained?.version ?? active.version}; the effective BRP rules below remain authoritative.`
+    : "This reopened character keeps its effective BRP rules unchanged until you explicitly choose a current profile.";
+  return `<label>Campaign / rules profile<select id="brp-campaign-profile">${preserved}${options}</select><span class="muted">${escapeHtml(note)}</span></label>`;
 }
 
 function professionSuggestionHtml(provenance: BrpProfessionSuggestionProvenance | null): string {

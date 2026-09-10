@@ -7,6 +7,7 @@ import {
   createEmptyBrpFinishingDetails,
   defaultBrpWealthForProfession,
   filterBrpStartingEquipmentSelection,
+  isBrpCampaignProfileId,
   readBrpFinishingDetails,
   readBrpProfessionSuggestion,
   readBrpScholarAcademicSuggestions,
@@ -31,6 +32,7 @@ import {
   previewBrpCreatorState,
   reopenBrpCreatorState,
   rerollBrpCreatorState,
+  selectBrpCampaignProfile,
   type BrpCreatorState,
 } from "./brpCreatorState.js";
 import { mountBrpEquipmentControls } from "./brpEquipmentControls.js";
@@ -76,6 +78,13 @@ export function mountBrpCreatorPanel(
 
   const bindCurrentControls = (): void => {
     const form = requiredElement(root, "#brp-creator-form", HTMLFormElement);
+    bindSelectChange("#brp-campaign-profile", (value) => {
+      if (!isBrpCampaignProfileId(value)) return;
+      state = selectBrpCampaignProfile(state, value);
+      professionSuggestion = null;
+      academicSuggestions = [];
+      render();
+    });
     bindText("#brp-name", (value) => { state.displayName = value; });
     bindText("#brp-gender", (value) => { state.gender = value; });
     bindNumberChange("#brp-age", (value) => { state.age = value; render(); });

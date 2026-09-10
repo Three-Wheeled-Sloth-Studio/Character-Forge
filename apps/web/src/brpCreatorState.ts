@@ -4,10 +4,12 @@ import {
   BRP_ATHLETE_FIXED_SKILL_KEYS,
   BRP_BEGGAR_SKILL_KEYS,
   BRP_CHARACTERISTIC_IDS,
+  BRP_DEFAULT_CAMPAIGN_PROFILE_ID,
   BRP_DETECTIVE_ELECTIVE_SKILL_KEYS,
   BRP_DETECTIVE_REQUIRED_SKILL_KEYS,
   BRP_FIRST_SLICE_SKILL_CATALOG,
   BRP_SCHOLAR_FIXED_SKILL_KEYS,
+  applyBrpCampaignProfileContext,
   brpSkillIdentityKey,
   brpUge105Adapter,
   buildBrpFirstSliceCharacter,
@@ -16,15 +18,19 @@ import {
   buildBrpStandardRolledPlayerCoreProfessionCharacter,
   calculateBrpPersonalSkillPoints,
   generateBrpStandardRolledCharacteristics,
+  readBrpCampaignProfileReference,
   resolveBrpAllocationSkillDefinition,
   resolveBrpAthleteProfession,
   resolveBrpBeggarProfession,
+  resolveBrpCampaignProfileSelection,
   resolveBrpCustomProfession,
   resolveBrpDetectiveProfession,
   resolveBrpPowerLevelProfile,
   resolveBrpScholarProfession,
   type BrpAcademicSkillSelection,
   type BrpAthleteElectiveSkillKey,
+  type BrpCampaignProfileId,
+  type BrpCampaignProfileReference,
   type BrpCharacteristicId,
   type BrpCharacteristicRedistributionInput,
   type BrpCharacteristicValues,
@@ -35,6 +41,7 @@ import {
   type BrpNativeCharacter,
   type BrpPowerLevel,
   type BrpProfessionId,
+  type BrpRulesProfile,
   type BrpSkillAllocationInput,
   type BrpWealthLevel,
 } from "../../../packages/system-brp/src/index.js";
@@ -56,6 +63,9 @@ export interface BrpCreatorState {
   characterId: string;
   nativeStateId: string;
   displayName: string;
+  campaignProfile: BrpCampaignProfileReference | null;
+  enabledOptions: string[];
+  enabledPowerSystems: string[];
   age: number;
   gender: string;
   wealth: BrpWealthLevel;
@@ -103,17 +113,21 @@ export interface BrpCreatorPreview {
 }
 
 export function createDefaultBrpCreatorState(): BrpCreatorState {
+  const profile = resolveBrpCampaignProfileSelection(BRP_DEFAULT_CAMPAIGN_PROFILE_ID);
   return {
     characterId: createId("character"),
     nativeStateId: createId("native-brp"),
     displayName: "New BRP Character",
+    campaignProfile: { ...profile.reference },
+    enabledOptions: [...profile.rulesProfile.enabledOptions],
+    enabledPowerSystems: [...profile.rulesProfile.enabledPowerSystems],
     age: 18,
     gender: "Unspecified",
     wealth: "average",
-    powerLevel: "normal",
+    powerLevel: profile.rulesProfile.powerLevel,
     defaultStartingAge: 18,
     professionId: "detective",
-    characteristicMethod: "explicit",
+    characteristicMethod: profile.rulesProfile.characteristicGeneration,
     characteristics: {
       STR: 10,
       CON: 10,
@@ -133,6 +147,25 @@ export function createDefaultBrpCreatorState(): BrpCreatorState {
     scholarOwnLanguage: { id: "language-1", label: "Language 1" },
     scholarOtherLanguage: { id: "language-2", label: "Language 2" },
     scholarAcademicSkills: defaultAcademicSkills(),
+    allocations: {},
+  };
+}
+
+export function selectBrpCampaignProfile(
+  state: BrpCreatorState,
+  profileId: BrpCampaignProfileId,
+): BrpCreatorState {
+  const selection = resolveBrpCampaignProfileSelection(profileId);
+  return {
+    ...state,
+    campaignProfile: { ...selection.reference },
+    powerLevel: selection.rulesProfile.powerLevel,
+    characteristicMethod: selection.rulesProfile.characteristicGeneration,
+    enabledOptions: [...selection.rulesProfile.enabledOptions],
+    enabledPowerSystems: [...selection.rulesProfile.enabledPowerSystems],
+    redistribution: selection.rulesProfile.characteristicGeneration === "standard-rolled"
+      ? state.redistribution.map((transfer) => ({ ...transfer }))
+      : [],
     allocations: {},
   };
 }
@@ -236,6 +269,11 @@ export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocum
     professionalAllocations,
     personalAllocations,
   };
+  const finalize = (character: CharacterDocument): CharacterDocument => applyBrpCampaignProfileContext(
+    character,
+    effectiveRulesProfile(state),
+    state.campaignProfile ? { ...state.campaignProfile } : null,
+  );
 
   if (state.professionId === "scholar") {
     const profession = {
@@ -245,13 +283,13 @@ export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocum
       scholarOtherLanguage: { ...state.scholarOtherLanguage },
       scholarAcademicSkills: state.scholarAcademicSkills.map(cloneAcademic),
     };
-    return state.characteristicMethod === "explicit"
+    return finalize(state.characteristicMethod === "explicit"
       ? buildBrpFirstSliceCharacter({ ...profession, characteristics: { ...state.characteristics } })
       : buildBrpStandardRolledFirstSliceCharacter({
           ...profession,
           seed: state.rollSeed,
           redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
-        });
+        }));
   }
 
   if (state.professionId === "athlete") {
@@ -260,24 +298,24 @@ export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocum
       professionId: "athlete" as const,
       athleteElectiveSkillKeys: [...state.athleteElectives],
     };
-    return state.characteristicMethod === "explicit"
+    return finalize(state.characteristicMethod === "explicit"
       ? buildBrpPlayerCoreProfessionCharacter({ ...profession, characteristics: { ...state.characteristics } })
       : buildBrpStandardRolledPlayerCoreProfessionCharacter({
           ...profession,
           seed: state.rollSeed,
           redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
-        });
+        }));
   }
 
   if (state.professionId === "beggar") {
     const profession = { ...common, professionId: "beggar" as const };
-    return state.characteristicMethod === "explicit"
+    return finalize(state.characteristicMethod === "explicit"
       ? buildBrpPlayerCoreProfessionCharacter({ ...profession, characteristics: { ...state.characteristics } })
       : buildBrpStandardRolledPlayerCoreProfessionCharacter({
           ...profession,
           seed: state.rollSeed,
           redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
-        });
+        }));
   }
 
   if (state.professionId === "custom") {
@@ -288,13 +326,13 @@ export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocum
       customProfessionDescription: state.customProfessionDescription,
       customProfessionalSkillKeys: [...state.customProfessionalSkillKeys],
     };
-    return state.characteristicMethod === "explicit"
+    return finalize(state.characteristicMethod === "explicit"
       ? buildBrpPlayerCoreProfessionCharacter({ ...profession, characteristics: { ...state.characteristics } })
       : buildBrpStandardRolledPlayerCoreProfessionCharacter({
           ...profession,
           seed: state.rollSeed,
           redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
-        });
+        }));
   }
 
   const profession = {
@@ -302,13 +340,13 @@ export function buildBrpCreatorCharacter(state: BrpCreatorState): CharacterDocum
     professionId: "detective" as const,
     detectiveElectiveSkillKeys: [...state.detectiveElectives],
   };
-  return state.characteristicMethod === "explicit"
+  return finalize(state.characteristicMethod === "explicit"
     ? buildBrpFirstSliceCharacter({ ...profession, characteristics: { ...state.characteristics } })
     : buildBrpStandardRolledFirstSliceCharacter({
         ...profession,
         seed: state.rollSeed,
         redistribution: state.redistribution.map((transfer) => ({ ...transfer })),
-      });
+      }));
 }
 
 export function autoAllocateBrpCreatorState(state: BrpCreatorState): BrpCreatorState {
@@ -379,6 +417,9 @@ export function reopenBrpCreatorState(character: CharacterDocument): BrpCreatorS
     characterId: character.characterId,
     nativeStateId: nativeState.id,
     displayName: character.displayName,
+    campaignProfile: readBrpCampaignProfileReference(character),
+    enabledOptions: [...payload.rulesProfile.enabledOptions],
+    enabledPowerSystems: [...payload.rulesProfile.enabledPowerSystems],
     age: payload.identity.age,
     gender: payload.identity.gender,
     wealth: profession.wealth,
@@ -422,6 +463,15 @@ export function reopenBrpCreatorState(character: CharacterDocument): BrpCreatorS
 export function rerollBrpCreatorState(state: BrpCreatorState): BrpCreatorState {
   const nextSeed = `${state.rollSeed.trim() || "brp-creator"}-${Date.now().toString(36)}`;
   return { ...state, rollSeed: nextSeed, redistribution: [], allocations: {} };
+}
+
+function effectiveRulesProfile(state: BrpCreatorState): BrpRulesProfile {
+  return {
+    powerLevel: state.powerLevel,
+    characteristicGeneration: state.characteristicMethod,
+    enabledOptions: [...state.enabledOptions],
+    enabledPowerSystems: [...state.enabledPowerSystems],
+  };
 }
 
 function resolvedCharacteristics(state: BrpCreatorState): BrpCharacteristicValues {
