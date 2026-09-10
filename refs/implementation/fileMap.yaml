@@ -58,10 +58,10 @@ areas:
       - packages/system-brp
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. The second-system architecture
-      stress test is complete and Issue #13 is closed. brp-character/0.1 remains
-      canonical; adapter 0.8 layers bounded starting-equipment validation over
-      the established non-powered creator, player-core professions, Superpowers,
-      and Psychic grammars without shared-model changes. Issue #14 BRP
+      stress test is complete and Issue #13 is closed. brp-character/0.1 and
+      canonical adapter 0.7 remain stable; bounded starting-equipment validation
+      is layered over the established non-powered creator, player-core professions,
+      Superpowers, and Psychic grammars without shared-model changes. Issue #14 BRP
       Player-Usable Core now has profession/skill breadth plus finish-the-character
       equipment coverage. Identity/background finishing is the next bounded gap,
       followed by allocation guidance and print/export. The accepted sequence after
