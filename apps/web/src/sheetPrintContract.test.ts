@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { printableCharacterSheetDocument } from "./characterSheetControls.js";
+import {
+  characterDocumentControlsHtml,
+  printableCharacterSheetDocument,
+} from "./characterSheetControls.js";
 
 const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
 const controlsSource = readFileSync("apps/web/src/characterSheetControls.ts", "utf8");
@@ -50,12 +53,14 @@ describe("dedicated character-sheet print contract", () => {
   });
 
   it("renders self-contained media/export SVGs inside visibly enabled circular action buttons", () => {
-    expect(controlsSource).toContain('data-sheet-action="attach-portrait"');
-    expect(controlsSource).toContain('data-sheet-action="attach-token"');
-    expect(controlsSource).toContain('class="sheet-action-icon"');
-    expect(controlsSource).toContain('fill="none"');
-    expect(controlsSource).toContain('stroke="currentColor"');
-    expect(controlsSource).toContain('stroke-width="1.8"');
+    const controls = characterDocumentControlsHtml(true, true);
+
+    expect(controls).toContain('data-sheet-action="attach-portrait"');
+    expect(controls).toContain('data-sheet-action="attach-token"');
+    expect(controls).toContain('class="sheet-action-icon"');
+    expect(controls).toContain('fill="none"');
+    expect(controls).toContain('stroke="currentColor"');
+    expect(controls).toContain('stroke-width="1.8"');
     expect(sheetCss).toContain(".sheet-action-button");
     expect(sheetCss).toContain("border-radius: 999px");
     expect(sheetCss).toContain("background: #dec6a6");
