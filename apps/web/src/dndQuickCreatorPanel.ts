@@ -10,7 +10,6 @@ export function mountDndQuickCreatorPanel(
       <div class="creator-heading">
         <p class="eyebrow">D&D 5E 2024 · Quick Generate</p>
         <h2>Quick character</h2>
-        <p>Use the current system-owned first-slice Quick generator. Leave name or seed blank to generate them automatically.</p>
       </div>
       <form id="dnd-quick-form" class="creator-form">
         <label>Character name
@@ -19,7 +18,6 @@ export function mountDndQuickCreatorPanel(
         <label>Generation seed
           <input id="dnd-quick-seed" type="text" maxlength="160" placeholder="Optional · generated if blank" autocomplete="off" />
         </label>
-        <p class="muted">An explicit seed replays the same Quick mechanics while new opaque character and native-state IDs are still assigned.</p>
         <p id="dnd-quick-error" class="form-error" role="alert"></p>
         <button type="submit" class="primary-action">Generate character</button>
       </form>

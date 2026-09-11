@@ -7,6 +7,7 @@ import {
   mountDndCreatorPanel,
   type DndCreationMode,
 } from "./dndCreatorPanel.js";
+import { applyPrimaryCreatorMinimalism } from "./primaryUiMinimalism.js";
 import { mountWorkspaceSplitter } from "./workspaceSplitter.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
@@ -84,27 +85,29 @@ export function mountCreatorWorkspace(
     <section class="creator-panel creator-system-panel${lockedSystem ? " creator-system-panel-locked" : ""}">
       <div class="creator-system-actions">
         ${systemSelector}
-        <button id="creator-randomize-all" type="button" class="secondary-button icon-button creator-randomize-all" title="Randomize All" aria-label="Randomize All"><span aria-hidden="true">⚄⚅</span></button>
+        <button id="creator-randomize-all" type="button" class="secondary-button icon-button creator-randomize-all" title="Randomize All" aria-label="Randomize All"><span aria-hidden="true">⚄<sup>⚅</sup></span></button>
       </div>
-      ${lockedSystem ? "" : '<p id="creator-randomization-help" class="muted"></p><p class="muted">System-specific generation controls stay below. Native rules state remains authoritative.</p>'}
-      ${lockedSystem ? '<p id="creator-randomization-help" class="visually-hidden"></p>' : ""}
     </section>
     <div id="creator-system-host"></div>`;
 
   const systemSelect = requiredElement(root, "#creator-rules-system", HTMLSelectElement);
   const systemHost = requiredElement(root, "#creator-system-host", HTMLElement);
   const randomizeAll = requiredElement(root, "#creator-randomize-all", HTMLButtonElement);
-  const randomizationHelp = requiredElement(root, "#creator-randomization-help", HTMLElement);
   let brpController: BrpCreatorPanelController | null = null;
   let dndMode = defaultDndCreationMode();
+
+  const presentationObserver = new MutationObserver(() => applyPrimaryCreatorMinimalism(systemHost));
+  presentationObserver.observe(systemHost, { childList: true, subtree: true });
 
   const currentSystem = (): CreatorSystemId => systemSelect.value === "brp-uge" ? "brp-uge" : "dnd5e-2024";
 
   const refreshRandomizationUi = (): void => {
     const available = creatorRandomizeAllAvailable(currentSystem(), dndMode);
+    const help = creatorRandomizationHelp(currentSystem(), dndMode);
     randomizeAll.hidden = !available;
     randomizeAll.disabled = !available;
-    randomizationHelp.textContent = creatorRandomizationHelp(currentSystem(), dndMode);
+    randomizeAll.title = help;
+    randomizeAll.setAttribute("aria-label", available ? `Randomize All. ${help}` : "Randomize All unavailable in this creation mode");
   };
 
   const renderSystem = (): void => {
@@ -113,6 +116,7 @@ export function mountCreatorWorkspace(
     if (currentSystem() === "brp-uge") {
       brpController = mountBrpCreatorPanel(systemHost, onCharacter);
       refreshRandomizationUi();
+      applyPrimaryCreatorMinimalism(systemHost);
       return;
     }
     mountDndCreatorPanel(systemHost, onCharacter, {
@@ -120,8 +124,10 @@ export function mountCreatorWorkspace(
       onModeChange: (mode) => {
         dndMode = mode;
         refreshRandomizationUi();
+        applyPrimaryCreatorMinimalism(systemHost);
       },
     });
+    applyPrimaryCreatorMinimalism(systemHost);
   };
 
   systemSelect.value = initialSystem;

@@ -38,7 +38,6 @@ export function mountDndCreatorPanel(
           ${DND_CREATION_MODE_OPTIONS.map((entry) => `<option value="${entry.id}">${entry.label}</option>`).join("")}
         </select>
       </label>
-      <p class="muted">Guided Mechanical exposes detailed choices. Guided Narrative starts from preference questions, each with Choose for me. Quick Generate uses the existing system-owned first-slice generator.</p>
     </section>
     <div id="dnd-guided-mode-host"></div>
     <div id="dnd-narrative-mode-host"></div>

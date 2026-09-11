@@ -78,7 +78,7 @@ describe("BRP identity and background finishing", () => {
     ]);
   });
 
-  it("shows compact source-shaped finishing prompts without enabling the optional Distinctive Features subsystem", () => {
+  it("shows compact finishing prompts without unavailable-feature callouts", () => {
     const html = brpFinishingControlsHtml({
       ...createEmptyBrpFinishingDetails(),
       sizeDescription: "Short and broad",
@@ -88,6 +88,6 @@ describe("BRP identity and background finishing", () => {
     expect(html).toContain("Short and broad");
     expect(html).toContain("Former dockworker");
     expect(html).toContain("Personal item / keepsake");
-    expect(html).toContain("Distinctive Features rules are not enabled");
+    expect(html).not.toContain("Distinctive Features");
   });
 });

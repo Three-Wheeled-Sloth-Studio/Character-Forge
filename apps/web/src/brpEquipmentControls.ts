@@ -45,7 +45,7 @@ export function brpEquipmentControlsHtml(
     })
     .join("");
 
-  return `<legend>Finish: important equipment</legend><p class="muted">BRP assumes ordinary setting-appropriate clothing plus pocket money or savings from Wealth. Select only possessions important in play. Weapons become available at a 50% or better related skill. Equipment above normal Wealth may need a Status roll, GM approval, or a profession-issued explanation.</p><div class="choice-pool-grid">${options}</div>`;
+  return `<legend>Finish: important equipment</legend><div class="choice-pool-grid">${options}</div>`;
 }
 
 function escapeHtml(value: string): string {
