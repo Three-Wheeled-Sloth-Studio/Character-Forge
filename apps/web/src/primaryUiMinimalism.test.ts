@@ -1,17 +1,23 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import {
+  autoAllocateBrpCreatorState,
+  createDefaultBrpCreatorState,
+  previewBrpCreatorState,
+} from "./brpCreatorState.js";
+import { brpCreatorHtml } from "./brpCreatorPanelView.js";
 
 const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
 const workspaceSource = readFileSync("apps/web/src/creatorWorkspace.ts", "utf8");
-const presentationAdapterSource = readFileSync("apps/web/src/creatorPresentationAdapter.ts", "utf8");
-const minimalismSource = readFileSync("apps/web/src/primaryUiMinimalism.ts", "utf8");
 const dndModeSource = readFileSync("apps/web/src/dndCreatorPanel.ts", "utf8");
+const dndGuidedSource = readFileSync("apps/web/src/dndGuidedCreatorPanel.ts", "utf8");
+const dndNarrativeSource = readFileSync("apps/web/src/dndNarrativeCreatorPanel.ts", "utf8");
 const dndQuickSource = readFileSync("apps/web/src/dndQuickCreatorPanel.ts", "utf8");
 const brpEquipmentSource = readFileSync("apps/web/src/brpEquipmentControls.ts", "utf8");
 const brpFinishingSource = readFileSync("apps/web/src/brpFinishingControls.ts", "utf8");
 const brpStylesSource = readFileSync("apps/web/src/brpCreatorStyles.ts", "utf8");
 
-describe("Stage 0 primary creator UI minimalism", () => {
+describe("primary creator UI minimalism", () => {
   it("keeps application and rules-system chrome task focused", () => {
     expect(mainSource).not.toContain("Translation magic comes later");
     expect(mainSource).not.toContain("Your generated character will stay visible here");
@@ -21,27 +27,42 @@ describe("Stage 0 primary creator UI minimalism", () => {
     expect(workspaceSource).toContain("randomizeAll.title = help");
   });
 
-  it("keeps temporary presentation cleanup out of workspace orchestration", () => {
+  it("has no post-render primary UI compatibility layer", () => {
+    expect(workspaceSource).not.toContain("creatorPresentationAdapter");
     expect(workspaceSource).not.toContain("applyPrimaryCreatorMinimalism");
     expect(workspaceSource).not.toContain("new MutationObserver");
-    expect(presentationAdapterSource).toContain("mountPresentedBrpCreator");
-    expect(presentationAdapterSource).toContain("observer.disconnect()");
-    expect(presentationAdapterSource).toContain("mountPresentedDndCreator");
+    expect(existsSync("apps/web/src/creatorPresentationAdapter.ts")).toBe(false);
+    expect(existsSync("apps/web/src/primaryUiMinimalism.ts")).toBe(false);
   });
 
-  it("removes explanatory prose from D&D mode and Quick generation chrome", () => {
+  it("renders accepted BRP minimalism directly from the BRP view", () => {
+    const state = autoAllocateBrpCreatorState(createDefaultBrpCreatorState());
+    const preview = previewBrpCreatorState(state);
+    const html = brpCreatorHtml(state, preview);
+
+    expect(html).toContain("Basic Roleplaying | UGE 2023 | ORC 1.05");
+    expect(html).not.toContain("BRP UGE creator");
+    expect(html).toContain("<strong>Allocation</strong>");
+    expect(html).toContain('class="creator-inline-help"');
+    expect(html).toContain("<strong>Allocation:</strong> Ready");
+    expect(html).toContain("<strong>Rules check:</strong> Ready");
+    expect(html).not.toContain("currently implemented source-backed subset");
+    expect(html).not.toContain("BRP explicitly supports creating a profession");
+    expect(html).not.toContain("Suggestions use the source-safe first-slice catalog");
+    expect(html).not.toContain("Ride and Martial Arts remain outside");
+    expect(html).not.toContain("Heroic age causality remains retained in native state");
+  });
+
+  it("keeps D&D Guided and Narrative primary chrome minimal at their render owners", () => {
     expect(dndModeSource).not.toContain("Guided Mechanical exposes detailed choices");
     expect(dndQuickSource).not.toContain("system-owned first-slice Quick generator");
     expect(dndQuickSource).not.toContain("opaque character and native-state IDs");
-  });
-
-  it("moves BRP source and allocation detail out of the primary task surface", () => {
-    expect(minimalismSource).toContain('headingTitle?.textContent?.trim() === "BRP UGE creator"');
-    expect(minimalismSource).toContain('allocationTitle.textContent = "Allocation"');
-    expect(minimalismSource).toContain('allocationStatus.innerHTML = "<strong>Allocation:</strong> Ready"');
-    expect(minimalismSource).toContain('validation.innerHTML = "<strong>Rules check:</strong> Ready"');
-    expect(minimalismSource).toContain('helpIcon("Allocation rules"');
-    expect(minimalismSource).toContain("Ride and Martial Arts remain outside");
+    expect(dndGuidedSource).toContain('.creator-heading p:not(.eyebrow)');
+    expect(dndGuidedSource).toContain("Started from Guided Narrative. Changes here are authoritative.");
+    expect(dndNarrativeSource).not.toContain("Answer a few preference questions");
+    expect(dndNarrativeSource).not.toContain("Every narrative question includes");
+    expect(dndNarrativeSource).not.toContain("These choices have already been narrowed");
+    expect(dndNarrativeSource).not.toContain("Build now to use the current Guided Narrative defaults");
   });
 
   it("removes nonessential BRP finishing and equipment explanations", () => {
