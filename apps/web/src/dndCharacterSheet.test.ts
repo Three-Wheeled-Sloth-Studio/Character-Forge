@@ -44,14 +44,16 @@ describe("D&D dedicated character sheet", () => {
     const sheet = buildDnd5eCharacterSheet(character);
 
     expect(character).toEqual(before);
+    expect(sheet.systemTheme).toBe("dnd5e");
     expect(sheet.pages.map((page) => page.number)).toEqual([1, 2]);
+    expect(sheet.pages[0]?.layout).toBe("play-3");
     expect(sheet.pages[0]?.sections.map((section) => section.id)).toEqual([
-      "identity",
-      "abilities",
       "resources",
       "saving-throws",
       "skills",
+      "abilities",
     ]);
+    expect(sheet.headerFacts?.map((fact) => fact.label)).toEqual(["Class", "Species", "Background", "Alignment"]);
     expect(sheet.pages[1]?.sections.map((section) => section.id)).not.toContain("rules-context");
     expect(sheet.footerNote).toBe("D&D 5E 2024 | SRD 5.2.1");
 
@@ -74,30 +76,38 @@ describe("D&D dedicated character sheet", () => {
     expect(saves.kind).toBe("ratings");
     if (skills.kind !== "ratings" || saves.kind !== "ratings") throw new Error("Expected D&D ratings sections.");
 
+    expect(skills.zone).toBe("main");
+    expect(saves.zone).toBe("left");
     expect(skills.items).toContainEqual(expect.objectContaining({ label: "Athletics", detail: "Proficient" }));
-    expect(saves.items).toContainEqual(expect.objectContaining({ label: "Strength", detail: "Proficient" }));
+    expect(saves.items).toContainEqual(expect.objectContaining({ label: "STR", detail: "Proficient" }));
   });
 
-  it("reserves portrait and VTT-token space without adding product branding to the sheet", () => {
-    const html = renderCharacterSheet(buildDnd5eCharacterSheet(fighterCharacter()));
+  it("uses portrait-first header composition, campaign badging, and no visible media placeholder prose", () => {
+    const html = renderCharacterSheet(buildDnd5eCharacterSheet(fighterCharacter()), { campaignName: "Lantern Coast" });
 
+    expect(html).toContain('data-sheet-system="dnd5e"');
     expect(html).toContain('data-sheet-media-slot="portrait"');
     expect(html).toContain('data-sheet-media-slot="token"');
-    expect(html).toContain("Portrait");
-    expect(html).toContain("VTT Token");
+    expect(html).toContain("Lantern Coast");
+    expect(html).not.toContain(">Portrait<");
+    expect(html).not.toContain(">VTT Token<");
+    expect(html).toContain('class="sheet-play-grid sheet-play-grid-3"');
     expect(html).toContain('<footer class="sheet-footer">D&amp;D 5E 2024 | SRD 5.2.1</footer>');
     expect(html).not.toContain("Character Forge");
     expect(html).not.toContain("Rules Context");
     expect(html).not.toContain("Generation seed");
   });
 
-  it("uses icon-only print, copy, and download actions with hover and accessible text", () => {
-    const html = characterDocumentControlsHtml(true);
+  it("uses icon-only media, print, copy, and download actions with hover and accessible text", () => {
+    const html = characterDocumentControlsHtml(true, true);
 
+    expect(html).toContain('data-sheet-action="attach-portrait"');
+    expect(html).toContain('data-sheet-action="attach-token"');
     expect(html).toContain('data-sheet-action="print"');
     expect(html).toContain('data-sheet-action="copy-json"');
     expect(html).toContain('data-sheet-action="download-json"');
     expect(html).toContain("<svg");
+    expect(html).toContain('title="Attach character portrait"');
     expect(html).toContain('title="Print character sheet or save as PDF"');
     expect(html).toContain('aria-label="Copy full CharacterDocument JSON"');
     expect(html).not.toContain("<span>Copy JSON</span>");
