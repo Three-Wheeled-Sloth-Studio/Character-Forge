@@ -21,6 +21,7 @@ export interface CharacterSheetMediaSlot {
 export interface CharacterSheetDescriptor {
   title: string;
   subtitle?: string;
+  footerNote?: string;
   sourceNativeStateId: string;
   sourceSchemaVersion: string;
   pages: CharacterSheetPage[];
@@ -124,13 +125,15 @@ function renderPage(page: CharacterSheetPage, descriptor: CharacterSheetDescript
   const ariaPageTitle = page.title ? `: ${page.title}` : "";
   const effectiveMediaSlots = page.mediaSlots ?? (page.number === 1 ? DEFAULT_PRIMARY_MEDIA_SLOTS : []);
   const mediaSlots = effectiveMediaSlots.length ? renderMediaSlots(effectiveMediaSlots) : "";
+  const footer = descriptor.footerNote ? `<footer class="sheet-footer">${escapeHtml(descriptor.footerNote)}</footer>` : "";
   return `<section class="sheet-page" data-sheet-page="${page.number}" aria-label="${escapeHtml(`Page ${page.number}${ariaPageTitle}`)}">
     <header class="sheet-page-header">
-      <div class="sheet-page-header-copy"><p class="sheet-kicker">Character Forge</p><h2>${escapeHtml(descriptor.title)}</h2>${subtitle}</div>
+      <div class="sheet-page-header-copy"><h2>${escapeHtml(descriptor.title)}</h2>${subtitle}</div>
       ${mediaSlots}
       <div class="sheet-page-number">Page ${page.number}${pageTitle}</div>
     </header>
     <div class="sheet-page-content">${page.sections.map(renderSection).join("")}</div>
+    ${footer}
   </section>`;
 }
 
