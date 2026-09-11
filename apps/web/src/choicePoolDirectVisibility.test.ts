@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { directSelectableIds } from "./choicePoolDirectVisibility.js";
+import { directChoiceDisplayMatches, directSelectableIds } from "./choicePoolDirectVisibility.js";
 
 describe("direct choice visibility", () => {
   it("keeps supported unchecked options visible for direct selection", () => {
@@ -16,5 +16,15 @@ describe("direct choice visibility", () => {
       { id: "orc", checked: true, disabled: false },
       { id: "human", checked: true, disabled: false },
     ])).toEqual(["orc", "human"]);
+  });
+
+  it("refreshes a select when IDs match but richer player-facing labels were replaced by raw codes", () => {
+    expect(directChoiceDisplayMatches(
+      [{ id: "A", label: "A" }, { id: "B", label: "B" }],
+      [
+        { id: "A", label: "Chain Mail, Greatsword, Flail, 8 Javelins, Dungeoneer's Pack + 4 GP" },
+        { id: "B", label: "Studded Leather, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack + 11 GP" },
+      ],
+    )).toBe(false);
   });
 });
