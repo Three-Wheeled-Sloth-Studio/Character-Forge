@@ -4,10 +4,9 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- productization
-- branding
 - name-generation
 - random-tables
+- stage-3
 - roadmap
 ---
 # Next Development Prompt
@@ -22,115 +21,85 @@ The owner-approved execution sequence is in:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-Stages 0 and 1 are complete. Stage 2 implementation is complete and only needs a short owner browser visual check before formal closeout. Do not reopen roadmap prioritization unless new evidence materially changes the plan.
+Stages 0, 1, and 2 are complete. Resume **Stage 3 - Name Generator and Random Tables**. Do not reopen branding or roadmap prioritization without materially new evidence.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 3 name generator random tables"
+python refs/tools/generate_agent_context.py --focus "Stage 3 D&D name provider Markov corpus boundary"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-3. existing name-generation code/tests in `packages/generator-core` and `packages/system-dnd5e`
-4. BRP optional flavor-field state/rendering only where needed for random-table integration
-5. Parchment project/culture/language context contracts only if required to define an interface boundary
+3. `packages/generator-core/src/nameMarkov.ts`
+4. `packages/generator-core/src/nameSuggestion.ts`
+5. `packages/system-dnd5e/src/nameGeneration.ts` and its focused tests
+6. BRP random-table/flavor code only after the D&D provider migration is green
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
-## Character Forge Exact Green Implementation Checkpoint
+## Exact Green Checkpoint
 
-Accepted `dev` implementation head before the documentation refresh:
+Current accepted `dev` implementation head:
 
-- SHA: `0b0a4059e30b7f07a1b28a2c93e2ba29d6652cf5`
-- Actions: `34637862811`
-- Job: `103390045147`
-- 63 test files / 299 tests / 0 failures
-- 236 tracked paths
+- SHA: `7b535143e188dd26d1ff41f6517adffd9dc3d7b4`
+- Actions: `34647775925`
+- Job: `103422558786`
+- 64 test files / 304 tests / 0 failures
+- 238 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3765 characters
-- build `Character Forge build 0.0.1 0b0a4059`
+- agent context 3735 characters
+- build `Character Forge build 0.0.1 7b535143`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 2 Companion Parchment Checkpoint
+## Stage 3 First Slice Completed
 
-Parchment Worlds `dev`:
+The shared generator layer now includes `name-markov/0.1` in `packages/generator-core/src/nameMarkov.ts`.
 
-- SHA: `1eb8714849e0aa45384cdf0ca582649254544b96`
-- Actions: `34647328140`
-- Job: `103421124752`
-- 54 test files / 184 tests / 0 failures
-- production bundle green
+It provides:
 
-Canonical TWS assets live in `Parchment-Worlds/Branding/` and are packaged locally into the Parchment web build. The parent shell uses the TWS Studio logo with underlay as the far-left maker mark and the TAGS logo as favicon. Character Forge keeps its own quiet text maker identity rather than introducing a cross-repository runtime asset dependency.
+- corpus-trained character-level transition generation;
+- frequency-weighted transitions;
+- deterministic behavior through the existing seeded random source;
+- caller-owned length and acceptance constraints;
+- bounded retries and explicit failure;
+- no embedded D&D, BRP, species, culture, or language semantics.
 
-## Stage 2 Closure Check
+The existing `NameSuggestionProvider` remains the provenance/provider contract. The existing `RandomTable` evaluator remains the system-neutral random-table contract.
 
-Before implementing Stage 3, if owner browser feedback has not already been recorded, confirm only:
+## Next Bounded Slice
 
-- the TWS Studio underlay logo appears cleanly at the far upper left of the Parchment header;
-- Parchment product identity remains clear and visually primary;
-- the TAGS favicon appears;
-- Parchment `v0.2.0` and Character Forge `v0.0.1` badges are quiet and legible;
-- embedded Character Forge has no new layout regression.
+Migrate only the existing D&D placeholder name provider onto the shared Markov mechanism.
 
-If accepted, mark Stage 2 complete. Do not do another general branding pass.
+Required shape:
 
-## Stage 3 - Name Generator And Random Tables
+1. Separate D&D training/reference samples into their own corpus module or data boundary.
+2. Give that corpus explicit source/version identity and retain it through `NameSuggestion` provenance.
+3. Train/use `name-markov/0.1` from the D&D provider instead of selecting one of six complete names.
+4. Preserve existing explicit-randomize and blank-fallback behavior, replay validation, generation decisions, and editable final name behavior.
+5. Add tests proving deterministic replay and stale provenance rejection when provider/corpus identity does not match.
+6. Keep the first corpus intentionally bounded; this slice proves architecture, not linguistic completeness.
+7. Do not infer culture or language from D&D species.
 
-Begin with an architecture audit before implementation.
-
-### Name generator
-
-Do not grow the current placeholder corpus into a larger word-list or fragment mashup.
-
-The intended mechanism should provide a distinctly flavored but very large generation space using a probabilistic / Markov-style sequence generator or comparable phonotactic approach.
-
-Separate from the start:
-
-- generation mechanism;
-- training/reference corpora or pattern data;
-- naming context;
-- culture/language inputs;
-- post-generation constraints/validation;
-- deterministic seed/provenance.
-
-The design must anticipate future language and culture generators providing phonology, phonotactics, morphology, syllable structure, orthography, naming customs, honorifics, family-name rules, social-class patterns, and regional variation.
-
-Species must not be treated as synonymous with culture or language.
-
-Prefer the first bounded slice to prove a reusable system-neutral generation contract before adding broad corpora or many UI surfaces.
-
-### Random tables
-
-Use BRP free-text flavor fields as an early proving ground for a system-neutral random-table companion, such as:
-
-- build/size;
-- appearance;
-- mannerisms;
-- reputation;
-- background;
-- distinctive details;
-- similar optional inspiration fields already owned by native BRP state.
-
-Suggestions remain editable/overridable and must feed ordinary creator decisions rather than bypass native state or create a parallel document model.
+Once that is green, the next Stage 3 slice should use the existing random-table evaluator to populate one editable BRP flavor-field suggestion path as a proof of integration.
 
 ## Guardrails
 
 - Native system state is mandatory and lossless.
 - Native BRP and D&D state remain canonical.
 - Do not add name/culture/language semantics to Universal Grammar prematurely.
-- Do not equate species with culture or language.
-- Preserve deterministic generation and provenance where practical.
+- Species is not synonymous with culture or language.
+- Shared generator code owns reusable mechanics, not system/culture semantics.
+- Preserve deterministic generation and provenance.
 - Random-table output is suggestion/input, not hidden authoritative state.
 - Do not pull deferred Issue #15 BRP polish into Stage 3 unless it becomes a blocker.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
