@@ -24,13 +24,23 @@ export function characterDocumentControlsHtml(includePrint = false): string {
   </div>`;
 }
 
-export function bindCharacterDocumentControls(root: ParentNode, character: CharacterDocument): void {
+export function bindCharacterDocumentControls(
+  root: ParentNode,
+  character: CharacterDocument,
+  printableSheetHtml?: string,
+): void {
   const status = root.querySelector<HTMLElement>("[data-sheet-action-status]");
   const printButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='print']");
   const copyButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='copy-json']");
   const downloadButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='download-json']");
 
-  printButton?.addEventListener("click", () => window.print());
+  printButton?.addEventListener("click", () => {
+    if (!printableSheetHtml) {
+      setStatus(status, "Printable character sheet unavailable.");
+      return;
+    }
+    printCharacterSheet(printableSheetHtml, status);
+  });
   copyButton?.addEventListener("click", () => {
     if (!navigator.clipboard) {
       setStatus(status, "Clipboard unavailable in this browser.");
@@ -41,6 +51,24 @@ export function bindCharacterDocumentControls(root: ParentNode, character: Chara
       .catch(() => setStatus(status, "Could not copy Character JSON."));
   });
   downloadButton?.addEventListener("click", () => downloadCharacterDocumentJson(character));
+}
+
+export function printableCharacterSheetDocument(sheetHtml: string, baseHref = document.baseURI): string {
+  const sheetCssUrl = new URL("sheet.css", baseHref).href;
+  const sheetUiCssUrl = new URL("sheet-ui.css", baseHref).href;
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Character Sheet</title>
+  <link rel="stylesheet" href="${escapeAttribute(sheetCssUrl)}" />
+  <link rel="stylesheet" href="${escapeAttribute(sheetUiCssUrl)}" />
+</head>
+<body class="sheet-print-document">
+${sheetHtml}
+</body>
+</html>`;
 }
 
 function sheetActionButton(action: string, label: string, icon: string): string {
@@ -63,6 +91,36 @@ function printIcon(): string {
   return svgIcon(`<path d="M7 8V3h10v5"></path><path d="M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2"></path><rect x="7" y="14" width="10" height="7" rx="1"></rect>`);
 }
 
+function printCharacterSheet(sheetHtml: string, status: HTMLElement | null): void {
+  const frame = document.createElement("iframe");
+  frame.className = "sheet-print-frame";
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.position = "fixed";
+  frame.style.width = "1px";
+  frame.style.height = "1px";
+  frame.style.right = "0";
+  frame.style.bottom = "0";
+  frame.style.border = "0";
+  frame.style.opacity = "0";
+  frame.srcdoc = printableCharacterSheetDocument(sheetHtml);
+
+  const cleanup = () => frame.remove();
+  frame.addEventListener("load", () => {
+    const printWindow = frame.contentWindow;
+    if (!printWindow) {
+      cleanup();
+      setStatus(status, "Could not open printable character sheet.");
+      return;
+    }
+    printWindow.addEventListener("afterprint", cleanup, { once: true });
+    window.setTimeout(cleanup, 30000);
+    printWindow.focus();
+    printWindow.print();
+  }, { once: true });
+
+  document.body.append(frame);
+}
+
 function downloadCharacterDocumentJson(character: CharacterDocument): void {
   const blob = new Blob([characterDocumentJson(character)], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -78,4 +136,12 @@ function downloadCharacterDocumentJson(character: CharacterDocument): void {
 
 function setStatus(target: HTMLElement | null, message: string): void {
   if (target) target.textContent = message;
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
