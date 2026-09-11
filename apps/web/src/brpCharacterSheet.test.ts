@@ -35,7 +35,7 @@ function sheetSection(sheet: CharacterSheetDescriptor, pageNumber: number, id: s
 }
 
 describe("adaptive character sheet BRP first proof", () => {
-  it("projects authoritative BRP native state into deterministic two-page presentation state without mutating it", () => {
+  it("projects authoritative BRP native state into deterministic two-page play presentation without mutating it", () => {
     const character = validDefaultCharacter();
     const before = structuredClone(character);
     const nativeState = character.nativeStates.find((entry) => entry.id === character.primaryNativeStateId)!;
@@ -46,20 +46,18 @@ describe("adaptive character sheet BRP first proof", () => {
     expect(character).toEqual(before);
     expect(sheet.sourceNativeStateId).toBe(nativeState.id);
     expect(sheet.sourceSchemaVersion).toBe("brp-character/0.1");
+    expect(sheet.systemTheme).toBe("brp");
     expect(sheet.pages.map((page) => page.number)).toEqual([1, 2]);
-    expect(sheet.pages[0]?.sections.map((section) => section.id)).toEqual([
-      "identity",
-      "characteristics",
-      "derived",
-      "skills",
-    ]);
+    expect(sheet.pages[0]?.layout).toBe("play-3");
+    expect(sheet.pages[0]?.sections.map((section) => section.id)).not.toContain("identity");
+    expect(sheet.headerFacts?.map((fact) => fact.label)).toEqual(["Profession", "Age", "Gender"]);
     expect(sheet.footerNote).toBe("BRP UGE 2023 | ORC 1.05");
 
-    const skills = sheetSection(sheet, 1, "skills");
-    expect(skills.kind).toBe("ratings");
-    if (skills.kind !== "ratings") throw new Error("Expected ratings section.");
+    const ratingItems = sheet.pages[0]!.sections
+      .filter((section) => section.kind === "ratings")
+      .flatMap((section) => section.kind === "ratings" ? section.items : []);
     const firstSkill = payload.skills[0]!;
-    expect(skills.items.some((item) => item.label.startsWith(firstSkill.label)
+    expect(ratingItems.some((item) => item.label.startsWith(firstSkill.label)
       && item.value === `${firstSkill.finalRating}%`)).toBe(true);
   });
 
@@ -93,6 +91,7 @@ describe("adaptive character sheet BRP first proof", () => {
     const weapons = sheetSection(sheet, 1, "weapons");
     expect(weapons.kind).toBe("table");
     if (weapons.kind !== "table") throw new Error("Expected weapons table.");
+    expect(weapons.zone).toBe("wide");
     expect(weapons.rows).toContainEqual(expect.objectContaining({
       weapon: "Pistol, Medium",
       attack: "75%",
@@ -113,7 +112,7 @@ describe("adaptive character sheet BRP first proof", () => {
     const equipment = sheetSection(sheet, 2, "equipment");
     expect(equipment.kind).toBe("details");
     if (equipment.kind !== "details") throw new Error("Expected equipment details.");
-    expect(equipment.items.find((item) => item.label === "Selected equipment")?.value)
+    expect(equipment.items.find((item) => item.label === "Equipment")?.value)
       .toContain("First Aid Kit");
 
     const appearance = sheetSection(sheet, 2, "appearance");
@@ -135,40 +134,41 @@ describe("adaptive character sheet BRP first proof", () => {
     ]);
   });
 
-  it("renders only character-facing sheet chrome plus a tiny rules footer", () => {
+  it("renders campaign badging and empty media space without visible placeholder prose", () => {
     const character = applyBrpStartingEquipment(validDefaultCharacter(), ["pistol-medium"]);
     character.displayName = "Mara <North>";
-    const html = renderCharacterSheet(buildBrpCharacterSheet(character));
+    const html = renderCharacterSheet(buildBrpCharacterSheet(character), { campaignName: "Ashes of Bellweather" });
 
     expect(html).toContain("Mara &lt;North&gt;");
+    expect(html).toContain('data-sheet-system="brp"');
     expect(html).toContain('data-sheet-page="1"');
     expect(html).toContain('data-sheet-page="2"');
-    expect(html).toContain('data-sheet-role="actions"');
     expect(html).toContain('data-sheet-section="weapons"');
     expect(html).toContain('data-sheet-media-slot="portrait"');
     expect(html).toContain('data-sheet-media-slot="token"');
-    expect(html).toContain("<thead>");
-    expect(html).toContain("sheet-section-splittable");
+    expect(html).toContain("Ashes of Bellweather");
+    expect(html).not.toContain(">Portrait<");
+    expect(html).not.toContain(">VTT Token<");
     expect(html).toContain('<footer class="sheet-footer">BRP UGE 2023 | ORC 1.05</footer>');
     expect(html).not.toContain("Character Forge");
     expect(html).not.toContain("Rules Context");
     expect(html).not.toContain("Rules profile");
-    expect(html).not.toContain("Inspect native character document");
   });
 
-  it("exposes icon-only browser print and lossless CharacterDocument JSON controls without creating a PDF model", () => {
+  it("exposes icon-only media, print, and lossless CharacterDocument actions without creating a PDF model", () => {
     const character = validDefaultCharacter();
     character.displayName = "Avery North";
-    const printControls = characterDocumentControlsHtml(true);
+    const controls = characterDocumentControlsHtml(true, true);
     const jsonOnlyControls = characterDocumentControlsHtml(false);
 
-    expect(printControls).toContain('data-sheet-action="print"');
-    expect(printControls).toContain('title="Print character sheet or save as PDF"');
-    expect(printControls).toContain('data-sheet-action="copy-json"');
-    expect(printControls).toContain('data-sheet-action="download-json"');
-    expect(printControls).toContain('aria-label="Copy full CharacterDocument JSON"');
-    expect(printControls).toContain("<svg");
-    expect(printControls).not.toContain("<span>Copy JSON</span>");
+    expect(controls).toContain('data-sheet-action="attach-portrait"');
+    expect(controls).toContain('data-sheet-action="attach-token"');
+    expect(controls).toContain('data-sheet-action="print"');
+    expect(controls).toContain('data-sheet-action="copy-json"');
+    expect(controls).toContain('data-sheet-action="download-json"');
+    expect(controls).toContain('aria-label="Attach character portrait"');
+    expect(controls).toContain('title="Print character sheet or save as PDF"');
+    expect(controls).toContain("<svg");
     expect(jsonOnlyControls).not.toContain('data-sheet-action="print"');
     expect(JSON.parse(characterDocumentJson(character))).toEqual(character);
     expect(characterDocumentDownloadName(character)).toBe("avery-north.json");
