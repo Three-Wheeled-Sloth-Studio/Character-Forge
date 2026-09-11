@@ -13,7 +13,6 @@ import {
   type Dnd5eAbilityId,
   type Dnd5eNativeCharacter,
 } from "./nativeCharacter.js";
-import { DND5E_SRD_5_2_1_SOURCE } from "./rulesSource.js";
 
 const SKILL_ABILITY: Record<string, Dnd5eAbilityId> = {
   acrobatics: "dexterity",
@@ -180,24 +179,10 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
     });
   }
 
-  pageTwoSections.push({
-    id: "rules-context",
-    title: "Rules Context",
-    role: "provenance",
-    priority: 20,
-    kind: "details",
-    preferredColumns: 2,
-    items: [
-      { label: "System", value: "D&D 5E 2024" },
-      { label: "Rules source", value: DND5E_SRD_5_2_1_SOURCE.title },
-      { label: "Ability generation", value: titleId(payload.abilities.generationMethod) },
-      ...(character.generation?.seed ? [{ label: "Generation seed", value: character.generation.seed }] : []),
-    ],
-  });
-
   return {
     title: character.displayName,
     subtitle: `${speciesLabel} | ${backgroundLabel} | ${classLabel} ${payload.class.level}`,
+    footerNote: "D&D 5E 2024 | SRD 5.2.1",
     sourceNativeStateId: nativeState.id,
     sourceSchemaVersion: nativeState.schemaVersion,
     pages: [
