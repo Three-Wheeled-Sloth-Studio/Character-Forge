@@ -10,33 +10,27 @@ tags:
 ---
 # Engineering Health Audit - 2026-09-11
 
-Status: **active Stage 1 baseline**
+Status: **complete**
 
 Accepted starting checkpoint: `02913690d859d4116661214c9f48b5899134cec3`
 
-Current exact green Stage 1 checkpoint: `49b182d09e98af66723686ef6ec841555c30f987`
+Final exact green Stage 1 checkpoint: `95ec2b8d9ae54119fc27e99166a4ebb86563a6ed`
 
-Stage 0 player-usable acceptance is complete. This audit identifies bounded engineering-health work to perform before productization or another major architecture layer.
+Stage 0 player-usable acceptance was complete before this pass. This audit bounded the engineering-health work performed before productization.
 
-## Findings
+## Findings And Disposition
 
-### 1. Mixed-responsibility app bootstrap
+### 1. Mixed-responsibility app bootstrap - addressed
 
-Opening finding: `apps/web/src/main.ts` owned application bootstrap, host messaging, system/native-state validation, result rendering, print-sheet extraction, failure rendering, and document-control binding.
+Result validation/routing/rendering and print-sheet extraction moved from `apps/web/src/main.ts` into `apps/web/src/characterResultRenderer.ts`. `main.ts` remains app bootstrap, project context, host messaging, workspace coordination, and result-controller delegation.
 
-Progress: **addressed.** Result validation/routing/rendering and print-sheet extraction now live in `apps/web/src/characterResultRenderer.ts`. `main.ts` remains app bootstrap, project context, host messaging, workspace coordination, and result-controller delegation.
+### 2. Transitional presentation scaffolding - addressed
 
-### 2. Transitional presentation scaffolding
+The Stage 0 post-render primary-UI rewrite/observer layer was removed. `primaryUiMinimalism.ts` and `creatorPresentationAdapter.ts` are deleted, BRP/D&D renderers emit accepted compact presentation directly, and `creatorWorkspace.ts` owns no presentation rewrite or observer.
 
-Opening finding: Stage 0 used post-render UI rewriting and observation to achieve accepted primary-UI minimalism.
+### 3. BRP creator state mixed several responsibilities - addressed
 
-Progress: **addressed.** `primaryUiMinimalism.ts` and `creatorPresentationAdapter.ts` are deleted. BRP and D&D renderers now emit accepted compact presentation directly. `creatorWorkspace.ts` owns no presentation rewrite or observer.
-
-### 3. BRP creator state mixed several responsibilities
-
-Opening finding: `apps/web/src/brpCreatorState.ts` owned state/default construction, campaign-profile application, preview/validation, CharacterDocument construction, legal auto-allocation, reopen reconstruction, profession-specific skill resolution, and allocation helpers.
-
-Progress: **addressed through a stable facade.** `brpCreatorState.ts` now re-exports a responsibility split:
+`brpCreatorState.ts` remains the stable facade while focused modules own state/defaults, skill resolution, CharacterDocument build, preview/auto-allocation, and reopen reconstruction:
 
 - `brpCreatorStateModel.ts`
 - `brpCreatorSkillModel.ts`
@@ -46,61 +40,64 @@ Progress: **addressed through a stable facade.** `brpCreatorState.ts` now re-exp
 
 This preserved caller imports, native-state fidelity, allocation behavior, campaign-profile provenance, randomization compatibility, adapter validation, and save/reopen behavior.
 
-### 4. BRP creator view is dense but has named section boundaries
+### 4. BRP creator view density - audited and deliberately not split
 
-`apps/web/src/brpCreatorPanelView.ts` combines campaign/profile chrome, profession controls, characteristic controls, allocation guidance, skill rows, and generic HTML helpers.
+`brpCreatorPanelView.ts` is dense but already decomposes into named section functions for campaign/profile chrome, profession controls, characteristics, allocation guidance, skill rows, and HTML helpers.
 
-Next action: **audit before editing.** The presence of named functions alone may already provide enough local structure. Split only if extraction materially improves responsibility ownership, testability, or local reasoning. Do not move markup merely to reduce file length.
+A file split would mostly move markup without reducing responsibility coupling or improving independent testability. No refactor was made solely for line count.
 
-### 5. D&D guided creator remains a high-risk orchestration monolith
+### 5. D&D Guided Mechanical orchestration - one evidence-backed seam extracted
 
-`apps/web/src/guidedCreationPanel.ts` coordinates sticky acceptable pools, class/background/species rules, ability generation, class-specific controls, provenance, and form rendering. Much of the file is dense because the supported Level 1 rules surface is genuinely broad, but orchestration and rendering are interleaved.
+`guidedCreationPanel.ts` remains broad because it coordinates a broad Level 1 rules surface. Rather than broad-rewrite it, the independent ability-generation responsibility was extracted into `guidedAbilityControls.ts`.
 
-Refactor only through one evidence-backed seam at a time. Do not broad-rewrite it during this pass.
+That controller now owns:
 
-### 6. Some tests over-specify source placement
+- Standard Array / Manual / Point Cost / Random method rendering;
+- random-roll state and assignment presentation;
+- point-cost budget feedback; and
+- conversion of method controls into `GuidedAbilityMethodInput`.
 
-A small set of tests read source files and assert exact implementation strings. These were useful during rapid acceptance work but can make behavior-preserving moves artificially expensive.
+Focused tests protect the method-rendering contracts. Class/background/species choice orchestration and provenance remain untouched.
 
-Progress: print and primary-minimalism refactors exposed several such assertions. They were rewritten where necessary to protect rendered behavior or architectural boundaries rather than exact source placement.
+### 6. Brittle source-placement tests - repaired where encountered
 
-When touching other seams, preserve assertions that protect important architecture invariants, but prefer behavior/output contracts over requiring code to live in a specific file.
+Refactors exposed several tests that asserted implementation lived in a particular source file. Those were updated where necessary to protect rendered behavior or an actual architecture boundary instead.
 
-High-value owner-QA regressions remain non-negotiable, especially:
+No high-confidence stale or obsolete functional test was identified. Existing remaining source-inspection tests protect explicit architecture/presentation contracts and were not deleted merely to reduce test count.
+
+## Stage 1 Exit Decision
+
+The owner-approved Stage 1 was a bounded cleanup pass, not a standing rewrite project. The pass now covers:
+
+- stale/obsolete-test review;
+- redundant/low-value-test review;
+- brittle implementation-detail assertions where encountered;
+- missing regression coverage on the new ability-control seam;
+- dead/transitional scaffolding removal;
+- large-file/responsibility inventory;
+- responsibility-boundary review; and
+- bounded monolith remediation.
+
+No further high-confidence, low-risk cleanup currently justifies delaying Stage 2. Future refactors should be triggered by concrete maintenance evidence, not by keeping Stage 1 nominally open.
+
+## High-Value Regressions To Preserve
 
 - system-switch clearing without native-state mutation;
 - D&D and BRP adaptive print pagination;
 - save/reopen fidelity;
 - native-state validation and system ownership;
-- primary UI minimalism; and
-- isolated sheet-only print output.
+- primary UI minimalism;
+- isolated sheet-only print output; and
+- Guided Mechanical ability-method behavior.
 
-## Ordered Cleanup Candidates
+## Deferred Product Polish
 
-1. **Completed:** extract result rendering from `main.ts`.
-2. **Completed:** retire post-render primary-UI rewriting/observation and move accepted presentation into renderers.
-3. **Completed:** split BRP creator state by coherent responsibility behind a stable facade.
-4. **Audit next:** determine whether `brpCreatorPanelView.ts` warrants a responsibility split. Skip if the extraction would be cosmetic.
-5. Audit D&D Guided Mechanical orchestration one responsibility seam at a time; avoid wholesale rewrite.
-6. Revisit source-string tests during each touched seam instead of running a destructive test purge.
+Issue #15 separately tracks BRP natural-base-cap display semantics and equipment help interaction. Those remain product polish, not engineering-health blockers.
 
-## Stale / Duplicate / Missing Coverage Assessment
+## Guardrails Carried Forward
 
-No high-confidence stale functional test has been identified. The clearest debt has been implementation-location coupling rather than obsolete product expectations.
-
-The BRP creator state split passed the existing broad contract suite without adding a new behavior surface. Additional module-unit tests should be added only where a future change creates independently meaningful contracts; do not duplicate facade-level tests merely because code moved.
-
-Issue #15 separately tracks BRP natural-base-cap display semantics and equipment help interaction. Those are product polish, not Stage 1 refactor requirements.
-
-## Cheap Maintainability Guardrail
-
-Do not add a CI line-count threshold. The current file map plus this audit is sufficient. If source growth continues, prefer an informational report of largest files and responsibility notes over a failing style gate.
-
-## Guardrails
-
-- No product feature work in Stage 1 cleanup slices.
-- No schema changes merely to simplify refactoring.
 - Native system state remains canonical and lossless.
 - Preserve exact-SHA validation.
 - Preserve accepted browser behavior unless a concrete defect is separately identified.
+- Avoid line-count refactors.
 - `qa` and `main` remain unchanged unless explicitly promoted by the owner.

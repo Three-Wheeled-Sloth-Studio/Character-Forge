@@ -4,9 +4,8 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- engineering-health
-- refactoring
-- acceptance
+- productization
+- branding
 - roadmap
 ---
 # Next Development Prompt
@@ -21,24 +20,24 @@ The owner-approved execution sequence is in:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-Stage 0 is complete. Resume **Stage 1 - Engineering health and refactoring**. Do not reopen roadmap prioritization unless new evidence materially changes the plan.
+Stages 0 and 1 are complete. Resume **Stage 2 - Productization and branding**. Do not reopen roadmap prioritization unless new evidence materially changes the plan.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 1 BRP creator panel view audit"
+python refs/tools/generate_agent_context.py --focus "Stage 2 productization branding version identity"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/planning/engineering-health-audit-2026-09-11.md`
-3. `refs/planning/engineering-health-cleanup.md`
-4. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-5. `apps/web/src/brpCreatorPanelView.ts`
-6. BRP view tests directly affected by a proposed extraction
+2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
+3. relevant shell/build/version files in `apps/web`
+4. shared branding guidance/assets from `Three-Wheeled-Sloth-Studio/TWS-Design-Principles/Branding/`
+5. the World Forge version/build identity implementation used as the studio reference pattern
+6. Parchment Worlds shell/handoff files only where needed for parent identity or duplicate-context cleanup
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
@@ -46,59 +45,67 @@ Do not reread the entire repository history. Do not resume D&D Guided Narrative 
 
 Current accepted `dev` head:
 
-- SHA: `49b182d09e98af66723686ef6ec841555c30f987`
-- Actions: `34635492842`
-- Job: `103382233734`
-- 61 test files / 294 tests / 0 failures
-- 233 tracked paths
+- SHA: `95ec2b8d9ae54119fc27e99166a4ebb86563a6ed`
+- Actions: `34637052478`
+- Job: `103387386113`
+- 62 test files / 298 tests / 0 failures
+- 235 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3596 characters
-- build `Character Forge build 0.0.1 49b182d0`
+- agent context 3725 characters
+- build `Character Forge build 0.0.1 95ec2b8d`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 1 Progress
+## Stage 1 Closeout
 
-Completed and exact-SHA validated:
+The bounded engineering-health pass is complete.
 
-1. extracted character result rendering from `main.ts` into `characterResultRenderer.ts`;
-2. corrected tests that over-specified source placement;
-3. retired the Stage 0 primary-UI post-render rewrite and observer layer;
-4. moved accepted BRP/D&D compact UI into renderer-owned output;
-5. split BRP creator state into coherent model, skill-resolution, build, preview/allocation, and reopen modules while preserving `brpCreatorState.ts` as the stable facade.
+Completed exact-SHA-validated work includes:
 
-Stage 0 owner-QA contracts remain green and must stay protected.
+- result-renderer extraction from `main.ts`;
+- removal of post-render Stage 0 presentation scaffolding;
+- BRP creator-state responsibility split behind a stable facade;
+- explicit no-op decision on `brpCreatorPanelView.ts` because a split would be cosmetic;
+- Guided Mechanical ability-generation controller extraction into `guidedAbilityControls.ts`;
+- focused ability-control renderer tests;
+- source-placement test repairs only where refactors exposed brittle coupling.
 
-## Immediate Next Slice
+Do not keep Stage 1 open as a general license to rewrite large files.
 
-Audit `apps/web/src/brpCreatorPanelView.ts` before editing it.
+## Stage 2 First Slice
 
-The file has named sections for campaign/profile chrome, profession controls, characteristic controls, allocation guidance, skill rows, and generic HTML helpers. Split only if extracting one or more of those responsibilities materially reduces local reasoning cost or improves direct testability.
+Audit before editing:
 
-Do not perform a line-count refactor. If the existing function boundaries are already sufficient and an extraction would mainly move markup between files, record that finding and skip to the next evidence-backed Stage 1 candidate.
+- Character Forge shell branding and icon treatment;
+- shared Three-Wheeled Sloth branding assets/guidance;
+- Character Forge build/version display;
+- World Forge `version:build:revision` implementation;
+- Parchment Worlds parent build/version identity;
+- creator inputs that duplicate project/campaign context.
 
-If a split is justified:
+Then implement the smallest coherent product-shell/version slice supported by that evidence.
 
-- keep `brpCreatorHtml(...)` as a stable composition boundary unless there is a lower-risk alternative;
-- preserve rendered HTML contracts exactly apart from harmless source placement;
-- prefer BRP-specific section modules over cross-system form abstractions;
-- update brittle source-string tests only when they encode implementation placement rather than product behavior.
+Guardrails:
 
-Do not include Issue #15 polish in this slice.
+- do not change native RPG schemas or generation behavior for branding convenience;
+- do not put dominant Character Forge branding on character sheets;
+- Project/Campaign identity remains primary on the play artifact;
+- a small subordinate maker's mark is acceptable when unobtrusive;
+- reuse studio patterns/assets rather than creating a parallel visual language;
+- do not fold deferred Issue #15 BRP polish into this work unless it becomes a blocker.
 
-## Guardrails
+## Architecture Baseline
 
-- No product feature work in Stage 1 cleanup slices.
-- No schema changes merely to simplify refactoring.
 - Native system state is mandatory and lossless.
 - Native BRP and D&D state remain canonical.
-- Do not weaken validation, save/reopen, provenance, or adapter guarantees.
-- Do not create cross-system abstractions from superficial UI similarity.
-- Preserve adaptive one/two-page sheet behavior and isolated print output.
+- Universal Grammar remains derived future semantic/translation state.
+- Project/campaign context is authoritative where supplied.
+- Portrait/token/VTT metadata remains outside native RPG state.
+- Foundry schemas remain adapter targets.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Validation

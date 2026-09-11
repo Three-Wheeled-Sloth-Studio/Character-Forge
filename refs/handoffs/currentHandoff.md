@@ -4,9 +4,9 @@ title: "Current Handoff"
 tags:
 - character-forge
 - handoffs
+- productization
+- branding
 - engineering-health
-- refactoring
-- character-sheet
 - roadmap
 - prioritization
 ---
@@ -14,11 +14,17 @@ tags:
 
 Date: 2026-09-11
 Branch: `dev`
-Current stage: **Stage 1 - Engineering health and refactoring**
+Current stage: **Stage 2 - Productization and branding**
 
 ## Current State
 
-Stage 0 player-usable acceptance is complete. GitHub Issue #14 is closed after owner browser QA passed the representative D&D/BRP creation, save/reopen, system-switch, and adaptive print acceptance boundary.
+Stage 0 player-usable acceptance and Stage 1 engineering-health/refactoring are complete.
+
+The authoritative stage order remains:
+
+`refs/planning/owner-approved-priority-sequence-2026-09-11.md`
+
+Do not reopen prioritization without materially new evidence.
 
 Two explicitly nonblocking BRP polish items remain parked in Issue #15:
 
@@ -27,28 +33,22 @@ Two explicitly nonblocking BRP polish items remain parked in Issue #15:
 
 Do not pull Issue #15 ahead of the approved sequence unless it becomes a blocker or the owner explicitly asks.
 
-The authoritative stage order remains:
-
-`refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-
-Do not reopen prioritization without materially new evidence.
-
-## Exact Green Stage 1 Checkpoint
+## Exact Green Checkpoint
 
 Current accepted `dev` head:
 
-- SHA: `49b182d09e98af66723686ef6ec841555c30f987`
-- Actions: `34635492842`
-- Job: `103382233734`
+- SHA: `95ec2b8d9ae54119fc27e99166a4ebb86563a6ed`
+- Actions: `34637052478`
+- Job: `103387386113`
 - `npm run verify`: green
-- 61 test files
-- 294 tests passed
+- 62 test files
+- 298 tests passed
 - 0 failures
-- 233 tracked paths
+- 235 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Agent context: 3596 characters
-- Build: `Character Forge build 0.0.1 49b182d0`
+- Agent context: 3725 characters
+- Build: `Character Forge build 0.0.1 95ec2b8d`
 
 Promoted branches remain unchanged:
 
@@ -57,54 +57,43 @@ Promoted branches remain unchanged:
 
 No promotion is authorized unless the owner explicitly requests it.
 
-## Stage 1 Work Completed
+## Stage 1 Closeout
 
-### Result rendering extracted from app bootstrap
+The bounded engineering-health pass is complete. It addressed the highest-value debt without turning cleanup into a rewrite.
 
-`apps/web/src/main.ts` no longer owns system validation, character-sheet routing, result rendering, print-sheet extraction, or failure rendering. Those responsibilities live behind `apps/web/src/characterResultRenderer.ts`.
+Completed:
 
-Tests that previously required extraction code to live physically in `main.ts` now protect the result-renderer/print contract instead of source placement.
+1. extracted character result routing/rendering and print-sheet extraction from `main.ts` into `characterResultRenderer.ts`;
+2. corrected tests that over-specified source placement when those seams moved;
+3. retired the temporary Stage 0 primary-UI post-render rewrite/observer layer;
+4. moved accepted BRP/D&D compact presentation into renderer-owned output;
+5. split BRP creator state into model/defaults, skill resolution, build, preview/allocation, and reopen modules behind the stable `brpCreatorState.ts` facade;
+6. audited `brpCreatorPanelView.ts` and deliberately did **not** split it because its named functions already provide useful local boundaries and extraction would mostly shuffle markup;
+7. extracted Guided Mechanical ability-generation rendering, random-roll state, point-cost feedback, and method parsing into `guidedAbilityControls.ts` with focused regression coverage.
 
-### Stage 0 presentation compatibility shim retired
+No high-confidence stale/obsolete functional test or additional low-risk responsibility split remained that justified extending the bounded pass. `guidedCreationPanel.ts` is still broad by necessity; any future refactor there should remain evidence-backed and one seam at a time rather than becoming a standing rewrite project.
 
-The temporary post-render rewrite layer is gone:
+Detailed findings remain in:
 
-- `apps/web/src/primaryUiMinimalism.ts` deleted;
-- `apps/web/src/creatorPresentationAdapter.ts` deleted;
-- BRP and D&D renderers now emit the accepted compact UI directly;
-- `creatorWorkspace.ts` mounts creators directly and owns no presentation rewrite or observer.
+- `refs/planning/engineering-health-audit-2026-09-11.md`
+- `refs/planning/engineering-health-cleanup.md`
 
-### BRP creator state split by responsibility
+## Stage 2 Immediate Next Slice
 
-`apps/web/src/brpCreatorState.ts` remains the stable public facade so current callers did not require a repo-wide import migration.
+Begin with a read-only productization/branding audit before editing visuals.
 
-Implementation responsibilities are now separated into:
+Inspect:
 
-- `brpCreatorStateModel.ts`: state types, defaults, campaign-profile selection, reroll state;
-- `brpCreatorSkillModel.ts`: characteristic resolution, profession/personal skill identities, allocation helpers;
-- `brpCreatorBuild.ts`: CharacterDocument/native BRP construction and campaign-profile context;
-- `brpCreatorPreview.ts`: preview projection, validation and legal auto-allocation;
-- `brpCreatorReopen.ts`: supported-native-state validation and exact reopen reconstruction.
+1. shared branding assets and guidance in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles/Branding/`;
+2. the current Character Forge app shell, logo/title treatment, favicon/icon assets, and CSS;
+3. current Character Forge build/version rendering;
+4. the World Forge user-facing `version:build:revision` pattern to reuse rather than inventing a new one;
+5. current Parchment Worlds parent-shell build/version identity and Character Forge handoff presentation;
+6. any remaining creator questions that duplicate authoritative project/campaign context.
 
-The split preserved existing allocation, campaign-profile, randomization, adapter-validation, save/reopen, and UI tests without schema changes.
+Then propose and implement the smallest coherent Stage 2 slice that establishes the shared product shell and version identity without changing character-generation semantics.
 
-## Immediate Next Slice
-
-Audit `apps/web/src/brpCreatorPanelView.ts` as the next Stage 1 candidate.
-
-Do not split it merely because it is large. Proceed only if extracting named sections materially improves local reasoning, testability, or responsibility ownership while keeping rendered output unchanged.
-
-Candidate seams already visible in the audit include:
-
-1. campaign/profile and identity chrome;
-2. profession-specific controls;
-3. characteristic-generation controls;
-4. allocation summary/guidance and skill rows;
-5. generic HTML helpers.
-
-If the audit shows those sections are already coherent and a split would mostly shuffle markup, record that decision and move to the next evidence-backed candidate instead. `guidedCreationPanel.ts` remains high risk and must be approached one seam at a time rather than through a broad rewrite.
-
-Do not mix Issue #15 polish or product feature work into this slice.
+Primary character-sheet branding remains owned by the user's Project/Campaign. A tiny subordinate Character Forge or Three-Wheeled Sloth maker's mark is permitted only where it does not compete with play information or campaign identity.
 
 ## Architecture Baseline To Preserve
 
@@ -116,7 +105,7 @@ Do not mix Issue #15 polish or product feature work into this slice.
 - System packages own system-specific play hierarchy and calculations.
 - Screen and print share the same play-focused information architecture.
 - Sheets use adaptive density: one page when content comfortably fits, two when genuinely needed.
-- Project/Campaign identity owns primary sheet branding; a tiny subordinate studio maker's mark may be added later.
+- Project/Campaign identity owns primary sheet branding.
 - Portrait/token/VTT metadata belongs to Parchment-owned asset relationships, not RPG native state.
 - Foundry Actor/Item data remains an adapter target.
 - Preserve exact-SHA `dev -> qa -> main` promotion.

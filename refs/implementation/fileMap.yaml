@@ -72,16 +72,17 @@ areas:
       - packages/system-dnd5e
       - packages/system-dnd5e/src/sheetProjection.ts
       - apps/web/src/choicePoolDirectVisibility.ts
+      - apps/web/src/guidedAbilityControls.ts
     notes: >-
       D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. D&D projects native
       abilities/resources/saves/skills/equipment/features/spells into the shared
       character-sheet renderer and passed owner browser print acceptance.
+      Guided Mechanical ability-method rendering, random-roll state, point-cost
+      feedback, and method parsing are isolated in guidedAbilityControls.ts while
+      class/background/species orchestration remains in guidedCreationPanel.ts.
       Starting-equipment A/B/C IDs remain internal generation/provenance choices.
-      Guided Mechanical visible option labels use source-owned equipment
-      descriptions, and direct-choice reconciliation compares both IDs and labels
-      so raw A/B/C labels cannot survive merely because their values are
-      technically correct. Guided Narrative remains parked by chronology and must
-      not be resumed outside the owner-approved stage sequence.
+      Guided Narrative remains parked by chronology and must not be resumed outside
+      the owner-approved stage sequence.
   brp:
     guidance:
       - refs/handoffs/currentHandoff.md
@@ -101,6 +102,11 @@ areas:
       - packages/system-brp/src/sheetProjection.ts
       - apps/web/src/brpCreatorRandomization.ts
       - apps/web/src/brpCreatorState.ts
+      - apps/web/src/brpCreatorStateModel.ts
+      - apps/web/src/brpCreatorSkillModel.ts
+      - apps/web/src/brpCreatorBuild.ts
+      - apps/web/src/brpCreatorPreview.ts
+      - apps/web/src/brpCreatorReopen.ts
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
       adapter 0.7 remain stable. Issue #14 is completed and owner browser
@@ -115,12 +121,14 @@ areas:
       - refs/product/generation-methods.md
       - refs/architecture/adaptive-character-sheet-framework.md
       - refs/planning/engineering-health-audit-2026-09-11.md
+      - refs/planning/owner-approved-priority-sequence-2026-09-11.md
     source_roots:
       - apps/web/src
       - apps/web/src/characterResultRenderer.ts
       - apps/web/src/brpCreatorPanelView.ts
       - apps/web/src/brpCreatorRandomization.ts
       - apps/web/src/brpCreatorState.ts
+      - apps/web/src/guidedAbilityControls.ts
       - apps/web/src/workspaceSplitter.ts
       - apps/web/src/characterSheetControls.ts
       - apps/web/src/choicePoolDirectVisibility.ts
@@ -128,15 +136,15 @@ areas:
       - apps/web/sheet.css
       - apps/web/sheet-ui.css
     notes: >-
-      Stage 1 engineering-health work is active. main.ts is app bootstrap/host
+      Stage 1 engineering health is complete. main.ts is app bootstrap/host
       coordination rather than character-result rendering. characterResultRenderer.ts
       owns supported-system validation/routing and the sheet result surface.
-      creatorWorkspace.ts coordinates rules systems and randomization and mounts
-      system creators directly. The temporary Stage 0 post-render minimalism shim
-      and presentation adapter have been deleted; BRP and D&D render owners now
-      emit the accepted primary UI directly. The next cleanup target is a bounded
-      responsibility split of brpCreatorState.ts. Screen toolbar chrome never
-      prints; isolated sheet-only printing remains the authoritative export path.
+      creatorWorkspace.ts coordinates rules systems and randomization. Renderer-owned
+      compact presentation replaced the former Stage 0 rewrite shim. BRP creator
+      state is split by responsibility behind a stable facade, and Guided Mechanical
+      ability controls have their own controller. Stage 2 productization/branding is
+      active. Screen toolbar chrome never prints; isolated sheet-only printing remains
+      the authoritative export path.
   foundry-integration:
     guidance:
       - refs/architecture/character-architecture.md
@@ -174,16 +182,15 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue Stage 1 engineering health cleanup
+  - task: Continue Stage 2 productization and branding
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
-      - refs/planning/engineering-health-audit-2026-09-11.md
-      - refs/planning/engineering-health-cleanup.md
-      - apps/web/src/brpCreatorState.ts
-      - apps/web/src/brpCreatorState.test.ts
-      - apps/web/src/creatorWorkspace.ts
-      - apps/web/src/characterResultRenderer.ts
+      - refs/planning/owner-approved-priority-sequence-2026-09-11.md
+      - apps/web/src/main.ts
+      - apps/web/src/buildInfo.ts
+      - apps/web/index.html
+      - apps/web/src/styles.css
   - task: Re-check dedicated sheet browser contracts
     look_in:
       - refs/handoffs/currentHandoff.md
