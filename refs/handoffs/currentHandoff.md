@@ -46,18 +46,18 @@ Do not reopen prioritization without materially new evidence.
 
 Current accepted `dev` head:
 
-- SHA: `c8ab49a6732eb99fc1adb6fec62e4b73a1b25141`
-- Actions: `34634109473`
-- Job: `103377729573`
+- SHA: `dc13c9e919163f144a2df8db931e0dee6dd78879`
+- Actions: `34635026247`
+- Job: `103380710114`
 - `npm run verify`: green
 - 61 test files
 - 294 tests passed
 - 0 failures
-- 230 tracked paths
+- 228 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Agent context: 3806 characters
-- Build: `Character Forge build 0.0.1 c8ab49a6`
+- Agent context: 3778 characters
+- Build: `Character Forge build 0.0.1 dc13c9e9`
 
 Promoted branches remain unchanged:
 
@@ -95,37 +95,42 @@ Those responsibilities now live behind:
 
 This preserves the accepted D&D/BRP sheet and print behavior while making `main.ts` primarily application bootstrap, project context, host messaging, and workspace coordination.
 
-Two print tests that previously required extraction code to live physically in `main.ts` were corrected to protect the result-renderer/print contract instead of source placement.
+Tests that previously required extraction code to live physically in `main.ts` now protect the result-renderer/print contract instead of source placement.
 
-### Presentation cleanup isolated from workspace orchestration
+### Stage 0 presentation compatibility shim retired
 
-The Stage 0 primary-UI cleanup no longer creates a workspace-wide `MutationObserver` inside `creatorWorkspace.ts`.
+The temporary post-render UI rewrite layer has been removed rather than normalized as permanent architecture.
 
-Temporary compatibility behavior is isolated behind:
+Deleted:
 
-`apps/web/src/creatorPresentationAdapter.ts`
+- `apps/web/src/primaryUiMinimalism.ts`
+- `apps/web/src/creatorPresentationAdapter.ts`
 
-- BRP currently retains a scoped observer because its creator panel legitimately replaces its markup during state changes.
-- D&D uses explicit one-shot cleanup after creator/mode rendering.
-- `creatorWorkspace.ts` now coordinates systems and randomization without knowing the presentation-cleanup implementation.
+Accepted primary-UI minimalism is now owned by the renderers themselves:
 
-This is an intermediate Stage 1 seam, not the final state.
+- BRP emits compact heading, allocation help/status, rules status, profile status, and suggestion presentation directly from `brpCreatorPanelView.ts`;
+- Guided Narrative emits its compact primary surface directly;
+- Guided Mechanical owns its local heading cleanup and concise Narrative-continuation note;
+- `creatorWorkspace.ts` mounts BRP/D&D creators directly and contains no presentation rewrite or observer.
+
+The two tests that still expected Stage 0-hidden verbose BRP copy were updated to assert the compact accepted UI instead. No Issue #15 behavior was folded into this refactor.
 
 ## Immediate Next Slice
 
-Retire the temporary Stage 0 presentation shim rather than letting the new adapter become permanent architecture.
+The next audit-ranked candidate is a bounded responsibility split of:
 
-Primary target:
+`apps/web/src/brpCreatorState.ts`
 
-1. move accepted BRP minimalism directly into BRP renderer output;
-2. move accepted D&D Guided Mechanical / Guided Narrative minimalism directly into their source renderers;
-3. remove `primaryUiMinimalism.ts` once no behavior depends on post-render rewriting;
-4. remove the scoped BRP observer from `creatorPresentationAdapter.ts` when BRP output is intrinsically correct;
-5. keep focused tests on final rendered behavior/contracts rather than requiring cleanup code to live in a specific file.
+Target seams, only where they remain clean under existing tests:
 
-Do not mix Issue #15 polish into this slice.
+1. state types/default construction and campaign-profile selection;
+2. preview/allocation projection and helpers;
+3. CharacterDocument/native build;
+4. reopen/from-document reconstruction.
 
-After the presentation shim is gone, the next audit-ranked candidate is a bounded responsibility split of `apps/web/src/brpCreatorState.ts`, preserving native-state fidelity and save/reopen behavior.
+Preserve all public behavior and exports needed by current callers unless there is a clear lower-risk migration path. In particular, keep native-state fidelity, save/reopen equality, allocation legality, campaign-profile provenance, whole-character randomization, and BRP adapter validation strongly covered.
+
+Do not mix Issue #15 polish or product feature work into this slice.
 
 ## Architecture Baseline To Preserve
 

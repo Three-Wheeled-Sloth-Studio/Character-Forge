@@ -28,7 +28,7 @@ Stage 0 is complete. Resume **Stage 1 - Engineering health and refactoring**. Do
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 1 engineering health presentation shim BRP creator state"
+python refs/tools/generate_agent_context.py --focus "Stage 1 BRP creator state responsibility split"
 ```
 
 Then read only:
@@ -37,9 +37,9 @@ Then read only:
 2. `refs/planning/engineering-health-audit-2026-09-11.md`
 3. `refs/planning/engineering-health-cleanup.md`
 4. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-5. `apps/web/src/creatorPresentationAdapter.ts`
-6. `apps/web/src/primaryUiMinimalism.ts`
-7. the BRP/D&D renderers touched by the immediate cleanup slice
+5. `apps/web/src/brpCreatorState.ts`
+6. `apps/web/src/brpCreatorState.test.ts`
+7. BRP callers/tests directly affected by the proposed split
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
@@ -47,15 +47,15 @@ Do not reread the entire repository history. Do not resume D&D Guided Narrative 
 
 Current accepted `dev` head:
 
-- SHA: `c8ab49a6732eb99fc1adb6fec62e4b73a1b25141`
-- Actions: `34634109473`
-- Job: `103377729573`
+- SHA: `dc13c9e919163f144a2df8db931e0dee6dd78879`
+- Actions: `34635026247`
+- Job: `103380710114`
 - 61 test files / 294 tests / 0 failures
-- 230 tracked paths
+- 228 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3806 characters
-- build `Character Forge build 0.0.1 c8ab49a6`
+- agent context 3778 characters
+- build `Character Forge build 0.0.1 dc13c9e9`
 
 Promoted branches remain unchanged:
 
@@ -68,26 +68,37 @@ Completed and exact-SHA validated:
 
 1. extracted character result rendering from `main.ts` into `characterResultRenderer.ts`;
 2. corrected print tests that over-specified source placement;
-3. removed presentation cleanup and the global `MutationObserver` from workspace orchestration;
-4. isolated the remaining temporary Stage 0 presentation behavior in `creatorPresentationAdapter.ts`.
+3. removed primary presentation cleanup and the global `MutationObserver` from workspace orchestration;
+4. absorbed accepted Stage 0 BRP/D&D minimalism into renderer-owned output;
+5. deleted `primaryUiMinimalism.ts` and `creatorPresentationAdapter.ts`;
+6. updated stale tests to protect the compact accepted UI rather than hidden verbose copy.
 
 Stage 0 owner-QA contracts remain green and must stay protected.
 
 ## Immediate Next Slice
 
-Retire the presentation compatibility layer rather than normalizing it as permanent architecture.
+Perform a bounded responsibility split of `apps/web/src/brpCreatorState.ts`.
 
-Target behavior-preserving changes:
+Candidate seams:
 
-- encode BRP primary-UI minimalism directly in BRP renderer output;
-- encode D&D Guided Mechanical and Guided Narrative minimalism directly in source output;
-- delete `primaryUiMinimalism.ts` when no post-render rewriting remains;
-- remove the scoped BRP observer from `creatorPresentationAdapter.ts` once BRP rerenders are intrinsically correct;
-- update tests to assert durable output/contracts rather than source placement.
+- state types/default construction and campaign-profile selection;
+- preview/allocation projection and helpers;
+- CharacterDocument/native build;
+- reopen/from-document reconstruction.
+
+Do not split by line count. Preserve useful public exports or migrate callers deliberately. Prefer small internal modules with `brpCreatorState.ts` remaining a stable facade if that reduces caller churn.
+
+Protect at minimum:
+
+- native-state fidelity;
+- exact save/reopen equality;
+- campaign-profile provenance and no legacy-profile inference;
+- legal allocation behavior and cap enforcement;
+- randomization compatibility;
+- adapter validation; and
+- current creator UI behavior.
 
 Do not include Issue #15 polish in this slice.
-
-After the shim is fully retired, proceed to the next audit-ranked candidate: split `brpCreatorState.ts` by coherent responsibility while preserving native-state fidelity, save/reopen, allocation, and campaign-profile behavior.
 
 ## Guardrails
 

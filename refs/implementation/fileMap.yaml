@@ -100,6 +100,7 @@ areas:
       - packages/system-brp/src/campaignProfile.ts
       - packages/system-brp/src/sheetProjection.ts
       - apps/web/src/brpCreatorRandomization.ts
+      - apps/web/src/brpCreatorState.ts
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
       adapter 0.7 remain stable. Issue #14 is completed and owner browser
@@ -117,8 +118,9 @@ areas:
     source_roots:
       - apps/web/src
       - apps/web/src/characterResultRenderer.ts
-      - apps/web/src/creatorPresentationAdapter.ts
+      - apps/web/src/brpCreatorPanelView.ts
       - apps/web/src/brpCreatorRandomization.ts
+      - apps/web/src/brpCreatorState.ts
       - apps/web/src/workspaceSplitter.ts
       - apps/web/src/characterSheetControls.ts
       - apps/web/src/choicePoolDirectVisibility.ts
@@ -129,12 +131,12 @@ areas:
       Stage 1 engineering-health work is active. main.ts is app bootstrap/host
       coordination rather than character-result rendering. characterResultRenderer.ts
       owns supported-system validation/routing and the sheet result surface.
-      creatorWorkspace.ts coordinates rules systems and randomization without
-      owning primary-UI cleanup. Remaining Stage 0 post-render minimalism is
-      temporarily isolated in creatorPresentationAdapter.ts plus
-      primaryUiMinimalism.ts and should be absorbed into source renderers next.
-      Screen toolbar chrome never prints; isolated sheet-only printing remains the
-      authoritative export path.
+      creatorWorkspace.ts coordinates rules systems and randomization and mounts
+      system creators directly. The temporary Stage 0 post-render minimalism shim
+      and presentation adapter have been deleted; BRP and D&D render owners now
+      emit the accepted primary UI directly. The next cleanup target is a bounded
+      responsibility split of brpCreatorState.ts. Screen toolbar chrome never
+      prints; isolated sheet-only printing remains the authoritative export path.
   foundry-integration:
     guidance:
       - refs/architecture/character-architecture.md
@@ -178,8 +180,8 @@ common_tasks:
       - refs/handoffs/next-dev-prompt.md
       - refs/planning/engineering-health-audit-2026-09-11.md
       - refs/planning/engineering-health-cleanup.md
-      - apps/web/src/creatorPresentationAdapter.ts
-      - apps/web/src/primaryUiMinimalism.ts
+      - apps/web/src/brpCreatorState.ts
+      - apps/web/src/brpCreatorState.test.ts
       - apps/web/src/creatorWorkspace.ts
       - apps/web/src/characterResultRenderer.ts
   - task: Re-check dedicated sheet browser contracts

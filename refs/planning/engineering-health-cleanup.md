@@ -30,8 +30,8 @@ The pass should improve maintainability without changing product behavior unless
 - Prefer behavior/output contracts over brittle source-location assertions.
 - Separate large coherent catalogs/rules surfaces from files that are large because they own too many responsibilities.
 - `main.ts` result rendering was a mixed responsibility and has been extracted.
-- Stage 0 primary-UI post-render rewriting is transitional scaffolding and should be retired, not normalized.
-- `brpCreatorState.ts` is a high-value later responsibility split after presentation cleanup.
+- Stage 0 post-render primary-UI rewriting was transitional scaffolding and has been retired.
+- `brpCreatorState.ts` is now the next high-value responsibility split.
 - `brpCreatorPanelView.ts` has clean named section boundaries if a later view split materially improves local reasoning.
 - `guidedCreationPanel.ts` is high risk; refactor one evidence-backed seam at a time rather than broad-rewriting it.
 - Do not add a failing line-count style gate. If file-growth diagnostics are added later, keep them informational and responsibility-oriented.
@@ -44,24 +44,37 @@ Character result validation, system routing, sheet rendering, print-sheet extrac
 
 Tests that previously required print extraction to live in `main.ts` were updated to protect the actual result-renderer/print contract instead.
 
-### Presentation cleanup isolation
+### Presentation compatibility layer retired
 
-`creatorWorkspace.ts` no longer owns `applyPrimaryCreatorMinimalism` or a workspace-wide `MutationObserver`.
+`creatorWorkspace.ts` no longer owns primary-UI cleanup or a workspace-wide observer, and the temporary adapter/shim have been deleted:
 
-Remaining temporary Stage 0 presentation compatibility behavior is isolated in `apps/web/src/creatorPresentationAdapter.ts`:
+- `apps/web/src/creatorPresentationAdapter.ts`
+- `apps/web/src/primaryUiMinimalism.ts`
 
-- BRP uses a scoped observer because its panel replaces markup on state changes;
-- D&D cleanup runs explicitly after render/mode changes.
+Accepted Stage 0 primary-UI minimalism is now renderer-owned:
 
-This adapter is an intermediate seam and should be deleted after source renderers emit the accepted UI directly.
+- BRP emits compact primary markup directly from `brpCreatorPanelView.ts`;
+- Guided Narrative emits compact primary markup directly;
+- Guided Mechanical owns its local heading cleanup and concise continuation note;
+- `creatorWorkspace.ts` mounts system creators directly.
+
+Two tests that still expected verbose copy hidden during Stage 0 were updated to protect the compact accepted UI instead of restoring obsolete visible prose.
 
 ## Next Ordered Cleanup Candidates
 
-1. Absorb `primaryUiMinimalism.ts` into BRP/D&D source renderers and remove post-render rewriting/observation.
-2. Split BRP creator state into coherent responsibilities only where seams remain clean after presentation cleanup.
-3. Split BRP creator view by named sections if that materially improves reasoning and testability.
-4. Audit D&D Guided Mechanical orchestration one responsibility seam at a time; avoid wholesale rewrite.
-5. Revisit source-string tests as each touched seam moves, preserving architecture invariants without pinning code to arbitrary files.
+1. Split BRP creator state into coherent responsibilities only where seams remain clean.
+2. Split BRP creator view by named sections if that materially improves reasoning and testability.
+3. Audit D&D Guided Mechanical orchestration one responsibility seam at a time; avoid wholesale rewrite.
+4. Revisit source-string tests as each touched seam moves, preserving architecture invariants without pinning code to arbitrary files.
+
+For `brpCreatorState.ts`, candidate seams are:
+
+- state types/default construction and campaign-profile selection;
+- preview/allocation projection and helpers;
+- CharacterDocument/native build;
+- reopen/from-document reconstruction.
+
+Prefer keeping `brpCreatorState.ts` as a stable facade if that substantially reduces caller churn and risk.
 
 ## Test-Suite Rules
 
