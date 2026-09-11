@@ -1,12 +1,12 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
-import type { BrpCreatorPanelController } from "./brpCreatorPanel.js";
+import { mountBrpCreatorPanel, type BrpCreatorPanelController } from "./brpCreatorPanel.js";
 import { clickCreatorRandomizers } from "./creatorRandomization.js";
 import {
   defaultDndCreationMode,
   dndCreationModeSupportsRandomizeAll,
+  mountDndCreatorPanel,
   type DndCreationMode,
 } from "./dndCreatorPanel.js";
-import { mountPresentedBrpCreator, mountPresentedDndCreator } from "./creatorPresentationAdapter.js";
 import { mountWorkspaceSplitter } from "./workspaceSplitter.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
@@ -94,7 +94,6 @@ export function mountCreatorWorkspace(
   const randomizeAll = requiredElement(root, "#creator-randomize-all", HTMLButtonElement);
   let brpController: BrpCreatorPanelController | null = null;
   let dndMode = defaultDndCreationMode();
-  let disposePresentation: (() => void) | null = null;
 
   const currentSystem = (): CreatorSystemId => systemSelect.value === "brp-uge" ? "brp-uge" : "dnd5e-2024";
 
@@ -108,18 +107,14 @@ export function mountCreatorWorkspace(
   };
 
   const renderSystem = (): void => {
-    disposePresentation?.();
-    disposePresentation = null;
     systemHost.innerHTML = "";
     brpController = null;
     if (currentSystem() === "brp-uge") {
-      const presented = mountPresentedBrpCreator(systemHost, onCharacter);
-      brpController = presented.controller;
-      disposePresentation = presented.dispose;
+      brpController = mountBrpCreatorPanel(systemHost, onCharacter);
       refreshRandomizationUi();
       return;
     }
-    mountPresentedDndCreator(systemHost, onCharacter, {
+    mountDndCreatorPanel(systemHost, onCharacter, {
       initialMode: dndMode,
       onModeChange: (mode) => {
         dndMode = mode;
