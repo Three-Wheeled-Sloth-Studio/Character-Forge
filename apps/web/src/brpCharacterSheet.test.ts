@@ -135,7 +135,7 @@ describe("adaptive character sheet BRP first proof", () => {
     ]);
   });
 
-  it("renders semantic page and section markers, repeatable table headers, and escaped player text", () => {
+  it("renders semantic page and section markers, repeatable table headers, media placeholders, and escaped player text", () => {
     const character = applyBrpStartingEquipment(validDefaultCharacter(), ["pistol-medium"]);
     character.displayName = "Mara <North>";
     const html = renderCharacterSheet(buildBrpCharacterSheet(character));
@@ -145,22 +145,26 @@ describe("adaptive character sheet BRP first proof", () => {
     expect(html).toContain('data-sheet-page="2"');
     expect(html).toContain('data-sheet-role="actions"');
     expect(html).toContain('data-sheet-section="weapons"');
+    expect(html).toContain('data-sheet-media-slot="portrait"');
+    expect(html).toContain('data-sheet-media-slot="token"');
     expect(html).toContain("<thead>");
     expect(html).toContain("sheet-section-splittable");
     expect(html).not.toContain("Inspect native character document");
   });
 
-  it("exposes browser print and lossless CharacterDocument JSON controls without creating a PDF model", () => {
+  it("exposes icon-only browser print and lossless CharacterDocument JSON controls without creating a PDF model", () => {
     const character = validDefaultCharacter();
     character.displayName = "Avery North";
     const printControls = characterDocumentControlsHtml(true);
     const jsonOnlyControls = characterDocumentControlsHtml(false);
 
     expect(printControls).toContain('data-sheet-action="print"');
-    expect(printControls).toContain("Print / Save PDF");
+    expect(printControls).toContain('title="Print character sheet or save as PDF"');
     expect(printControls).toContain('data-sheet-action="copy-json"');
     expect(printControls).toContain('data-sheet-action="download-json"');
     expect(printControls).toContain('aria-label="Copy full CharacterDocument JSON"');
+    expect(printControls).toContain("<svg");
+    expect(printControls).not.toContain("<span>Copy JSON</span>");
     expect(jsonOnlyControls).not.toContain('data-sheet-action="print"');
     expect(JSON.parse(characterDocumentJson(character))).toEqual(character);
     expect(characterDocumentDownloadName(character)).toBe("avery-north.json");

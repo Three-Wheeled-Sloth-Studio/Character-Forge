@@ -1,7 +1,7 @@
 import { renderCharacterSheet } from "../../../packages/character-sheet/src/index.js";
 import type { CharacterDocument, NativeSystemState } from "../../../packages/character-model/src/index.js";
 import { buildBrpCharacterSheet, brpUge105Adapter } from "../../../packages/system-brp/src/index.js";
-import { dnd5eSrd521Adapter, type Dnd5eNativeCharacter } from "../../../packages/system-dnd5e/src/index.js";
+import { buildDnd5eCharacterSheet, dnd5eSrd521Adapter } from "../../../packages/system-dnd5e/src/index.js";
 import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
 import {
   bindCharacterDocumentControls,
@@ -52,11 +52,17 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
   renderCharacter(opened.payload.character);
 });
 
-function publishCharacter(character: CharacterDocument): void { renderCharacter(character); postCharacterToHost(character); }
+function publishCharacter(character: CharacterDocument): void {
+  renderCharacter(character);
+  postCharacterToHost(character);
+}
 
 function renderCharacter(character: CharacterDocument): void {
   const nativeState = character.nativeStates.find((state) => state.id === character.primaryNativeStateId);
-  if (!nativeState) { renderCharacterFailure(character, "The primary native state is missing from this character document."); return; }
+  if (!nativeState) {
+    renderCharacterFailure(character, "The primary native state is missing from this character document.");
+    return;
+  }
   if (nativeState.systemId === dnd5eSrd521Adapter.systemId && nativeState.editionId === dnd5eSrd521Adapter.editionId) {
     renderDnd5eCharacter(character, nativeState);
     return;
@@ -70,92 +76,49 @@ function renderCharacter(character: CharacterDocument): void {
 
 function renderDnd5eCharacter(character: CharacterDocument, nativeState: NativeSystemState): void {
   const validation = dnd5eSrd521Adapter.validateNativeState(nativeState);
-  if (!validation.valid) { renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "Native state validation failed."); return; }
+  if (!validation.valid) {
+    renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "D&D native state validation failed.");
+    return;
+  }
 
-  const payload = nativeState.payload as Dnd5eNativeCharacter;
-  const abilities = payload.abilities.final;
-  const seed = character.generation?.seed;
-  const originFeats = [payload.origin.backgroundOriginFeatId, payload.origin.speciesOriginFeatId].filter((value): value is string => Boolean(value));
-  const classTools = payload.class.toolProficiencyIds ?? [];
-  const expertise = payload.class.expertiseSkillIds ?? [];
-  const bonusLanguages = payload.class.bonusLanguageIds ?? [];
-  const skilled = payload.origin.speciesOriginFeatProficiencyIds ?? [];
-  const invocations = payload.class.eldritchInvocations ?? [];
-  const classCasting = payload.spells?.classCasting ?? [];
-  const spellGrants = payload.spells?.grants ?? [];
-
-  resultElement.classList.remove("empty-result");
-  resultElement.innerHTML = `
-    ${characterDocumentControlsHtml()}
-    <div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2><p>${humanize(payload.origin.speciesId)} · ${humanize(payload.origin.backgroundId)} · ${humanize(payload.class.classId)} 1</p></div><span class="validation-pill valid">Native state valid</span></div>
-    <div class="ability-grid">${abilityCard("STR", abilities.strength)}${abilityCard("DEX", abilities.dexterity)}${abilityCard("CON", abilities.constitution)}${abilityCard("INT", abilities.intelligence)}${abilityCard("WIS", abilities.wisdom)}${abilityCard("CHA", abilities.charisma)}</div>
-    <div class="stat-grid">${statCard("HP", String(payload.resources.hitPointsMaximum))}${statCard("AC", String(payload.derived.armorClass))}${statCard("Initiative", signed(payload.derived.initiativeModifier))}${statCard("Passive Perception", String(payload.derived.passivePerception))}</div>
-    <div class="result-details">
-      <div><strong>Alignment</strong><span>${humanize(payload.identity.alignment)}</span></div>
-      <div><strong>Languages</strong><span>${payload.origin.languages.map(humanize).join(", ")}</span></div>
-      <div><strong>Ability method</strong><span>${humanize(payload.abilities.generationMethod)}</span></div>
-      <div><strong>Origin feats</strong><span>${originFeats.map(humanize).join(", ") || "None"}</span></div>
-      <div><strong>Background skills</strong><span>${(payload.origin.backgroundSkillProficiencies ?? []).map(humanize).join(", ")}</span></div>
-      <div><strong>Class skills</strong><span>${payload.class.skillProficiencies.map(humanize).join(", ")}</span></div>
-      ${payload.origin.speciesSkillId ? `<div><strong>Species skill</strong><span>${humanize(payload.origin.speciesSkillId)}</span></div>` : ""}
-      ${skilled.length ? `<div><strong>Skilled proficiencies</strong><span>${skilled.map(humanize).join(", ")}</span></div>` : ""}
-      ${expertise.length ? `<div><strong>Expertise</strong><span>${expertise.map(humanize).join(", ")}</span></div>` : ""}
-      <div><strong>Background tool</strong><span>${humanize(payload.origin.toolProficiencyId)}</span></div>
-      ${classTools.length ? `<div><strong>Class tools</strong><span>${classTools.map(humanize).join(", ")}</span></div>` : ""}
-      ${bonusLanguages.length ? `<div><strong>Class languages</strong><span>${bonusLanguages.map(humanize).join(", ")}</span></div>` : ""}
-      ${payload.class.divineOrderId ? `<div><strong>Divine Order</strong><span>${humanize(payload.class.divineOrderId)}</span></div>` : ""}
-      ${payload.class.primalOrderId ? `<div><strong>Primal Order</strong><span>${humanize(payload.class.primalOrderId)}</span></div>` : ""}
-      ${invocations.map((invocation) => `<div><strong>Eldritch Invocation</strong><span>${humanize(invocation.invocationId)}</span></div>${invocation.pactTomeCantripIds?.length ? `<div><strong>Book of Shadows cantrips</strong><span>${invocation.pactTomeCantripIds.map(humanize).join(", ")}</span></div>` : ""}${invocation.pactTomeRitualSpellIds?.length ? `<div><strong>Book of Shadows rituals</strong><span>${invocation.pactTomeRitualSpellIds.map(humanize).join(", ")}</span></div>` : ""}`).join("")}
-      ${(payload.class.weaponProficiencyIds ?? []).length ? `<div><strong>Weapon training</strong><span>${payload.class.weaponProficiencyIds!.map(humanize).join(", ")}</span></div>` : ""}
-      ${(payload.class.armorTrainingIds ?? []).length ? `<div><strong>Armor training</strong><span>${payload.class.armorTrainingIds!.map(humanize).join(", ")}</span></div>` : ""}
-      ${payload.class.thaumaturgeKnowledgeBonus !== undefined ? `<div><strong>Thaumaturge knowledge bonus</strong><span>${signed(payload.class.thaumaturgeKnowledgeBonus)}</span></div>` : ""}
-      ${payload.class.druidicKnowledgeBonus !== undefined ? `<div><strong>Druidic knowledge bonus</strong><span>${signed(payload.class.druidicKnowledgeBonus)}</span></div>` : ""}
-      ${classResourceDetails(payload)}
-      ${classCasting.map((casting) => `${casting.castingMode === "pact-magic" ? `<div><strong>Spellcasting</strong><span>Pact Magic</span></div>` : ""}<div><strong>${humanize(casting.sourceClassId)} cantrips</strong><span>${casting.cantripIds.length ? casting.cantripIds.map(humanize).join(", ") : "None"}</span></div>${casting.spellbookSpellIds?.length ? `<div><strong>Spellbook</strong><span>${casting.spellbookSpellIds.map(humanize).join(", ")}</span></div>` : ""}<div><strong>${humanize(casting.sourceClassId)} prepared spells</strong><span>${casting.preparedSpellIds.map(humanize).join(", ")}</span></div>${casting.alwaysPreparedSpellIds.length ? `<div><strong>${humanize(casting.sourceClassId)} always prepared</strong><span>${casting.alwaysPreparedSpellIds.map(humanize).join(", ")}</span></div>` : ""}<div><strong>Spell slots</strong><span>${casting.spellSlots.map((slot) => `Level ${slot.level}: ${slot.current} / ${slot.maximum} · ${humanize(slot.recharge)}`).join(", ")}</span></div>`).join("")}
-      ${spellGrants.map((grant) => `<div><strong>${humanize(grant.sourceId)} cantrips</strong><span>${grant.cantripIds.map(humanize).join(", ")}</span></div><div><strong>${humanize(grant.sourceId)} spell</strong><span>${grant.preparedSpellIds.map(humanize).join(", ")} · ${grant.freeCastCurrent}/${grant.freeCastMaximum} free cast</span></div>`).join("")}
-      <div><strong>Background equipment</strong><span>${payload.origin.backgroundEquipmentChoice === "A" ? "Equipment package" : "50 GP"}</span></div>
-      <div><strong>Class equipment</strong><span>${humanize(payload.class.classEquipmentChoice)}</span></div>
-      ${payload.class.fightingStyleFeatId ? `<div><strong>Fighting style</strong><span>${humanize(payload.class.fightingStyleFeatId)}</span></div>` : ""}
-      ${payload.class.weaponMasteryIds.length ? `<div><strong>Weapon mastery</strong><span>${payload.class.weaponMasteryIds.map(humanize).join(", ")}</span></div>` : ""}
-      <div><strong>Equipment</strong><span>${payload.equipment.length ? payload.equipment.map((item) => `${item.quantity} × ${humanize(item.itemId)}`).join(", ") : "Purchased from starting gold"}</span></div>
-      <div><strong>Currency</strong><span>${payload.currencyGp} GP</span></div>
-      ${seed ? `<div><strong>Generation seed</strong><code>${escapeHtml(seed)}</code></div>` : ""}
-    </div>
-    <details class="document-inspector"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
-  bindCharacterDocumentControls(resultElement, character);
+  renderDedicatedSheet(character, buildDnd5eCharacterSheet(character));
 }
 
 function renderBrpCharacter(character: CharacterDocument, nativeState: NativeSystemState): void {
   const validation = brpUge105Adapter.validateNativeState(nativeState);
-  if (!validation.valid) { renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "BRP native state validation failed."); return; }
+  if (!validation.valid) {
+    renderCharacterFailure(character, validation.issues.map((issue) => issue.message).join(" ") || "BRP native state validation failed.");
+    return;
+  }
 
+  renderDedicatedSheet(character, buildBrpCharacterSheet(character));
+}
+
+function renderDedicatedSheet(character: CharacterDocument, sheet: ReturnType<typeof buildBrpCharacterSheet>): void {
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
     ${characterDocumentControlsHtml(true)}
-    ${renderCharacterSheet(buildBrpCharacterSheet(character))}
+    ${renderCharacterSheet(sheet)}
     <details class="document-inspector no-print"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
   bindCharacterDocumentControls(resultElement, character);
 }
-
-function classResourceDetails(payload: Dnd5eNativeCharacter): string {
-  const r = payload.resources;
-  const details: string[] = [];
-  if (r.bardicInspirationMaximum !== undefined) details.push(resourceRow("Bardic Inspiration", `${r.bardicInspirationCurrent}/${r.bardicInspirationMaximum} · d${r.bardicInspirationDie}`));
-  if (r.layOnHandsMaximum !== undefined) details.push(resourceRow("Lay on Hands", `${r.layOnHandsCurrent}/${r.layOnHandsMaximum} HP pool`));
-  if (r.favoredEnemyMaximum !== undefined) details.push(resourceRow("Favored Enemy", `${r.favoredEnemyCurrent}/${r.favoredEnemyMaximum} free Hunter's Mark casts`));
-  if (r.innateSorceryMaximum !== undefined) details.push(resourceRow("Innate Sorcery", `${r.innateSorceryCurrent}/${r.innateSorceryMaximum}`));
-  if (r.arcaneRecoveryMaximum !== undefined) details.push(resourceRow("Arcane Recovery", `${r.arcaneRecoveryCurrent}/${r.arcaneRecoveryMaximum} · ${r.arcaneRecoverySpellLevelBudget} spell level`));
-  return details.join("");
-}
-function resourceRow(label: string, value: string): string { return `<div><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value)}</span></div>`; }
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `<div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2></div><span class="validation-pill invalid">Validation failed</span></div><p>${escapeHtml(message)}</p><details class="document-inspector"><summary>Inspect retained character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
 }
-function postCharacterToHost(character: CharacterDocument): void { if (window.parent !== window) window.parent.postMessage({ type: CHARACTER_GENERATED_MESSAGE, payload: { projectId, character } }, hostOrigin ?? "*"); }
-function abilityCard(label: string, score: number): string { const modifier = Math.floor((score - 10) / 2); return `<div class="ability-card"><span>${label}</span><strong>${score}</strong><small>${signed(modifier)}</small></div>`; }
-function statCard(label: string, value: string): string { return `<div class="stat-card"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`; }
-function signed(value: number): string { return value >= 0 ? `+${value}` : String(value); }
-function humanize(value: string): string { return value.split(":").at(-1)!.split("-").map((part) => part ? part[0]!.toUpperCase() + part.slice(1) : part).join(" "); }
-function escapeHtml(value: string): string { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+
+function postCharacterToHost(character: CharacterDocument): void {
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: CHARACTER_GENERATED_MESSAGE, payload: { projectId, character } }, hostOrigin ?? "*");
+  }
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}

@@ -16,10 +16,10 @@ export function characterDocumentDownloadName(character: CharacterDocument): str
 }
 
 export function characterDocumentControlsHtml(includePrint = false): string {
-  return `<div class="sheet-toolbar no-print" aria-label="Character export controls">
-    ${includePrint ? `<button type="button" class="sheet-action-button" data-sheet-action="print" aria-label="Print character sheet or save as PDF" title="Print character sheet or save as PDF"><span class="sheet-action-icon" aria-hidden="true">&#9113;</span><span>Print / Save PDF</span></button>` : ""}
-    <button type="button" class="sheet-action-button" data-sheet-action="copy-json" aria-label="Copy full CharacterDocument JSON" title="Copy full CharacterDocument JSON"><span class="sheet-action-icon" aria-hidden="true">&#9633;</span><span>Copy JSON</span></button>
-    <button type="button" class="sheet-action-button" data-sheet-action="download-json" aria-label="Download full CharacterDocument JSON" title="Download full CharacterDocument JSON"><span class="sheet-action-icon" aria-hidden="true">&#8595;</span><span>Download JSON</span></button>
+  return `<div class="sheet-toolbar no-print" aria-label="Character sheet and export controls">
+    ${includePrint ? sheetActionButton("print", "Print character sheet or save as PDF", printIcon()) : ""}
+    ${sheetActionButton("copy-json", "Copy full CharacterDocument JSON", copyIcon())}
+    ${sheetActionButton("download-json", "Download full CharacterDocument JSON", downloadIcon())}
     <span class="sheet-action-status" data-sheet-action-status role="status" aria-live="polite"></span>
   </div>`;
 }
@@ -41,6 +41,22 @@ export function bindCharacterDocumentControls(root: ParentNode, character: Chara
       .catch(() => setStatus(status, "Could not copy Character JSON."));
   });
   downloadButton?.addEventListener("click", () => downloadCharacterDocumentJson(character));
+}
+
+function sheetActionButton(action: string, label: string, icon: string): string {
+  return `<button type="button" class="sheet-action-button" data-sheet-action="${action}" aria-label="${label}" title="${label}">${icon}</button>`;
+}
+
+function copyIcon(): string {
+  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>`;
+}
+
+function downloadIcon(): string {
+  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="m7.5 10.5 4.5 4.5 4.5-4.5"></path><path d="M5 20h14"></path></svg>`;
+}
+
+function printIcon(): string {
+  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 8V3h10v5"></path><path d="M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2"></path><rect x="7" y="14" width="10" height="7" rx="1"></rect></svg>`;
 }
 
 function downloadCharacterDocumentJson(character: CharacterDocument): void {

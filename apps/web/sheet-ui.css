@@ -1,0 +1,103 @@
+.sheet-action-button {
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border-radius: 14px;
+  background: #e9ded0;
+}
+
+.sheet-action-button:hover:not(:disabled),
+.sheet-action-button:focus-visible {
+  background: #ded0bf;
+}
+
+.sheet-action-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.sheet-action-icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sheet-page-header-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sheet-media-slots {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.sheet-media-slot {
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  border: 1px solid #b9aa96;
+  background: #f8f1e8;
+  color: #74685a;
+}
+
+.sheet-media-slot span {
+  width: 100%;
+  padding: 3px 4px;
+  background: rgba(255, 253, 249, .9);
+  font-size: .58rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.sheet-media-slot-portrait {
+  width: 88px;
+  height: 112px;
+  border-radius: 8px;
+}
+
+.sheet-media-slot-token {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+
+@media (max-width: 700px) {
+  .sheet-media-slots {
+    order: 3;
+  }
+}
+
+@media print {
+  .sheet-media-slot {
+    border-color: #777;
+    background: #fff;
+    color: #222;
+  }
+
+  .sheet-media-slot span {
+    background: #fff;
+    font-size: 5.5pt;
+  }
+
+  .sheet-media-slot-portrait {
+    width: .9in;
+    height: 1.15in;
+    border-radius: 0;
+  }
+
+  .sheet-media-slot-token {
+    width: .7in;
+    height: .7in;
+  }
+}
