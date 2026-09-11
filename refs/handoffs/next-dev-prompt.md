@@ -24,7 +24,7 @@ The active epic is GitHub Issue #14: **Make BRP UGE a player-usable core charact
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "browser QA served sheet css isolated print icons BRP D&D"
+python refs/tools/generate_agent_context.py --focus "browser QA standalone print document action affordance two page BRP D&D"
 ```
 
 Then read only:
@@ -36,57 +36,60 @@ Then read only:
 5. `refs/planning/brp-player-usable-core.md`
 6. `refs/implementation/fileMap.yaml`
 7. GitHub Issue #14
-8. only sheet/static-asset/print/export/save-reopen code needed to diagnose the next owner QA finding.
+8. only sheet/print/export/save-reopen code needed to diagnose the next owner QA finding.
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
 ## Exact Green Implementation Checkpoint
 
-The stylesheet-delivery browser-QA repair is green at:
+The standalone-print browser-QA repair is green at:
 
-- SHA: `5a8833d1b1e2ffccb298e30e71745108bc78a98b`
-- Actions: `34610930531`
-- Job: `103300946623`
+- SHA: `a10d18e7c818c9c45afbd38f0d6f7a4cca473432`
+- Actions: `34612582059`
+- Job: `103306485403`
 - `npm run verify`: green
 - 57 test files / 277 tests / 0 failures
 - 216 tracked paths
 - 14 required project-memory files
 - OKF: 28 concepts / 10 indexes
-- agent context: 4158 characters
-- build: `Character Forge build 0.0.1 5a8833d1`
+- agent context: 4117 characters
+- build: `Character Forge build 0.0.1 a10d18e7`
 
 Documentation may be ahead of this implementation checkpoint. Validate the exact current `dev` SHA before declaring a new milestone green.
 
-## Critical Root Cause From QA Pass 4
+## Critical Change From QA Pass 5
 
-The previous implementation had correct sheet and print CSS in the repository, but the local Character Forge server never served it.
+After the sheet styles began loading correctly, owner QA confirmed icons were visible but found:
 
-`apps/web/index.html` referenced:
+- compact sheet actions still looked too neutral/inactive; and
+- both D&D and BRP print previews were still about eight pages of non-character-sheet material.
 
-- `styles.css`
-- `sheet.css`
-- `sheet-ui.css`
+The shared Design Principles already require enabled buttons to look actionable before hover and compact icon actions to use circular or strongly rounded affordance with visible hover/active/focus states. Treat deviations as implementation defects, not a guidance gap.
 
-`tools/web-server.mjs` served only `/styles.css` and `/dist/*`. Requests for `/sheet.css` and `/sheet-ui.css` fell through to the SPA fallback and returned `index.html` rather than CSS. This explains why:
+The checkpoint above changes the print boundary:
 
-- D&D and BRP toolbar buttons still looked empty;
-- screen sheets looked like raw semantic text rather than character sheets; and
-- print preview ignored the isolated print-root behavior and still showed the creator/application UI.
-
-The checkpoint above explicitly serves both missing stylesheets, tests the referenced-asset/server-route contract, adds self-contained SVG stroke attributes, and removes visible designer page-role text from sheet headers.
+- do not call `window.print()` on the running Character Forge page;
+- `characterSheetControls.ts` creates a temporary off-screen iframe;
+- the iframe `srcdoc` is a standalone HTML document containing only the rendered `.character-sheet` and sheet stylesheets;
+- the iframe uses an `816 x 1056` desktop/letter-like viewport so narrow-screen media rules do not inflate pagination;
+- print is invoked on the iframe's own `contentWindow` and the iframe is removed afterward;
+- the old duplicate `character-print-root` path is removed from `main.ts`;
+- sheet action buttons are circular, centered, visibly filled/bordered at rest, and have hover/active/focus styling;
+- `sheet-ui.css` no longer overrides the shared action-button affordance;
+- regression tests verify that the printable document contains sheet markup only and does not contain application-shell or rules-selector text.
 
 ## Immediate Task - Owner Browser Re-check
 
-After pulling current `dev`, restart `npm run dev:web` so the fixed server routes are active, then verify:
+After pulling current `dev`, restart `npm run dev:web`, then verify both a D&D and BRP character:
 
-1. D&D Guided Mechanical `Starting equipment` shows descriptive equipment/gold labels rather than bare `A/B/C`.
-2. D&D and BRP result toolbars display recognizable Print, Copy JSON, and Download JSON icons.
-3. D&D and BRP right-side results visibly render as styled character sheets rather than raw text.
-4. The sheet does not display `Character Forge` branding or visible `Page 1 - At the table` / designer-role text.
-5. Browser Print / Save as PDF contains only the dedicated sheet. No app header, system selector, creator controls, toolbar, or JSON inspector may appear.
-6. Representative characters remain within 1-2 physical print pages and are readable in grayscale/ordinary office printing.
+1. Print, Copy JSON, and Download JSON are centered circular icon actions with visible enabled affordance before hover.
+2. Hover text remains useful and text labels are not shoved into the toolbar.
+3. Print preview contains only the character sheet. No Character Forge header, Rules system selector, creator controls, toolbar, JSON inspector, or other application text may appear.
+4. Representative characters occupy no more than 1-2 physical print pages.
+5. The print result remains readable in grayscale/ordinary office printing.
+6. Portrait and VTT Token reserved spaces remain useful without crowding core play information.
 
-If any item fails, capture the actual browser result and make the smallest evidence-backed fix. Do not infer visual acceptance from automated structural tests.
+If print is still over two pages, first determine whether the extra pages are actual character content overflow or non-sheet material. Do not add another application-level hide-selector workaround; keep the standalone print-document boundary and fix only the concrete sheet-density problem if one remains.
 
 ## Then Complete BRP Issue #14 Acceptance
 
@@ -114,9 +117,10 @@ Verify exact effective rules, profession choices, skills, equipment, finishing d
 - Campaign/profile is not Universal Grammar.
 - Profession is not class.
 - Shared sheet code owns presentation mechanics only.
-- The print target must be character sheet only; never print creator/application chrome.
+- The print target must be a standalone character-sheet document, never the running creator/application document.
 - Internal generation IDs such as equipment `A/B/C` are not acceptable player-facing labels when the source owns meaningful labels.
 - Rules/provenance belongs in a tiny footer at most, not a large sheet section.
+- Enabled compact actions must look actionable before hover and should be circular/strongly-rounded icon-first controls.
 - Static assets referenced by the browser must have explicit server/static paths; do not let missing CSS/JS silently fall through to SPA HTML.
 - Portrait/token layout placeholders are not native rules state or Foundry schema.
 - Do not implement Investigative Horror before Issue #14 closeout.
@@ -124,7 +128,7 @@ Verify exact effective rules, profession choices, skills, equipment, finishing d
 - Do not broaden D&D work beyond acceptance fixes during BRP closeout.
 - Do not implement Fate early.
 - Do not implement Foundry export/push unless explicitly reprioritized.
-- Do not add a PDF-generation dependency unless isolated browser printing still demonstrates a concrete unresolved need.
+- Do not add a PDF-generation dependency unless the standalone browser-print document still demonstrates a concrete unresolved need.
 
 ## Branch / Promotion Boundary
 
