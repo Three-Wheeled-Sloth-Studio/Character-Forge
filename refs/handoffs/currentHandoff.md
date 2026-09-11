@@ -18,39 +18,33 @@ Active epic: GitHub Issue #14 - **Make BRP UGE a player-usable core character ge
 
 ## Current Direction
 
-BRP Player-Usable Core remains in browser acceptance. Three owner/browser QA passes have now produced bounded fixes rather than new feature work:
+BRP Player-Usable Core remains in browser acceptance. Four owner/browser QA passes have now produced bounded fixes rather than new feature work:
 
 1. creator-workspace containment, affordance, splitter, and BRP Randomize All;
-2. D&D adoption of the dedicated sheet framework and shared document controls; and
-3. player-facing equipment labels, visible toolbar icons, and a hard print boundary that excludes the application shell.
+2. D&D adoption of the dedicated sheet framework and shared document controls;
+3. player-facing equipment labels, character-only sheet content, visible toolbar-icon styling, and a dedicated print root; and
+4. discovery and repair of the actual delivery defect that prevented the sheet and print styles from reaching the browser.
 
-The third repair is structurally green, but Issue #14 remains open until the owner confirms the actual browser result and print preview. Automated tests prove there are exactly two logical sheet pages and that the print stylesheet exposes only the dedicated print root; they do not prove that a particular browser will not overflow a logical page onto an extra physical page.
+The fourth pass is the important root-cause correction. `apps/web/index.html` referenced `sheet.css` and `sheet-ui.css`, but the custom `tools/web-server.mjs` served only `/styles.css` and `/dist/*`. Requests for the two sheet stylesheets fell through to `index.html`, so the browser received HTML instead of CSS. That single delivery bug explains both remaining symptoms from owner QA: empty-looking document-action buttons and raw, UI-like sheet/print rendering despite the correct stylesheet rules existing in the repository.
 
-Accepted sequence remains:
+Issue #14 remains open until the owner confirms the actual browser and print result after this repair.
 
-1. close BRP Player-Usable Core after browser acceptance;
-2. BRP Investigative Horror;
-3. bounded Fate Condensed third-system probe;
-4. Universal Grammar v0.1 from D&D + BRP + Fate evidence.
+## Exact Green Sheet-Asset Delivery Checkpoint
 
-D&D Guided Narrative remains intentionally parked. Do not resume it by chronology.
+The fourth browser-QA repair is green at:
 
-## Exact Green Character-Only Print Checkpoint
-
-The third browser-QA repair is green at:
-
-- SHA: `ee63a0752e33e56aa94bce03e2ec69fa6099fc77`
-- Actions: `34608731990`
-- Job: `103293561221`
+- SHA: `5a8833d1b1e2ffccb298e30e71745108bc78a98b`
+- Actions: `34610930531`
+- Job: `103300946623`
 - `npm run verify`: green
 - 57 test files
-- 276 tests passed
+- 277 tests passed
 - 0 failures
 - 216 tracked paths
 - 14 required project-memory files
 - OKF: 28 concepts / 10 indexes
-- Agent context: 4140 characters
-- Build: `Character Forge build 0.0.1 ee63a075`
+- Agent context: 4158 characters
+- Build: `Character Forge build 0.0.1 5a8833d1`
 
 Any later documentation or implementation head requires its own exact-head Verify before being called green.
 
@@ -60,38 +54,39 @@ Any later documentation or implementation head requires its own exact-head Verif
 
 Owner QA found action affordance, pane containment, missing resize control, and weak BRP whole-character randomization. The repair at `6110dc4d58a7949a0df0da0f189bbab0a033ef61` added stronger action styling, icon-first compact randomizers, containment-safe layouts, a bounded draggable/keyboard splitter, and a legal BRP whole-character Randomize All pass.
 
-### Pass 2 - D&D result / dedicated sheet
+### Pass 2 - D&D dedicated result
 
-Owner QA found D&D still using the older custom result surface, internal equipment-choice IDs leaking into review, and no visible dedicated print path. The repair at `caff03275bc714f7189a5c7c9e30daeddd1a12b4` added the D&D-owned two-page sheet projection, shared sheet rendering, icon-only document controls, browser print, and reserved Portrait / VTT Token spaces.
+Owner QA found D&D still using an older custom result surface, internal equipment-choice IDs leaking into review, and no visible dedicated print path. The repair at `caff03275bc714f7189a5c7c9e30daeddd1a12b4` added the D&D-owned two-page sheet projection, shared sheet rendering, document controls, browser print, and reserved Portrait / VTT Token spaces.
 
-### Pass 3 - labels, icons, and print isolation
+### Pass 3 - labels, content, and print isolation
 
-The next owner QA showed that the second repair had not fixed the actual browser experience:
+Owner QA then showed raw `A/B/C` equipment labels, empty-looking icon buttons, unnecessary product/rules/provenance text on the sheet, and application UI in print preview. The repair through `ee63a0752e33e56aa94bce03e2ec69fa6099fc77` corrected equipment-label reconciliation, reduced rules identity to a tiny footer, removed `Character Forge` and large provenance blocks from sheet content, and introduced the isolated `character-print-root` plus print CSS that hides the application shell.
 
-1. D&D Guided Mechanical `Starting equipment` still displayed raw `A/B/C` labels in the select;
-2. the BRP sheet toolbar showed empty rounded buttons because the SVG markup had no visible stroke styling;
-3. the character sheet still displayed unnecessary `Character Forge` product branding;
-4. BRP and D&D sheet bodies still carried rules/provenance blocks that were not useful character-sheet content; and
-5. browser print preview included the application shell and creator UI, expanding the intended two-page character sheet into many pages.
+### Pass 4 - stylesheet delivery root cause
 
-The repair ending at `ee63a0752e33e56aa94bce03e2ec69fa6099fc77` addresses those specific defects:
+Owner QA at build `985f87fc` still showed:
 
-- `choicePoolDirectVisibility.ts` now reconciles both option IDs and player-facing labels, so an `A/B/C` select whose IDs are correct but labels have regressed is rebuilt from the richer equipment-package labels;
-- a regression test explicitly covers the `A/B`-IDs-with-wrong-labels case;
-- shared toolbar SVGs now have explicit `stroke: currentColor`, `fill: none`, width/height, and line styling so standard Print, Copy, and Download icons are visible;
-- `Character Forge` is removed from sheet-page chrome;
-- BRP Profile / Rules Context and D&D Rules Context / generation provenance are removed from the sheet body;
-- rules identity is reduced to a tiny footer note: `BRP UGE 2023 | ORC 1.05` or `D&D 5E 2024 | SRD 5.2.1`;
-- `main.ts` now maintains a dedicated `character-print-root` containing only the rendered character sheet; and
-- print CSS hides `#app > .forge-shell` and exposes only `#app > .character-print-root`, structurally excluding header, creator, result toolbar, inspector, and other application chrome from print.
+- D&D and BRP sheet toolbar buttons without visible icons;
+- BRP and D&D sheets rendered as mostly unstyled semantic text; and
+- print preview still rendering the creator/application shell instead of the isolated sheet.
 
-A dedicated print-contract test now protects both the isolated print root and visible SVG-stroke behavior.
+Audit found that the CSS changes from Pass 3 were never being served by the local Character Forge web server. `index.html` requested `/sheet.css` and `/sheet-ui.css`, but `tools/web-server.mjs` had no routes for either path and returned `index.html` for them.
+
+The repair through `5a8833d1b1e2ffccb298e30e71745108bc78a98b`:
+
+- explicitly serves `/sheet.css` from `apps/web/sheet.css`;
+- explicitly serves `/sheet-ui.css` from `apps/web/sheet-ui.css`;
+- adds regression coverage proving every stylesheet referenced by `index.html` has an owned web-server route;
+- makes Print, Copy, and Download SVG presentation attributes self-contained in the SVG markup as a second line of defense rather than depending only on CSS; and
+- removes visible designer page labels such as `Page 1 - At the table` from sheet headers while retaining page semantics through structure/ARIA.
+
+The screen and print sheet styles should now actually execute in the browser. This is the first pass where the stylesheet delivery path itself is covered by regression tests.
 
 ## Character Sheet Product Boundary
 
 The character sheet is a character artifact, not a design/debug/provenance report.
 
-Current rule:
+Current path:
 
 ```text
 authoritative native character state
@@ -101,60 +96,36 @@ authoritative native character state
     -> isolated print-only sheet root
 ```
 
-The sheet should contain character information needed for play or character depth. Product branding, generation UI, generation seed, profile provenance, source explanation, native JSON inspection, and creator controls belong outside the sheet.
+The sheet should contain character information needed for play or character depth. Product branding, generation UI, generation seed, profile provenance, source explanation, native JSON inspection, creator controls, and designer-facing page labels belong outside the visible sheet.
 
-Rules identity may appear only as unobtrusive provenance, currently a tiny footer note. The sheet toolbar is application chrome and never prints.
+Rules identity may appear only as unobtrusive provenance, currently a tiny footer note. The toolbar is application chrome and never prints.
 
-The logical sheet model remains exactly two pages for both BRP and D&D. Real browser QA still must confirm that content density does not force extra physical print pages for representative characters.
+The logical model remains exactly two pages for both BRP and D&D. Real browser QA must still confirm representative characters remain within 1-2 physical print pages after the now-served print CSS is applied.
 
 ## Portrait And VTT Token Boundary
 
-Page 1 reserves presentation space for a portrait and VTT token. These remain layout placeholders only.
-
-Future ownership remains:
-
-```text
-Parchment Worlds character asset relationship
-    -> Character Forge presentation reference
-    -> sheet portrait/token rendering
-    -> VTT adapter mapping
-```
-
-Do not add image URLs, Foundry paths, VTT document IDs, or binary assets to D&D or BRP native rules state merely to fill those slots.
-
-## Foundry Readiness Boundary
-
-Foundry remains planned, not implemented. The repository already has the main source-side prerequisites for a bounded D&D export proof: lossless CharacterDocument/native state, concrete D&D equipment/resources/features/spells, and a clean adapter boundary.
-
-A first export-only slice would still need a versioned Foundry adapter, target Foundry/D&D schema versioning, Actor/Item mapping, fixture tests, export UX, and validation through a real Foundry import. Direct push/synchronization remains a later integration increment.
-
-Do not pull Foundry implementation into Issue #14 unless explicitly reprioritized.
+Page 1 reserves presentation space for a portrait and VTT token. These remain layout placeholders only. Do not add image URLs, Foundry paths, VTT document IDs, or binary assets to D&D or BRP native rules state merely to fill those slots.
 
 ## Campaign / Rules-Profile Seam - Preserved
 
 `packages/system-brp/src/campaignProfile.ts` remains the narrow BRP profile seam. `Generic BRP Core` v0.1 remains the only current profile. Reopen reconstructs effective rules from authoritative native state; profile identity remains provenance/configuration context rather than canonical rules state.
 
-The rules-profile seam remains important to creation and persistence, but its provenance does not need a large block on the printed play sheet.
-
 ## Immediate Next Work Package - Owner Browser Re-check
 
-Re-test the third QA repair in the actual browser before any further implementation:
+Pull the current `dev`, restart `npm run dev:web`, and re-test the actual browser:
 
-1. In D&D Guided Mechanical, `Starting equipment` must show the actual equipment-package descriptions, not bare `A`, `B`, or `C`.
-2. On BRP and D&D sheets, Print, Copy JSON, and Download JSON must display recognizable icons with useful hover text.
-3. The sheet itself must not display `Character Forge` branding.
-4. The sheet body must not display Rules Context, Rules Profile, generation method, or generation seed sections.
-5. Browser print preview must contain only the dedicated character sheet, never the app header, rules-system selector, creator controls, result toolbar, or native-document inspector.
-6. Confirm actual print preview is 1-2 physical pages for representative characters. If browser pagination still exceeds two pages because of content overflow, treat that as the next bounded layout defect rather than accepting extra pages.
-7. Confirm Portrait and VTT Token spaces remain useful and do not crowd core play information.
+1. D&D Guided Mechanical `Starting equipment` must show descriptive package labels rather than bare `A/B/C`.
+2. BRP and D&D sheet toolbars must show recognizable Print, Copy JSON, and Download JSON icons.
+3. The right-side result must look like the styled character sheet rather than raw semantic text.
+4. The visible sheet must not display `Character Forge` branding or designer page-role labels.
+5. Browser Print / Save as PDF must contain only the dedicated character sheet, never the application header, rules selector, creator controls, toolbar, or JSON inspector.
+6. Confirm representative characters occupy no more than 1-2 physical print pages and remain readable in grayscale/ordinary office printing.
 
 Then resume the full BRP Issue #14 journey:
 
 ```text
 create -> finish -> review -> save -> reopen -> print/export
 ```
-
-Exercise multiple BRP professions, long labels/content, equipment, finishing details, profile persistence, JSON controls, actual print pagination/readability, and ordinary office-printer/grayscale behavior.
 
 Close Issue #14 only after real-browser acceptance succeeds.
 
@@ -170,6 +141,7 @@ Close Issue #14 only after real-browser acceptance succeeds.
 - Shared sheet code owns presentation mechanics only.
 - The printed sheet must contain only the sheet, never creator/application chrome.
 - Internal generation IDs are not acceptable player-facing labels when richer source-owned labels exist.
+- Stylesheets referenced by the browser must have an explicit served/static-asset path and must not silently fall through to the SPA HTML response.
 - Portrait/token spaces do not imply portrait/token ownership in native rules state.
 - Foundry Actor/Item schemas remain adapter targets rather than canonical Character Forge state.
 - Do not import Call of Cthulhu-only or branded content.
