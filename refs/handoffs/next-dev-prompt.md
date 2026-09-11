@@ -4,174 +4,167 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- brp
+- roadmap
+- prioritization
 - productization
 - browser-qa
-- character-sheet
-- play-focused
-- project-context
 ---
 # Next Development Prompt
 
-Continue implementation in:
+Continue planning in:
 
 `https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge`
 
 Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requested.
 
-The active epic is GitHub Issue #14: **Make BRP UGE a player-usable core character generator**.
+**Do not begin implementation immediately.** The first task in this thread is to prioritize newly captured owner TODOs against the existing roadmap and current acceptance blockers.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "play-focused adaptive sheets campaign context portrait token browser QA"
+python refs/tools/generate_agent_context.py --focus "roadmap prioritization Character Forge productization sheets VTT naming universal grammar"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/architecture/adaptive-character-sheet-framework.md`
-3. `refs/product/creator-workspace.md`
-4. `refs/planning/brp-player-usability-gap-audit.md`
-5. `refs/planning/brp-player-usable-core.md`
+2. `refs/planning/unprioritized-product-todos-2026-09-11.md`
+3. `refs/planning/roadmap.yaml`
+4. `refs/architecture/adaptive-character-sheet-framework.md`
+5. `refs/product/creator-workspace.md`
 6. GitHub Issue #14
-7. only system sheet projection, renderer, project-context, print, and save/reopen code needed for the next owner QA finding.
 
-Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
+Do not reread the entire repository history.
 
-## Exact Green Implementation Checkpoint
+## Exact Green Code Checkpoint
 
-The play-focused adaptive-sheet implementation is green at:
+The latest implementation checkpoint before the documentation-only closeout is:
 
-- SHA: `77783bbc67d733dccf1a6d71f54fb9168432bec6`
-- Actions: `34615884732`
-- Job: `103317568445`
-- `npm run verify`: green
-- 58 test files / 280 tests / 0 failures
-- 218 tracked paths
+- `dev`: `3e8a73a6e0e960967e08b49abb132f49fe9fd378`
+- Actions: `34620261296`
+- Job: `103332185790`
+- 59 test files / 283 tests / 0 failures
+- 221 tracked paths
 - 14 required project-memory files
 - OKF: 28 concepts / 10 indexes
-- agent context: 4085 characters
-- build: `Character Forge build 0.0.1 77783bbc`
+- agent context: 4092 characters
+- build: `Character Forge build 0.0.1 3e8a73a6`
 
-Parchment Worlds project-context handoff is green at:
+Later commits in the handoff are documentation-only. Validate the exact current `dev` head before declaring any later milestone green.
 
-- `dev`: `96b2ea0ea214aaa700691befa17504f02e867a54`
-- Actions: `34615785799`
-- workflow `Validate Parchment Worlds`: green
+## Current QA Acceptance Finding
 
-Documentation may be ahead of the Character Forge implementation checkpoint. Validate the exact current `dev` SHA before declaring a new milestone green.
+Owner D&D browser testing after the adaptive-pagination change still shows **unnecessary pagination**. A representative character that should fit comfortably on one page continues to split.
 
-## Critical Change From QA Pass 6
+Treat this as an open real-browser acceptance defect. Do not assume the logical one-page descriptor means physical browser pagination is correct.
 
-Owner QA confirmed the standalone print boundary removed application fluff, but the result still looked like a plain report rather than a polished, play-focused character sheet.
+No additional fix was attempted during the documentation closeout.
 
-The current implementation therefore changes composition rather than adding another print workaround:
+## Newly Captured Backlog
 
-- BRP and D&D now use system-owned play layouts over shared presentation primitives;
-- Page 1 is a dense multi-column at-table surface rather than a vertical stack of generic sections;
-- identity is compact in the header rather than repeated as a large body card;
-- portrait space is top-left before the character name;
-- empty portrait/token geometry contains no visible placeholder text;
-- portrait/token attachment actions are icon-only application controls outside the sheet;
-- campaign/project identity occupies the sheet badge area;
-- screen and print use the same rendered sheet composition;
-- Print still creates a standalone iframe document containing only the current rendered `.character-sheet` and sheet styles; and
-- the Parchment Worlds embed now supplies project rules systems, genres, and attributes so Character Forge can stop re-asking choices already established upstream.
+The unprioritized capture is authoritative at:
 
-When an actual project supplies exactly one supported non-agnostic rules system, Character Forge uses it and hides the redundant Rules system selector. `system-agnostic` and multi-system projects still allow an explicit system choice.
+`refs/planning/unprioritized-product-todos-2026-09-11.md`
 
-## Immediate Task - Owner Browser Re-check
+It includes, among other items:
 
-After pulling current Character Forge `dev` and current Parchment Worlds `dev`, restart the local apps and inspect representative D&D and BRP characters.
+- remaining sheet pagination acceptance work;
+- studio/product branding using `TWS-Design-Principles/Branding/`;
+- direct portrait-slot interaction and optional context-menu editing;
+- VTT token generation/import/update/manual override/export workflow;
+- a Foundry-license purchase trigger tied to actual integration need;
+- full context-aware name generation;
+- Universal Grammar work;
+- proprietary RPG-system work;
+- BRP random-table flavor suggestions;
+- correct system-switch clear/translate semantics;
+- BRP and D&D primary-UI minimalism cleanup;
+- Character Forge `version:build:revision` user-facing version identity;
+- a matching parent Parchment Worlds version pill; and
+- deeper inheritance of authoritative project/campaign choices.
 
-Verify:
+Do not infer priority from the order in that file.
 
-1. Screen result reads like a polished play sheet rather than a report/database view.
-2. Page 1 has an obvious high-frequency scan path and uses horizontal page space efficiently.
-3. BRP grouping is useful at the table: characteristics/resources, Communication/Mental, Perception/Physical/Combat, weapons/armor.
-4. D&D grouping is useful at the table: resources/saves, Skills, Abilities, then features/gear/spells on Page 2.
-5. No visible `Portrait` or `VTT Token` placeholder words appear in empty media slots.
-6. Portrait geometry is at the top-left of the identity header.
-7. Attach Portrait / Attach Token controls are compact icons with useful hover/accessibility text and attached images flow into the current sheet.
-8. Project name appears as quiet campaign badging when launched from a project.
-9. A single supported project rules system is inherited instead of being asked again.
-10. Print preserves the same hierarchy and composition and occupies no more than 1-2 physical pages for representative characters.
-11. Long skills, specialties, equipment, and background content remain readable.
-12. Ordinary office/grayscale printing remains usable.
+## First Task - Propose Priority Order
 
-Do not infer visual acceptance from structural tests. If the sheet still misses the target, capture the actual browser result and make the smallest evidence-backed play-composition correction. Do not add explanatory text to solve layout problems.
+Before editing code, compare the new backlog against the existing roadmap and propose an execution sequence.
 
-## Media Persistence Boundary
+Group the work into:
 
-The current Attach Portrait / Attach Token controls are intentionally session-only. They support browser QA and current Print / Save as PDF without contaminating native rules state.
+1. **Current acceptance blockers** - items that prevent closing active player-usability/browser acceptance.
+2. **Productization / external-demo readiness** - items needed before actively shopping/demoing the product.
+3. **Near-term companion capabilities** - valuable user-facing additions that fit naturally after acceptance.
+4. **Architecture/platform investments** - Universal Grammar, proprietary-system foundations, durable media/assets, translation semantics, etc.
+5. **Later integrations** - Foundry push/sync and other integrations that depend on earlier foundations.
 
-Future durability should be implemented through a Parchment Worlds character-asset relationship:
+For each proposed work package include:
 
-```text
-Parchment Worlds character asset
-    -> portrait/token presentation references
-    -> Character Forge sheet
-    -> future VTT adapter mapping
-```
+- why it belongs at that point;
+- dependencies;
+- what it unblocks;
+- rough size/risk if apparent; and
+- whether it should be its own epic/issue or folded into an existing one.
 
-Do not store binary images, local file paths, Foundry IDs, or VTT-specific asset paths in BRP/D&D native state.
+Get owner agreement on the ordering before starting newly captured implementation work.
 
-## Then Complete BRP Issue #14 Acceptance
+## Product Direction To Preserve During Prioritization
 
-After the sheet re-check passes, run:
+### Primary UI minimalism
+
+Nothing belongs in the primary creator UI unless it provides immediate player or GM value for the current task.
+
+Avoid:
+
+- permanent explanatory prose;
+- architectural commentary;
+- callouts to unavailable/future functionality;
+- success text where a simple state icon is enough; and
+- rules explanations that are only useful occasionally.
+
+Prefer compact info/help affordances for optional explanation and show detailed text when a state is invalid or a user explicitly asks for help.
+
+Apply this principle to both BRP and D&D, not only the strings individually called out by the owner.
+
+### Native-state boundary
+
+- Native system state is mandatory and lossless.
+- BRP and D&D native state remain canonical.
+- Universal Grammar remains derived semantic/translation state with explicit loss.
+- Portrait/token/VTT metadata does not belong in RPG native state.
+- Foundry Actor/Item schemas remain adapter targets.
+
+### Project/campaign authority
+
+Do not ask the character creator to repeat project/campaign choices already supplied authoritatively upstream unless the project explicitly allows per-character variation.
+
+### Sheet direction
+
+The sheet is a play artifact. Preserve system-specific play hierarchy, screen/print parity, quiet empty media space, campaign-owned badging, and the standalone print-document boundary.
+
+## Active Issue Boundary
+
+GitHub Issue #14 remains open. Do not close it until representative BRP browser acceptance succeeds through:
 
 ```text
 create -> finish -> review -> save -> reopen -> print/export
 ```
 
-Exercise at least three BRP characters:
-
-1. Detective, Normal, explicit characteristics, selected pistol and armor, populated finishing details.
-2. Scholar, standard-rolled characteristics, deliberately long language/specialty labels, equipment, and background text.
-3. Athlete, Beggar, or Custom Profession, preferably Heroic for one case, with enough content to stress sheet and reopen behavior.
-
-Verify exact effective rules, profession choices, skills, equipment, finishing data, Copy JSON, Download JSON, browser Print / Save as PDF, physical page count, and ordinary-printer readability survive the full flow.
-
-## Guardrails
-
-- Native system state is mandatory and lossless.
-- Native BRP and D&D state remain canonical and lossless.
-- Preserve `brp-character/0.1` and canonical BRP adapter identity `0.7.0` unless concrete evidence requires a change.
-- Preserve exact-SHA `dev -> qa -> main` promotion.
-- Profile identity is provenance/configuration context, not effective rules authority.
-- Campaign/profile is not Universal Grammar.
-- Profession is not class.
-- Shared sheet code owns presentation mechanics only.
-- System packages own play hierarchy, grouping, calculations, and labels.
-- Screen and print share the same play-focused information architecture.
-- The print target is a standalone character-sheet document, never the running creator/application document.
-- Internal generation IDs such as equipment `A/B/C` are not acceptable player-facing labels when the source owns meaningful labels.
-- Rules/provenance belongs in a tiny footer at most.
-- Empty reserved media spaces must not contain visible placeholder prose.
-- User campaign/project identity gets the sheet branding zone before Character Forge/product branding.
-- Inherit authoritative project-level system/setting/context instead of asking the user again when the contract supplies it.
-- Portrait/token media belongs to a future Parchment asset relation, not RPG native state.
-- Do not implement Investigative Horror before Issue #14 closeout.
-- Do not resume D&D Guided Narrative by chronology.
-- Do not implement Fate early.
-- Do not implement Foundry export/push unless explicitly reprioritized.
-- Do not add a PDF-generation dependency unless the standalone browser-print document demonstrates a concrete unresolved need.
+The D&D pagination finding should be considered during prioritization because the adaptive sheet framework is shared, but do not let D&D chronology automatically displace the owner-agreed next priority.
 
 ## Branch / Promotion Boundary
 
-Promoted Character Forge branches remain unchanged:
+Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Do not promote either branch unless explicitly requested.
+Preserve exact-SHA `dev -> qa -> main` promotion. Do not promote either branch unless explicitly requested.
 
 ## Validation
 
-For every Character Forge repair or milestone:
+When implementation resumes, every milestone still requires:
 
 ```bash
 npm run verify
