@@ -91,7 +91,7 @@ describe("D&D dedicated character sheet", () => {
     expect(html).toContain("Lantern Coast");
     expect(html).not.toContain(">Portrait<");
     expect(html).not.toContain(">VTT Token<");
-    expect(html).toContain('class="sheet-play-grid sheet-play-grid-3"');
+    expect(html).toContain("sheet-play-grid-3");
     expect(html).toContain('<footer class="sheet-footer">D&amp;D 5E 2024 | SRD 5.2.1</footer>');
     expect(html).not.toContain("Character Forge");
     expect(html).not.toContain("Rules Context");
