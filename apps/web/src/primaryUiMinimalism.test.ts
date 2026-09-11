@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
 const workspaceSource = readFileSync("apps/web/src/creatorWorkspace.ts", "utf8");
+const presentationAdapterSource = readFileSync("apps/web/src/creatorPresentationAdapter.ts", "utf8");
 const minimalismSource = readFileSync("apps/web/src/primaryUiMinimalism.ts", "utf8");
 const dndModeSource = readFileSync("apps/web/src/dndCreatorPanel.ts", "utf8");
 const dndQuickSource = readFileSync("apps/web/src/dndQuickCreatorPanel.ts", "utf8");
@@ -18,6 +19,14 @@ describe("Stage 0 primary creator UI minimalism", () => {
     expect(workspaceSource).not.toContain('id="creator-randomization-help"');
     expect(workspaceSource).toContain("⚄<sup>⚅</sup>");
     expect(workspaceSource).toContain("randomizeAll.title = help");
+  });
+
+  it("keeps temporary presentation cleanup out of workspace orchestration", () => {
+    expect(workspaceSource).not.toContain("applyPrimaryCreatorMinimalism");
+    expect(workspaceSource).not.toContain("new MutationObserver");
+    expect(presentationAdapterSource).toContain("mountPresentedBrpCreator");
+    expect(presentationAdapterSource).toContain("observer.disconnect()");
+    expect(presentationAdapterSource).toContain("mountPresentedDndCreator");
   });
 
   it("removes explanatory prose from D&D mode and Quick generation chrome", () => {
