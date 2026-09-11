@@ -8,77 +8,63 @@ tags:
 - print
 - export
 - architecture
+- play-focused
+- project-context
 ---
 # Adaptive Character Sheet Framework
 
 Date: 2026-09-11
-Status: accepted direction, BRP first proof and D&D second proof implemented on dev; isolated print boundary structurally green
+Status: accepted direction; BRP and D&D play-focused proofs implemented on `dev`; owner browser acceptance pending
 
 ## Decision
 
-Character Forge should build a **universal character-sheet framework**, not a single universal character sheet.
+Character Forge builds a **universal character-sheet framework**, not a universal character sheet.
 
-The shared layer owns rendering and presentation mechanics. Each game system owns the projection that decides what character information exists on its sheet, how important it is, and how it should be grouped for play.
+The shared layer owns presentation mechanics. Each game system owns the projection that decides what information matters during play, how it is calculated, grouped, prioritized, and placed.
 
-The intended flow is:
+The supported flow is:
 
 ```text
-Authoritative native character state
-    -> system-owned sheet projection
-    -> shared character-sheet renderer
-    -> screen sheet
-    -> isolated print-only sheet root
+authoritative native character state
+    -> system-owned play-focused sheet projection
+    -> shared presentation-only renderer
+    -> same play composition on screen
+    -> standalone print document built from the current rendered sheet
 ```
 
-Do **not** route sheet generation through a new universal character rules model.
+Do not route sheet generation through a new universal RPG rules model.
 
-## Character artifact boundary
+## Play Artifact Boundary
 
-A character sheet is a character artifact. It is not a duplicate creator, a design/debug report, or a generation-provenance report.
+A character sheet is a play artifact. It is not a duplicate creator, database dump, generation report, design report, or provenance report.
 
-The player-facing sheet may include:
+The sheet should maximize useful at-table information density and scanning. System-specific play loops determine the hierarchy.
 
-- character identity;
-- system-owned play statistics/resources;
-- actions, skills, equipment, abilities, conditions, and character depth that are useful during play;
-- portrait/token presentation slots; and
-- at most a very small rules/source footer when provenance is useful.
+Player-facing sheet content may include:
 
-The player-facing sheet should not include:
+- compact character identity;
+- high-frequency system statistics and resources;
+- skills/actions;
+- weapons, armor, equipment, spells, features, conditions, and other system-owned play state;
+- useful character depth/logistics on a secondary page;
+- campaign/project identity;
+- optional portrait/token media; and
+- at most a tiny rules/source footer.
 
-- Character Forge product branding;
-- generation forms or creator controls;
-- rules-system selectors;
+It should not include:
+
+- Character Forge branding;
+- creator forms or system selectors;
 - Randomize All or other creation actions;
-- generation method or seed solely for provenance;
-- profile/provenance explanation blocks;
-- native JSON inspection; or
-- document-action toolbar controls in printed output.
+- generation seed/method solely for provenance;
+- rules/profile explanation blocks;
+- native JSON inspection;
+- designer/debug page labels; or
+- visible placeholder prose inside empty media slots.
 
-This distinction is now a tested product boundary rather than a styling preference.
+## Shared Presentation Vocabulary
 
-## Why this architecture
-
-A single fixed sheet layout would either encode assumptions from the first implemented system or collapse different games into a lowest-common-denominator form. BRP, D&D, and Fate already provide enough evidence that their high-frequency play state is materially different.
-
-The shared framework should therefore standardize only genuinely shared presentation mechanics:
-
-- page geometry and margins;
-- typography and hierarchy;
-- section/card/table primitives;
-- responsive and print behavior;
-- page-break and overflow behavior;
-- grayscale/accessibility behavior;
-- optional reference/help treatment;
-- reserved character-media presentation slots;
-- tiny footer treatment; and
-- application-level export controls.
-
-System packages retain ownership of rules meaning, labels, grouping, prioritization, calculations, and source-specific detail.
-
-## Presentation roles, not a game ontology
-
-A system sheet projection may use broad presentation roles such as:
+The renderer may use broad presentation roles such as:
 
 - `identity`
 - `primary_stats`
@@ -91,203 +77,177 @@ A system sheet projection may use broad presentation roles such as:
 - `notes`
 - `provenance`
 
-These are rendering hints only. They do not assert shared mechanics or semantic equivalence between systems.
+It also supports evidence-backed presentation hints:
 
-Universal Grammar remains a later derived translation layer and must not be inferred from sheet vocabulary.
-
-## System-owned sheet projection
-
-A system projection produces a renderer-facing description from authoritative native state. The framework has now been exercised by both BRP and D&D and supports only evidence-backed presentation features:
-
-- character title/subtitle;
-- optional tiny footer note;
-- section title and presentation role;
-- explicit priority/order metadata;
-- deterministic logical page assignment by the system projection;
+- logical pages;
+- `flow`, `play-3`, and `play-2` page compositions;
+- `left`, `main`, `right`, and `wide` placement zones;
+- header facts;
 - preferred columns;
-- section omission when optional content is empty;
-- whether a section can split;
-- repeatable table headers;
-- optional help content; and
-- optional first-page media slots.
+- split/no-split hints;
+- optional system theme hooks;
+- optional campaign badge context; and
+- portrait/token presentation slots.
 
-Do not build a general constraint solver or speculative automatic layout engine until a later system demonstrates that need.
+These are rendering hints only. They do not assert shared game mechanics or semantic equivalence between BRP, D&D, or future systems. Universal Grammar remains a later derived translation layer.
 
-## Logical pages versus physical print pages
+## System Ownership
 
-BRP and D&D both currently project exactly two logical pages. This is the product target for normal play sheets.
+Shared character-sheet code owns:
 
-Automated tests can prove the logical two-page model and can prove that print CSS excludes application UI. They cannot prove that a real browser will always keep each logical page on one physical sheet of paper. Long content or browser layout differences can still cause overflow.
+- page geometry and print sizing;
+- responsive behavior;
+- typography and hierarchy primitives;
+- section/table/list/stat rendering;
+- page-break behavior;
+- grayscale/accessibility treatment;
+- quiet portrait/token geometry;
+- campaign badge presentation; and
+- application-level attachment/export controls.
 
-Therefore:
+System packages own:
 
-- 1-2 physical pages is an owner/browser acceptance target;
-- a third physical page caused by content overflow is a layout defect to diagnose, not an accepted consequence of having only two logical page descriptors; and
-- real Print / Save as PDF preview remains part of acceptance.
+- which information belongs on each page;
+- play frequency/priority;
+- labels and terminology;
+- calculations;
+- grouping;
+- page assignment;
+- section placement; and
+- omission of irrelevant/empty system-specific material.
 
-## Character portrait and VTT-token space
+Do not make BRP and D&D look structurally identical simply because they share a renderer.
 
-The shared renderer reserves first-page presentation space for:
+## BRP Proof
 
-- a character portrait; and
-- a VTT token.
+`packages/system-brp/src/sheetProjection.ts` owns the BRP projection.
 
-These are layout slots, not canonical asset fields and not native rules state. The current sheet renders placeholders so the space exists before image persistence and VTT integration arrive.
+Page 1 currently uses a three-zone play composition:
 
-Future image/token ownership should follow:
+- left: Characteristics and At a Glance resources/derived values;
+- main: Communication and Mental skills;
+- right: Perception, Physical, and Combat skills; and
+- wide lower area: Weapons and Armor when present.
+
+Page 2 uses a two-column depth/logistics composition:
+
+- equipment and wealth;
+- appearance/manner;
+- background, reputation, beliefs, and personal item; and
+- custom profession context when present.
+
+Identity is compact in the header rather than repeated as a body section. Rules identity is the tiny footer `BRP UGE 2023 | ORC 1.05`.
+
+## D&D Proof
+
+`packages/system-dnd5e/src/sheetProjection.ts` owns the D&D projection.
+
+Page 1 currently uses a three-zone play composition:
+
+- left: at-a-glance resources and Saving Throws;
+- main: Skills; and
+- right: Ability scores and modifiers.
+
+Page 2 uses a two-column composition for:
+
+- equipment and currency;
+- languages and proficiencies;
+- features; and
+- spellcasting.
+
+Header facts carry Class, Species, Background, and Alignment. Concrete equipment is projected from authoritative native equipment state; generation-choice IDs such as `A`, `B`, or `C` are not player-facing sheet content. Rules identity is the tiny footer `D&D 5E 2024 | SRD 5.2.1`.
+
+## Screen / Print Parity
+
+Screen and print should express the same sheet information architecture and hierarchy.
+
+Print does **not** call `window.print()` on the running creator application. The visible current `.character-sheet` is captured and placed into a temporary off-screen iframe whose standalone `srcdoc` contains only:
+
+- the rendered character sheet;
+- `sheet.css`; and
+- `sheet-ui.css`.
+
+The iframe uses a desktop/letter-like `816 x 1056` CSS-pixel viewport so narrow-screen media queries cannot collapse the sheet before pagination. Printing invokes the iframe's own `contentWindow.print()`.
+
+Application header, creator controls, sheet toolbar, JSON inspector, and other product UI do not exist in the print document.
+
+This architecture is intentionally stronger than maintaining a growing CSS deny-list over the live application.
+
+## Logical vs Physical Pages
+
+BRP and D&D each project exactly two logical pages.
+
+The product target for representative characters is 1-2 physical Letter pages. Structural tests can prove logical page count and the print-document boundary, but browser print preview remains an owner acceptance gate because long content and browser layout can still expose density defects.
+
+A third physical page caused by ordinary representative content is a sheet composition problem to diagnose, not an accepted consequence of the framework.
+
+## Portrait And Token Boundary
+
+Page 1 reserves quiet space for portrait and VTT token presentation.
+
+When empty:
+
+- the geometry remains available;
+- no visible `Portrait` or `VTT Token` words are rendered; and
+- accessible labels retain semantic meaning for assistive technology.
+
+When the current user attaches an image through the icon-only sheet toolbar, the local image is rendered into that slot and included in the current print artifact.
+
+That attachment is intentionally session-only today. It is not written into D&D/BRP native rules state or the CharacterDocument merely to satisfy presentation.
+
+Persistent ownership should follow:
 
 ```text
-Parchment Worlds / character asset relationship
+Parchment Worlds character asset relationship
     -> Character Forge presentation reference
-    -> sheet portrait/token rendering
+    -> screen/print portrait or token
     -> VTT adapter mapping when exported
 ```
 
-Do not store Foundry file paths, Foundry document IDs, binary image content, or another VTT's asset schema in native D&D/BRP payloads merely to fill these slots.
+Do not store binary image content, local paths, Foundry document IDs, or VTT-specific asset schemas in native RPG payloads.
 
-## BRP first proof
+## Campaign / Project Identity
 
-The BRP first proof originally landed at `d6ba965b32c7d47eb2cfa1ef4b73e486787431cb` and has since been refined by owner/browser QA.
+Commercial reference sheets often devote premium header space to publisher/game branding. Parchment Worlds should use that valuable player-facing area for the user's campaign/project identity instead.
 
-Implementation boundaries:
+Character Forge accepts presentation context separately from native character state. The current project name is rendered as a quiet campaign badge. Future campaign emblems/badges can extend the same presentation boundary without changing RPG native state.
 
-- `packages/character-sheet/src/index.ts` owns presentation-only descriptor types and semantic HTML rendering;
-- `packages/system-brp/src/sheetProjection.ts` owns BRP labels, grouping, logical page assignment, final skill projection, equipment interpretation, and finishing details;
-- `apps/web/src/characterSheetControls.ts` owns application-level Print plus lossless full-CharacterDocument JSON copy/download controls;
-- `apps/web/src/main.ts` maintains both the visible result sheet and the dedicated print-only sheet root; and
-- `apps/web/sheet.css` owns sheet presentation plus the hard print boundary.
+Rules-source provenance remains subordinate in the footer.
 
-No CharacterDocument schema, BRP native schema, or adapter-version change was required. `brp-character/0.1` and canonical BRP adapter identity `0.7.0` remain intact.
+## Upstream Project Context
 
-### BRP Page 1 - at-the-table play
+Character Forge is normally launched from a Parchment Worlds project. That project already owns contextual decisions such as rules systems, genres, and attributes.
 
-The current page prioritizes:
+The embed contract now passes:
 
-- character identity and profession;
-- characteristics and derived values;
-- frequently changing resources/state;
-- final skills rather than creation-budget causality; and
-- selected weapons and armor when present.
+- project ID/name;
+- project rules systems;
+- project genres; and
+- project attributes.
 
-### BRP Page 2 - character depth and logistics
+Character Forge maps supported project rules-system IDs to creator systems. If an actual project supplies exactly one supported non-agnostic rules system, Character Forge uses it and does not display a redundant system selector. `system-agnostic` and multi-system projects retain explicit choice.
 
-The current second page carries:
+This does not copy project metadata into character native rules state. It prevents redundant questions and supplies presentation context.
 
-- equipment and wealth;
-- populated appearance and descriptive finishing details;
-- populated reputation, background, beliefs, and keepsake/personal item; and
-- custom profession context when present.
+## Media And Document Controls
 
-Rules/profile explanation blocks were removed after browser QA showed they were not useful character-sheet content. Rules identity is now only the tiny footer `BRP UGE 2023 | ORC 1.05`.
+The visible toolbar is application chrome, not sheet content. It currently provides compact icon-only actions for:
 
-## D&D second proof
-
-Owner QA on 2026-09-11 exposed that D&D was still using an older custom result surface while BRP had moved to the dedicated sheet framework. D&D became the second system-owned proof at `caff03275bc714f7189a5c7c9e30daeddd1a12b4`, then received a follow-up label/print correction in the checkpoint below.
-
-`packages/system-dnd5e/src/sheetProjection.ts` owns the D&D-native two-page projection. It derives player-facing presentation from authoritative D&D native state and does not reconstruct native state from presentation data.
-
-### D&D Page 1 - at-the-table play
-
-The current page prioritizes:
-
-- Class, Species, Background, Alignment, size, and experience;
-- ability scores and modifiers;
-- HP, AC, initiative, passive perception, speed, proficiency, hit dice, and supported class/species resources;
-- saving throws; and
-- ordinary skills with proficiency/expertise detail.
-
-### D&D Page 2 - features and gear
-
-The current second page prioritizes:
-
-- concrete native equipment entries and currency;
-- languages and tool/weapon/armor proficiencies;
-- weapon mastery and expertise where present;
-- native feature identifiers projected to readable labels; and
-- supported spellcasting state.
-
-Starting-equipment option IDs such as `A`, `B`, `C`, or `B:50-gp` remain valid generation choices/provenance but are not player-facing equipment. The dedicated sheet reads concrete `payload.equipment` and `currencyGp`.
-
-The Guided Mechanical creator may still use those IDs internally. Its visible select must use source-owned equipment-package descriptions rather than raw IDs. A regression test now specifically protects the case where IDs remain correct but labels have regressed.
-
-Rules/generation context was removed from the sheet body after owner QA. The only D&D rules provenance on the sheet is the tiny footer `D&D 5E 2024 | SRD 5.2.1`.
-
-## Print isolation
-
-The print path now uses an explicit dedicated root rather than trying to hide individual pieces of the application shell in place.
-
-At runtime:
-
-```text
-#app
-  .forge-shell              <- interactive creator/result application
-  #character-print-root     <- sheet HTML only
-```
-
-On screen, `character-print-root` is hidden. When printing:
-
-- `#app > .forge-shell` is `display: none !important`;
-- `#app > .character-print-root` is shown;
-- the print root contains only the rendered character sheet; and
-- toolbar, creator, header, native-document inspector, and other application chrome are structurally absent from the printable branch.
-
-This is intentionally stronger than maintaining a growing deny-list of UI selectors inside the live application tree.
-
-`apps/web/src/sheetPrintContract.test.ts` protects this separation.
-
-## Document-action controls
-
-The visible sheet toolbar is application chrome above the screen sheet. It currently provides familiar icon-only actions for:
-
+- Attach Portrait;
+- Attach VTT Token;
 - Print / Save as PDF;
 - Copy full CharacterDocument JSON; and
 - Download full CharacterDocument JSON.
 
-The SVG icons use explicit stroke styling so the icon itself remains visible rather than rendering as empty button chrome. Full action names remain in tooltip/title and accessible labels.
+Full action names live in title/tooltip and accessible labels. The controls never print.
 
-These controls never print.
+Copy/Download JSON remains a lossless CharacterDocument utility, not a reduced sheet export or second canonical model.
 
-## Layout inspiration
+## Foundry / VTT Boundary
 
-The design direction combines patterns rather than copying another game's trade dress:
+The character sheet is not the Foundry contract.
 
-- Mothership 1E Advanced Character Profile - strong scan order and useful writable space;
-- Blades in the Dark - page space allocated by play frequency;
-- Fate Condensed - aggressive hierarchy and low visual noise;
-- official BRP UGE sheet - field-coverage checklist, not a density target;
-- Call of Cthulhu 7E sheet revisions - print/grayscale and overflow lessons; and
-- D&D/Demiplane-style digital + print separation - creator/review and printed artifacts need not be the same application surface.
-
-Use these as design-pattern evidence only. Do not copy protected trade dress, branded content, or proprietary rules content.
-
-## Output modes
-
-The architecture leaves room for multiple projections of the same authoritative character:
-
-- Play - high-frequency table use;
-- Reference - play sheet plus compact rules reminders;
-- Compact - constrained one-page/tablet/convention use;
-- Archive - fuller character/background/provenance record.
-
-BRP and D&D currently implement play-oriented two-page projections. Do not implement the other modes merely because the framework can eventually support them.
-
-## Export strategy
-
-Browser-native printing and full CharacterDocument JSON export remain the implemented first path:
-
-1. project authoritative native state into the owning system's sheet description;
-2. render it with shared character-sheet primitives;
-3. copy only that rendered sheet into the dedicated print root;
-4. print with the interactive application shell completely excluded; and
-5. let the browser print or Save as PDF.
-
-CharacterDocument JSON copy/download operates on the complete current document and is a document utility, not a reduced sheet export or second canonical model.
-
-No PDF-generation dependency was added. If isolated browser printing still demonstrates a concrete unresolved problem, the same system projection should feed any future deterministic renderer rather than creating another canonical sheet model.
-
-## Foundry / VTT boundary
-
-The dedicated sheet is not the Foundry contract. Foundry export should remain an adapter from authoritative CharacterDocument/native state into a versioned Foundry/system target schema:
+Future Foundry support should remain:
 
 ```text
 CharacterDocument + authoritative native state
@@ -295,44 +255,71 @@ CharacterDocument + authoritative native state
     -> Foundry Actor / embedded Item export
 ```
 
-The repository already preserves enough D&D native detail for a bounded export proof, but no Foundry adapter is implemented yet. Foundry Actor/Item JSON must not become Character Forge's canonical model.
+Portrait/token presentation references can be mapped by that adapter once durable Parchment asset ownership exists. Foundry Actor/Item JSON, file paths, and document IDs must not become Character Forge canonical state.
 
-Portrait and token references should be supplied through the future character-asset relationship boundary rather than embedded as Foundry-specific paths in native character state.
+## Reference Design Use
 
-## Evidence-driven rollout
+Reference D&D and BRP sheets are evidence for layout patterns such as:
 
-1. BRP established the first system-owned projection and shared renderer.
-2. D&D became the second proof and exposed the need to separate generation-choice IDs from concrete player-facing state.
-3. Owner browser QA established that screen and print need an explicit artifact boundary, not merely selective CSS hiding.
-4. Fate Condensed remains the stronger architecture stress test because Aspects, Stunts, Stress, Consequences, and narrative-mechanical state challenge conventional stat/skill-sheet assumptions.
-5. Universal Grammar is still derived later from multi-system evidence. The character-sheet framework must not preempt it.
+- strong at-table scan order;
+- compact identity bands;
+- horizontal grouping of related mechanics;
+- high information density;
+- intentional writable/media space; and
+- system-specific hierarchy.
 
-## Current structural acceptance status
+They are not templates for copied trade dress, logos, proprietary decorative geometry, or branded rules content.
 
-The latest sheet/print implementation checkpoint is `ee63a0752e33e56aa94bce03e2ec69fa6099fc77`, validated by Actions `34608731990`, job `103293561221`:
+## Output Modes
 
-- `npm run verify`: green;
-- 57 test files / 276 tests / 0 failures;
-- 216 tracked paths;
-- BRP and D&D project exactly two logical sheet pages;
-- D&D concrete equipment remains sheet content while A/B/C IDs remain generation choice state;
-- D&D creator label reconciliation now detects raw-code label regressions even when IDs are unchanged;
-- `Character Forge` branding and large rules/provenance blocks are absent from sheet HTML;
-- rules identity is reduced to tiny footer notes;
-- toolbar SVG icons have explicit visible stroke styling;
-- the print root is a separate DOM branch containing sheet HTML only; and
-- build: `Character Forge build 0.0.1 ee63a075`.
+The architecture may eventually support several projections from the same authoritative character:
 
-Visual owner/browser QA remains required before Issue #14 closeout, especially actual physical page count, density, long-content overflow, media-slot balance, and ordinary-printer readability.
+- Play;
+- Reference;
+- Compact; and
+- Archive.
 
-## Explicit non-goals for the current sheet work
+Only the play-oriented two-page projection is implemented now. Do not build the other modes merely because the renderer could support them.
 
-- a fully automatic universal layout optimizer;
+## Evidence-Driven Rollout
+
+1. BRP established the first system-owned projection.
+2. D&D established that another system needs materially different grouping and exposed equipment-choice-ID leakage.
+3. Browser QA established that print needs a standalone artifact document rather than whole-app hiding.
+4. Owner reference-sheet comparison established that correct data is insufficient: the play artifact needs intentional hierarchy and density.
+5. Parchment project integration established that upstream campaign context should suppress redundant downstream choices and supply player-owned badging.
+6. Fate remains the stronger future sheet/architecture stress test because Aspects, Stress, Consequences, and Stunts challenge conventional stat-sheet assumptions.
+7. Universal Grammar remains derived later from multi-system evidence.
+
+## Current Structural Checkpoint
+
+Character Forge implementation:
+
+- SHA `77783bbc67d733dccf1a6d71f54fb9168432bec6`
+- Actions `34615884732`
+- Job `103317568445`
+- 58 test files / 280 tests / 0 failures
+- 218 tracked paths
+- BRP and D&D each project exactly two logical pages
+- campaign badging and silent media geometry are covered
+- project-context mapping/locking is covered
+- standalone print document remains covered
+- build `Character Forge build 0.0.1 77783bbc`
+
+Parchment Worlds context handoff:
+
+- `dev` SHA `96b2ea0ea214aaa700691befa17504f02e867a54`
+- Actions `34615785799`: green
+
+Visual owner/browser QA is still required for actual hierarchy, physical page count, overflow, portrait/token balance, and ordinary-printer readability.
+
+## Explicit Non-goals
+
+- copying official D&D, BRP, or third-party character-sheet trade dress;
+- a universal automatic layout solver;
 - a universal RPG semantic ontology;
-- implementing Fate sheets before the accepted Fate probe;
-- four complete output modes;
-- actual portrait/token asset persistence or image generation inside the sheet renderer;
+- Fate sheets before the accepted Fate probe;
+- durable image/token persistence inside native rules state;
 - direct Foundry push/synchronization as part of Issue #14;
-- deterministic server-side PDF generation without evidence it is necessary;
-- recreating official BRP, D&D, or other commercial character-sheet trade dress; or
-- changing native rules state to make printing easier.
+- deterministic server-side PDF generation without evidence it is necessary; or
+- changing native rules state to make presentation easier.
