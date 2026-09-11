@@ -52,41 +52,13 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
 
   const pageOneSections: CharacterSheetSection[] = [
     {
-      id: "identity",
-      title: "Identity",
-      role: "identity",
-      priority: 100,
-      kind: "details",
-      preferredColumns: 3,
-      items: [
-        { label: "Class", value: `${classLabel} ${payload.class.level}` },
-        { label: "Species", value: speciesLabel },
-        { label: "Background", value: backgroundLabel },
-        { label: "Alignment", value: titleId(payload.identity.alignment) },
-        { label: "Size", value: titleId(payload.origin.size) },
-        { label: "Experience", value: String(payload.identity.experiencePoints) },
-      ],
-    },
-    {
-      id: "abilities",
-      title: "Abilities",
-      role: "primary_stats",
-      priority: 95,
-      kind: "stats",
-      preferredColumns: 3,
-      items: DND5E_ABILITY_IDS.map((id) => ({
-        label: abilityAbbreviation(id),
-        value: String(abilities[id]),
-        help: signed(abilityModifier(abilities[id])),
-      })),
-    },
-    {
       id: "resources",
-      title: "Defenses and Resources",
+      title: "At a Glance",
       role: "resources",
-      priority: 92,
+      priority: 100,
       kind: "stats",
-      preferredColumns: 4,
+      preferredColumns: 2,
+      zone: "left",
       items: [
         { label: "HP", value: `${payload.resources.hitPointsCurrent} / ${payload.resources.hitPointsMaximum}` },
         { label: "AC", value: String(payload.derived.armorClass) },
@@ -102,14 +74,15 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
       id: "saving-throws",
       title: "Saving Throws",
       role: "actions",
-      priority: 88,
+      priority: 96,
       kind: "ratings",
-      preferredColumns: 2,
+      preferredColumns: 1,
+      zone: "left",
       items: DND5E_ABILITY_IDS.map((id) => {
         const proficient = payload.class.savingThrowProficiencies.includes(id);
         const bonus = abilityModifier(abilities[id]) + (proficient ? proficiencyBonus : 0);
         return {
-          label: titleId(id),
+          label: abilityAbbreviation(id),
           value: signed(bonus),
           ...(proficient ? { detail: "Proficient" } : {}),
         };
@@ -119,11 +92,26 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
       id: "skills",
       title: "Skills",
       role: "actions",
-      priority: 85,
+      priority: 98,
       kind: "ratings",
-      preferredColumns: 2,
+      preferredColumns: 1,
       allowSplit: true,
+      zone: "main",
       items: skillRatings(payload),
+    },
+    {
+      id: "abilities",
+      title: "Abilities",
+      role: "primary_stats",
+      priority: 99,
+      kind: "stats",
+      preferredColumns: 2,
+      zone: "right",
+      items: DND5E_ABILITY_IDS.map((id) => ({
+        label: abilityAbbreviation(id),
+        value: String(abilities[id]),
+        help: signed(abilityModifier(abilities[id])),
+      })),
     },
   ];
 
@@ -134,7 +122,8 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
       role: "equipment",
       priority: 95,
       kind: "list",
-      preferredColumns: 2,
+      preferredColumns: 1,
+      zone: "left",
       items: [
         ...payload.equipment.map((item) => ({
           label: titleId(item.itemId),
@@ -149,7 +138,8 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
       role: "abilities",
       priority: 85,
       kind: "details",
-      preferredColumns: 2,
+      preferredColumns: 1,
+      zone: "left",
       items: proficiencyDetails(payload),
     },
   ];
@@ -160,9 +150,10 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
       id: "features",
       title: "Features",
       role: "abilities",
-      priority: 80,
+      priority: 90,
       kind: "list",
-      preferredColumns: 2,
+      preferredColumns: 1,
+      zone: "right",
       items: features,
     });
   }
@@ -173,30 +164,28 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
       id: "spells",
       title: "Spellcasting",
       role: "abilities",
-      priority: 78,
+      priority: 88,
       kind: "details",
+      zone: "right",
       items: spells,
     });
   }
 
   return {
     title: character.displayName,
-    subtitle: `${speciesLabel} | ${backgroundLabel} | ${classLabel} ${payload.class.level}`,
+    systemTheme: "dnd5e",
+    headerFacts: [
+      { label: "Class", value: `${classLabel} ${payload.class.level}` },
+      { label: "Species", value: speciesLabel },
+      { label: "Background", value: backgroundLabel },
+      { label: "Alignment", value: titleId(payload.identity.alignment) },
+    ],
     footerNote: "D&D 5E 2024 | SRD 5.2.1",
     sourceNativeStateId: nativeState.id,
     sourceSchemaVersion: nativeState.schemaVersion,
     pages: [
-      {
-        id: "play",
-        number: 1,
-        title: "At the table",
-        mediaSlots: [
-          { id: "portrait", label: "Portrait", kind: "portrait" },
-          { id: "token", label: "VTT Token", kind: "token" },
-        ],
-        sections: pageOneSections,
-      },
-      { id: "depth", number: 2, title: "Features and gear", sections: pageTwoSections },
+      { id: "play", number: 1, title: "At the table", layout: "play-3", sections: pageOneSections },
+      { id: "depth", number: 2, title: "Features and gear", layout: "play-2", sections: pageTwoSections },
     ],
   };
 }
@@ -318,7 +307,7 @@ function spellDetails(payload: Dnd5eNativeCharacter): CharacterSheetDetailItem[]
 }
 
 function joinIds(ids: readonly string[]): string {
-  return [...new Set(ids)].map(titleId).join(", ");
+  return [...new Set(ids)].filter(Boolean).map(titleId).join(", ");
 }
 
 function titleId(value: string): string {
