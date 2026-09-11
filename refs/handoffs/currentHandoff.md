@@ -18,15 +18,19 @@ Active acceptance epic: GitHub Issue #14 - **Make BRP UGE a player-usable core c
 
 ## Current State
 
-Character Forge is still in owner/browser acceptance. The recent character-sheet work finally produced a materially play-focused D&D presentation rather than a raw text report. Screen and print now share the same system-owned play composition, sheet presentation CSS is carried with the rendered artifact, and the isolated print target contains the character sheet rather than the creator application.
+The owner has approved an opinionated near-to-mid-term execution sequence after reviewing the newly captured product and engineering backlog.
 
-The latest owner D&D test found one remaining sheet-density defect: **the representative D&D character still paginates unnecessarily even though the total content should fit comfortably on one page.** The prior adaptive-pagination change did not resolve the real browser result.
+The authoritative sequencing document is now:
 
-No implementation should be started from this handoff until the newly captured TODO backlog has been prioritized against the existing roadmap.
+`refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-## Exact Green Implementation Checkpoint Before Documentation-Only Closeout
+The broader roadmap remains useful as capability/history context, but the approved sequencing document governs what should come next unless later evidence or an explicit owner decision changes it.
 
-The latest code checkpoint is green at:
+No application code was changed during this documentation/prioritization cycle.
+
+## Exact Green Implementation Checkpoint
+
+The latest code checkpoint remains:
 
 - SHA: `3e8a73a6e0e960967e08b49abb132f49fe9fd378`
 - Actions: `34620261296`
@@ -37,118 +41,142 @@ The latest code checkpoint is green at:
 - 0 failures
 - 221 tracked paths
 - 14 required project-memory files
-- OKF: 28 concepts / 10 indexes
+- OKF: 28 concepts / 10 indexes at the implementation checkpoint
 - Agent context: 4092 characters
 - Build: `Character Forge build 0.0.1 3e8a73a6`
 
-This documentation-only closeout intentionally makes no further code changes.
+Later commits are documentation-only and require their own exact-head Verify before being called green.
 
-## New Unprioritized Backlog
+## Owner-Approved Stage Order
 
-All owner notes from the final QA/product-direction pass are captured in:
+1. **Stage 0 - Close current player-usable acceptance**
+2. **Stage 1 - Engineering health and refactoring**
+3. **Stage 2 - Productization and branding**
+4. **Stage 3 - Name generator and random tables**
+5. **Stage 4 - Durable portrait and token assets**
+6. **Stage 5 - Foundry export/import validation**
+7. **Stage 6 - Universal Grammar v0.1**
+8. **Stage 7 - Third-system stress test**
+9. **Stage 8 - Proprietary RPG implementation**
+10. **Stage 9 - Rich VTT push/update/synchronization**
 
-`refs/planning/unprioritized-product-todos-2026-09-11.md`
+A small Investigative Horror increment may fit opportunistically around Stages 3-4 when it can consume the new random-table/profile infrastructure without becoming a large detour.
 
-That backlog is explicitly **not priority ordered**. It must be compared with `refs/planning/roadmap.yaml` before implementation.
+## Stage 0 - Immediate Work
 
-Captured areas include:
+The next implementation thread should resume with the current acceptance boundary rather than reopening roadmap prioritization.
 
-- D&D still unnecessarily paginating in the real browser/print path;
-- branding/product-readiness work using the new shared assets in `TWS-Design-Principles/Branding/`;
-- portrait interaction directly through the portrait region, with context-menu discovery as an option;
-- VTT-token generation/import/update/override/export workflow and Foundry friction reduction;
-- a roadmap trigger for when a real Foundry license should be purchased for integration testing;
-- a full context-aware name-generator capability rather than the current tiny placeholder corpus;
-- beginning Universal Grammar work from concrete multi-system evidence;
-- beginning the proprietary studio RPG system;
-- optional BRP random tables for free-text flavor fields;
-- correct clear/translate semantics when changing RPG systems after generation;
-- a broad primary-UI minimalism sweep across BRP and D&D;
-- Character Forge user-facing version identity aligned to World Forge's version:build:revision pattern;
-- a corresponding parent-level Parchment Worlds version pill; and
-- further removal of character-level questions already answered by authoritative project/campaign context.
+Known Stage 0 work:
 
-## Primary UI Direction Reconfirmed
+- D&D real-browser/print pagination still splits a representative low-complexity character unnecessarily even though it should fit on one page;
+- perform equivalent BRP sheet pagination/sanity confirmation after the shared fix;
+- complete the BRP/D&D primary-UI minimalism sweep;
+- define safe system-switch semantics so changing rules systems never leaves a generated character from the previous system presented as current;
+- until real translation exists, clear/separate honestly rather than pretending to translate;
+- complete BRP Issue #14 through `create -> finish -> review -> save -> reopen -> print/export`.
 
-The owner guidance is stronger than a copy-edit request:
+Do not pull branding, durable asset persistence, Foundry, Universal Grammar, or large new content into Stage 0 unless a concrete acceptance blocker genuinely requires it.
+
+## Stage 1 - Engineering Health
+
+Immediately after acceptance, run the bounded cleanup/refactoring pass in:
+
+`refs/planning/engineering-health-cleanup.md`
+
+This is intentionally early. Rapid vertical slicing has accumulated enough evidence that stale tests, transitional scaffolding, responsibility drift, and accidental monoliths should be addressed before another major architecture layer is added.
+
+Do not use arbitrary line-count limits. Split by coherent responsibility and preserve valuable regression/native-state guarantees.
+
+## Stage 2 - Productization / Branding Clarification
+
+Shared branding assets now live under:
+
+`Three-Wheeled-Sloth-Studio/TWS-Design-Principles/Branding/`
+
+Application-shell/product branding should become externally presentable before broader demos/shopping.
+
+On the character sheet itself:
+
+- Project/Campaign identity remains primary;
+- a very small, unobtrusive studio logo or wordmark is allowed if it fits naturally;
+- that studio mark must never compete with character data, campaign identity, or play scanning;
+- treat it as a maker's mark, not dominant branding.
+
+Also include user-facing `version:build:revision` identity for Character Forge and a corresponding parent Parchment Worlds version pill while retaining exact SHA provenance internally.
+
+## Stage 3 - Name Generation Clarification
+
+The future name generator must not become a larger fixed word-list mashup.
+
+Target a broad, distinctly flavored generation space using a probabilistic / Markov-style generation step or comparable sequence mechanism that captures phonotactic patterns.
+
+Keep separate:
+
+- generation mechanism;
+- corpus/pattern data;
+- naming context;
+- culture/language inputs;
+- post-generation constraints;
+- deterministic seed/provenance.
+
+Design the seam now with the explicit expectation that future language and culture generators will inform names through phonology, phonotactics, morphology, orthography, naming conventions, family-name structure, honorifics, region/social variation, and similar context.
+
+Species is not culture or language.
+
+BRP free-text flavor fields remain a good first proving ground for the system-neutral random-table companion in the same stage.
+
+## Media / Foundry Direction
+
+Preferred later sequence:
+
+```text
+Parchment-owned character assets
+    -> clickable portrait workflow
+    -> generated token suggestion + quick edit
+    -> manual token import/override
+    -> Foundry export/import artifact
+    -> real Foundry validation
+    -> later push/update
+    -> later bidirectional synchronization
+```
+
+Once a user explicitly supplies a token, that token should remain authoritative until the user asks to regenerate it.
+
+Purchase a Foundry license when the export/import artifact is mature enough that real runtime import validation is the next blocker, or earlier only if reliable schema/API discovery requires it.
+
+## Universal Grammar / System Expansion Direction
+
+After Foundry export validation, begin an evidence-backed Universal Grammar v0.1 from D&D + BRP rather than attempting a complete universal ontology.
+
+Then use a structurally different third system to attack that concrete model before major proprietary-RPG implementation.
+
+Native system state remains canonical and lossless. Universal Grammar is derived semantic/translation state with explicit loss/confidence.
+
+## Primary UI Product Rule
 
 > Nothing belongs in the primary creator UI unless it provides immediate player or GM value for the current task.
 
-For BRP and D&D alike:
+Apply this to both BRP and D&D:
 
-- remove fluffy/explanatory prose from the normal workflow;
-- do not advertise unavailable or future features;
-- do not expose architectural commentary to players;
-- use compact info/help affordances for explanation that is useful only occasionally;
-- use simple red/green status signals where the state itself is the important information;
-- show failure detail when there is a failure rather than permanent success prose;
-- prefer icons/tooltips over unnecessary labels where the action is obvious and accessible; and
-- keep the UI focused on choices, state, and immediate play/GM value.
-
-Specific BRP text and control cleanup items are enumerated in the new backlog and should be applied as a pattern to D&D rather than waiting for duplicate owner callouts.
-
-## Sheet / Media Direction
-
-The supported presentation path remains:
-
-```text
-authoritative native character state
-    -> system-owned play-focused sheet projection
-    -> shared presentation-only renderer
-    -> same composition on screen and print
-    -> isolated character-sheet print document
-```
-
-Current media work is still only a first proof. Future direction captured for prioritization:
-
-```text
-Parchment Worlds character asset relationship
-    -> portrait interaction/editing
-    -> token generation or manual override
-    -> Character Forge sheet
-    -> VTT adapter/export/update path
-```
-
-Empty portrait/token areas must remain visually quiet. Portrait/token/VTT references do not belong in canonical BRP or D&D rules state.
-
-## Project / Campaign Context
-
-Parchment Worlds already passes project ID/name, rules systems, genres, and project attributes into the Character Forge embed. A project with exactly one supported non-agnostic rules system should not ask the character creator to choose that system again.
-
-The new backlog calls for a broader audit of what else should be inherited from project/campaign context, including setting, campaign profile/house rules, genre, and other choices that are not genuinely character-specific.
-
-## Next Thread Must Prioritize Before Coding
-
-The next thread should begin by reading:
-
-1. `refs/handoffs/currentHandoff.md`
-2. `refs/planning/unprioritized-product-todos-2026-09-11.md`
-3. `refs/planning/roadmap.yaml`
-4. `refs/architecture/adaptive-character-sheet-framework.md`
-5. GitHub Issue #14
-
-Then propose a prioritized execution order grouped roughly as:
-
-- current acceptance blockers;
-- productization / external-demo readiness;
-- near-term companion capabilities;
-- architecture/platform investments; and
-- later integrations.
-
-Do not implement the newly captured items until the owner agrees to the order of work.
+- remove permanent explanatory prose;
+- do not advertise absent/future features;
+- move occasional explanation behind compact help/info affordances;
+- use concise status/icon treatment where state is sufficient;
+- show detail when invalid or explicitly requested;
+- keep choices, state, and immediate play/GM value primary.
 
 ## Architecture Baseline To Preserve
 
 - Native system state is mandatory and lossless.
-- Native BRP and D&D state remain canonical and lossless.
-- Universal Grammar is derived semantic/translation state, not a replacement for native state.
+- Native BRP and D&D state remain canonical.
+- Universal Grammar is derived semantic/translation state.
 - Profession is not class.
 - Shared sheet code owns presentation mechanics only.
-- System packages own play hierarchy, grouping, calculations, and labels.
+- System packages own system-specific play hierarchy and calculations.
 - Screen and print share the same play-focused information architecture.
-- Campaign/project identity gets the user-facing sheet badge area before product branding.
-- Portrait/token/VTT metadata does not belong in RPG native rules state.
-- Foundry Actor/Item data remains an adapter target, not canonical Character Forge state.
+- Project/Campaign identity owns primary sheet branding; a tiny subordinate studio maker's mark is acceptable.
+- Portrait/token/VTT metadata belongs to Parchment-owned asset relationships, not RPG native state.
+- Foundry Actor/Item data remains an adapter target.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Branch / Promotion Boundary
@@ -164,7 +192,7 @@ Do not promote either branch implicitly.
 
 ## Validation
 
-For any later implementation milestone:
+For every implementation milestone:
 
 ```bash
 npm run verify
