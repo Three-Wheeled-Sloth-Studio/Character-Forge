@@ -2,6 +2,7 @@ import type { CharacterDocument, NativeSystemState } from "../../character-model
 import type {
   CharacterSheetDescriptor,
   CharacterSheetDetailItem,
+  CharacterSheetRatingItem,
   CharacterSheetSection,
 } from "../../character-sheet/src/index.js";
 import {
@@ -14,6 +15,8 @@ import type { BrpNativeCharacter, BrpProfessionState } from "./nativeCharacter.j
 import { BRP_FIRST_SLICE_SKILL_CATALOG, type BrpFirstSliceSkillKey } from "./skills.js";
 
 const CHARACTERISTIC_IDS = ["STR", "CON", "SIZ", "INT", "POW", "DEX", "CHA"] as const;
+
+type BrpSheetSkillGroup = "Communication" | "Mental" | "Perception" | "Physical" | "Combat";
 
 export function buildBrpCharacterSheet(character: CharacterDocument): CharacterSheetDescriptor {
   const nativeState = primaryBrpState(character);
@@ -31,59 +34,41 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
     return itemId;
   });
 
+  const groupedSkills = groupSkills(payload);
   const pageOneSections: CharacterSheetSection[] = [
-    {
-      id: "identity",
-      title: "Identity",
-      role: "identity",
-      priority: 100,
-      kind: "details",
-      preferredColumns: 3,
-      items: [
-        { label: "Profession", value: profession },
-        { label: "Age", value: String(payload.identity.age) },
-        { label: "Gender", value: payload.identity.gender },
-      ],
-    },
     {
       id: "characteristics",
       title: "Characteristics",
       role: "primary_stats",
-      priority: 95,
+      priority: 100,
       kind: "stats",
-      preferredColumns: 4,
+      preferredColumns: 2,
+      zone: "left",
       items: CHARACTERISTIC_IDS.map((id) => ({ label: id, value: String(payload.characteristics[id].final) })),
     },
     {
       id: "derived",
-      title: "Resources and Derived Values",
+      title: "At a Glance",
       role: "resources",
-      priority: 90,
+      priority: 98,
       kind: "stats",
-      preferredColumns: 3,
+      preferredColumns: 2,
+      zone: "left",
       items: [
         { label: "Hit Points", value: String(payload.derived.hitPoints) },
         { label: "Major Wound", value: String(payload.derived.majorWoundLevel) },
         { label: "Power Points", value: String(payload.derived.powerPoints) },
         { label: "Move", value: String(payload.derived.move) },
-        { label: "Damage Modifier", value: payload.derived.damageModifier },
-        { label: "Experience Bonus", value: String(payload.derived.experienceBonus) },
+        { label: "Damage Mod", value: payload.derived.damageModifier },
+        { label: "Experience", value: String(payload.derived.experienceBonus) },
       ],
     },
-    {
-      id: "skills",
-      title: "Skills",
-      role: "actions",
-      priority: 85,
-      kind: "ratings",
-      preferredColumns: 2,
-      allowSplit: true,
-      items: payload.skills.map((skill) => ({
-        label: skill.specialty ? `${skill.label} (${skill.specialty.label})` : skill.label,
-        value: `${skill.finalRating}%`,
-      })),
-    },
-  ];
+    skillSection("skills-communication", "Communication", groupedSkills.Communication, "main", 94),
+    skillSection("skills-mental", "Mental", groupedSkills.Mental, "main", 92),
+    skillSection("skills-perception", "Perception", groupedSkills.Perception, "right", 93),
+    skillSection("skills-physical", "Physical", groupedSkills.Physical, "right", 91),
+    skillSection("skills-combat", "Combat", groupedSkills.Combat, "right", 90),
+  ].filter((section) => section.kind !== "ratings" || section.items.length > 0);
 
   const weaponRows = equipmentIds.flatMap((itemId) => {
     const item = BRP_STARTING_EQUIPMENT_CATALOG[itemId];
@@ -103,9 +88,10 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
       id: "weapons",
       title: "Weapons",
       role: "actions",
-      priority: 75,
+      priority: 88,
       kind: "table",
       repeatHeader: true,
+      zone: "wide",
       columns: [
         { key: "weapon", label: "Weapon" },
         { key: "attack", label: "Attack", align: "right" },
@@ -135,8 +121,9 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
       id: "armor",
       title: "Armor",
       role: "equipment",
-      priority: 70,
+      priority: 86,
       kind: "table",
+      zone: "wide",
       columns: [
         { key: "armor", label: "Armor" },
         { key: "av", label: "AV", align: "right" },
@@ -155,13 +142,14 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
       role: "equipment",
       priority: 90,
       kind: "details",
+      zone: "left",
       items: [
         { label: "Wealth", value: titleCase(payload.identity.profession.wealth) },
         {
-          label: "Selected equipment",
+          label: "Equipment",
           value: equipmentIds.length
             ? equipmentIds.map((itemId) => BRP_STARTING_EQUIPMENT_CATALOG[itemId].label).join(", ")
-            : "No explicit play-important equipment selected",
+            : "None recorded",
         },
       ],
     },
@@ -179,6 +167,7 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
       role: "narrative",
       priority: 75,
       kind: "details",
+      zone: "left",
       items: appearanceItems,
     });
   }
@@ -196,6 +185,7 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
       role: "narrative",
       priority: 70,
       kind: "details",
+      zone: "right",
       items: backgroundItems,
     });
   }
@@ -207,6 +197,7 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
       role: "narrative",
       priority: 60,
       kind: "details",
+      zone: "right",
       items: [{ label: profession, value: payload.identity.profession.description.trim() }],
     });
   }
@@ -214,14 +205,67 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
   return {
     title: character.displayName,
     subtitle: profession,
+    systemTheme: "brp",
+    headerFacts: [
+      { label: "Profession", value: profession },
+      { label: "Age", value: String(payload.identity.age) },
+      { label: "Gender", value: payload.identity.gender },
+    ],
     footerNote: "BRP UGE 2023 | ORC 1.05",
     sourceNativeStateId: nativeState.id,
     sourceSchemaVersion: nativeState.schemaVersion,
     pages: [
-      { id: "play", number: 1, title: "At the table", sections: pageOneSections },
-      { id: "depth", number: 2, title: "Depth and logistics", sections: pageTwoSections },
+      { id: "play", number: 1, title: "At the table", layout: "play-3", sections: pageOneSections },
+      { id: "depth", number: 2, title: "Depth and logistics", layout: "play-2", sections: pageTwoSections },
     ],
   };
+}
+
+function skillSection(
+  id: string,
+  title: string,
+  items: CharacterSheetRatingItem[],
+  zone: "main" | "right",
+  priority: number,
+): CharacterSheetSection {
+  return {
+    id,
+    title,
+    role: "actions",
+    priority,
+    kind: "ratings",
+    preferredColumns: 1,
+    allowSplit: true,
+    zone,
+    items,
+  };
+}
+
+function groupSkills(payload: BrpNativeCharacter): Record<BrpSheetSkillGroup, CharacterSheetRatingItem[]> {
+  const groups: Record<BrpSheetSkillGroup, CharacterSheetRatingItem[]> = {
+    Communication: [],
+    Mental: [],
+    Perception: [],
+    Physical: [],
+    Combat: [],
+  };
+  for (const skill of payload.skills) {
+    groups[skillGroup(skill.skillId)].push({
+      label: skill.specialty ? `${skill.label} (${skill.specialty.label})` : skill.label,
+      value: `${skill.finalRating}%`,
+    });
+  }
+  return groups;
+}
+
+function skillGroup(skillId: string): BrpSheetSkillGroup {
+  if (["bargain", "command", "disguise", "fast-talk", "language-own", "language-other", "persuade", "status", "teach"].includes(skillId)) {
+    return "Communication";
+  }
+  if (["insight", "listen", "navigate", "sense", "spot", "track"].includes(skillId)) return "Perception";
+  if (["climb", "dodge", "hide", "jump", "sleight-of-hand", "stealth", "swim", "throw"].includes(skillId)) return "Physical";
+  if (["brawl", "firearm", "grapple"].includes(skillId)) return "Combat";
+  return "Mental";
 }
 
 function primaryBrpState(character: CharacterDocument): NativeSystemState {
