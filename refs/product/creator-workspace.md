@@ -7,14 +7,14 @@ tags:
 ---
 # Creator Workspace
 
-Status: Product/UI standard established by the D&D guided-creation refactor and extended through BRP player-usable browser QA on 2026-09-11.
+Status: Product/UI standard established by the D&D guided-creation refactor and extended through BRP/D&D player-usable browser QA on 2026-09-11.
 
 ## Core Layout
 
 Character Forge creation and maintenance surfaces should default to a two-part workspace:
 
 - **left:** generation/editing controls;
-- **right:** the current character summary and details.
+- **right:** the current character review/sheet.
 
 The user should be able to adjust creation inputs without losing sight of the resulting character. On desktop, long control and review columns should scroll independently. On narrow screens, the layout may collapse to one column without changing the conceptual separation.
 
@@ -40,7 +40,8 @@ Data-entry controls and actions must read differently at a glance.
 - Enabled actions must look enabled before hover. Do not style clickable controls with the low-contrast/desaturated treatment reserved for disabled state.
 - Compact secondary actions should default to icon-first when a familiar symbol carries the meaning.
 - Icon-first actions must retain the full action name through `title`/tooltip text and an accessible label.
-- Randomize, re-roll, suggest, edit, copy, expand/collapse, and similar compact actions are strong icon-first candidates.
+- Randomize, re-roll, suggest, edit, copy, download, print, expand/collapse, and similar compact actions are strong icon-first candidates.
+- Use familiar conventional icons for common document actions. Copy should read as overlapping documents/rectangles; Download should read as a downward transfer/download symbol; Print should read as a printer.
 - Do not replace visible text with an ambiguous icon merely to reduce width.
 - Related action buttons should share shape, border, hover, active, and focus behavior so actions remain visually distinct from data-entry controls.
 
@@ -152,6 +153,8 @@ That justifies only one shared player-intent question:
 
 Fighter's alternate prepared kit remains a Fighter detail rather than a universal equipment category.
 
+These option IDs are generation choices and retained provenance. They are not acceptable player-facing equipment summaries after character construction. Once the native character exists, review and sheet surfaces must show its concrete native `equipment` entries and currency rather than `A`, `B`, `C`, or generic `Equipment package` text.
+
 ### Fighter Fighting Style branch
 
 Fighter is the first proof of a conditional Class-specific Narrative branch.
@@ -231,17 +234,21 @@ Narrative `Choose for me` is separate from those sticky acceptable pools unless 
 
 Do not apply the Narrative five-choice ceiling indiscriminately to Guided Mechanical.
 
-## Character Review
+## Character Review And Dedicated Sheet
 
-The right-side review surface should prioritize information useful for evaluating the current generated character:
+For systems with an implemented sheet projection, the right-side result surface is the dedicated character sheet, not a parallel hand-written summary page.
 
-- identity and major origin/class selections;
-- abilities and key derived values;
-- meaningful granted capabilities/proficiencies;
-- equipment/resources where relevant;
-- validation status;
-- generation seed/provenance when useful;
-- drill-down to the complete native/CharacterDocument representation.
+The sheet should prioritize information useful during actual play while allowing drill-down to the complete native/CharacterDocument representation. Current supported systems are BRP and D&D.
+
+The dedicated result surface must provide compact icon-only document actions above the sheet:
+
+- Print / Save as PDF;
+- Copy full CharacterDocument JSON; and
+- Download full CharacterDocument JSON.
+
+Visible button text is unnecessary when a conventional icon is clear; the complete action name remains available through hover/title and `aria-label`. The controls are application chrome and must not print.
+
+The dedicated first page reserves presentation space for a character portrait and a VTT token. Those placeholders do not make images part of native rules state; actual image/token references will come from the future character-asset relationship boundary.
 
 All creation modes publish through the same ordinary CharacterDocument review/save boundary. Quick and Narrative do not own parallel result models.
 
@@ -275,10 +282,12 @@ Prefer:
 - conditional Narrative branches only where semantics justify them;
 - easy-to-change/easy-to-undo decisions;
 - visible result feedback;
+- system-owned sheet projections instead of parallel custom result markup;
+- concrete native state in player-facing review rather than internal option IDs;
 - inspectable recommendation/mapping behavior;
 - small Narrative decision sets with upstream narrowing;
 - explicit transfer/controller seams rather than DOM-click automation;
-- icon-first secondary actions when meaning remains accessible through label/title/ARIA text;
+- icon-first secondary actions when meaning remains accessible through title/ARIA text;
 - enabled actions with unmistakable active affordance and more rounded action geometry than neighboring data-entry controls.
 
 Avoid:
@@ -290,6 +299,8 @@ Avoid:
 - rigid split-pane ratios that leave either pane unusable;
 - enabled buttons that visually read as disabled;
 - wordy compact buttons where a familiar icon plus tooltip is clearer;
+- separate custom review pages when the system has a dedicated sheet projection;
+- exposing generation option IDs such as equipment `A/B/C` as final player-facing content;
 - duplicating native-generation logic in browser-only handlers;
 - duplicating Guided Mechanical detail controls inside Narrative;
 - Narrative random choices without an explicit `Choose for me` equivalent;

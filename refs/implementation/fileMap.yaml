@@ -7,25 +7,30 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. BRP profile provenance, powers, player-core professions, equipment, finishing, adaptive sheet projection, and creator randomization fit without changing the shared character contract; Universal Grammar remains later and evidence-driven.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. BRP profile provenance, player-core state, D&D/BRP dedicated-sheet projections, presentation media slots, and creator interactions fit without making Foundry or sheet representation canonical; Universal Grammar remains later and evidence-driven.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md
       - refs/handoffs/currentHandoff.md
+      - refs/product/creator-workspace.md
       - refs/planning/brp-player-usable-core.md
     source_roots:
       - packages/character-sheet
-      - apps/web/src
-      - apps/web/sheet.css
       - packages/system-brp/src/sheetProjection.ts
+      - packages/system-dnd5e/src/sheetProjection.ts
+      - apps/web/src/characterSheetControls.ts
+      - apps/web/sheet.css
+      - apps/web/sheet-ui.css
     notes: >-
-      The BRP-first adaptive sheet proof is implemented. Authoritative native
-      state projects through a BRP-owned sheet projection into shared
-      presentation-only rendering. Browser print / Save as PDF and full
-      CharacterDocument JSON export are the current output paths. Presentation
-      roles remain layout vocabulary only and are not Universal Grammar. Owner
-      browser sheet acceptance remains pending after creator QA blockers were
-      repaired.
+      The adaptive sheet framework now has two system proofs. Authoritative BRP
+      and D&D native state project through system-owned sheet projections into
+      shared presentation-only rendering. D&D review no longer exposes A/B/C
+      starting-equipment option IDs and instead renders concrete native
+      equipment/currency. Print, full CharacterDocument JSON copy/download, and
+      reserved first-page Portrait/VTT Token presentation slots are shared. Media
+      slots are layout placeholders only; image ownership/asset references remain
+      future Parchment Worlds character-asset work. Owner browser print/sheet
+      acceptance remains pending.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -43,7 +48,7 @@ areas:
       - packages/generator-core/src/nameSuggestion.ts
       - packages/system-dnd5e/src/nameGeneration.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-    notes: name-suggestion/0.1 is proven with D&D. BRP setting-owned naming remains future content-package work; the bounded BRP Randomize All convenience name list is Character Forge generation content, not BRP rules content.
+    notes: name-suggestion/0.1 is proven with D&D. BRP setting-owned naming remains future content-package work; bounded BRP Randomize All convenience names are Character Forge generation content, not BRP rules content.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -57,10 +62,20 @@ areas:
       - refs/handoffs/archive/dnd-guided-narrative-paused-2026-09-09.md
       - refs/product/generation-methods.md
       - refs/product/creator-workspace.md
+      - refs/architecture/adaptive-character-sheet-framework.md
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-dnd5e
-    notes: D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Guided Narrative remains parked. Do not resume it by chronology or pull a D&D adaptive-sheet retrofit into BRP closeout.
+      - packages/system-dnd5e/src/sheetProjection.ts
+    notes: >-
+      D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Browser QA justified a
+      bounded D&D dedicated-sheet second proof at caff03275bc714f7189a5c7c9e30daeddd1a12b4.
+      D&D now projects native abilities/resources/saves/skills/equipment/features/
+      spell state into the shared character-sheet renderer and has browser Print
+      plus full CharacterDocument JSON actions. Starting-equipment A/B/C IDs stay
+      generation/provenance choices; player-facing sheet equipment comes from
+      concrete native payload.equipment/currencyGp. Guided Narrative remains
+      parked and must not resume by chronology.
   brp:
     guidance:
       - refs/handoffs/currentHandoff.md
@@ -77,19 +92,15 @@ areas:
     source_roots:
       - packages/system-brp
       - packages/system-brp/src/campaignProfile.ts
+      - packages/system-brp/src/sheetProjection.ts
       - apps/web/src/brpCreatorRandomization.ts
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
-      adapter 0.7 remain stable. Issue #14 implementation includes
-      profession/skill breadth, equipment, finishing, actionable allocation UX,
-      adaptive two-page sheet rendering, browser print, full CharacterDocument
-      JSON controls, the versioned BRP campaign/rules-profile seam, and a legal
-      whole-character Randomize All interaction. Generic BRP Core is the only
-      current active profile. Profile provenance is distinct from authoritative
-      effective BrpRulesProfile state; reopen never re-resolves the current
-      profile catalog. The first browser-QA creator blockers are remediated, but
-      owner re-acceptance and deferred sheet/save/reopen/print QA still gate
-      Issue #14 closeout.
+      adapter 0.7 remain stable. Issue #14 includes profession/skill breadth,
+      equipment, finishing, actionable allocation UX, adaptive two-page sheet,
+      browser print, full CharacterDocument JSON controls, the versioned BRP
+      campaign/rules-profile seam, and legal whole-character Randomize All.
+      Owner browser sheet/save/reopen/print acceptance still gates Issue #14.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
@@ -100,17 +111,33 @@ areas:
       - apps/web/src
       - apps/web/src/brpCreatorRandomization.ts
       - apps/web/src/workspaceSplitter.ts
+      - apps/web/src/characterSheetControls.ts
       - apps/web/sheet.css
+      - apps/web/sheet-ui.css
     notes: >-
       Creator UI must keep controls contained within their pane, visually
-      distinguish action buttons from form controls, prefer icon-first compact
-      actions with tooltip/ARIA text, and use the bounded resizable splitter for
-      the desktop creator/result workspace. BRP Randomize All now randomizes the
-      supported player-facing identity/mechanical surface and fully spends legal
-      skill budgets while preserving rules/profile and freeform context.
-      UI/review/sheet/export/profile/randomization controls remain projections or
-      interaction layers over native rules state. Next work is owner browser
-      re-check followed by sheet/save/reopen/print acceptance, not new architecture.
+      distinguish actions from form controls, use icon-first compact document
+      and randomization actions with tooltip/ARIA text, and use the bounded
+      resizable splitter for desktop. Supported systems with sheet projections
+      render their dedicated sheet as the result surface. Print/Copy/Download
+      are shared icon-only actions. UI/review/sheet/export/profile/randomization
+      controls remain projections or interaction layers over native rules state.
+  foundry-integration:
+    guidance:
+      - refs/architecture/character-architecture.md
+      - refs/architecture/adaptive-character-sheet-framework.md
+      - refs/planning/roadmap.yaml
+    source_roots:
+      - packages/character-model
+      - packages/system-dnd5e
+    notes: >-
+      Foundry remains planned, not implemented. Current CharacterDocument and D&D
+      native state are sufficient source contracts for a bounded export-only
+      proof. Future packages/foundry-adapter should map explicit versioned native
+      state into target Foundry Actor/embedded Item schemas without making those
+      schemas canonical. Direct push/sync and portrait/token asset transfer are
+      later increments. Do not create Foundry-specific fields in native BRP/D&D
+      state merely for integration convenience.
   fate-third-system:
     guidance:
       - refs/planning/brp-to-universal-grammar-path.md
@@ -139,20 +166,29 @@ common_tasks:
       - refs/product/creator-workspace.md
       - refs/planning/brp-player-usable-core.md
       - refs/planning/brp-player-usability-gap-audit.md
-      - refs/planning/brp-investigative-horror-profile.md
-      - packages/system-brp/src/campaignProfile.ts
       - packages/system-brp/src/sheetProjection.ts
-      - apps/web/src/brpCreatorRandomization.ts
-      - apps/web/src/workspaceSplitter.ts
-      - apps/web/src/brpCreatorState.ts
-      - apps/web/src/brpCreatorPanel.ts
-      - apps/web/src/brpCreatorPanelView.ts
+      - packages/system-dnd5e/src/sheetProjection.ts
+      - apps/web/src/characterSheetControls.ts
       - apps/web/src/main.ts
       - apps/web/sheet.css
-  - task: Re-check BRP creator browser QA blockers
+      - apps/web/sheet-ui.css
+  - task: Re-check dedicated sheet browser QA
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/architecture/adaptive-character-sheet-framework.md
+      - refs/product/creator-workspace.md
+      - packages/system-dnd5e/src/sheetProjection.ts
+      - packages/system-brp/src/sheetProjection.ts
+      - apps/web/src/dndCharacterSheet.test.ts
+      - apps/web/src/brpCharacterSheet.test.ts
+      - apps/web/src/characterSheetControls.ts
+      - apps/web/src/main.ts
+      - apps/web/sheet.css
+      - apps/web/sheet-ui.css
+  - task: Re-check BRP creator browser QA blockers
+    look_in:
+      - refs/handoffs/currentHandoff.md
       - refs/product/creator-workspace.md
       - apps/web/src/brpCreatorRandomization.ts
       - apps/web/src/brpCreatorRandomization.test.ts
@@ -160,42 +196,20 @@ common_tasks:
       - apps/web/src/workspaceSplitter.test.ts
       - apps/web/src/brpCreatorStyles.ts
       - apps/web/src/styles.css
-      - apps/web/src/creatorWorkspace.ts
-      - apps/web/src/brpCreatorPanel.ts
-  - task: Run BRP player-usable sheet and persistence QA
+  - task: Inspect Foundry integration readiness
     look_in:
-      - refs/handoffs/currentHandoff.md
-      - refs/handoffs/next-dev-prompt.md
-      - refs/planning/brp-player-usability-gap-audit.md
-      - apps/web/src/brpCreatorPanel.ts
-      - apps/web/src/brpCreatorState.ts
-      - apps/web/src/brpCharacterSheet.test.ts
-      - apps/web/src/brpCampaignProfile.test.ts
-      - apps/web/src/characterSheetControls.ts
-      - apps/web/src/main.ts
-      - apps/web/sheet.css
+      - refs/architecture/character-architecture.md
+      - refs/architecture/adaptive-character-sheet-framework.md
+      - refs/planning/roadmap.yaml
+      - packages/character-model/src/characterDocument.ts
+      - packages/system-dnd5e/src/nativeCharacter.ts
   - task: Inspect BRP campaign/rules-profile seam
     look_in:
       - refs/planning/brp-player-usable-core.md
       - refs/planning/brp-investigative-horror-profile.md
       - packages/system-brp/src/campaignProfile.ts
       - apps/web/src/brpCreatorState.ts
-      - apps/web/src/brpCreatorPanel.ts
-      - apps/web/src/brpCreatorPanelView.ts
       - apps/web/src/brpCampaignProfile.test.ts
-  - task: Implement or inspect adaptive character-sheet rendering
-    look_in:
-      - refs/architecture/adaptive-character-sheet-framework.md
-      - packages/character-sheet/src
-      - packages/system-brp/src/sheetProjection.ts
-      - apps/web/src/characterSheetControls.ts
-      - apps/web/sheet.css
-  - task: Inspect BRP Investigative Horror boundary
-    look_in:
-      - refs/planning/brp-investigative-horror-profile.md
-      - refs/planning/brp-to-universal-grammar-path.md
-      - refs/integration/brp-uge-orc.md
-      - packages/system-brp/src/campaignProfile.ts
   - task: Prepare or inspect Fate third-system probe
     look_in:
       - refs/planning/fate-third-system-probe.md

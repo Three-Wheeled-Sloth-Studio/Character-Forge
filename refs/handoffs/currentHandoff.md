@@ -8,6 +8,7 @@ tags:
 - productization
 - rules-profile
 - browser-qa
+- character-sheet
 ---
 # Current Handoff
 
@@ -17,7 +18,9 @@ Active epic: GitHub Issue #14 - **Make BRP UGE a player-usable core character ge
 
 ## Current Direction
 
-BRP Player-Usable Core remains in browser acceptance. The first owner/browser QA pass found material creator-workspace defects before character-sheet QA began. Those defects are now remediated in code, but Issue #14 remains open until the owner verifies the fixes in the real browser and completes the deferred sheet/save/reopen/print pass.
+BRP Player-Usable Core remains in browser acceptance. The first owner/browser QA pass found creator-workspace blockers, which were repaired. The next pass exposed a cross-system sheet/review defect: D&D still used an older custom result surface, leaked starting-equipment choice IDs such as `A/B`, and did not expose the dedicated print path already available to BRP.
+
+That second QA finding is now repaired in code. D&D is the second proof of the adaptive sheet framework, both BRP and D&D use the dedicated sheet result path, and the shared first page reserves portrait and VTT-token space. Issue #14 remains open because the owner has not yet completed real-browser sheet/print acceptance.
 
 Accepted sequence remains:
 
@@ -28,93 +31,74 @@ Accepted sequence remains:
 
 D&D Guided Narrative remains intentionally parked. Do not resume it by chronology.
 
-## Exact Green QA-Remediation Checkpoint
+## Exact Green D&D-Sheet QA-Remediation Checkpoint
 
-The first browser-QA blocker repair is green at:
+The second browser-QA repair is green at:
 
-- SHA: `6110dc4d58a7949a0df0da0f189bbab0a033ef61`
-- Actions: `34603217834`
-- Job: `103275340363`
+- SHA: `caff03275bc714f7189a5c7c9e30daeddd1a12b4`
+- Actions: `34605994371`
+- Job: `103284429489`
 - `npm run verify`: green
-- 55 test files
-- 269 tests passed
+- 56 test files
+- 273 tests passed
 - 0 failures
-- 212 tracked paths
+- 215 tracked paths
 - 14 required project-memory files
 - OKF: 28 concepts / 10 indexes
-- Agent context: 3804 characters
-- Build: `Character Forge build 0.0.1 6110dc4d`
+- Agent context: 4449 characters
+- Build: `Character Forge build 0.0.1 caff0327`
 
 Any later documentation or implementation head requires its own exact-head Verify before being called green.
 
-## First Browser QA Findings And Remediation
+## Browser QA Findings And Repairs
 
-Owner QA on 2026-09-11 found four related workspace/interaction defects plus a functional Randomize All defect:
+### First pass - creator workspace
+
+Owner QA found:
 
 1. action buttons were too square and too close to input/select geometry;
 2. enabled actions looked muted enough to read as disabled;
 3. compact actions were wordy instead of icon-first;
-4. BRP creator elements could overflow/clamp through the left panel, with the profession suggestion action visibly clipped; and
-5. BRP `Randomize All` only orchestrated profession suggestion plus characteristic reroll, so ordinary identity, specialties, and allocations appeared unchanged.
+4. BRP creator elements could overflow/clamp through the left panel;
+5. there was no user-resizable divider between creator and result panes; and
+6. BRP `Randomize All` did not behave like a whole-character randomizer.
 
-The repair at `6110dc4d58a7949a0df0da0f189bbab0a033ef61` adds:
+The repair at `6110dc4d58a7949a0df0da0f189bbab0a033ef61` added stronger action affordance, icon-first randomize/suggest controls, containment-safe grids, a bounded draggable/keyboard splitter, and a legal BRP whole-character randomization pass over supported identity/mechanical state.
 
-- stronger enabled-button affordance and visibly rounder action geometry than form inputs/selects;
-- icon-first randomize/re-roll/suggest controls with tooltip/ARIA labels;
-- a compact two-dice `Randomize All` action;
-- containment-safe flexible BRP grids and skill rows instead of fixed child widths that could escape the pane;
-- a bounded, draggable and keyboard-operable splitter between creator and result panes, with local width persistence and narrow-layout collapse;
-- a real BRP whole-character randomization pass over display name, age, gender, supported profession, legal wealth/electives, characteristics, Scholar specialties, and fully spent legal skill allocations; and
-- regression coverage for legal/deterministic BRP whole-character randomization and splitter bounds.
+### Second pass - dedicated sheet and D&D result
 
-BRP whole-character randomization preserves campaign/rules settings, the chosen characteristic-generation method, freeform language identities, and finishing/background details. Native construction and adapter validation remain authoritative.
+Owner QA then found:
 
-## Shared Design Guidance Updated
+1. D&D starting equipment was displayed as internal `A/B` choice IDs rather than concrete equipment;
+2. Copy JSON / Download JSON controls were visible text buttons rather than compact standard icons;
+3. D&D had no visible Print / Save as PDF action; and
+4. D&D did not appear to have a dedicated character-sheet result path.
 
-The studio-wide guidance was updated in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`:
+The repair at `caff03275bc714f7189a5c7c9e30daeddd1a12b4` adds:
+
+- `packages/system-dnd5e/src/sheetProjection.ts` as a D&D-owned two-page sheet projection;
+- D&D routing through the same shared presentation-only sheet renderer as BRP;
+- player-facing concrete native D&D equipment and currency instead of generation choice IDs such as `A/B/C`;
+- icon-only standard Print, Copy, and Download controls with tooltip/title and ARIA labels;
+- browser Print / Save as PDF from the D&D dedicated sheet;
+- shared first-page portrait and VTT-token reserved spaces; and
+- focused D&D sheet regression tests while preserving existing BRP tests.
+
+The media spaces are presentation placeholders only. Actual portrait/token asset references are future character-asset relationships, not D&D or BRP native rules state.
+
+## Shared Design Guidance
+
+The studio-wide guidance remains updated in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles`:
 
 - commit: `b0af7cc5a4086b0306ab1de16bc14ad60e9600ce`
-- workflow: `Validate TWS Design Principles`
 - Actions: `34602603904`
 - result: green
 
-`apps/Studio-UI-Style-Guide.md` now explicitly covers:
+Character Forge's own `refs/product/creator-workspace.md` now additionally records that supported systems should use their dedicated sheet projection as the result surface, common document actions should be icon-first, and internal equipment-choice IDs are not final player-facing content.
 
-- panel containment;
-- bounded resizable split panes;
-- buttons being more rounded than neighboring form controls;
-- enabled actions visually reading as active;
-- icon-first compact actions with tooltip/accessibility labels; and
-- anti-patterns for clipped controls, rigid two-pane widths, and action/input ambiguity.
+## Adaptive Character Sheet Framework - Two Systems Proven
 
-Character Forge's own `refs/product/creator-workspace.md` mirrors and specializes those standards for creator workspaces.
-
-## Campaign / Rules-Profile Seam - Preserved
-
-`packages/system-brp/src/campaignProfile.ts` owns the narrow BRP profile seam.
-
-The first active profile remains:
-
-- stable ID: `generic`;
-- label: `Generic BRP Core`;
-- profile version: `0.1`; and
-- defaults: Normal power level, Explicit characteristics, no enabled optional rules, no enabled power systems.
-
-The profile reference and effective rules state remain separate:
-
-```text
-versioned profile reference
-    -> explicit profile defaults when selected
-    -> effective BrpRulesProfile retained in native state
-```
-
-Reopen reconstructs effective rules from authoritative native state. Randomize All does not reinterpret campaign/rules configuration.
-
-No Investigative Horror content, Sanity configuration, Call of Cthulhu content, or universal profile model was introduced.
-
-## Adaptive Character Sheet First Proof - Still Awaiting Owner Acceptance
-
-The adaptive character-sheet implementation remains structurally green:
+The current path is:
 
 ```text
 authoritative native character state
@@ -123,60 +107,79 @@ authoritative native character state
     -> screen / browser print / PDF-via-print
 ```
 
-BRP has a two-page play-oriented sheet, browser Print / Save as PDF, and full CharacterDocument Copy JSON / Download JSON controls.
+Implemented system projections:
 
-However, the owner explicitly deferred sheet testing when the creator-workspace defects were found. Do not claim sheet/browser acceptance is complete from automated tests alone.
+- BRP: `packages/system-brp/src/sheetProjection.ts`
+- D&D: `packages/system-dnd5e/src/sheetProjection.ts`
 
-## Player-Usable BRP Coverage
+The shared renderer owns presentation mechanics only. BRP and D&D retain ownership of system meaning, calculations, grouping, page priorities, and source interpretation.
 
-The bounded v0.1 implementation includes:
+The D&D second proof exposed an important boundary: generation option/provenance IDs may remain in native/generation context, but player-facing sheet content should use the constructed concrete native state. In particular, D&D equipment should display `payload.equipment` and `currencyGp`, not `A/B/C` choice IDs.
 
-1. explicit and standard-rolled characteristics plus Normal and Heroic creation;
-2. Detective, Scholar, Athlete, Beggar, and BRP-native Custom Profession;
-3. broader ordinary skills, open specialties/languages, and exact allocation causality;
-4. actionable allocation and validation UX;
-5. bounded equipment, armor, modern pistols, and starting-weapon eligibility;
-6. optional appearance/background/identity finishing state;
-7. lossless save/reopen;
-8. adaptive two-page review and browser print/Save as PDF;
-9. full CharacterDocument JSON copy/download;
-10. versioned BRP campaign/rules-profile selection; and
-11. a player-facing BRP whole-character randomizer plus a bounded resizable creator/result workspace.
+The first sheet page reserves Portrait and VTT Token spaces. No image URL, binary asset, Foundry path, or VTT document ID has been added to CharacterDocument or native rules payloads.
 
-## Immediate Next Work Package - Owner Browser Re-check, Then Sheet QA
+## Foundry Readiness Boundary
 
-First re-check the defects that blocked the initial QA pass:
+Foundry remains planned, not implemented. The repository already has the main source-side prerequisites for a bounded D&D export proof:
 
-1. At the normal desktop width, no creator control, action, label, or row crosses/clips through the left panel.
-2. Drag the creator/result splitter both directions and confirm both panes remain usable and contained.
-3. Focus the splitter and verify keyboard Left/Right adjustments work; narrow the browser enough to confirm normal one-column collapse.
-4. Enabled action buttons read as clickable, are visibly rounder than inputs/selects, and compact randomize/suggest actions use icons with useful hover text.
-5. BRP `Randomize All` visibly changes identity and mechanical state in one click: name, age, gender, profession/wealth, characteristics or roll seed, profession-specific choices/specialties, and skill allocations. Budgets should end fully spent and Generate should be viable when the randomized state is otherwise complete.
+- lossless CharacterDocument/native-state preservation;
+- a rich current D&D native payload with abilities, class/origin state, concrete equipment, resources, features, and spells;
+- complete CharacterDocument JSON export;
+- an explicit adapter boundary that forbids Foundry Actor/Item JSON from becoming canonical Character Forge state; and
+- roadmap intent for a future `packages/foundry-adapter`.
 
-Only after those checks pass, resume the deferred full player journey:
+A first export-only Foundry slice still needs a versioned adapter, target Foundry/D&D system schema mapping, compatibility metadata/tests, export UX, and validation through a real Foundry import. Direct push/synchronization is a later increment because it additionally requires connection/auth/version discovery, asset transfer, update semantics, and eventually conflict/ownership rules.
+
+Do not pull Foundry implementation into Issue #14 unless explicitly reprioritized.
+
+## Campaign / Rules-Profile Seam - Preserved
+
+`packages/system-brp/src/campaignProfile.ts` remains the narrow BRP profile seam.
+
+The first active profile remains:
+
+- stable ID: `generic`;
+- label: `Generic BRP Core`;
+- profile version: `0.1`; and
+- defaults: Normal power level, Explicit characteristics, no enabled optional rules, no enabled power systems.
+
+Reopen reconstructs effective rules from authoritative native state. Randomize All and sheet presentation do not reinterpret campaign/rules configuration.
+
+No Investigative Horror content, Sanity configuration, Call of Cthulhu content, or universal profile model was introduced.
+
+## Immediate Next Work Package - Owner Browser Sheet Re-check
+
+Re-test the second QA repair in the actual browser before further implementation:
+
+1. Build a D&D character with prepared starting gear and confirm the result sheet shows the concrete items and currency, not `A/B/C` or `Equipment package`.
+2. Confirm the sheet toolbar shows recognizable icon-only Print, Copy, and Download actions with useful hover text.
+3. Use Print and inspect actual browser Print / Save as PDF preview.
+4. Confirm the D&D result is visibly the dedicated two-page sheet rather than the old custom detail list.
+5. Confirm Portrait and VTT Token spaces exist on Page 1 and do not crowd core play information unacceptably.
+6. Re-check BRP uses the same icon toolbar/media-space conventions and still renders its BRP-owned sheet correctly.
+
+Then resume the full BRP Issue #14 journey:
 
 ```text
 create -> finish -> review -> save -> reopen -> print/export
 ```
 
-Then exercise multiple professions, long labels/content, equipment, finishing details, profile persistence, JSON controls, and actual browser Print / Save as PDF pagination/readability.
+Exercise multiple BRP professions, long labels/content, equipment, finishing details, profile persistence, JSON controls, actual print pagination/readability, and ordinary office-printer/grayscale behavior.
 
-Treat any remaining visual or workflow defect as a bounded Issue #14 fix. Do not use QA as an excuse to broaden profession catalogs, enable optional BRP systems, retrofit D&D, or start Investigative Horror early.
-
-Close Issue #14 only after this real-browser pass satisfies the player-usable acceptance target.
+Treat remaining visual or workflow defects as bounded acceptance fixes. Close Issue #14 only after real-browser acceptance succeeds.
 
 ## Architecture Baseline To Preserve
 
 - Native system state is mandatory and lossless.
-- Native BRP state remains canonical and lossless.
-- Preserve `brp-character/0.1`.
-- Preserve canonical adapter identity `0.7.0`.
+- Native BRP and D&D state remain canonical and lossless.
+- Preserve `brp-character/0.1` and canonical BRP adapter identity `0.7.0` unless concrete evidence requires a change.
 - Profile identity is provenance/configuration context, not canonical rules state.
-- Profile selection is BRP-owned and is not Universal Grammar.
 - Profession is not class.
 - Open specialties and languages remain source-owned.
 - UI, review, sheet, export, profile controls, randomization, and splitter behavior are projections or interaction layers over native state.
 - Shared sheet code owns presentation mechanics only.
+- Portrait/token spaces do not imply portrait/token ownership in native rules state.
+- Foundry Actor/Item schemas must remain adapter targets rather than canonical Character Forge state.
 - Do not import Call of Cthulhu-only or branded content.
 
 ## Branch / Promotion Boundary
