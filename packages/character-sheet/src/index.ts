@@ -232,7 +232,7 @@ function renderSectionBody(section: CharacterSheetSection): string {
     case "list":
       return `<ul class="sheet-list sheet-columns-${section.preferredColumns ?? 1}">${section.items.map((item) => `<li><strong>${escapeHtml(item.label)}</strong>${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}</li>`).join("")}</ul>`;
     case "table":
-      return `<div class="sheet-table-wrap"><table><thead><tr>${section.columns.map((column) => `<th class="sheet-align-${column.align ?? "left"}" scope="col">${escapeHtml(column.label)}</th>`).join("")}</tr></thead><tbody>${section.rows.map((row) => `<tr>${section.columns.map((column) => `<td class="sheet-align-${column.align ?? "left"}">${escapeHtml(row[column.key] ?? "")}</td>`).join("")}</tbody></table></div>`;
+      return `<div class="sheet-table-wrap"><table><thead><tr>${section.columns.map((column) => `<th class="sheet-align-${column.align ?? "left"}" scope="col">${escapeHtml(column.label)}</th>`).join("")}</tr></thead><tbody>${section.rows.map((row) => `<tr>${section.columns.map((column) => `<td class="sheet-align-${column.align ?? "left"}">${escapeHtml(row[column.key] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
 }
 
