@@ -105,7 +105,7 @@ describe("BRP campaign profile seam", () => {
 
     const html = brpCreatorHtml(reopened, previewBrpCreatorState(reopened));
     expect(html).toContain("Existing BRP rules - no retained profile provenance");
-    expect(html).toContain("effective BRP rules unchanged until you explicitly choose a current profile");
+    expect(html).toContain("Existing BRP rules retained until you choose a current profile.");
   });
 
   it("reapplies current defaults only through explicit profile selection", () => {
