@@ -28,7 +28,7 @@ describe("dedicated character-sheet print contract", () => {
     expect(printDocument).toContain('href="http://localhost:5174/sheet-ui.css"');
   });
 
-  it("prints a separate desktop-width document containing only sheet markup rather than selectively hiding the running app", () => {
+  it("prints a separate desktop-width document containing only the current sheet markup", () => {
     const printDocument = printableCharacterSheetDocument(
       '<article class="character-sheet"><section class="sheet-page">Only the character sheet</section></article>',
       "http://localhost:5174/",
@@ -39,7 +39,7 @@ describe("dedicated character-sheet print contract", () => {
     expect(printDocument).not.toContain("forge-shell");
     expect(printDocument).not.toContain("creator-root");
     expect(printDocument).not.toContain("Rules system");
-    expect(mainSource).toContain("bindCharacterDocumentControls(resultElement, character, sheetHtml)");
+    expect(mainSource).toContain('querySelector<HTMLElement>(".character-sheet")?.outerHTML');
     expect(mainSource).not.toContain('id="character-print-root"');
     expect(controlsSource).toContain('frame.srcdoc = printableCharacterSheetDocument(sheetHtml)');
     expect(controlsSource).toContain('frame.style.width = "816px"');
@@ -49,14 +49,16 @@ describe("dedicated character-sheet print contract", () => {
     expect(controlsSource).not.toContain('printButton?.addEventListener("click", () => window.print())');
   });
 
-  it("renders self-contained SVG icons inside visibly enabled circular action buttons", () => {
+  it("renders self-contained media/export SVGs inside visibly enabled circular action buttons", () => {
+    expect(controlsSource).toContain('data-sheet-action="attach-portrait"');
+    expect(controlsSource).toContain('data-sheet-action="attach-token"');
     expect(controlsSource).toContain('class="sheet-action-icon"');
     expect(controlsSource).toContain('fill="none"');
     expect(controlsSource).toContain('stroke="currentColor"');
     expect(controlsSource).toContain('stroke-width="1.8"');
     expect(sheetCss).toContain(".sheet-action-button");
     expect(sheetCss).toContain("border-radius: 999px");
-    expect(sheetCss).toContain("background: #dbc3a4");
+    expect(sheetCss).toContain("background: #dec6a6");
     expect(sheetCss).toContain(".sheet-action-button:active:not(:disabled)");
     expect(sheetUiCss).not.toContain(".sheet-action-button");
   });
