@@ -6,6 +6,7 @@ import {
 } from "./characterSheetControls.js";
 
 const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
+const resultRendererSource = readFileSync("apps/web/src/characterResultRenderer.ts", "utf8");
 const controlsSource = readFileSync("apps/web/src/characterSheetControls.ts", "utf8");
 const indexHtml = readFileSync("apps/web/index.html", "utf8");
 const sheetCss = readFileSync("apps/web/sheet.css", "utf8");
@@ -48,7 +49,7 @@ describe("dedicated character-sheet print contract", () => {
     expect(printDocument).not.toContain("forge-shell");
     expect(printDocument).not.toContain("creator-root");
     expect(printDocument).not.toContain("Rules system");
-    expect(mainSource).toContain('querySelector<HTMLElement>(".character-sheet")?.outerHTML');
+    expect(resultRendererSource).toContain('querySelector<HTMLElement>(".character-sheet")?.outerHTML');
     expect(mainSource).not.toContain('id="character-print-root"');
     expect(controlsSource).toContain('frame.srcdoc = printableCharacterSheetDocument(sheetHtml)');
     expect(controlsSource).toContain('frame.style.width = "816px"');

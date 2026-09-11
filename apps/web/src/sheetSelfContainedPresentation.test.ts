@@ -6,7 +6,7 @@ import {
 } from "../../../packages/character-sheet/src/index.js";
 import { SHEET_TOOLBAR_STYLES } from "./sheetToolbarStyles.js";
 
-const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
+const resultRendererSource = readFileSync("apps/web/src/characterResultRenderer.ts", "utf8");
 
 const descriptor: CharacterSheetDescriptor = {
   title: "Avery Stone",
@@ -74,9 +74,9 @@ describe("self-contained character-sheet presentation", () => {
   });
 
   it("carries the embedded sheet style into the isolated print artifact", () => {
-    expect(mainSource).toContain('style[data-character-sheet-styles]');
-    expect(mainSource).toContain("`${style}${sheet}`");
-    expect(mainSource).toContain("printableSheetFromResult(sheetHtml)");
+    expect(resultRendererSource).toContain('style[data-character-sheet-styles]');
+    expect(resultRendererSource).toContain("`${style}${sheet}`");
+    expect(resultRendererSource).toContain("printableSheetFromResult(resultElement, sheetHtml)");
   });
 
   it("ships toolbar affordance styling with the current JavaScript bundle", () => {
