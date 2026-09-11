@@ -28,7 +28,7 @@ describe("dedicated character-sheet print contract", () => {
     expect(printDocument).toContain('href="http://localhost:5174/sheet-ui.css"');
   });
 
-  it("prints a separate document containing only sheet markup rather than selectively hiding the running app", () => {
+  it("prints a separate desktop-width document containing only sheet markup rather than selectively hiding the running app", () => {
     const printDocument = printableCharacterSheetDocument(
       '<article class="character-sheet"><section class="sheet-page">Only the character sheet</section></article>',
       "http://localhost:5174/",
@@ -42,6 +42,9 @@ describe("dedicated character-sheet print contract", () => {
     expect(mainSource).toContain("bindCharacterDocumentControls(resultElement, character, sheetHtml)");
     expect(mainSource).not.toContain('id="character-print-root"');
     expect(controlsSource).toContain('frame.srcdoc = printableCharacterSheetDocument(sheetHtml)');
+    expect(controlsSource).toContain('frame.style.width = "816px"');
+    expect(controlsSource).toContain('frame.style.left = "-10000px"');
+    expect(controlsSource).not.toContain('frame.style.width = "1px"');
     expect(controlsSource).toContain("printWindow.print()");
     expect(controlsSource).not.toContain('printButton?.addEventListener("click", () => window.print())');
   });
