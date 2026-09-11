@@ -121,7 +121,6 @@ export function renderCharacterSheet(descriptor: CharacterSheetDescriptor): stri
 
 function renderPage(page: CharacterSheetPage, descriptor: CharacterSheetDescriptor): string {
   const subtitle = descriptor.subtitle ? `<p>${escapeHtml(descriptor.subtitle)}</p>` : "";
-  const pageTitle = page.title ? `<span>${escapeHtml(page.title)}</span>` : "";
   const ariaPageTitle = page.title ? `: ${page.title}` : "";
   const effectiveMediaSlots = page.mediaSlots ?? (page.number === 1 ? DEFAULT_PRIMARY_MEDIA_SLOTS : []);
   const mediaSlots = effectiveMediaSlots.length ? renderMediaSlots(effectiveMediaSlots) : "";
@@ -130,7 +129,6 @@ function renderPage(page: CharacterSheetPage, descriptor: CharacterSheetDescript
     <header class="sheet-page-header">
       <div class="sheet-page-header-copy"><h2>${escapeHtml(descriptor.title)}</h2>${subtitle}</div>
       ${mediaSlots}
-      <div class="sheet-page-number">Page ${page.number}${pageTitle}</div>
     </header>
     <div class="sheet-page-content">${page.sections.map(renderSection).join("")}</div>
     ${footer}
