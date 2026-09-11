@@ -93,7 +93,8 @@ After the shim is fully retired, proceed to the next audit-ranked candidate: spl
 
 - No product feature work in Stage 1 cleanup slices.
 - No schema changes merely to simplify refactoring.
-- Native system state remains canonical and lossless.
+- Native system state is mandatory and lossless.
+- Native BRP and D&D state remain canonical.
 - Do not weaken validation, save/reopen, provenance, or adapter guarantees.
 - Do not create cross-system abstractions from superficial UI similarity.
 - Preserve adaptive one/two-page sheet behavior and isolated print output.
