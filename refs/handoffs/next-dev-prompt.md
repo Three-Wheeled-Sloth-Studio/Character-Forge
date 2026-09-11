@@ -4,44 +4,48 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- roadmap
-- prioritization
-- productization
 - browser-qa
+- character-sheet
+- acceptance
+- roadmap
 ---
 # Next Development Prompt
 
-Continue planning in:
+Continue implementation in:
 
 `https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge`
 
 Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requested.
 
-**Do not begin implementation immediately.** The first task in this thread is to prioritize newly captured owner TODOs against the existing roadmap and current acceptance blockers.
+The owner has approved the execution sequence in:
+
+`refs/planning/owner-approved-priority-sequence-2026-09-11.md`
+
+Do **not** reopen roadmap prioritization unless new evidence materially changes the plan. Resume with **Stage 0 - Close Current Player-Usable Acceptance**.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "roadmap prioritization Character Forge productization engineering health sheets VTT naming universal grammar"
+python refs/tools/generate_agent_context.py --focus "Stage 0 acceptance D&D BRP sheet pagination UI minimalism system switching"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/planning/unprioritized-product-todos-2026-09-11.md`
-3. `refs/planning/engineering-health-cleanup.md`
-4. `refs/planning/roadmap.yaml`
-5. `refs/architecture/adaptive-character-sheet-framework.md`
-6. `refs/product/creator-workspace.md`
-7. GitHub Issue #14
+2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
+3. `refs/planning/unprioritized-product-todos-2026-09-11.md` only for detailed Stage 0 callouts
+4. `refs/architecture/adaptive-character-sheet-framework.md`
+5. `refs/product/creator-workspace.md`
+6. GitHub Issue #14
+7. only the sheet projection/render/print, creator-shell, and system-switch code required by the Stage 0 finding
 
-Do not reread the entire repository history.
+Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
 ## Exact Green Code Checkpoint
 
-The latest implementation checkpoint before the documentation-only closeout is:
+The latest implementation checkpoint before the documentation-only roadmap cycle is:
 
 - `dev`: `3e8a73a6e0e960967e08b49abb132f49fe9fd378`
 - Actions: `34620261296`
@@ -49,120 +53,131 @@ The latest implementation checkpoint before the documentation-only closeout is:
 - 59 test files / 283 tests / 0 failures
 - 221 tracked paths
 - 14 required project-memory files
-- OKF: 28 concepts / 10 indexes
-- agent context: 4092 characters
-- build: `Character Forge build 0.0.1 3e8a73a6`
+- build `Character Forge build 0.0.1 3e8a73a6`
 
-Later commits in the handoff are documentation-only. Validate the exact current `dev` head before declaring any later milestone green.
+Later commits are documentation-only. Validate the exact current `dev` head before declaring any later milestone green.
 
-## Current QA Acceptance Finding
+## Immediate Stage 0 Goal
 
-Owner D&D browser testing after the adaptive-pagination change still shows **unnecessary pagination**. A representative character that should fit comfortably on one page continues to split.
+Close the known player-usable acceptance boundary before adding new capabilities.
 
-Treat this as an open real-browser acceptance defect. Do not assume the logical one-page descriptor means physical browser pagination is correct.
+### Slice 0A - Real browser/print pagination defect
 
-No additional fix was attempted during the documentation closeout.
+Owner D&D testing still shows unnecessary physical pagination for a representative low-complexity character that should fit comfortably on one page.
 
-## Newly Captured Backlog
+Start by tracing the **actual physical browser pagination path**. Do not simply retune the logical descriptor threshold again.
 
-The unprioritized product capture is authoritative at:
+Determine whether the extra page is caused by:
 
-`refs/planning/unprioritized-product-todos-2026-09-11.md`
+- page-break rules;
+- fixed/min heights;
+- print margins;
+- hidden but space-consuming elements;
+- header/footer geometry;
+- overflow behavior;
+- browser print sizing/scaling;
+- second-page descriptor markup that remains present even when effectively empty; or
+- another concrete layout cause.
 
-The engineering-health cleanup capture is at:
+Make the smallest evidence-backed fix. Preserve useful typography/readability and the play-focused hierarchy.
 
-`refs/planning/engineering-health-cleanup.md`
+After D&D is corrected, run the equivalent BRP print sanity check because the renderer/print framework is shared.
 
-Together they include, among other items:
+Do not force every character onto one page. The goal is adaptive density: one page when the real content fits, two when it genuinely does not.
 
-- remaining sheet pagination acceptance work;
-- studio/product branding using `TWS-Design-Principles/Branding/`;
-- direct portrait-slot interaction and optional context-menu editing;
-- VTT token generation/import/update/manual override/export workflow;
-- a Foundry-license purchase trigger tied to actual integration need;
-- full context-aware name generation;
-- Universal Grammar work;
-- proprietary RPG-system work;
-- BRP random-table flavor suggestions;
-- correct system-switch clear/translate semantics;
-- BRP and D&D primary-UI minimalism cleanup;
-- Character Forge `version:build:revision` user-facing version identity;
-- a matching parent Parchment Worlds version pill;
-- deeper inheritance of authoritative project/campaign choices; and
-- an engineering-health pass covering stale/obsolete tests, duplicate/low-value tests, dead scaffolding, responsibility boundaries, refactoring opportunities, and explicit monolith/file-growth detection.
+### Slice 0B - Primary UI minimalism sweep
 
-Do not infer priority from the order in either file.
+Apply the owner rule to both BRP and D&D:
 
-## First Task - Propose Priority Order
+> Nothing belongs in the primary creator UI unless it provides immediate player or GM value for the current task.
 
-Before editing code, compare the new backlog against the existing roadmap and propose an execution sequence.
+Specific BRP callouts already captured include:
 
-Group the work into:
+- remove unnecessary text under Rules system;
+- remove the `Create a system-native character first. Translation magic comes later.` tagline;
+- remove `BRP UGE creator` from primary UI;
+- keep compact `2023 ORC rules` identity only if useful, without explanatory paragraphs;
+- remove `Source-neutral BRP UGE...` prose;
+- rename `Skill allocation` to `Allocation`;
+- move Allocation explanation behind an info/help affordance;
+- replace the large `Allocation ready` block with compact red/green status plus click-through/help;
+- remove unnecessary Important Equipment explanatory copy;
+- normalize equipment checkbox sizing;
+- remove nonessential text beside equipment names;
+- remove explanatory copy under Identity and Background;
+- remove the Distinctive Features unavailable-feature explanation;
+- make Rules Check green/red with no success prose and detailed text only on failure;
+- clean up the two-dice Randomize All glyph so the dice read as offset rather than muddled.
 
-1. **Current acceptance blockers** - items that prevent closing active player-usability/browser acceptance.
-2. **Productization / external-demo readiness** - items needed before actively shopping/demoing the product.
-3. **Engineering health / maintainability** - stale-test cleanup, refactoring, dead-code removal, monolith/file-growth audit, and maintainability guardrails.
-4. **Near-term companion capabilities** - valuable user-facing additions that fit naturally after acceptance.
-5. **Architecture/platform investments** - Universal Grammar, proprietary-system foundations, durable media/assets, translation semantics, etc.
-6. **Later integrations** - Foundry push/sync and other integrations that depend on earlier foundations.
+Apply the same principle to D&D without waiting for duplicate owner callouts.
 
-For each proposed work package include:
+Occasional/first-time explanation belongs behind a compact blue `i` or `?` help affordance when useful.
 
-- why it belongs at that point;
-- dependencies;
-- what it unblocks;
-- rough size/risk if apparent; and
-- whether it should be its own epic/issue or folded into an existing one.
+### Slice 0C - System-switch correctness
 
-Get owner agreement on the ordering before starting newly captured implementation work.
+Current defect: changing the selected RPG system does not reliably clear or translate an already generated character.
 
-## Product Direction To Preserve During Prioritization
+Until a real translation path exists:
 
-### Primary UI minimalism
+- never present a character generated under System A as if it belongs to System B;
+- prefer explicit clear/separate behavior over fake translation;
+- preserve the original saved character if applicable rather than silently mutating its native state;
+- leave a clean future seam for a Translate action once Universal Grammar/adapters support it.
 
-Nothing belongs in the primary creator UI unless it provides immediate player or GM value for the current task.
+Add focused regression coverage.
 
-Avoid:
+### Slice 0D - Finish BRP Issue #14 acceptance
 
-- permanent explanatory prose;
-- architectural commentary;
-- callouts to unavailable/future functionality;
-- success text where a simple state icon is enough; and
-- rules explanations that are only useful occasionally.
-
-Prefer compact info/help affordances for optional explanation and show detailed text when a state is invalid or a user explicitly asks for help.
-
-Apply this principle to both BRP and D&D, not only the strings individually called out by the owner.
-
-### Native-state boundary
-
-- Native system state is mandatory and lossless.
-- BRP and D&D native state remain canonical.
-- Universal Grammar remains derived semantic/translation state with explicit loss.
-- Portrait/token/VTT metadata does not belong in RPG native state.
-- Foundry Actor/Item schemas remain adapter targets.
-
-### Project/campaign authority
-
-Do not ask the character creator to repeat project/campaign choices already supplied authoritatively upstream unless the project explicitly allows per-character variation.
-
-### Sheet direction
-
-The sheet is a play artifact. Preserve system-specific play hierarchy, screen/print parity, quiet empty media space, campaign-owned badging, and the standalone print-document boundary.
-
-### Engineering-health boundary
-
-Treat cleanup as evidence-driven maintenance, not an excuse for a broad rewrite. Remove stale tests only after determining the behavior they protect is obsolete; preserve high-value regression and native-state guarantees; split monoliths by coherent responsibility rather than arbitrary line-count targets.
-
-## Active Issue Boundary
-
-GitHub Issue #14 remains open. Do not close it until representative BRP browser acceptance succeeds through:
+After the above fixes are green, resume the complete BRP browser acceptance journey:
 
 ```text
 create -> finish -> review -> save -> reopen -> print/export
 ```
 
-The D&D pagination finding should be considered during prioritization because the adaptive sheet framework is shared, but do not let D&D chronology automatically displace the owner-agreed next priority.
+Exercise representative Detective, Scholar, and Athlete/Beggar/Custom characters, including long specialties/languages/equipment/background content and at least one rolled/Heroic path where useful.
+
+Close Issue #14 only after real-browser acceptance succeeds.
+
+## Do Not Pull Forward Yet
+
+Unless concrete Stage 0 evidence requires otherwise, do not implement in this thread:
+
+- branding/productization;
+- the engineering-health cleanup pass;
+- full name generation;
+- random-table expansion;
+- durable portrait/token persistence;
+- Foundry export/push;
+- Universal Grammar;
+- Fate/third-system work;
+- proprietary RPG implementation.
+
+Those have an approved order in `refs/planning/owner-approved-priority-sequence-2026-09-11.md`.
+
+## Approved Future Clarifications To Preserve
+
+### Character-sheet branding
+
+Primary sheet branding belongs to Project/Campaign identity. A very small, unobtrusive studio logo/wordmark is acceptable later as a subordinate maker's mark if it does not compete with play information.
+
+### Name generation
+
+The future name generator is expected to use a probabilistic / Markov-style generation step or comparable sequence model for a vast but distinctly flavored space, not merely fixed word-list recombination. Keep the architecture ready for future language/culture generators to provide phonology, phonotactics, morphology, orthography, naming customs, and related context.
+
+## Architecture Guardrails
+
+- Native system state is mandatory and lossless.
+- Native BRP and D&D state remain canonical.
+- Universal Grammar remains derived semantic/translation state with explicit loss.
+- Profession is not class.
+- Shared sheet code owns presentation mechanics only.
+- System packages own play hierarchy/grouping/calculations.
+- Screen and print share the same play-focused information architecture.
+- The print target is a standalone character-sheet document, never the creator application.
+- Project/Campaign identity is authoritative where supplied upstream.
+- Portrait/token/VTT metadata does not belong in RPG native state.
+- Foundry schemas remain adapter targets.
+- Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Branch / Promotion Boundary
 
@@ -171,11 +186,11 @@ Promoted branches remain unchanged:
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-Preserve exact-SHA `dev -> qa -> main` promotion. Do not promote either branch unless explicitly requested.
+Do not promote either branch unless explicitly requested.
 
 ## Validation
 
-When implementation resumes, every milestone still requires:
+For every implementation milestone:
 
 ```bash
 npm run verify
