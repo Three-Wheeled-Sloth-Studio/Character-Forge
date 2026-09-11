@@ -23,38 +23,53 @@ The active epic is GitHub Issue #14: **Make BRP UGE a player-usable core charact
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "BRP player usable browser QA print reopen"
+python refs/tools/generate_agent_context.py --focus "BRP player usable browser QA randomize splitter sheet print reopen"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/planning/brp-player-usability-gap-audit.md`
-3. `refs/planning/brp-player-usable-core.md`
-4. `refs/architecture/adaptive-character-sheet-framework.md`
-5. `refs/planning/brp-investigative-horror-profile.md`
-6. `refs/implementation/fileMap.yaml`
-7. GitHub Issue #14
-8. only web/review/save/reopen/print/profile code needed to diagnose defects found by QA.
+2. `refs/product/creator-workspace.md`
+3. `refs/planning/brp-player-usability-gap-audit.md`
+4. `refs/planning/brp-player-usable-core.md`
+5. `refs/architecture/adaptive-character-sheet-framework.md`
+6. `refs/planning/brp-investigative-horror-profile.md`
+7. `refs/implementation/fileMap.yaml`
+8. GitHub Issue #14
+9. only creator/layout/randomization/review/save/reopen/print/profile code needed to diagnose defects found by QA.
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
-## Exact Green Starting Checkpoint
+## Exact Green QA-Remediation Checkpoint
 
-The BRP campaign/rules-profile seam is green at:
+The first owner/browser QA blocker repair is green at:
 
-- SHA: `fabbc6567ffa8a9d4d24af9a940baa17a86a1b03`
-- Actions: `34527156423`
-- Job: `103038733378`
+- SHA: `6110dc4d58a7949a0df0da0f189bbab0a033ef61`
+- Actions: `34603217834`
+- Job: `103275340363`
 - `npm run verify`: green
-- 53 test files / 263 tests / 0 failures
-- 208 tracked paths
+- 55 test files / 269 tests / 0 failures
+- 212 tracked paths
 - 14 required project-memory files
 - OKF: 28 concepts / 10 indexes
-- agent context: 3807 characters
-- build: `Character Forge build 0.0.1 fabbc656`
+- agent context: 3804 characters
+- build: `Character Forge build 0.0.1 6110dc4d`
 
 Documentation may be ahead of this implementation checkpoint. Validate the exact current `dev` SHA before declaring a new milestone green.
+
+The related shared-design update is `Three-Wheeled-Sloth-Studio/TWS-Design-Principles` commit `b0af7cc5a4086b0306ab1de16bc14ad60e9600ce`, validated green in Actions `34602603904`.
+
+## First Owner QA Outcome
+
+The initial browser pass stopped before sheet testing because the creator workspace exposed material usability defects:
+
+- clickable buttons looked too square/muted;
+- compact actions were too text-heavy;
+- controls could overflow the left panel;
+- there was no adjustable divider between creator and result panes; and
+- BRP `Randomize All` did not behave like a whole-character randomizer.
+
+Those findings are remediated at the checkpoint above. Issue #14 remains open because the owner has not yet re-accepted the repaired browser experience.
 
 ## Current Product State
 
@@ -70,22 +85,34 @@ The bounded BRP Player-Usable Core implementation now includes:
 - lossless save/reopen;
 - adaptive two-page BRP sheet through the shared presentation-only renderer;
 - browser Print / Save as PDF;
-- full CharacterDocument Copy JSON / Download JSON; and
-- a BRP-owned versioned campaign/rules-profile seam with `Generic BRP Core` as the only current active profile.
+- full CharacterDocument Copy JSON / Download JSON;
+- a BRP-owned versioned campaign/rules-profile seam with `Generic BRP Core` as the only current active profile;
+- a bounded resizable creator/result split pane with keyboard support; and
+- a real BRP whole-character `Randomize All` pass that produces legal, fully allocated state.
 
 The profile reference is provenance, not authority. Reopen reconstructs the exact effective `BrpRulesProfile` from native state and does not reapply today's profile definition. Explicit profile selection is the action that applies current defaults.
 
-## Immediate Task - Representative Browser QA And Issue #14 Closeout
+BRP `Randomize All` preserves campaign/rules configuration, the selected characteristic-generation method, freeform language identities, and finishing/background details while randomizing supported identity, profession, characteristic, specialty, and allocation state.
 
-Run the actual web experience through the complete player journey:
+## Immediate Task - Re-check QA Blockers Before Sheet Acceptance
+
+Use the actual browser and first confirm the repaired creator experience:
+
+1. No creator control, action, label, or row clips through the left panel at the normal desktop width.
+2. Drag the creator/result splitter both directions and verify both panes remain contained and usable.
+3. Verify keyboard Left/Right adjustments on the focused splitter and normal one-column collapse at narrow width.
+4. Enabled actions clearly read as clickable, buttons are visibly rounder than inputs/selects, and compact randomize/suggest/re-roll actions are icon-first with useful hover text.
+5. Click BRP `Randomize All` and confirm an obvious whole-character change: name, age, gender, profession/wealth, characteristics or roll seed, applicable electives/specialties, and skill allocations. Professional and personal budgets should be fully spent and the result should remain legal.
+
+If any of these still fail, make the smallest evidence-backed fix and add structural regression coverage where practical. Do not begin sheet acceptance while a creator blocker remains.
+
+## Then Resume Representative Sheet / Persistence QA
+
+After the repaired creator passes, run the complete player journey:
 
 ```text
 create -> finish -> review -> save -> reopen -> print/export
 ```
-
-This is a product acceptance pass, not another architecture expansion.
-
-### Representative cases
 
 Exercise at least three characters:
 
@@ -95,9 +122,9 @@ Exercise at least three characters:
 
 For each useful case verify:
 
-- Generate becomes available through understandable allocation guidance.
+- Generate becomes available through understandable allocation guidance or legal Randomize All output.
 - Review shows the expected native-state-derived data.
-- Profile selector shows the retained/current profile context without implying the label is canonical rules state.
+- Profile selector shows retained/current profile context without implying the label is canonical rules state.
 - Save and reopen preserve effective BRP rules, profession choices, skills, equipment, and finishing information.
 - Copy JSON and Download JSON operate on the complete CharacterDocument.
 - Browser Print and Save as PDF preview contain only the character sheet, not creator/application/debug chrome.
@@ -105,12 +132,6 @@ For each useful case verify:
 - No clipping, unreadable overlap, accidental blank sections, or pathological page breaks occur.
 - Long skill/specialty/background content behaves acceptably.
 - Grayscale/ordinary office-printer readability is acceptable.
-
-### Fix boundary
-
-If QA exposes a defect, make the smallest evidence-backed correction and add a structural regression test where practical. Do not broaden catalogs or architecture simply because a browser pass is being run.
-
-Do not implement Investigative Horror substantive content during this QA slice.
 
 ## Issue #14 Acceptance
 
@@ -137,6 +158,7 @@ If a material player-usable defect remains, keep Issue #14 open and document the
 - Do not retrofit D&D to the adaptive sheet renderer.
 - Do not implement Fate early.
 - Do not add a PDF-generation dependency unless browser output has demonstrated a concrete unresolved need.
+- Keep whole-character randomization as an interaction over supported native choices; do not invent universal identity/profile semantics from convenience randomizer content.
 
 ## After Issue #14
 

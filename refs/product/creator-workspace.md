@@ -7,7 +7,7 @@ tags:
 ---
 # Creator Workspace
 
-Status: Product/UI standard established by the D&D guided-creation refactor and extended with top-level Guided Mechanical, Guided Narrative, and Quick Generate modes, explicit Narrative -> Guided continuation, bounded Alignment decomposition, starting-equipment transfer, and the first conditional Class-specific Narrative branch on 2026-09-09.
+Status: Product/UI standard established by the D&D guided-creation refactor and extended through BRP player-usable browser QA on 2026-09-11.
 
 ## Core Layout
 
@@ -17,6 +17,34 @@ Character Forge creation and maintenance surfaces should default to a two-part w
 - **right:** the current character summary and details.
 
 The user should be able to adjust creation inputs without losing sight of the resulting character. On desktop, long control and review columns should scroll independently. On narrow screens, the layout may collapse to one column without changing the conceptual separation.
+
+Every control and content block must remain inside the panel that owns it. Fixed child widths, action labels, grids, and form controls must not cross, clip through, or visually escape panel edges.
+
+On desktop, the creator and result panes are user-resizable through a bounded vertical splitter. The splitter must:
+
+- keep both panes above usable minimum widths;
+- resize continuously while dragging;
+- keep child controls contained while either pane changes width;
+- expose a discoverable grab affordance without becoming a third visual panel;
+- support keyboard adjustment through the semantic separator pattern where practical; and
+- collapse away with the normal one-column layout when the viewport is too narrow for a useful split.
+
+A remembered local pane width is a convenience only and must always be clamped to the current viewport.
+
+## Interactive Control Affordance
+
+Data-entry controls and actions must read differently at a glance.
+
+- Text inputs and selects use the restrained form-control shape.
+- Buttons should normally be more rounded than neighboring text inputs and selects.
+- Enabled actions must look enabled before hover. Do not style clickable controls with the low-contrast/desaturated treatment reserved for disabled state.
+- Compact secondary actions should default to icon-first when a familiar symbol carries the meaning.
+- Icon-first actions must retain the full action name through `title`/tooltip text and an accessible label.
+- Randomize, re-roll, suggest, edit, copy, expand/collapse, and similar compact actions are strong icon-first candidates.
+- Do not replace visible text with an ambiguous icon merely to reduce width.
+- Related action buttons should share shape, border, hover, active, and focus behavior so actions remain visually distinct from data-entry controls.
+
+These are Character Forge applications of the studio-wide TWS Design Principles standards, not theme-specific exceptions.
 
 ## Control Hierarchy
 
@@ -221,13 +249,18 @@ Raw JSON remains a drill-down, not the primary character view.
 
 ## Randomize All By Creation Mode
 
-Shared `Randomize All` is orchestration, not a promise of identical semantics across modes.
+Shared `Randomize All` is orchestration, not a promise of identical semantics across modes, but its visible label is a product promise: when it is shown, it must produce an obvious meaningful randomized result rather than silently invoking only one or two narrow field helpers.
 
 - Guided Mechanical delegates to existing D&D field randomizers and random-roll controls.
 - Guided Narrative hides/disables shared `Randomize All`; each Narrative question uses its own `Choose for me` behavior from the Narrative seed.
 - Quick Generate hides/disables shared `Randomize All`; Quick owns randomization through `Generate character`.
 - The workspace guards the click path so hidden Guided controls cannot run from Narrative or Quick.
-- BRP behavior remains unchanged and no BRP Narrative/Quick mode is implied.
+- BRP `Randomize All` performs a system-aware whole-character pass over randomizable player-facing creation state: display name, age, gender, supported profession, legal profession wealth/electives, characteristics, Scholar academic specialties when relevant, and complete legal professional/personal skill allocations.
+- BRP `Randomize All` preserves campaign/rules configuration, the selected characteristic-generation method, freeform language identities, and finishing/background details unless those fields later gain explicit owned randomization semantics.
+- BRP convenience name and open-specialty defaults are Character Forge generation content, not assertions that those names/specialties are BRP rules content.
+- Randomized skill allocations must remain legal, fully spend the required budgets, respect the starting cap, and validate through the existing BRP builder/adapter path.
+
+A whole-character randomizer must change enough visible state that the action is self-evident in the current form. Regression tests should cover deterministic seeded behavior and legal output; real-browser QA must still confirm the interaction is visually obvious.
 
 ## Extension Rule
 
@@ -237,19 +270,26 @@ Prefer:
 
 - compact controls;
 - progressive disclosure;
+- controls that remain contained at every supported pane width;
+- a bounded resizable split when two persistent panes compete for legitimate space;
 - conditional Narrative branches only where semantics justify them;
 - easy-to-change/easy-to-undo decisions;
 - visible result feedback;
 - inspectable recommendation/mapping behavior;
 - small Narrative decision sets with upstream narrowing;
 - explicit transfer/controller seams rather than DOM-click automation;
-- icon-first secondary actions when meaning remains accessible through label/title/ARIA text.
+- icon-first secondary actions when meaning remains accessible through label/title/ARIA text;
+- enabled actions with unmistakable active affordance and more rounded action geometry than neighboring data-entry controls.
 
 Avoid:
 
 - stacked walls of near-duplicate forms;
 - validation popups for easily reversible creation changes;
 - hiding the generated character below a long control surface;
+- controls that clip through or escape their owning panel;
+- rigid split-pane ratios that leave either pane unusable;
+- enabled buttons that visually read as disabled;
+- wordy compact buttons where a familiar icon plus tooltip is clearer;
 - duplicating native-generation logic in browser-only handlers;
 - duplicating Guided Mechanical detail controls inside Narrative;
 - Narrative random choices without an explicit `Choose for me` equivalent;
@@ -258,16 +298,3 @@ Avoid:
 - generic branching/questionnaire infrastructure before repeated consumers require it;
 - rewriting sticky acceptable pools merely to initialize an explicit direct choice;
 - promoting one D&D preference mapping into a universal personality, combat-role, class-feature, or equipment ontology.
-
-## Current Evidence
-
-Latest automated-green Narrative checkpoints:
-
-- Narrative -> Guided Mechanical continuation: `b56efbadc5fcfdbb353cc3f8e74ebda10f6c905b`, Actions `34388640406`, 44 test files / 210 tests;
-- Alignment decomposition: `3d9be423d46c45c00ef2eed1b7d643186ed6530a`, Actions `34392030680`, 44 test files / 211 tests;
-- starting-equipment preference: `5760a079ad8e188320997dcc02ddf8f683bd1d99`, Actions `34395268461`, 44 test files / 213 tests;
-- Fighter Fighting Style branch: `0cc60281fc85d1c13511515b573f30dedf3ea2ab`, Actions `34407597435`, job `102654207021`, 44 test files / 216 tests / 0 failures.
-
-The next bounded candidate is a conditional Cleric/Druid order preference. Verify that Protector/Warden and Thaumaturge/Magician honestly share a player-facing martial-resilience versus broader-magic discriminator before implementing it. If not, split the branch rather than forcing equivalence.
-
-Owner browser QA remains useful as accumulated creator QA. D&D Issue #11 remains the promotion gate.

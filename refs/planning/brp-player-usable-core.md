@@ -9,8 +9,8 @@ tags:
 ---
 # BRP Player-Usable Core
 
-Date: 2026-09-10
-Status: implementation complete, browser acceptance pending
+Date: 2026-09-11
+Status: implementation complete, browser acceptance pending after first QA remediation
 
 Parent direction: `refs/planning/brp-to-universal-grammar-path.md`
 Output architecture: `refs/architecture/adaptive-character-sheet-framework.md`
@@ -26,10 +26,12 @@ A player unfamiliar with the repository should be able to:
 1. select a coherent generic BRP rules profile;
 2. make meaningful profession/skill/identity choices from a credible set;
 3. complete legal characteristic and skill allocation without hand-calculating hidden budgets;
-4. finish equipment/character details needed for table use within the supported slice;
-5. review important characteristics, derived state, skills, equipment, and profile choices in a readable character view;
-6. save and reopen without loss; and
-7. export/print a usable character projection without making the export format canonical state.
+4. use whole-character randomization when desired and receive an obvious legal result rather than a partial hidden suggestion;
+5. finish equipment/character details needed for table use within the supported slice;
+6. review important characteristics, derived state, skills, equipment, and profile choices in a readable character view;
+7. resize the creator/result workspace without controls escaping their owning panel;
+8. save and reopen without loss; and
+9. export/print a usable character projection without making the export format canonical state.
 
 ## Completed product slices
 
@@ -40,8 +42,9 @@ The bounded implementation now includes:
 3. bounded source-audited equipment, armor, and modern pistol support with table-use projection;
 4. optional identity/background finishing details retained in native state;
 5. allocation UX that exposes budget progress, profession eligibility, legal ceilings, cap headroom/overage, and blocking corrections;
-6. adaptive two-page BRP sheet projection through a shared presentation-only renderer, browser-native Print / Save as PDF, and full CharacterDocument JSON copy/download; and
-7. a BRP-owned versioned campaign/rules-profile selection seam.
+6. adaptive two-page BRP sheet projection through a shared presentation-only renderer, browser-native Print / Save as PDF, and full CharacterDocument JSON copy/download;
+7. a BRP-owned versioned campaign/rules-profile selection seam; and
+8. first-browser-QA remediation covering panel containment, a bounded resizable splitter, stronger/icon-first action affordance, and a true BRP whole-character Randomize All path.
 
 The current profile seam has one active profile:
 
@@ -49,20 +52,68 @@ The current profile seam has one active profile:
 
 The profile maps deterministically to current defaults but remains separate from the effective `BrpRulesProfile`. Reopened characters use the exact native effective rules state rather than reapplying the current profile definition. Explicit profile selection is the operation that reapplies current defaults.
 
-Current green implementation checkpoint:
+The first QA-remediation implementation checkpoint is:
 
-- SHA: `fabbc6567ffa8a9d4d24af9a940baa17a86a1b03`
-- Actions: `34527156423`
-- Job: `103038733378`
-- 53 test files / 263 tests / 0 failures
-- 208 tracked paths
-- build: `Character Forge build 0.0.1 fabbc656`
+- SHA: `6110dc4d58a7949a0df0da0f189bbab0a033ef61`
+- Actions: `34603217834`
+- Job: `103275340363`
+- 55 test files / 269 tests / 0 failures
+- 212 tracked paths
+- build: `Character Forge build 0.0.1 6110dc4d`
 
-## Remaining Priority - Representative Browser QA And Closeout
+The related TWS Design Principles update is commit `b0af7cc5a4086b0306ab1de16bc14ad60e9600ce`, validated green by Actions `34602603904`.
 
-No additional planned implementation capability is missing for the bounded generic v0.1 target. The remaining gate is real-browser product acceptance.
+## BRP Randomize All Contract
 
-Exercise the complete flow:
+When BRP `Randomize All` is visible, it is a whole-character creation action, not a thin wrapper around isolated suggestion buttons.
+
+It currently randomizes:
+
+- display name;
+- age;
+- gender;
+- supported non-custom profession;
+- legal wealth for that profession;
+- Detective/Athlete elective choices;
+- characteristics or the roll seed, depending on the already-selected characteristic-generation method;
+- Scholar academic specialties when relevant; and
+- complete legal professional/personal skill allocations.
+
+It preserves:
+
+- campaign/rules profile and effective rules settings;
+- selected characteristic-generation method;
+- open/freeform language identities;
+- finishing/background details; and
+- native construction/validation authority.
+
+Convenience names and open-specialty defaults used by the randomizer are Character Forge generation content. They are not additional BRP rules claims.
+
+## Creator Workspace Acceptance Contract
+
+The browser creator must satisfy the shared studio interaction standards and Character Forge's `refs/product/creator-workspace.md` specialization:
+
+- action buttons are visibly more rounded than neighboring inputs/selects;
+- enabled buttons read as active before hover;
+- compact familiar actions default icon-first with tooltip and accessible labels;
+- all creator controls remain contained by the left panel at supported widths;
+- creator and result panes may be resized with the bounded splitter without creating clipping/overflow; and
+- narrow layouts collapse normally rather than preserving unusably small side-by-side panes.
+
+Automated structural tests protect the split bounds and randomization legality. Owner/browser QA still owns visual acceptance.
+
+## Remaining Priority - Owner Browser Re-check, Then Sheet Closeout
+
+The first owner/browser pass stopped before sheet testing because creator-workspace blockers were material enough to invalidate the rest of the pass.
+
+First confirm in the real browser:
+
+1. no creator controls clip through the panel;
+2. splitter drag and keyboard behavior remain bounded and usable;
+3. buttons/icon actions have the intended active affordance and hover text; and
+4. BRP Randomize All visibly changes the expected identity/mechanical fields and ends in a legal fully allocated state.
+
+After those pass, exercise the complete flow:
 
 ```text
 create -> finish -> review -> save -> reopen -> print/export
@@ -108,7 +159,7 @@ Do not generalize this into a universal campaign/profile ontology from one syste
 - every BRP optional subsystem;
 - every source profession;
 - non-human breadth;
-- setting-owned generated names;
+- setting-owned generated names beyond bounded Character Forge convenience content;
 - CoC-branded or CoC-only content;
 - Investigative Horror substantive content before this epic closes;
 - D&D adaptive-sheet retrofit;
@@ -124,10 +175,10 @@ Do not generalize this into a universal campaign/profile ontology from one syste
 - Profession is not class.
 - Campaign profile is provenance/configuration context, not canonical rule authority.
 - Open specialties/languages remain source-owned.
-- Native state remains canonical; UI/review/sheet/export/profile controls are projections or interaction layers.
+- Native state remains canonical; UI/review/sheet/export/profile/randomization controls are projections or interaction layers.
 - Shared creator and sheet code do not own BRP rules.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Completion Gate
 
-Close Issue #14 only when representative owner/browser QA demonstrates that a user can create, finish, save, reopen, and export/print a generic BRP character as a usable product, with the adaptive sheet and profile seam behaving correctly in the actual browser experience.
+Close Issue #14 only when representative owner/browser QA demonstrates that a user can create or randomize, finish, save, reopen, and export/print a generic BRP character as a usable product, with the creator workspace, adaptive sheet, and profile seam behaving correctly in the actual browser experience.

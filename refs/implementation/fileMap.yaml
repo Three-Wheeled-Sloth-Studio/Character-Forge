@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-10
+updated: 2026-09-11
 areas:
   character-contract:
     guidance:
@@ -7,7 +7,7 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/character-model
-    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. BRP profile provenance, powers, player-core professions, equipment, finishing, and adaptive sheet projection fit without changing the shared character contract; Universal Grammar remains later and evidence-driven.
+    notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. BRP profile provenance, powers, player-core professions, equipment, finishing, adaptive sheet projection, and creator randomization fit without changing the shared character contract; Universal Grammar remains later and evidence-driven.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md
@@ -23,7 +23,9 @@ areas:
       state projects through a BRP-owned sheet projection into shared
       presentation-only rendering. Browser print / Save as PDF and full
       CharacterDocument JSON export are the current output paths. Presentation
-      roles remain layout vocabulary only and are not Universal Grammar.
+      roles remain layout vocabulary only and are not Universal Grammar. Owner
+      browser sheet acceptance remains pending after creator QA blockers were
+      repaired.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -31,7 +33,7 @@ areas:
       - refs/product/structured-naming.md
     source_roots:
       - packages/generator-core
-    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. Add consumers only for concrete product needs.
+    notes: System-neutral seeded randomness, dice expressions, random-table evaluation, and minimal name-suggestion provider/provenance. BRP whole-character randomization consumes these deterministic primitives without moving BRP rules into generator-core.
   structured-naming:
     guidance:
       - refs/product/structured-naming.md
@@ -41,7 +43,7 @@ areas:
       - packages/generator-core/src/nameSuggestion.ts
       - packages/system-dnd5e/src/nameGeneration.ts
       - apps/web/src/dndGuidedCreatorPanel.ts
-    notes: name-suggestion/0.1 is proven with D&D. BRP naming content remains setting/campaign/content-package owned.
+    notes: name-suggestion/0.1 is proven with D&D. BRP setting-owned naming remains future content-package work; the bounded BRP Randomize All convenience name list is Character Forge generation content, not BRP rules content.
   random-table-companion:
     guidance:
       - refs/product/random-table-companion.md
@@ -63,6 +65,7 @@ areas:
     guidance:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/product/creator-workspace.md
       - refs/architecture/adaptive-character-sheet-framework.md
       - refs/planning/brp-to-universal-grammar-path.md
       - refs/planning/brp-player-usable-core.md
@@ -74,16 +77,19 @@ areas:
     source_roots:
       - packages/system-brp
       - packages/system-brp/src/campaignProfile.ts
+      - apps/web/src/brpCreatorRandomization.ts
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
-      adapter 0.7 remain stable. Issue #14 implementation now includes
+      adapter 0.7 remain stable. Issue #14 implementation includes
       profession/skill breadth, equipment, finishing, actionable allocation UX,
       adaptive two-page sheet rendering, browser print, full CharacterDocument
-      JSON controls, and the versioned BRP campaign/rules-profile seam. Generic
-      BRP Core is the only current active profile. Profile provenance is distinct
-      from authoritative effective BrpRulesProfile state; reopen never re-resolves
-      the current profile catalog. The only remaining Issue #14 gate is
-      representative real-browser QA and bounded acceptance fixes.
+      JSON controls, the versioned BRP campaign/rules-profile seam, and a legal
+      whole-character Randomize All interaction. Generic BRP Core is the only
+      current active profile. Profile provenance is distinct from authoritative
+      effective BrpRulesProfile state; reopen never re-resolves the current
+      profile catalog. The first browser-QA creator blockers are remediated, but
+      owner re-acceptance and deferred sheet/save/reopen/print QA still gate
+      Issue #14 closeout.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
@@ -92,13 +98,19 @@ areas:
       - refs/planning/brp-player-usable-core.md
     source_roots:
       - apps/web/src
+      - apps/web/src/brpCreatorRandomization.ts
+      - apps/web/src/workspaceSplitter.ts
       - apps/web/sheet.css
     notes: >-
-      BRP creator productization includes profile selection, equipment/finishing,
-      allocation guidance, adaptive sheet review, browser Print / Save as PDF,
-      and full CharacterDocument JSON controls. UI/review/sheet/export/profile
-      controls remain projections or interaction layers over native rules state.
-      Next work is representative browser QA, not new architecture.
+      Creator UI must keep controls contained within their pane, visually
+      distinguish action buttons from form controls, prefer icon-first compact
+      actions with tooltip/ARIA text, and use the bounded resizable splitter for
+      the desktop creator/result workspace. BRP Randomize All now randomizes the
+      supported player-facing identity/mechanical surface and fully spends legal
+      skill budgets while preserving rules/profile and freeform context.
+      UI/review/sheet/export/profile/randomization controls remain projections or
+      interaction layers over native rules state. Next work is owner browser
+      re-check followed by sheet/save/reopen/print acceptance, not new architecture.
   fate-third-system:
     guidance:
       - refs/planning/brp-to-universal-grammar-path.md
@@ -124,17 +136,33 @@ common_tasks:
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
+      - refs/product/creator-workspace.md
       - refs/planning/brp-player-usable-core.md
       - refs/planning/brp-player-usability-gap-audit.md
       - refs/planning/brp-investigative-horror-profile.md
       - packages/system-brp/src/campaignProfile.ts
       - packages/system-brp/src/sheetProjection.ts
+      - apps/web/src/brpCreatorRandomization.ts
+      - apps/web/src/workspaceSplitter.ts
       - apps/web/src/brpCreatorState.ts
       - apps/web/src/brpCreatorPanel.ts
       - apps/web/src/brpCreatorPanelView.ts
       - apps/web/src/main.ts
       - apps/web/sheet.css
-  - task: Run BRP player-usable browser QA
+  - task: Re-check BRP creator browser QA blockers
+    look_in:
+      - refs/handoffs/currentHandoff.md
+      - refs/handoffs/next-dev-prompt.md
+      - refs/product/creator-workspace.md
+      - apps/web/src/brpCreatorRandomization.ts
+      - apps/web/src/brpCreatorRandomization.test.ts
+      - apps/web/src/workspaceSplitter.ts
+      - apps/web/src/workspaceSplitter.test.ts
+      - apps/web/src/brpCreatorStyles.ts
+      - apps/web/src/styles.css
+      - apps/web/src/creatorWorkspace.ts
+      - apps/web/src/brpCreatorPanel.ts
+  - task: Run BRP player-usable sheet and persistence QA
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
