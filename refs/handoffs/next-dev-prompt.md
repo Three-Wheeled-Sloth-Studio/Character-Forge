@@ -28,7 +28,7 @@ Stage 0 is complete. Resume **Stage 1 - Engineering health and refactoring**. Do
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 1 BRP creator state responsibility split"
+python refs/tools/generate_agent_context.py --focus "Stage 1 BRP creator panel view audit"
 ```
 
 Then read only:
@@ -37,9 +37,8 @@ Then read only:
 2. `refs/planning/engineering-health-audit-2026-09-11.md`
 3. `refs/planning/engineering-health-cleanup.md`
 4. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-5. `apps/web/src/brpCreatorState.ts`
-6. `apps/web/src/brpCreatorState.test.ts`
-7. BRP callers/tests directly affected by the proposed split
+5. `apps/web/src/brpCreatorPanelView.ts`
+6. BRP view tests directly affected by a proposed extraction
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
@@ -47,15 +46,15 @@ Do not reread the entire repository history. Do not resume D&D Guided Narrative 
 
 Current accepted `dev` head:
 
-- SHA: `dc13c9e919163f144a2df8db931e0dee6dd78879`
-- Actions: `34635026247`
-- Job: `103380710114`
+- SHA: `49b182d09e98af66723686ef6ec841555c30f987`
+- Actions: `34635492842`
+- Job: `103382233734`
 - 61 test files / 294 tests / 0 failures
-- 228 tracked paths
+- 233 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3778 characters
-- build `Character Forge build 0.0.1 dc13c9e9`
+- agent context 3596 characters
+- build `Character Forge build 0.0.1 49b182d0`
 
 Promoted branches remain unchanged:
 
@@ -67,36 +66,27 @@ Promoted branches remain unchanged:
 Completed and exact-SHA validated:
 
 1. extracted character result rendering from `main.ts` into `characterResultRenderer.ts`;
-2. corrected print tests that over-specified source placement;
-3. removed primary presentation cleanup and the global `MutationObserver` from workspace orchestration;
-4. absorbed accepted Stage 0 BRP/D&D minimalism into renderer-owned output;
-5. deleted `primaryUiMinimalism.ts` and `creatorPresentationAdapter.ts`;
-6. updated stale tests to protect the compact accepted UI rather than hidden verbose copy.
+2. corrected tests that over-specified source placement;
+3. retired the Stage 0 primary-UI post-render rewrite and observer layer;
+4. moved accepted BRP/D&D compact UI into renderer-owned output;
+5. split BRP creator state into coherent model, skill-resolution, build, preview/allocation, and reopen modules while preserving `brpCreatorState.ts` as the stable facade.
 
 Stage 0 owner-QA contracts remain green and must stay protected.
 
 ## Immediate Next Slice
 
-Perform a bounded responsibility split of `apps/web/src/brpCreatorState.ts`.
+Audit `apps/web/src/brpCreatorPanelView.ts` before editing it.
 
-Candidate seams:
+The file has named sections for campaign/profile chrome, profession controls, characteristic controls, allocation guidance, skill rows, and generic HTML helpers. Split only if extracting one or more of those responsibilities materially reduces local reasoning cost or improves direct testability.
 
-- state types/default construction and campaign-profile selection;
-- preview/allocation projection and helpers;
-- CharacterDocument/native build;
-- reopen/from-document reconstruction.
+Do not perform a line-count refactor. If the existing function boundaries are already sufficient and an extraction would mainly move markup between files, record that finding and skip to the next evidence-backed Stage 1 candidate.
 
-Do not split by line count. Preserve useful public exports or migrate callers deliberately. Prefer small internal modules with `brpCreatorState.ts` remaining a stable facade if that reduces caller churn.
+If a split is justified:
 
-Protect at minimum:
-
-- native-state fidelity;
-- exact save/reopen equality;
-- campaign-profile provenance and no legacy-profile inference;
-- legal allocation behavior and cap enforcement;
-- randomization compatibility;
-- adapter validation; and
-- current creator UI behavior.
+- keep `brpCreatorHtml(...)` as a stable composition boundary unless there is a lower-risk alternative;
+- preserve rendered HTML contracts exactly apart from harmless source placement;
+- prefer BRP-specific section modules over cross-system form abstractions;
+- update brittle source-string tests only when they encode implementation placement rather than product behavior.
 
 Do not include Issue #15 polish in this slice.
 

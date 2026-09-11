@@ -31,8 +31,8 @@ The pass should improve maintainability without changing product behavior unless
 - Separate large coherent catalogs/rules surfaces from files that are large because they own too many responsibilities.
 - `main.ts` result rendering was a mixed responsibility and has been extracted.
 - Stage 0 post-render primary-UI rewriting was transitional scaffolding and has been retired.
-- `brpCreatorState.ts` is now the next high-value responsibility split.
-- `brpCreatorPanelView.ts` has clean named section boundaries if a later view split materially improves local reasoning.
+- BRP creator state had multiple coherent responsibilities and has been split behind a stable facade.
+- `brpCreatorPanelView.ts` has named section boundaries, but must be audited before any split to avoid cosmetic file shuffling.
 - `guidedCreationPanel.ts` is high risk; refactor one evidence-backed seam at a time rather than broad-rewriting it.
 - Do not add a failing line-count style gate. If file-growth diagnostics are added later, keep them informational and responsibility-oriented.
 
@@ -44,37 +44,27 @@ Character result validation, system routing, sheet rendering, print-sheet extrac
 
 Tests that previously required print extraction to live in `main.ts` were updated to protect the actual result-renderer/print contract instead.
 
-### Presentation compatibility layer retired
+### Presentation compatibility layer retirement
 
-`creatorWorkspace.ts` no longer owns primary-UI cleanup or a workspace-wide observer, and the temporary adapter/shim have been deleted:
+The temporary Stage 0 post-render cleanup layer was removed.
 
-- `apps/web/src/creatorPresentationAdapter.ts`
-- `apps/web/src/primaryUiMinimalism.ts`
+- `primaryUiMinimalism.ts` deleted.
+- `creatorPresentationAdapter.ts` deleted.
+- BRP and D&D renderers now own accepted compact presentation directly.
+- `creatorWorkspace.ts` owns no presentation observer/rewrite behavior.
 
-Accepted Stage 0 primary-UI minimalism is now renderer-owned:
+### BRP creator state responsibility split
 
-- BRP emits compact primary markup directly from `brpCreatorPanelView.ts`;
-- Guided Narrative emits compact primary markup directly;
-- Guided Mechanical owns its local heading cleanup and concise continuation note;
-- `creatorWorkspace.ts` mounts system creators directly.
+`brpCreatorState.ts` remains the stable facade while implementation moved into focused modules for state/defaults, skill resolution/allocation helpers, CharacterDocument build, preview/auto-allocation, and reopen reconstruction.
 
-Two tests that still expected verbose copy hidden during Stage 0 were updated to protect the compact accepted UI instead of restoring obsolete visible prose.
+The exact-SHA validation gate remained green with no product schema changes and no caller-wide import churn.
 
 ## Next Ordered Cleanup Candidates
 
-1. Split BRP creator state into coherent responsibilities only where seams remain clean.
-2. Split BRP creator view by named sections if that materially improves reasoning and testability.
+1. Audit `brpCreatorPanelView.ts`; extract only responsibilities that materially improve reasoning/testability.
+2. If the BRP view split is not worthwhile, skip it and move to the next evidence-backed seam rather than refactoring for line count.
 3. Audit D&D Guided Mechanical orchestration one responsibility seam at a time; avoid wholesale rewrite.
 4. Revisit source-string tests as each touched seam moves, preserving architecture invariants without pinning code to arbitrary files.
-
-For `brpCreatorState.ts`, candidate seams are:
-
-- state types/default construction and campaign-profile selection;
-- preview/allocation projection and helpers;
-- CharacterDocument/native build;
-- reopen/from-document reconstruction.
-
-Prefer keeping `brpCreatorState.ts` as a stable facade if that substantially reduces caller churn and risk.
 
 ## Test-Suite Rules
 
@@ -83,6 +73,7 @@ Prefer keeping `brpCreatorState.ts` as a stable facade if that substantially red
 - Prefer durable behavior/contracts over brittle implementation-string assertions.
 - Preserve high-value regression coverage for owner-QA defects.
 - Keep native-state fidelity, provenance, validation, adapter, save/reopen, adaptive print, and exact behavior guarantees strongly covered.
+- Do not add duplicate unit tests merely because implementation moved into smaller modules unless those modules establish meaningful independent contracts.
 
 ## Cleanup Guardrails
 

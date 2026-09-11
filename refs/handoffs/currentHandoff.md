@@ -18,16 +18,7 @@ Current stage: **Stage 1 - Engineering health and refactoring**
 
 ## Current State
 
-Stage 0 player-usable acceptance is complete.
-
-GitHub Issue #14, **Make BRP UGE a player-usable core character generator**, is closed as completed after owner browser QA confirmed:
-
-- D&D adaptive print pagination;
-- BRP adaptive print pagination;
-- BRP save and reopen;
-- system-switch clearing without native-state mutation;
-- primary creator UI minimalism; and
-- the representative BRP create -> finish -> review -> save -> reopen -> print/export journey.
+Stage 0 player-usable acceptance is complete. GitHub Issue #14 is closed after owner browser QA passed the representative D&D/BRP creation, save/reopen, system-switch, and adaptive print acceptance boundary.
 
 Two explicitly nonblocking BRP polish items remain parked in Issue #15:
 
@@ -46,18 +37,18 @@ Do not reopen prioritization without materially new evidence.
 
 Current accepted `dev` head:
 
-- SHA: `dc13c9e919163f144a2df8db931e0dee6dd78879`
-- Actions: `34635026247`
-- Job: `103380710114`
+- SHA: `49b182d09e98af66723686ef6ec841555c30f987`
+- Actions: `34635492842`
+- Job: `103382233734`
 - `npm run verify`: green
 - 61 test files
 - 294 tests passed
 - 0 failures
-- 228 tracked paths
+- 233 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Agent context: 3778 characters
-- Build: `Character Forge build 0.0.1 dc13c9e9`
+- Agent context: 3596 characters
+- Build: `Character Forge build 0.0.1 49b182d0`
 
 Promoted branches remain unchanged:
 
@@ -66,69 +57,52 @@ Promoted branches remain unchanged:
 
 No promotion is authorized unless the owner explicitly requests it.
 
-## Stage 1 Audit
-
-The bounded engineering-health audit is captured in:
-
-`refs/planning/engineering-health-audit-2026-09-11.md`
-
-The opening findings distinguish large coherent rules/catalog files from genuinely mixed-responsibility orchestration modules. Do not split files mechanically by line count.
-
-High-value owner-QA regressions remain non-negotiable:
-
-- system-switch clearing without native-state mutation;
-- D&D and BRP adaptive print pagination;
-- save/reopen fidelity;
-- native-state validation and system ownership;
-- primary UI minimalism; and
-- isolated sheet-only print output.
-
-## Stage 1 Work Completed So Far
+## Stage 1 Work Completed
 
 ### Result rendering extracted from app bootstrap
 
-`apps/web/src/main.ts` no longer owns system validation, character-sheet routing, result rendering, print-sheet extraction, or failure rendering.
-
-Those responsibilities now live behind:
-
-`apps/web/src/characterResultRenderer.ts`
-
-This preserves the accepted D&D/BRP sheet and print behavior while making `main.ts` primarily application bootstrap, project context, host messaging, and workspace coordination.
+`apps/web/src/main.ts` no longer owns system validation, character-sheet routing, result rendering, print-sheet extraction, or failure rendering. Those responsibilities live behind `apps/web/src/characterResultRenderer.ts`.
 
 Tests that previously required extraction code to live physically in `main.ts` now protect the result-renderer/print contract instead of source placement.
 
 ### Stage 0 presentation compatibility shim retired
 
-The temporary post-render UI rewrite layer has been removed rather than normalized as permanent architecture.
+The temporary post-render rewrite layer is gone:
 
-Deleted:
+- `apps/web/src/primaryUiMinimalism.ts` deleted;
+- `apps/web/src/creatorPresentationAdapter.ts` deleted;
+- BRP and D&D renderers now emit the accepted compact UI directly;
+- `creatorWorkspace.ts` mounts creators directly and owns no presentation rewrite or observer.
 
-- `apps/web/src/primaryUiMinimalism.ts`
-- `apps/web/src/creatorPresentationAdapter.ts`
+### BRP creator state split by responsibility
 
-Accepted primary-UI minimalism is now owned by the renderers themselves:
+`apps/web/src/brpCreatorState.ts` remains the stable public facade so current callers did not require a repo-wide import migration.
 
-- BRP emits compact heading, allocation help/status, rules status, profile status, and suggestion presentation directly from `brpCreatorPanelView.ts`;
-- Guided Narrative emits its compact primary surface directly;
-- Guided Mechanical owns its local heading cleanup and concise Narrative-continuation note;
-- `creatorWorkspace.ts` mounts BRP/D&D creators directly and contains no presentation rewrite or observer.
+Implementation responsibilities are now separated into:
 
-The two tests that still expected Stage 0-hidden verbose BRP copy were updated to assert the compact accepted UI instead. No Issue #15 behavior was folded into this refactor.
+- `brpCreatorStateModel.ts`: state types, defaults, campaign-profile selection, reroll state;
+- `brpCreatorSkillModel.ts`: characteristic resolution, profession/personal skill identities, allocation helpers;
+- `brpCreatorBuild.ts`: CharacterDocument/native BRP construction and campaign-profile context;
+- `brpCreatorPreview.ts`: preview projection, validation and legal auto-allocation;
+- `brpCreatorReopen.ts`: supported-native-state validation and exact reopen reconstruction.
+
+The split preserved existing allocation, campaign-profile, randomization, adapter-validation, save/reopen, and UI tests without schema changes.
 
 ## Immediate Next Slice
 
-The next audit-ranked candidate is a bounded responsibility split of:
+Audit `apps/web/src/brpCreatorPanelView.ts` as the next Stage 1 candidate.
 
-`apps/web/src/brpCreatorState.ts`
+Do not split it merely because it is large. Proceed only if extracting named sections materially improves local reasoning, testability, or responsibility ownership while keeping rendered output unchanged.
 
-Target seams, only where they remain clean under existing tests:
+Candidate seams already visible in the audit include:
 
-1. state types/default construction and campaign-profile selection;
-2. preview/allocation projection and helpers;
-3. CharacterDocument/native build;
-4. reopen/from-document reconstruction.
+1. campaign/profile and identity chrome;
+2. profession-specific controls;
+3. characteristic-generation controls;
+4. allocation summary/guidance and skill rows;
+5. generic HTML helpers.
 
-Preserve all public behavior and exports needed by current callers unless there is a clear lower-risk migration path. In particular, keep native-state fidelity, save/reopen equality, allocation legality, campaign-profile provenance, whole-character randomization, and BRP adapter validation strongly covered.
+If the audit shows those sections are already coherent and a split would mostly shuffle markup, record that decision and move to the next evidence-backed candidate instead. `guidedCreationPanel.ts` remains high risk and must be approached one seam at a time rather than through a broad rewrite.
 
 Do not mix Issue #15 polish or product feature work into this slice.
 
