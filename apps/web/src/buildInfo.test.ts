@@ -13,12 +13,13 @@ const cleanBuild: CharacterForgeBuildInfo = {
 };
 
 describe("Character Forge build identity", () => {
-  it("shows version and short source commit for QA", () => {
-    expect(visibleCharacterForgeBuildLabel(cleanBuild)).toBe("v0.0.1 · 12345678");
+  it("keeps the visible product badge quiet and version focused", () => {
+    expect(visibleCharacterForgeBuildLabel(cleanBuild)).toBe("v0.0.1");
   });
 
-  it("makes dirty local builds explicit", () => {
-    expect(visibleCharacterForgeBuildLabel({ ...cleanBuild, dirty: true })).toBe("v0.0.1 · 12345678+dirty");
+  it("marks dirty local builds without exposing source hashes in primary chrome", () => {
+    expect(visibleCharacterForgeBuildLabel({ ...cleanBuild, dirty: true })).toBe("v0.0.1+dirty");
+    expect(characterForgeBuildTitle({ ...cleanBuild, dirty: true })).toContain("1234567890abcdef");
     expect(characterForgeBuildTitle({ ...cleanBuild, dirty: true })).toContain("dirty working tree");
   });
 });
