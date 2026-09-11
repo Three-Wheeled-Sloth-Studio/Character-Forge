@@ -56,6 +56,7 @@ export function mountDndGuidedCreatorPanel(
         ? applyDnd5eGuidedNarrativeContinuation(withNameProvenance, narrativeContinuation)
         : withNameProvenance);
     });
+    root.querySelector<HTMLElement>(".creator-heading p:not(.eyebrow)")?.remove();
 
     const nameInput = root.querySelector<HTMLInputElement>("#creator-name");
     const randomButton = root.querySelector<HTMLButtonElement>("#creator-name-random");
@@ -149,9 +150,7 @@ export function mountDndGuidedCreatorPanel(
       const heading = root.querySelector<HTMLElement>(".creator-heading");
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = narrativeContinuation.initialChoices.fightingStyleFeatId
-        ? "Started from Guided Narrative. Class, Background, Species, Alignment, starting equipment, and Fighter style were initialized from that result; later Guided Mechanical edits are authoritative."
-        : "Started from Guided Narrative. Class, Background, Species, Alignment, and starting equipment were initialized from that result; later Guided Mechanical edits are authoritative.";
+      note.textContent = "Started from Guided Narrative. Changes here are authoritative.";
       heading?.append(note);
     }
   };
