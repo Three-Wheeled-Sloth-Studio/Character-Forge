@@ -6,7 +6,6 @@ tags:
 - handoffs
 - productization
 - branding
-- engineering-health
 - roadmap
 - prioritization
 ---
@@ -14,11 +13,13 @@ tags:
 
 Date: 2026-09-11
 Branch: `dev`
-Current stage: **Stage 2 - Productization and branding**
+Current stage: **Stage 2 implementation complete; visual acceptance pending**
 
 ## Current State
 
 Stage 0 player-usable acceptance and Stage 1 engineering-health/refactoring are complete.
+
+Stage 2 productization/branding implementation is now complete in code across Character Forge and the Parchment-hosted shell. The only remaining Stage 2 acceptance item is a short owner browser visual check of the final branding treatment. Do not reopen the Stage 2 architecture unless that check finds a concrete problem.
 
 The authoritative stage order remains:
 
@@ -33,67 +34,86 @@ Two explicitly nonblocking BRP polish items remain parked in Issue #15:
 
 Do not pull Issue #15 ahead of the approved sequence unless it becomes a blocker or the owner explicitly asks.
 
-## Exact Green Checkpoint
+## Character Forge Exact Green Implementation Checkpoint
 
-Current accepted `dev` head:
+Accepted `dev` implementation head before this documentation refresh:
 
-- SHA: `95ec2b8d9ae54119fc27e99166a4ebb86563a6ed`
-- Actions: `34637052478`
-- Job: `103387386113`
+- SHA: `0b0a4059e30b7f07a1b28a2c93e2ba29d6652cf5`
+- Actions: `34637862811`
+- Job: `103390045147`
 - `npm run verify`: green
-- 62 test files
-- 298 tests passed
+- 63 test files
+- 299 tests passed
 - 0 failures
-- 235 tracked paths
+- 236 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Agent context: 3725 characters
-- Build: `Character Forge build 0.0.1 95ec2b8d`
+- Agent context: 3765 characters
+- Build: `Character Forge build 0.0.1 0b0a4059`
 
-Promoted branches remain unchanged:
+Promoted Character Forge branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
 No promotion is authorized unless the owner explicitly requests it.
 
-## Stage 1 Closeout
+## Stage 2 Companion Parchment Checkpoint
 
-The bounded engineering-health pass is complete. It addressed the highest-value debt without turning cleanup into a rewrite.
+Parchment Worlds `dev` has the corresponding parent-shell branding implementation:
 
-Completed:
+- SHA: `82c16a1f74269e8de9da2ee56ca0755f032e505c`
+- Actions: `34642453483`
+- Job: `103405208714`
+- 54 test files
+- 184 tests passed
+- 0 failures
+- production Vite bundle green
 
-1. extracted character result routing/rendering and print-sheet extraction from `main.ts` into `characterResultRenderer.ts`;
-2. corrected tests that over-specified source placement when those seams moved;
-3. retired the temporary Stage 0 primary-UI post-render rewrite/observer layer;
-4. moved accepted BRP/D&D compact presentation into renderer-owned output;
-5. split BRP creator state into model/defaults, skill resolution, build, preview/allocation, and reopen modules behind the stable `brpCreatorState.ts` facade;
-6. audited `brpCreatorPanelView.ts` and deliberately did **not** split it because its named functions already provide useful local boundaries and extraction would mostly shuffle markup;
-7. extracted Guided Mechanical ability-generation rendering, random-roll state, point-cost feedback, and method parsing into `guidedAbilityControls.ts` with focused regression coverage.
+The owner added the canonical Three-Wheeled Sloth branding assets under `Parchment-Worlds/Branding/`. The Parchment shell now packages those same canonical Git blobs into `apps/web/public/branding/`, uses the TWS wordmark as a quiet subordinate maker mark in the global header, and uses the framed TWS logo as the favicon. There is no external runtime dependency on the design-principles repository.
 
-No high-confidence stale/obsolete functional test or additional low-risk responsibility split remained that justified extending the bounded pass. `guidedCreationPanel.ts` is still broad by necessity; any future refactor there should remain evidence-backed and one seam at a time rather than becoming a standing rewrite project.
+## Stage 2 Completed Work
 
-Detailed findings remain in:
+1. Audited current Character Forge and Parchment shell identity against the shared studio UI guidance.
+2. Confirmed the current World Forge visible version convention is a quiet semantic version badge (`v0.3.81` on current World Forge `dev`) while commit provenance remains separate.
+3. Character Forge now shows a quiet user-facing `v0.0.1` badge while preserving full commit/build provenance in the tooltip.
+4. Character Forge shell now carries subordinate `Three-Wheeled Sloth Studio` identity without competing with product identity.
+5. Parchment Worlds now has its own parent-shell build/version identity (`v0.2.0`) with source commit provenance retained separately.
+6. Parchment now consumes the canonical TWS branding assets locally from the repo and packages them into the web build.
+7. Parchment favicon/product-icon treatment now uses the canonical framed TWS asset.
+8. Audited duplicate project/campaign inputs. BRP `Campaign / rules profile` is mechanical BRP rules configuration, not duplicate Parchment project metadata, and remains correctly owned by Character Forge.
+9. No RPG-native schema, generation, persistence, print, or translation semantics changed during Stage 2.
 
-- `refs/planning/engineering-health-audit-2026-09-11.md`
-- `refs/planning/engineering-health-cleanup.md`
+## Stage 2 Final Browser Check
 
-## Stage 2 Immediate Next Slice
+Verify only the final presentation boundary:
 
-Begin with a read-only productization/branding audit before editing visuals.
+- Parchment header still clearly prioritizes `Parchment Worlds` over the subordinate TWS wordmark;
+- the wordmark remains legible and does not crowd the header at normal desktop width;
+- the browser favicon uses the canonical framed TWS mark;
+- Parchment shows the quiet `v0.2.0` build badge;
+- embedded Character Forge still shows its quiet `v0.0.1` badge and subordinate studio identity without duplicated/loud branding;
+- no shell layout regression is visible on the Character Forge route.
 
-Inspect:
+If those checks pass, close Stage 2 and begin Stage 3 without another productization pass.
 
-1. shared branding assets and guidance in `Three-Wheeled-Sloth-Studio/TWS-Design-Principles/Branding/`;
-2. the current Character Forge app shell, logo/title treatment, favicon/icon assets, and CSS;
-3. current Character Forge build/version rendering;
-4. the World Forge user-facing `version:build:revision` pattern to reuse rather than inventing a new one;
-5. current Parchment Worlds parent-shell build/version identity and Character Forge handoff presentation;
-6. any remaining creator questions that duplicate authoritative project/campaign context.
+## Stage 3 Next Direction
 
-Then propose and implement the smallest coherent Stage 2 slice that establishes the shared product shell and version identity without changing character-generation semantics.
+Stage 3 is **Name Generator and Random Tables**.
 
-Primary character-sheet branding remains owned by the user's Project/Campaign. A tiny subordinate Character Forge or Three-Wheeled Sloth maker's mark is permitted only where it does not compete with play information or campaign identity.
+Start with a bounded architecture pass. Do not expand the existing placeholder name corpus into a larger fragment list.
+
+Name generation should be designed around a probabilistic / Markov-style sequence mechanism or comparable phonotactic model, with deterministic seed/provenance and clean separation of:
+
+- generation mechanism;
+- reference/training corpora or pattern data;
+- naming context;
+- culture/language inputs;
+- post-generation constraints/validation.
+
+Future language and culture generators must be able to inform naming. Species is not synonymous with culture or language.
+
+For the random-table companion, use editable BRP flavor fields as an early system-neutral proving ground: build/size, appearance, mannerisms, reputation, background, distinctive details, and similar optional inspiration surfaces. Suggestions must feed ordinary generation decisions rather than bypassing native state.
 
 ## Architecture Baseline To Preserve
 
@@ -112,7 +132,7 @@ Primary character-sheet branding remains owned by the user's Project/Campaign. A
 
 ## Validation
 
-For every implementation milestone:
+For every Character Forge implementation milestone:
 
 ```bash
 npm run verify

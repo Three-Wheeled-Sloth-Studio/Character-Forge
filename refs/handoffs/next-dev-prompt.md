@@ -6,6 +6,8 @@ tags:
 - handoffs
 - productization
 - branding
+- name-generation
+- random-tables
 - roadmap
 ---
 # Next Development Prompt
@@ -20,92 +22,116 @@ The owner-approved execution sequence is in:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-Stages 0 and 1 are complete. Resume **Stage 2 - Productization and branding**. Do not reopen roadmap prioritization unless new evidence materially changes the plan.
+Stages 0 and 1 are complete. Stage 2 implementation is complete and only needs a short owner browser visual check before formal closeout. Do not reopen roadmap prioritization unless new evidence materially changes the plan.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 2 productization branding version identity"
+python refs/tools/generate_agent_context.py --focus "Stage 3 name generator random tables"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-3. relevant shell/build/version files in `apps/web`
-4. shared branding guidance/assets from `Three-Wheeled-Sloth-Studio/TWS-Design-Principles/Branding/`
-5. the World Forge version/build identity implementation used as the studio reference pattern
-6. Parchment Worlds shell/handoff files only where needed for parent identity or duplicate-context cleanup
+3. existing name-generation code/tests in `packages/generator-core` and `packages/system-dnd5e`
+4. BRP optional flavor-field state/rendering only where needed for random-table integration
+5. Parchment project/culture/language context contracts only if required to define an interface boundary
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
-## Exact Green Checkpoint
+## Character Forge Exact Green Implementation Checkpoint
 
-Current accepted `dev` head:
+Accepted `dev` implementation head before the documentation refresh:
 
-- SHA: `95ec2b8d9ae54119fc27e99166a4ebb86563a6ed`
-- Actions: `34637052478`
-- Job: `103387386113`
-- 62 test files / 298 tests / 0 failures
-- 235 tracked paths
+- SHA: `0b0a4059e30b7f07a1b28a2c93e2ba29d6652cf5`
+- Actions: `34637862811`
+- Job: `103390045147`
+- 63 test files / 299 tests / 0 failures
+- 236 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3725 characters
-- build `Character Forge build 0.0.1 95ec2b8d`
+- agent context 3765 characters
+- build `Character Forge build 0.0.1 0b0a4059`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 1 Closeout
+## Stage 2 Companion Parchment Checkpoint
 
-The bounded engineering-health pass is complete.
+Parchment Worlds `dev`:
 
-Completed exact-SHA-validated work includes:
+- SHA: `82c16a1f74269e8de9da2ee56ca0755f032e505c`
+- Actions: `34642453483`
+- Job: `103405208714`
+- 54 test files / 184 tests / 0 failures
+- production bundle green
 
-- result-renderer extraction from `main.ts`;
-- removal of post-render Stage 0 presentation scaffolding;
-- BRP creator-state responsibility split behind a stable facade;
-- explicit no-op decision on `brpCreatorPanelView.ts` because a split would be cosmetic;
-- Guided Mechanical ability-generation controller extraction into `guidedAbilityControls.ts`;
-- focused ability-control renderer tests;
-- source-placement test repairs only where refactors exposed brittle coupling.
+Canonical TWS assets now live in `Parchment-Worlds/Branding/` and are packaged locally into the Parchment web build. The parent shell uses the TWS wordmark as a subordinate maker mark and the framed TWS logo as favicon. Character Forge keeps its own quiet text maker identity rather than introducing a cross-repository runtime asset dependency.
 
-Do not keep Stage 1 open as a general license to rewrite large files.
+## Stage 2 Closure Check
 
-## Stage 2 First Slice
+Before implementing Stage 3, if owner browser feedback has not already been recorded, confirm only:
 
-Audit before editing:
+- Parchment product title remains visually primary to the TWS wordmark;
+- wordmark/header layout is clean at normal desktop width;
+- canonical favicon appears;
+- Parchment `v0.2.0` and Character Forge `v0.0.1` badges are quiet and legible;
+- embedded Character Forge has no new layout regression.
 
-- Character Forge shell branding and icon treatment;
-- shared Three-Wheeled Sloth branding assets/guidance;
-- Character Forge build/version display;
-- World Forge `version:build:revision` implementation;
-- Parchment Worlds parent build/version identity;
-- creator inputs that duplicate project/campaign context.
+If accepted, mark Stage 2 complete. Do not do another general branding pass.
 
-Then implement the smallest coherent product-shell/version slice supported by that evidence.
+## Stage 3 - Name Generator And Random Tables
 
-Guardrails:
+Begin with an architecture audit before implementation.
 
-- do not change native RPG schemas or generation behavior for branding convenience;
-- do not put dominant Character Forge branding on character sheets;
-- Project/Campaign identity remains primary on the play artifact;
-- a small subordinate maker's mark is acceptable when unobtrusive;
-- reuse studio patterns/assets rather than creating a parallel visual language;
-- do not fold deferred Issue #15 BRP polish into this work unless it becomes a blocker.
+### Name generator
 
-## Architecture Baseline
+Do not grow the current placeholder corpus into a larger word-list or fragment mashup.
 
-- Native system state is mandatory and lossless.
-- Native BRP and D&D state remain canonical.
-- Universal Grammar remains derived future semantic/translation state.
-- Project/campaign context is authoritative where supplied.
-- Portrait/token/VTT metadata remains outside native RPG state.
-- Foundry schemas remain adapter targets.
+The intended mechanism should provide a distinctly flavored but very large generation space using a probabilistic / Markov-style sequence generator or comparable phonotactic approach.
+
+Separate from the start:
+
+- generation mechanism;
+- training/reference corpora or pattern data;
+- naming context;
+- culture/language inputs;
+- post-generation constraints/validation;
+- deterministic seed/provenance.
+
+The design must anticipate future language and culture generators providing phonology, phonotactics, morphology, syllable structure, orthography, naming customs, honorifics, family-name rules, social-class patterns, and regional variation.
+
+Species must not be treated as synonymous with culture or language.
+
+Prefer the first bounded slice to prove a reusable system-neutral generation contract before adding broad corpora or many UI surfaces.
+
+### Random tables
+
+Use BRP free-text flavor fields as an early proving ground for a system-neutral random-table companion, such as:
+
+- build/size;
+- appearance;
+- mannerisms;
+- reputation;
+- background;
+- distinctive details;
+- similar optional inspiration fields already owned by native BRP state.
+
+Suggestions remain editable/overridable and must feed ordinary creator decisions rather than bypass native state or create a parallel document model.
+
+## Guardrails
+
+- Native RPG state remains canonical and lossless.
+- Do not add name/culture/language semantics to Universal Grammar prematurely.
+- Do not equate species with culture or language.
+- Preserve deterministic generation and provenance where practical.
+- Random-table output is suggestion/input, not hidden authoritative state.
+- Do not pull deferred Issue #15 BRP polish into Stage 3 unless it becomes a blocker.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Validation
