@@ -7,6 +7,7 @@ import {
   mountDndCreatorPanel,
   type DndCreationMode,
 } from "./dndCreatorPanel.js";
+import { mountWorkspaceSplitter } from "./workspaceSplitter.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
 
@@ -43,7 +44,7 @@ export function creatorRandomizationHelp(
   dndMode: DndCreationMode = defaultDndCreationMode(),
 ): string {
   if (system === "brp-uge") {
-    return "Randomize All uses the BRP profession suggestion and re-rolls characteristics only when Standard Rolled is selected. Scholar academic suggestions remain field-level. Age, Gender, Wealth, name, and other fields stay unchanged until explicit system-owned distributions exist.";
+    return "Randomize All creates a fresh BRP name, age, gender, profession, legal wealth and electives, characteristics, Scholar specialties, and complete legal skill allocations. Campaign/rules settings, freeform language identities, and finishing details stay authoritative and unchanged.";
   }
   if (dndMode === "quick") {
     return "Quick Generate owns its randomization through Generate character. Randomize All is hidden in Quick mode so hidden Guided controls are never invoked.";
@@ -58,6 +59,7 @@ export function mountCreatorWorkspace(
   root: HTMLElement,
   onCharacter: (character: CharacterDocument) => void,
 ): CreatorWorkspaceController {
+  mountCreatorWorkspaceSplitter(root);
   root.innerHTML = `
     <section class="creator-panel creator-system-panel">
       <div class="creator-system-actions">
@@ -67,7 +69,7 @@ export function mountCreatorWorkspace(
             <option value="brp-uge">BRP UGE</option>
           </select>
         </label>
-        <button id="creator-randomize-all" type="button" class="secondary-button">Randomize All</button>
+        <button id="creator-randomize-all" type="button" class="secondary-button icon-button creator-randomize-all" title="Randomize All" aria-label="Randomize All"><span aria-hidden="true">⚄⚅</span></button>
       </div>
       <p id="creator-randomization-help" class="muted"></p>
       <p class="muted">System-specific generation controls stay below. Native rules state remains authoritative.</p>
@@ -111,6 +113,10 @@ export function mountCreatorWorkspace(
   systemSelect.addEventListener("change", renderSystem);
   randomizeAll.addEventListener("click", () => {
     if (!creatorRandomizeAllAvailable(currentSystem(), dndMode)) return;
+    if (currentSystem() === "brp-uge") {
+      brpController?.randomizeAll();
+      return;
+    }
     clickCreatorRandomizers(systemHost, creatorRandomizerSelector(currentSystem()));
   });
   renderSystem();
@@ -124,6 +130,22 @@ export function mountCreatorWorkspace(
       if (system === "brp-uge") brpController?.openCharacter(character);
     },
   };
+}
+
+function mountCreatorWorkspaceSplitter(root: HTMLElement): void {
+  const workspace = root.parentElement;
+  if (!workspace?.classList.contains("forge-workspace")) return;
+  const existing = workspace.querySelector<HTMLElement>(".workspace-splitter");
+  if (existing) return;
+  const splitter = document.createElement("div");
+  splitter.className = "workspace-splitter";
+  splitter.tabIndex = 0;
+  splitter.setAttribute("role", "separator");
+  splitter.setAttribute("aria-orientation", "vertical");
+  splitter.setAttribute("aria-label", "Resize character generation and character details panels");
+  splitter.title = "Drag to resize panels";
+  root.insertAdjacentElement("afterend", splitter);
+  mountWorkspaceSplitter(workspace, splitter);
 }
 
 function requiredElement<T extends Element>(root: ParentNode, selector: string, type: new () => T): T {

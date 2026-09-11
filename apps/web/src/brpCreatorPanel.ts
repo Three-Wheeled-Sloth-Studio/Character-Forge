@@ -26,6 +26,7 @@ import {
   type BrpScholarAcademicSuggestionRecord,
   type BrpWealthLevel,
 } from "../../../packages/system-brp/src/index.js";
+import { randomizeBrpCreatorState } from "./brpCreatorRandomization.js";
 import {
   autoAllocateBrpCreatorState,
   createDefaultBrpCreatorState,
@@ -42,6 +43,7 @@ import { ensureBrpCreatorStyles } from "./brpCreatorStyles.js";
 
 export interface BrpCreatorPanelController {
   openCharacter(character: CharacterDocument): void;
+  randomizeAll(): void;
 }
 
 export function mountBrpCreatorPanel(
@@ -78,6 +80,21 @@ export function mountBrpCreatorPanel(
 
   const bindCurrentControls = (): void => {
     const form = requiredElement(root, "#brp-creator-form", HTMLFormElement);
+    const professionRandom = root.querySelector<HTMLButtonElement>("#brp-profession-random");
+    if (professionRandom) {
+      professionRandom.title = "Randomize profession";
+      professionRandom.setAttribute("aria-label", "Randomize profession");
+    }
+    const reroll = root.querySelector<HTMLButtonElement>("#brp-reroll");
+    if (reroll) {
+      reroll.title = "Re-roll characteristics";
+      reroll.setAttribute("aria-label", "Re-roll characteristics");
+    }
+    for (const button of root.querySelectorAll<HTMLButtonElement>("[data-brp-academic-suggest]")) {
+      const index = Number(button.dataset.brpAcademicSuggest);
+      button.setAttribute("aria-label", `Randomize academic specialty ${Number.isFinite(index) ? index + 1 : ""}`.trim());
+    }
+
     bindSelectChange("#brp-campaign-profile", (value) => {
       if (!isBrpCampaignProfileId(value)) return;
       state = selectBrpCampaignProfile(state, value);
@@ -105,7 +122,7 @@ export function mountBrpCreatorPanel(
     });
     bindSelectChange("#brp-generation-method", (value) => { state.characteristicMethod = value === "standard-rolled" ? "standard-rolled" : "explicit"; state.allocations = {}; render(); });
 
-    root.querySelector<HTMLButtonElement>("#brp-profession-random")?.addEventListener("click", () => {
+    professionRandom?.addEventListener("click", () => {
       const suggestion = suggestBrpProfession();
       const changedProfession = state.professionId !== suggestion.result.professionId;
       state.professionId = suggestion.result.professionId;
@@ -134,7 +151,7 @@ export function mountBrpCreatorPanel(
       state.allocations = {};
       render();
     });
-    root.querySelector<HTMLButtonElement>("#brp-reroll")?.addEventListener("click", () => { state = rerollBrpCreatorState(state); render(); });
+    reroll?.addEventListener("click", () => { state = rerollBrpCreatorState(state); render(); });
     for (const select of root.querySelectorAll<HTMLSelectElement>("[data-brp-redistribution]")) {
       select.addEventListener("change", () => { state.redistribution = readBrpRedistribution(root); state.allocations = {}; render(); });
     }
@@ -289,6 +306,12 @@ export function mountBrpCreatorPanel(
       academicSuggestions = readBrpScholarAcademicSuggestions(character);
       equipmentIds = readBrpStartingEquipment(character);
       finishingDetails = readBrpFinishingDetails(character);
+      render();
+    },
+    randomizeAll(): void {
+      state = randomizeBrpCreatorState(state).state;
+      professionSuggestion = null;
+      academicSuggestions = [];
       render();
     },
   };

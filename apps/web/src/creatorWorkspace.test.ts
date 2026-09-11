@@ -37,18 +37,20 @@ describe("creator workspace system routing", () => {
     expect(creatorSystemForCharacter(character("unknown", "1"))).toBeNull();
   });
 
-  it("keeps Randomize All orchestration separate from system random semantics", () => {
+  it("keeps legacy field-randomizer selectors available for system-specific actions", () => {
     expect(creatorRandomizerSelector("dnd5e-2024")).toBe(".icon-button[id$='-random'], #creator-random-roll");
     expect(creatorRandomizerSelector("brp-uge")).toBe("#brp-profession-random, #brp-reroll");
-    expect(creatorRandomizerSelector("brp-uge")).not.toContain("academic");
   });
 
-  it("makes intentionally unrandomized BRP fields explicit", () => {
+  it("describes BRP Randomize All as a complete player-facing randomization pass", () => {
     const help = creatorRandomizationHelp("brp-uge");
-    expect(help).toContain("Age");
-    expect(help).toContain("Gender");
-    expect(help).toContain("Wealth");
-    expect(help).toContain("stay unchanged");
+    expect(help).toContain("name");
+    expect(help).toContain("age");
+    expect(help).toContain("gender");
+    expect(help).toContain("profession");
+    expect(help).toContain("Scholar specialties");
+    expect(help).toContain("complete legal skill allocations");
+    expect(help).toContain("Campaign/rules settings");
   });
 
   it("does not expose Randomize All while D&D Quick mode owns generation", () => {
