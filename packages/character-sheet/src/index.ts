@@ -1,3 +1,5 @@
+import { CHARACTER_SHEET_STYLES } from "./styles.js";
+
 export type CharacterSheetRole =
   | "identity"
   | "primary_stats"
@@ -135,7 +137,7 @@ export function renderCharacterSheet(
 ): string {
   const label = `${descriptor.title} character sheet`;
   const systemTheme = descriptor.systemTheme?.trim() || "neutral";
-  return `<article class="character-sheet" aria-label="${escapeHtml(label)}" data-sheet-system="${escapeHtml(systemTheme)}" data-source-native-state="${escapeHtml(descriptor.sourceNativeStateId)}" data-source-schema="${escapeHtml(descriptor.sourceSchemaVersion)}">
+  return `<style data-character-sheet-styles>${CHARACTER_SHEET_STYLES}</style><article class="character-sheet" aria-label="${escapeHtml(label)}" data-sheet-system="${escapeHtml(systemTheme)}" data-source-native-state="${escapeHtml(descriptor.sourceNativeStateId)}" data-source-schema="${escapeHtml(descriptor.sourceSchemaVersion)}">
     ${descriptor.pages.map((page) => renderPage(page, descriptor, context)).join("")}
   </article>`;
 }
