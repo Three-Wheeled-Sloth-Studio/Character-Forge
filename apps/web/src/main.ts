@@ -23,7 +23,7 @@ if (!app) throw new Error("Character Forge application root was not found.");
 app.innerHTML = `
   <section class="forge-shell">
     <header class="forge-header">
-      <div><p class="eyebrow">Parchment Worlds module</p><h1>Character Forge</h1></div>
+      <div><p class="eyebrow">Parchment Worlds module</p><h1>Character Forge</h1><p class="muted">Three-Wheeled Sloth Studio</p></div>
       <div class="forge-header-meta">
         ${projectName ? `<div class="project-chip">Project: <strong>${escapeHtml(projectName)}</strong></div>` : ""}
         <span class="build-chip" title="${escapeHtml(characterForgeBuildTitle(buildInfo))}">${escapeHtml(visibleCharacterForgeBuildLabel(buildInfo))}</span>
