@@ -52,8 +52,8 @@ describe("adaptive character sheet BRP first proof", () => {
       "characteristics",
       "derived",
       "skills",
-      "profile",
     ]);
+    expect(sheet.footerNote).toBe("BRP UGE 2023 | ORC 1.05");
 
     const skills = sheetSection(sheet, 1, "skills");
     expect(skills.kind).toBe("ratings");
@@ -72,7 +72,7 @@ describe("adaptive character sheet BRP first proof", () => {
     expect(pageOneIds).not.toContain("armor");
     expect(pageTwoIds).not.toContain("appearance");
     expect(pageTwoIds).not.toContain("background");
-    expect(pageTwoIds).toEqual(["equipment", "source-context"]);
+    expect(pageTwoIds).toEqual(["equipment"]);
   });
 
   it("projects final skills, weapons, armor, equipment, and populated finishing details into their assigned pages", () => {
@@ -135,7 +135,7 @@ describe("adaptive character sheet BRP first proof", () => {
     ]);
   });
 
-  it("renders semantic page and section markers, repeatable table headers, media placeholders, and escaped player text", () => {
+  it("renders only character-facing sheet chrome plus a tiny rules footer", () => {
     const character = applyBrpStartingEquipment(validDefaultCharacter(), ["pistol-medium"]);
     character.displayName = "Mara <North>";
     const html = renderCharacterSheet(buildBrpCharacterSheet(character));
@@ -149,6 +149,10 @@ describe("adaptive character sheet BRP first proof", () => {
     expect(html).toContain('data-sheet-media-slot="token"');
     expect(html).toContain("<thead>");
     expect(html).toContain("sheet-section-splittable");
+    expect(html).toContain('<footer class="sheet-footer">BRP UGE 2023 | ORC 1.05</footer>');
+    expect(html).not.toContain("Character Forge");
+    expect(html).not.toContain("Rules Context");
+    expect(html).not.toContain("Rules profile");
     expect(html).not.toContain("Inspect native character document");
   });
 
