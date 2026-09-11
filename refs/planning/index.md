@@ -8,6 +8,7 @@ Generated OKF discovery index. Do not edit manually.
 * [BRP Player-Usability Gap Audit](brp-player-usability-gap-audit.md) - Agent Academy OKF knowledge concept.
 * [BRP Player-Usable Core](brp-player-usable-core.md) - Agent Academy OKF knowledge concept.
 * [BRP To Universal Grammar Path](brp-to-universal-grammar-path.md) - Agent Academy OKF knowledge concept.
+* [Engineering Health Audit - 2026-09-11](engineering-health-audit-2026-09-11.md) - Agent Academy OKF knowledge concept.
 * [Engineering Health Cleanup Pass](engineering-health-cleanup.md) - Agent Academy OKF knowledge concept.
 * [Fate Condensed Third-System Probe](fate-third-system-probe.md) - Agent Academy OKF knowledge concept.
 * [Owner-Approved Priority Sequence - 2026-09-11](owner-approved-priority-sequence-2026-09-11.md) - Agent Academy OKF knowledge concept.
