@@ -41,7 +41,6 @@ export function mountDndNarrativeCreatorPanel(
       <div class="creator-heading">
         <p class="eyebrow">D&D 5E 2024 - Guided Narrative</p>
         <h2>Start from the character idea</h2>
-        <p>Answer a few preference questions, inspect the mapped mechanical suggestions, and override anything you want before building.</p>
       </div>
       <form id="dnd-narrative-form" class="creator-form">
         <label>Character name
@@ -50,7 +49,6 @@ export function mountDndNarrativeCreatorPanel(
         <label>Narrative seed
           <input id="dnd-narrative-seed" type="text" maxlength="160" placeholder="Generated automatically" autocomplete="off" />
         </label>
-        <p class="muted">Every narrative question includes <strong>Choose for me</strong>. Narrative choice sets stay small; when the full rules catalog is larger, earlier answers narrow what is shown next.</p>
         ${DND5E_GUIDED_NARRATIVE_QUESTIONS.map(questionHtml).join("")}
         <label id="dnd-narrative-fighter-style-row" hidden>${DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.prompt}
           <select id="dnd-narrative-fighter-style">${DND5E_GUIDED_NARRATIVE_FIGHTER_STYLE_QUESTION.options.map((option) => `<option value="${option.id}"${option.id === DND5E_GUIDED_NARRATIVE_CHOOSE_FOR_ME_ID ? " selected" : ""}>${option.label}</option>`).join("")}</select>
@@ -62,7 +60,6 @@ export function mountDndNarrativeCreatorPanel(
         <div class="section-divider"></div>
         <fieldset>
           <legend>Mapped mechanical choices</legend>
-          <p class="muted">These choices have already been narrowed by your narrative answers. Change a selection within the narrowed set, or change an earlier answer to explore a different branch.</p>
           <label>Class
             <select id="dnd-narrative-class"></select>
           </label>
@@ -74,7 +71,6 @@ export function mountDndNarrativeCreatorPanel(
           </label>
           <p id="dnd-narrative-mapping-summary" class="muted"></p>
         </fieldset>
-        <p class="muted">Build now to use the current Guided Narrative defaults, or continue into Guided Mechanical to customize the remaining legal Level 1 choices in the existing detailed editor.</p>
         <p id="dnd-narrative-error" class="form-error" role="alert"></p>
         <div class="creator-system-actions">
           <button id="dnd-narrative-continue-guided" type="button" class="secondary-button">Continue in Guided Mechanical</button>
