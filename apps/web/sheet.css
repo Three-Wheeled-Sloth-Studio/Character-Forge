@@ -10,15 +10,15 @@
 .sheet-action-button {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 7px;
   border: 1px solid #c9b8a3;
-  border-radius: 9px;
+  border-radius: 10px;
   background: #f4ebdf;
   color: #3b2c20;
   font: inherit;
-  font-size: .78rem;
-  font-weight: 800;
 }
 
 .sheet-action-button:hover {
@@ -26,10 +26,14 @@
 }
 
 .sheet-action-icon {
-  width: 1.15em;
-  text-align: center;
-  font-size: 1rem;
-  line-height: 1;
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .sheet-action-status {
@@ -37,6 +41,10 @@
   color: #65594d;
   font-size: .74rem;
   text-align: right;
+}
+
+.character-print-root {
+  display: none;
 }
 
 .character-sheet {
@@ -59,9 +67,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 18px;
+  gap: 16px;
   padding-bottom: 10px;
   border-bottom: 2px solid #5b4635;
+}
+
+.sheet-page-header-copy {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .sheet-page-header h2 {
@@ -76,28 +89,56 @@
   font-size: .78rem;
 }
 
-.sheet-page-header .sheet-kicker {
-  margin: 0 0 3px;
-  color: #7c5a3b;
-  font-size: .62rem;
-  font-weight: 800;
-  letter-spacing: .12em;
+.sheet-media-slots {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.sheet-media-slot {
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  border: 1px solid #cfc2b1;
+  background: #fbf6ee;
+  color: #8a7a69;
+}
+
+.sheet-media-slot span {
+  padding: 3px 4px;
+  font-size: .56rem;
+  line-height: 1;
   text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.sheet-media-slot-portrait {
+  width: 64px;
+  height: 82px;
+  border-radius: 5px;
+}
+
+.sheet-media-slot-token {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  place-items: center;
 }
 
 .sheet-page-number {
   display: grid;
   gap: 2px;
-  min-width: 95px;
+  min-width: 74px;
   color: #65594d;
-  font-size: .7rem;
+  font-size: .66rem;
   font-weight: 800;
   text-align: right;
   text-transform: uppercase;
 }
 
 .sheet-page-number span {
-  font-size: .64rem;
+  font-size: .62rem;
   font-weight: 650;
   text-transform: none;
 }
@@ -284,6 +325,16 @@
   font-size: .86rem;
 }
 
+.sheet-footer {
+  margin-top: 12px;
+  padding-top: 4px;
+  border-top: 1px solid #e2d8cb;
+  color: #887a6c;
+  font-size: .58rem;
+  line-height: 1.2;
+  text-align: right;
+}
+
 @media (max-width: 700px) {
   .sheet-toolbar {
     justify-content: flex-start;
@@ -299,12 +350,17 @@
   }
 
   .sheet-page-header {
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
   .sheet-page-number {
     min-width: 0;
     text-align: left;
+  }
+
+  .sheet-media-slots {
+    order: 3;
+    width: 100%;
   }
 
   .sheet-columns-3,
@@ -324,7 +380,8 @@
 }
 
 @media print {
-  :root {
+  :root,
+  body {
     color: #000;
     background: #fff;
   }
@@ -333,47 +390,31 @@
     height: auto;
     min-height: 0;
     overflow: visible;
-    background: #fff;
   }
 
-  .forge-shell {
-    width: auto;
-    height: auto;
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    display: block;
-  }
-
-  .forge-header,
-  .creator-column,
-  .sheet-toolbar,
-  .document-inspector,
-  .no-print {
+  #app > .forge-shell {
     display: none !important;
   }
 
-  .forge-workspace {
-    display: block;
-    min-height: 0;
-  }
-
-  .result-panel {
-    min-height: 0;
+  #app > .character-print-root {
+    display: block !important;
+    width: auto;
+    margin: 0;
     padding: 0;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-    background: #fff;
-    box-shadow: none;
   }
 
-  .character-sheet {
+  .character-print-root .character-sheet {
     display: block;
     width: auto;
     color: #000;
     font-size: 9pt;
     line-height: 1.15;
+  }
+
+  .sheet-toolbar,
+  .document-inspector,
+  .no-print {
+    display: none !important;
   }
 
   .sheet-page {
@@ -394,7 +435,7 @@
   }
 
   .sheet-page-header {
-    gap: 10px;
+    gap: 9px;
     padding-bottom: 5px;
     border-bottom-color: #000;
   }
@@ -407,6 +448,30 @@
   .sheet-page-number {
     color: #222;
     font-size: 7pt;
+  }
+
+  .sheet-media-slots {
+    gap: 5px;
+  }
+
+  .sheet-media-slot {
+    border-color: #999;
+    background: #fff;
+    color: #555;
+  }
+
+  .sheet-media-slot-portrait {
+    width: .7in;
+    height: .9in;
+  }
+
+  .sheet-media-slot-token {
+    width: .55in;
+    height: .55in;
+  }
+
+  .sheet-media-slot span {
+    font-size: 5pt;
   }
 
   .sheet-page-content {
@@ -502,5 +567,13 @@
 
   .sheet-table-wrap thead {
     display: table-header-group;
+  }
+
+  .sheet-footer {
+    margin-top: 5px;
+    padding-top: 2px;
+    border-top-color: #bbb;
+    color: #444;
+    font-size: 5.5pt;
   }
 }
