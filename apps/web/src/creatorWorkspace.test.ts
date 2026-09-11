@@ -10,6 +10,7 @@ import {
 } from "./creatorWorkspace.js";
 
 const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
+const resultRendererSource = readFileSync("apps/web/src/characterResultRenderer.ts", "utf8");
 const workspaceSource = readFileSync("apps/web/src/creatorWorkspace.ts", "utf8");
 
 function character(systemId: string, editionId: string): CharacterDocument {
@@ -45,7 +46,8 @@ describe("creator workspace system routing", () => {
     expect(workspaceSource).toContain("onSystemChange?: (system: CreatorSystemId) => void");
     expect(workspaceSource).toContain("options.onSystemChange?.(currentSystem())");
     expect(mainSource).toContain("onSystemChange: clearRenderedCharacter");
-    expect(mainSource).toContain('resultElement.classList.add("empty-result")');
+    expect(mainSource).toContain("resultRenderer.clear()");
+    expect(resultRendererSource).toContain('resultElement.classList.add("empty-result")');
     expect(workspaceSource).not.toContain("primaryNativeStateId =");
     expect(workspaceSource).not.toContain("nativeStates =");
   });
