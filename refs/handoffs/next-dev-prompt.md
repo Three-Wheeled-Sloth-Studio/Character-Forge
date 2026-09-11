@@ -126,7 +126,8 @@ Suggestions remain editable/overridable and must feed ordinary creator decisions
 
 ## Guardrails
 
-- Native RPG state remains canonical and lossless.
+- Native system state is mandatory and lossless.
+- Native BRP and D&D state remain canonical.
 - Do not add name/culture/language semantics to Universal Grammar prematurely.
 - Do not equate species with culture or language.
 - Preserve deterministic generation and provenance where practical.
