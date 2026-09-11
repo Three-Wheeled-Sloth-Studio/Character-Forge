@@ -35,7 +35,7 @@ function sheetSection(sheet: CharacterSheetDescriptor, pageNumber: number, id: s
 }
 
 describe("adaptive character sheet BRP first proof", () => {
-  it("projects authoritative BRP native state into deterministic two-page play presentation without mutating it", () => {
+  it("projects authoritative compact BRP native state into one play page without mutating it", () => {
     const character = validDefaultCharacter();
     const before = structuredClone(character);
     const nativeState = character.nativeStates.find((entry) => entry.id === character.primaryNativeStateId)!;
@@ -47,7 +47,7 @@ describe("adaptive character sheet BRP first proof", () => {
     expect(sheet.sourceNativeStateId).toBe(nativeState.id);
     expect(sheet.sourceSchemaVersion).toBe("brp-character/0.1");
     expect(sheet.systemTheme).toBe("brp");
-    expect(sheet.pages.map((page) => page.number)).toEqual([1, 2]);
+    expect(sheet.pages.map((page) => page.number)).toEqual([1]);
     expect(sheet.pages[0]?.layout).toBe("play-3");
     expect(sheet.pages[0]?.sections.map((section) => section.id)).not.toContain("identity");
     expect(sheet.headerFacts?.map((fact) => fact.label)).toEqual(["Profession", "Age", "Gender"]);
@@ -61,19 +61,19 @@ describe("adaptive character sheet BRP first proof", () => {
       && item.value === `${firstSkill.finalRating}%`)).toBe(true);
   });
 
-  it("collapses BRP optional sheet sections when no equipment category or finishing content is present", () => {
+  it("collapses compact logistics onto page one when no equipment category or finishing content is present", () => {
     const sheet = buildBrpCharacterSheet(validDefaultCharacter());
     const pageOneIds = sheet.pages[0]!.sections.map((section) => section.id);
-    const pageTwoIds = sheet.pages[1]!.sections.map((section) => section.id);
 
+    expect(sheet.pages).toHaveLength(1);
     expect(pageOneIds).not.toContain("weapons");
     expect(pageOneIds).not.toContain("armor");
-    expect(pageTwoIds).not.toContain("appearance");
-    expect(pageTwoIds).not.toContain("background");
-    expect(pageTwoIds).toEqual(["equipment"]);
+    expect(pageOneIds).not.toContain("appearance");
+    expect(pageOneIds).not.toContain("background");
+    expect(pageOneIds).toContain("equipment");
   });
 
-  it("projects final skills, weapons, armor, equipment, and populated finishing details into their assigned pages", () => {
+  it("keeps modest equipment and finishing content on one page when the estimated columns fit", () => {
     const withEquipment = applyBrpStartingEquipment(
       validDefaultCharacter(),
       ["first-aid-kit", "leather-soft", "pistol-medium"],
@@ -87,6 +87,8 @@ describe("adaptive character sheet BRP first proof", () => {
       beliefs: "Institutions should answer to the people they affect.",
     });
     const sheet = buildBrpCharacterSheet(character);
+
+    expect(sheet.pages).toHaveLength(1);
 
     const weapons = sheetSection(sheet, 1, "weapons");
     expect(weapons.kind).toBe("table");
@@ -109,13 +111,13 @@ describe("adaptive character sheet BRP first proof", () => {
       enc: "3.5",
     }));
 
-    const equipment = sheetSection(sheet, 2, "equipment");
+    const equipment = sheetSection(sheet, 1, "equipment");
     expect(equipment.kind).toBe("details");
     if (equipment.kind !== "details") throw new Error("Expected equipment details.");
     expect(equipment.items.find((item) => item.label === "Equipment")?.value)
       .toContain("First Aid Kit");
 
-    const appearance = sheetSection(sheet, 2, "appearance");
+    const appearance = sheetSection(sheet, 1, "appearance");
     expect(appearance.kind).toBe("details");
     if (appearance.kind !== "details") throw new Error("Expected appearance details.");
     expect(appearance.items).toContainEqual({
@@ -123,7 +125,7 @@ describe("adaptive character sheet BRP first proof", () => {
       value: "Weathered face and immaculate boots",
     });
 
-    const background = sheetSection(sheet, 2, "background");
+    const background = sheetSection(sheet, 1, "background");
     expect(background.kind).toBe("details");
     if (background.kind !== "details") throw new Error("Expected background details.");
     expect(background.items.map((item) => item.label)).toEqual([
@@ -134,6 +136,18 @@ describe("adaptive character sheet BRP first proof", () => {
     ]);
   });
 
+  it("retains a second page when long narrative content genuinely exceeds the compact page budget", () => {
+    const character = applyBrpFinishingDetails(validDefaultCharacter(), {
+      ...createEmptyBrpFinishingDetails(),
+      background: "Long-form campaign background detail. ".repeat(180),
+      beliefs: "A deliberately long narrative should not be squeezed into unreadable print.",
+    });
+    const sheet = buildBrpCharacterSheet(character);
+
+    expect(sheet.pages.map((page) => page.number)).toEqual([1, 2]);
+    expect(sheetSection(sheet, 2, "background").kind).toBe("details");
+  });
+
   it("renders campaign badging and empty media space without visible placeholder prose", () => {
     const character = applyBrpStartingEquipment(validDefaultCharacter(), ["pistol-medium"]);
     character.displayName = "Mara <North>";
@@ -142,7 +156,7 @@ describe("adaptive character sheet BRP first proof", () => {
     expect(html).toContain("Mara &lt;North&gt;");
     expect(html).toContain('data-sheet-system="brp"');
     expect(html).toContain('data-sheet-page="1"');
-    expect(html).toContain('data-sheet-page="2"');
+    expect(html).not.toContain('data-sheet-page="2"');
     expect(html).toContain('data-sheet-section="weapons"');
     expect(html).toContain('data-sheet-media-slot="portrait"');
     expect(html).toContain('data-sheet-media-slot="token"');
