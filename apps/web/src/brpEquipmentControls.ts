@@ -40,8 +40,10 @@ export function brpEquipmentControlsHtml(
       const eligibility = brpStartingEquipmentEligibility(character, itemId);
       const checked = selected.has(itemId) ? " checked" : "";
       const disabled = eligibility.eligible ? "" : " disabled";
-      const title = eligibility.reason ? ` title="${escapeHtml(eligibility.reason)}"` : "";
-      return `<label class="choice-pool-option brp-equipment-option"><input type="checkbox" data-brp-equipment value="${itemId}"${checked}${disabled}${title}><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(brpEquipmentCatalogLine(itemId))}${eligibility.reason ? ` ${escapeHtml(eligibility.reason)}` : ""}</small></span></label>`;
+      const inputTitle = eligibility.reason ? ` title="${escapeHtml(eligibility.reason)}"` : "";
+      const detail = `${brpEquipmentCatalogLine(itemId)}${eligibility.reason ? ` ${eligibility.reason}` : ""}`;
+      const detailLabel = `${item.label} details: ${detail}`;
+      return `<label class="choice-pool-option brp-equipment-option"><input type="checkbox" data-brp-equipment value="${itemId}"${checked}${disabled}${inputTitle}><span><strong>${escapeHtml(item.label)}</strong><span class="creator-inline-help" tabindex="0" role="img" title="${escapeHtml(detail)}" aria-label="${escapeHtml(detailLabel)}">i</span></span></label>`;
     })
     .join("");
 

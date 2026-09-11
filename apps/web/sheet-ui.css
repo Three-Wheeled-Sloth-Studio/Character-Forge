@@ -8,6 +8,6 @@
 
 @media print {
   .sheet-print-document .sheet-page {
-    min-height: 0;
+    min-height: 0 !important;
   }
 }
