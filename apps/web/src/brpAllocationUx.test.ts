@@ -26,7 +26,9 @@ describe("BRP allocation UX", () => {
 
     expect(preview.validCharacter).not.toBeNull();
     expect(html).toContain('data-allocation-status="ready"');
-    expect(html).toContain("Professional and personal budgets are exact");
+    expect(html).toContain("<strong>Allocation:</strong> Ready");
+    expect(html).toContain('class="creator-inline-help"');
+    expect(html).toContain("Each budget must be exact");
     expect(html).toContain('data-budget-status="complete"');
     expect(html).toContain(">Generate BRP character</button>");
   });
