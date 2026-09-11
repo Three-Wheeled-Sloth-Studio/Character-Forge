@@ -62,15 +62,15 @@ No promotion is authorized unless the owner explicitly requests it.
 
 Parchment Worlds `dev` has the corresponding parent-shell branding implementation:
 
-- SHA: `82c16a1f74269e8de9da2ee56ca0755f032e505c`
-- Actions: `34642453483`
-- Job: `103405208714`
+- SHA: `1eb8714849e0aa45384cdf0ca582649254544b96`
+- Actions: `34647328140`
+- Job: `103421124752`
 - 54 test files
 - 184 tests passed
 - 0 failures
 - production Vite bundle green
 
-The owner added the canonical Three-Wheeled Sloth branding assets under `Parchment-Worlds/Branding/`. The Parchment shell now packages those same canonical Git blobs into `apps/web/public/branding/`, uses the TWS wordmark as a quiet subordinate maker mark in the global header, and uses the framed TWS logo as the favicon. There is no external runtime dependency on the design-principles repository.
+The owner added the canonical Three-Wheeled Sloth branding assets under `Parchment-Worlds/Branding/`. The Parchment shell now packages those same canonical Git blobs into `apps/web/public/branding/`, uses the TWS Studio logo with underlay as the far-left maker mark in the global header, and uses the TAGS logo as the favicon. There is no external runtime dependency on the design-principles repository.
 
 ## Stage 2 Completed Work
 
@@ -80,7 +80,7 @@ The owner added the canonical Three-Wheeled Sloth branding assets under `Parchme
 4. Character Forge shell now carries subordinate `Three-Wheeled Sloth Studio` identity without competing with product identity.
 5. Parchment Worlds now has its own parent-shell build/version identity (`v0.2.0`) with source commit provenance retained separately.
 6. Parchment now consumes the canonical TWS branding assets locally from the repo and packages them into the web build.
-7. Parchment favicon/product-icon treatment now uses the canonical framed TWS asset.
+7. Parchment global header now uses the canonical TWS Studio logo with underlay at the far upper left; favicon/product-icon treatment uses the canonical TAGS logo.
 8. Audited duplicate project/campaign inputs. BRP `Campaign / rules profile` is mechanical BRP rules configuration, not duplicate Parchment project metadata, and remains correctly owned by Character Forge.
 9. No RPG-native schema, generation, persistence, print, or translation semantics changed during Stage 2.
 
@@ -88,9 +88,9 @@ The owner added the canonical Three-Wheeled Sloth branding assets under `Parchme
 
 Verify only the final presentation boundary:
 
-- Parchment header still clearly prioritizes `Parchment Worlds` over the subordinate TWS wordmark;
-- the wordmark remains legible and does not crowd the header at normal desktop width;
-- the browser favicon uses the canonical framed TWS mark;
+- the TWS Studio underlay logo appears cleanly at the far upper left of the Parchment header;
+- Parchment product title remains clear and visually primary as the product identity;
+- the browser favicon uses the TAGS logo;
 - Parchment shows the quiet `v0.2.0` build badge;
 - embedded Character Forge still shows its quiet `v0.0.1` badge and subordinate studio identity without duplicated/loud branding;
 - no shell layout regression is visible on the Character Forge route.
