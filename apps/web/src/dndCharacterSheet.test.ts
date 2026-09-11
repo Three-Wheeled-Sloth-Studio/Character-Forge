@@ -38,26 +38,28 @@ function sheetSection(sheet: CharacterSheetDescriptor, pageNumber: number, id: s
 }
 
 describe("D&D dedicated character sheet", () => {
-  it("projects native D&D state into a two-page play sheet without exposing A/B equipment choice codes", () => {
+  it("compacts a sparse generated character into one play-focused page without exposing A/B equipment choice codes", () => {
     const character = fighterCharacter();
     const before = structuredClone(character);
     const sheet = buildDnd5eCharacterSheet(character);
 
     expect(character).toEqual(before);
     expect(sheet.systemTheme).toBe("dnd5e");
-    expect(sheet.pages.map((page) => page.number)).toEqual([1, 2]);
+    expect(sheet.pages.map((page) => page.number)).toEqual([1]);
     expect(sheet.pages[0]?.layout).toBe("play-3");
-    expect(sheet.pages[0]?.sections.map((section) => section.id)).toEqual([
+    expect(sheet.pages[0]?.sections.map((section) => section.id)).toEqual(expect.arrayContaining([
       "resources",
       "saving-throws",
       "skills",
       "abilities",
-    ]);
+      "equipment",
+      "proficiencies",
+    ]));
     expect(sheet.headerFacts?.map((fact) => fact.label)).toEqual(["Class", "Species", "Background", "Alignment"]);
-    expect(sheet.pages[1]?.sections.map((section) => section.id)).not.toContain("rules-context");
+    expect(sheet.pages[0]?.sections.map((section) => section.id)).not.toContain("rules-context");
     expect(sheet.footerNote).toBe("D&D 5E 2024 | SRD 5.2.1");
 
-    const equipment = sheetSection(sheet, 2, "equipment");
+    const equipment = sheetSection(sheet, 1, "equipment");
     expect(equipment.kind).toBe("list");
     if (equipment.kind !== "list") throw new Error("Expected D&D equipment list.");
     const labels = equipment.items.map((item) => item.label);
