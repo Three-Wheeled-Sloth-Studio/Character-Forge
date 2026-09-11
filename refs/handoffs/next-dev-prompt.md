@@ -65,21 +65,21 @@ Promoted branches remain unchanged:
 
 Parchment Worlds `dev`:
 
-- SHA: `82c16a1f74269e8de9da2ee56ca0755f032e505c`
-- Actions: `34642453483`
-- Job: `103405208714`
+- SHA: `1eb8714849e0aa45384cdf0ca582649254544b96`
+- Actions: `34647328140`
+- Job: `103421124752`
 - 54 test files / 184 tests / 0 failures
 - production bundle green
 
-Canonical TWS assets now live in `Parchment-Worlds/Branding/` and are packaged locally into the Parchment web build. The parent shell uses the TWS wordmark as a subordinate maker mark and the framed TWS logo as favicon. Character Forge keeps its own quiet text maker identity rather than introducing a cross-repository runtime asset dependency.
+Canonical TWS assets live in `Parchment-Worlds/Branding/` and are packaged locally into the Parchment web build. The parent shell uses the TWS Studio logo with underlay as the far-left maker mark and the TAGS logo as favicon. Character Forge keeps its own quiet text maker identity rather than introducing a cross-repository runtime asset dependency.
 
 ## Stage 2 Closure Check
 
 Before implementing Stage 3, if owner browser feedback has not already been recorded, confirm only:
 
-- Parchment product title remains visually primary to the TWS wordmark;
-- wordmark/header layout is clean at normal desktop width;
-- canonical favicon appears;
+- the TWS Studio underlay logo appears cleanly at the far upper left of the Parchment header;
+- Parchment product identity remains clear and visually primary;
+- the TAGS favicon appears;
 - Parchment `v0.2.0` and Character Forge `v0.0.1` badges are quiet and legible;
 - embedded Character Forge has no new layout regression.
 
