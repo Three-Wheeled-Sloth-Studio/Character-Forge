@@ -10,11 +10,17 @@ import {
 } from "./characterSheetControls.js";
 import { parseCharacterOpenMessage, resolveHostOrigin } from "./characterForgeHostBridge.js";
 import { mountCreatorWorkspace } from "./creatorWorkspace.js";
+import {
+  creatorSystemsForProjectContext,
+  projectContextLocksCreatorSystem,
+  readCharacterForgeProjectContext,
+} from "./projectContext.js";
 
 const CHARACTER_GENERATED_MESSAGE = "character-forge:character-generated";
 const params = new URLSearchParams(window.location.search);
-const projectId = params.get("pwProjectId") ?? "";
-const projectName = params.get("pwProjectName") ?? "";
+const projectContext = readCharacterForgeProjectContext(params);
+const projectId = projectContext.projectId;
+const projectName = projectContext.projectName;
 const returnUrl = params.get("pwReturnUrl") ?? "";
 const hostOrigin = resolveHostOrigin(returnUrl);
 const buildInfo = currentCharacterForgeBuildInfo();
@@ -41,7 +47,12 @@ const resultCandidate = document.querySelector<HTMLElement>("#result");
 if (!creatorRootCandidate || !resultCandidate) throw new Error("Character Forge workspace failed to initialize.");
 const creatorRoot: HTMLElement = creatorRootCandidate;
 const resultElement: HTMLElement = resultCandidate;
-const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter);
+const projectSystems = creatorSystemsForProjectContext(projectContext);
+const lockedProjectSystem = projectContextLocksCreatorSystem(projectContext);
+const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter, {
+  ...(projectSystems.length ? { allowedSystems: projectSystems } : {}),
+  ...(lockedProjectSystem ? { initialSystem: lockedProjectSystem, lockedSystem: lockedProjectSystem } : {}),
+});
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (window.parent === window || event.source !== window.parent || !hostOrigin || event.origin !== hostOrigin) return;
@@ -95,13 +106,17 @@ function renderBrpCharacter(character: CharacterDocument, nativeState: NativeSys
 }
 
 function renderDedicatedSheet(character: CharacterDocument, sheet: ReturnType<typeof buildBrpCharacterSheet>): void {
-  const sheetHtml = renderCharacterSheet(sheet);
+  const sheetHtml = renderCharacterSheet(sheet, {
+    ...(projectName ? { campaignName: projectName } : {}),
+  });
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
-    ${characterDocumentControlsHtml(true)}
+    ${characterDocumentControlsHtml(true, true)}
     ${sheetHtml}
     <details class="document-inspector no-print"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
-  bindCharacterDocumentControls(resultElement, character, sheetHtml);
+  bindCharacterDocumentControls(resultElement, character, () => (
+    resultElement.querySelector<HTMLElement>(".character-sheet")?.outerHTML ?? sheetHtml
+  ));
 }
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
