@@ -35,7 +35,7 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
   });
 
   const groupedSkills = groupSkills(payload);
-  const pageOneSections: CharacterSheetSection[] = [
+  const initialPageOneSections: CharacterSheetSection[] = [
     {
       id: "characteristics",
       title: "Characteristics",
@@ -68,7 +68,10 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
     skillSection("skills-perception", "Perception", groupedSkills.Perception, "right", 93),
     skillSection("skills-physical", "Physical", groupedSkills.Physical, "right", 91),
     skillSection("skills-combat", "Combat", groupedSkills.Combat, "right", 90),
-  ].filter((section) => section.kind !== "ratings" || section.items.length > 0);
+  ];
+  const pageOneSections = initialPageOneSections.filter(
+    (section) => section.kind !== "ratings" || section.items.length > 0,
+  );
 
   const weaponRows = equipmentIds.flatMap((itemId) => {
     const item = BRP_STARTING_EQUIPMENT_CATALOG[itemId];
