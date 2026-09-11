@@ -7,6 +7,8 @@ const port = Number(readArg("--port") ?? "5174");
 const host = readArg("--host") ?? "localhost";
 const indexPath = join(repositoryRoot, "apps", "web", "index.html");
 const stylesPath = join(repositoryRoot, "apps", "web", "src", "styles.css");
+const sheetStylesPath = join(repositoryRoot, "apps", "web", "sheet.css");
+const sheetUiStylesPath = join(repositoryRoot, "apps", "web", "sheet-ui.css");
 const distRoot = resolve(repositoryRoot, "dist");
 const buildInfoPath = join(distRoot, "build-info.json");
 
@@ -23,6 +25,12 @@ const server = createServer((request, response) => {
   }
   if (pathname === "/styles.css") {
     return streamFile(stylesPath, response);
+  }
+  if (pathname === "/sheet.css") {
+    return streamFile(sheetStylesPath, response);
+  }
+  if (pathname === "/sheet-ui.css") {
+    return streamFile(sheetUiStylesPath, response);
   }
   if (pathname.startsWith("/dist/")) {
     const relative = normalize(pathname.slice("/dist/".length)).replace(/^([.][.][/\\])+/, "");
