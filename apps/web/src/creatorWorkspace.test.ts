@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
@@ -7,6 +8,9 @@ import {
   creatorSystemForCharacter,
   defaultCreatorSystem,
 } from "./creatorWorkspace.js";
+
+const mainSource = readFileSync("apps/web/src/main.ts", "utf8");
+const workspaceSource = readFileSync("apps/web/src/creatorWorkspace.ts", "utf8");
 
 function character(systemId: string, editionId: string): CharacterDocument {
   return {
@@ -35,6 +39,15 @@ describe("creator workspace system routing", () => {
     expect(creatorSystemForCharacter(character("dnd5e", "2024"))).toBe("dnd5e-2024");
     expect(creatorSystemForCharacter(character("brp", "uge-2023"))).toBe("brp-uge");
     expect(creatorSystemForCharacter(character("unknown", "1"))).toBeNull();
+  });
+
+  it("clears the rendered character when the user explicitly changes rules systems", () => {
+    expect(workspaceSource).toContain("onSystemChange?: (system: CreatorSystemId) => void");
+    expect(workspaceSource).toContain("options.onSystemChange?.(currentSystem())");
+    expect(mainSource).toContain("onSystemChange: clearRenderedCharacter");
+    expect(mainSource).toContain('resultElement.classList.add("empty-result")');
+    expect(workspaceSource).not.toContain("primaryNativeStateId =");
+    expect(workspaceSource).not.toContain("nativeStates =");
   });
 
   it("keeps legacy field-randomizer selectors available for system-specific actions", () => {

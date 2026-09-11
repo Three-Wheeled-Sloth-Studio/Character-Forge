@@ -53,6 +53,7 @@ const lockedProjectSystem = projectContextLocksCreatorSystem(projectContext);
 const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter, {
   ...(projectSystems.length ? { allowedSystems: projectSystems } : {}),
   ...(lockedProjectSystem ? { initialSystem: lockedProjectSystem, lockedSystem: lockedProjectSystem } : {}),
+  onSystemChange: clearRenderedCharacter,
 });
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
@@ -67,6 +68,11 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
 function publishCharacter(character: CharacterDocument): void {
   renderCharacter(character);
   postCharacterToHost(character);
+}
+
+function clearRenderedCharacter(): void {
+  resultElement.classList.add("empty-result");
+  resultElement.innerHTML = `<div class="empty-state"><p class="eyebrow">Character details</p><h2>Build a character</h2><p>Generate a character for the selected rules system to review it here.</p></div>`;
 }
 
 function renderCharacter(character: CharacterDocument): void {

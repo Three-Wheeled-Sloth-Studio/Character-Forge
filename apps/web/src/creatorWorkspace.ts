@@ -15,6 +15,7 @@ export interface CreatorWorkspaceOptions {
   initialSystem?: CreatorSystemId;
   lockedSystem?: CreatorSystemId | null;
   allowedSystems?: CreatorSystemId[];
+  onSystemChange?: (system: CreatorSystemId) => void;
 }
 
 export interface CreatorWorkspaceController {
@@ -124,7 +125,10 @@ export function mountCreatorWorkspace(
   };
 
   systemSelect.value = initialSystem;
-  systemSelect.addEventListener("change", renderSystem);
+  systemSelect.addEventListener("change", () => {
+    renderSystem();
+    options.onSystemChange?.(currentSystem());
+  });
   randomizeAll.addEventListener("click", () => {
     if (!creatorRandomizeAllAvailable(currentSystem(), dndMode)) return;
     if (currentSystem() === "brp-uge") {
