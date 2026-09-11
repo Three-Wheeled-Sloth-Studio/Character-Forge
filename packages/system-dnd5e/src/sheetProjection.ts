@@ -14,6 +14,8 @@ import {
   type Dnd5eNativeCharacter,
 } from "./nativeCharacter.js";
 
+const DND_SINGLE_PAGE_COLUMN_BUDGET = 30;
+
 const SKILL_ABILITY: Record<string, Dnd5eAbilityId> = {
   acrobatics: "dexterity",
   "animal-handling": "wisdom",
@@ -171,6 +173,8 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
     });
   }
 
+  const compactToOnePage = shouldCompactDndSheet(pageOneSections, pageTwoSections);
+
   return {
     title: character.displayName,
     systemTheme: "dnd5e",
@@ -183,11 +187,69 @@ export function buildDnd5eCharacterSheet(character: CharacterDocument): Characte
     footerNote: "D&D 5E 2024 | SRD 5.2.1",
     sourceNativeStateId: nativeState.id,
     sourceSchemaVersion: nativeState.schemaVersion,
-    pages: [
-      { id: "play", number: 1, title: "At the table", layout: "play-3", sections: pageOneSections },
-      { id: "depth", number: 2, title: "Features and gear", layout: "play-2", sections: pageTwoSections },
-    ],
+    pages: compactToOnePage
+      ? [
+          {
+            id: "play",
+            number: 1,
+            title: "At the table",
+            layout: "play-3",
+            sections: [...pageOneSections, ...pageTwoSections],
+          },
+        ]
+      : [
+          { id: "play", number: 1, title: "At the table", layout: "play-3", sections: pageOneSections },
+          { id: "depth", number: 2, title: "Features and gear", layout: "play-2", sections: pageTwoSections },
+        ],
   };
+}
+
+function shouldCompactDndSheet(
+  pageOneSections: CharacterSheetSection[],
+  pageTwoSections: CharacterSheetSection[],
+): boolean {
+  const sections = [...pageOneSections, ...pageTwoSections];
+  if (sections.some((section) => section.zone === "wide")) return false;
+
+  return (["left", "main", "right"] as const).every((zone) => {
+    const load = sections
+      .filter((section) => (section.zone ?? "main") === zone)
+      .reduce((total, section) => total + estimatedSectionRows(section), 0);
+    return load <= DND_SINGLE_PAGE_COLUMN_BUDGET;
+  });
+}
+
+function estimatedSectionRows(section: CharacterSheetSection): number {
+  const columns = section.preferredColumns ?? 1;
+  switch (section.kind) {
+    case "stats":
+      return 1 + Math.ceil(section.items.length / columns);
+    case "ratings": {
+      const itemRows = Math.ceil(section.items.length / columns);
+      const detailRows = section.items.filter((item) => item.detail).length * 0.4;
+      return 1 + itemRows + detailRows;
+    }
+    case "details": {
+      const itemRows = section.items.reduce(
+        (total, item) => total + wrappedRowEstimate(`${item.label} ${item.value}`, 68),
+        0,
+      );
+      return 1 + Math.ceil(itemRows / columns);
+    }
+    case "list": {
+      const itemRows = section.items.reduce(
+        (total, item) => total + wrappedRowEstimate(`${item.label} ${item.detail ?? ""}`, 58),
+        0,
+      );
+      return 1 + Math.ceil(itemRows / columns);
+    }
+    case "table":
+      return 2 + section.rows.length;
+  }
+}
+
+function wrappedRowEstimate(value: string, charactersPerRow: number): number {
+  return Math.max(1, Math.ceil(value.trim().length / charactersPerRow));
 }
 
 function primaryDndState(character: CharacterDocument): NativeSystemState {
