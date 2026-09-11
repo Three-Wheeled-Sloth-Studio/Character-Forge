@@ -19,18 +19,21 @@ areas:
       - packages/system-brp/src/sheetProjection.ts
       - packages/system-dnd5e/src/sheetProjection.ts
       - apps/web/src/characterSheetControls.ts
+      - apps/web/src/sheetPrintContract.test.ts
+      - apps/web/src/main.ts
       - apps/web/sheet.css
       - apps/web/sheet-ui.css
     notes: >-
-      The adaptive sheet framework now has two system proofs. Authoritative BRP
-      and D&D native state project through system-owned sheet projections into
-      shared presentation-only rendering. D&D review no longer exposes A/B/C
-      starting-equipment option IDs and instead renders concrete native
-      equipment/currency. Print, full CharacterDocument JSON copy/download, and
-      reserved first-page Portrait/VTT Token presentation slots are shared. Media
-      slots are layout placeholders only; image ownership/asset references remain
-      future Parchment Worlds character-asset work. Owner browser print/sheet
-      acceptance remains pending.
+      The adaptive sheet framework has BRP and D&D system-owned projections and
+      a hard screen/print artifact boundary. Player-facing sheets contain
+      character information, portrait/token presentation slots, and only a tiny
+      rules-source footer; Character Forge branding, generation provenance,
+      creator controls, native-document inspection, and document-action chrome
+      are not sheet content. main.ts maintains a dedicated character-print-root
+      containing rendered sheet HTML only. Print CSS hides the full forge-shell
+      and exposes only that print root. The logical model is exactly two pages
+      for both current systems; real browser QA must still confirm physical page
+      count and long-content overflow.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -67,14 +70,15 @@ areas:
     source_roots:
       - packages/system-dnd5e
       - packages/system-dnd5e/src/sheetProjection.ts
+      - apps/web/src/choicePoolDirectVisibility.ts
     notes: >-
-      D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. Browser QA justified a
-      bounded D&D dedicated-sheet second proof at caff03275bc714f7189a5c7c9e30daeddd1a12b4.
-      D&D now projects native abilities/resources/saves/skills/equipment/features/
-      spell state into the shared character-sheet renderer and has browser Print
-      plus full CharacterDocument JSON actions. Starting-equipment A/B/C IDs stay
-      generation/provenance choices; player-facing sheet equipment comes from
-      concrete native payload.equipment/currencyGp. Guided Narrative remains
+      D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. D&D now projects native
+      abilities/resources/saves/skills/equipment/features/spells into the shared
+      character-sheet renderer. Starting-equipment A/B/C IDs remain internal
+      generation/provenance choices. Guided Mechanical visible option labels use
+      the source-owned equipment descriptions, and direct-choice reconciliation
+      compares both IDs and labels so raw A/B/C labels cannot survive merely
+      because their values are technically correct. Guided Narrative remains
       parked and must not resume by chronology.
   brp:
     guidance:
@@ -97,10 +101,12 @@ areas:
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
       adapter 0.7 remain stable. Issue #14 includes profession/skill breadth,
-      equipment, finishing, actionable allocation UX, adaptive two-page sheet,
-      browser print, full CharacterDocument JSON controls, the versioned BRP
-      campaign/rules-profile seam, and legal whole-character Randomize All.
-      Owner browser sheet/save/reopen/print acceptance still gates Issue #14.
+      equipment, finishing, allocation UX, adaptive two-page sheet, isolated
+      browser print, full CharacterDocument JSON controls, the BRP campaign/rules
+      profile seam, and legal whole-character Randomize All. Large profile/rules
+      provenance blocks are not part of the sheet; current rules identity is a
+      tiny footer only. Owner browser sheet/save/reopen/print acceptance still
+      gates Issue #14.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
@@ -112,16 +118,18 @@ areas:
       - apps/web/src/brpCreatorRandomization.ts
       - apps/web/src/workspaceSplitter.ts
       - apps/web/src/characterSheetControls.ts
+      - apps/web/src/choicePoolDirectVisibility.ts
+      - apps/web/src/sheetPrintContract.test.ts
       - apps/web/sheet.css
       - apps/web/sheet-ui.css
     notes: >-
-      Creator UI must keep controls contained within their pane, visually
-      distinguish actions from form controls, use icon-first compact document
-      and randomization actions with tooltip/ARIA text, and use the bounded
-      resizable splitter for desktop. Supported systems with sheet projections
-      render their dedicated sheet as the result surface. Print/Copy/Download
-      are shared icon-only actions. UI/review/sheet/export/profile/randomization
-      controls remain projections or interaction layers over native rules state.
+      Creator UI must keep controls contained, distinguish actions from data
+      entry, and prefer compact familiar icons with title/ARIA text. Supported
+      systems with sheet projections render the system-owned sheet as the result
+      surface. The screen sheet toolbar is application chrome and never prints.
+      A dedicated print root, not selective in-place hiding, is the authoritative
+      print surface. Choice menus must preserve player-facing labels even when
+      their internal IDs remain unchanged.
   foundry-integration:
     guidance:
       - refs/architecture/character-architecture.md
@@ -169,9 +177,9 @@ common_tasks:
       - packages/system-brp/src/sheetProjection.ts
       - packages/system-dnd5e/src/sheetProjection.ts
       - apps/web/src/characterSheetControls.ts
+      - apps/web/src/choicePoolDirectVisibility.ts
       - apps/web/src/main.ts
       - apps/web/sheet.css
-      - apps/web/sheet-ui.css
   - task: Re-check dedicated sheet browser QA
     look_in:
       - refs/handoffs/currentHandoff.md
@@ -182,10 +190,11 @@ common_tasks:
       - packages/system-brp/src/sheetProjection.ts
       - apps/web/src/dndCharacterSheet.test.ts
       - apps/web/src/brpCharacterSheet.test.ts
+      - apps/web/src/sheetPrintContract.test.ts
       - apps/web/src/characterSheetControls.ts
+      - apps/web/src/choicePoolDirectVisibility.ts
       - apps/web/src/main.ts
       - apps/web/sheet.css
-      - apps/web/sheet-ui.css
   - task: Re-check BRP creator browser QA blockers
     look_in:
       - refs/handoffs/currentHandoff.md
