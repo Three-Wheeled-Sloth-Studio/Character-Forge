@@ -52,6 +52,8 @@ describe("D&D dedicated character sheet", () => {
       "saving-throws",
       "skills",
     ]);
+    expect(sheet.pages[1]?.sections.map((section) => section.id)).not.toContain("rules-context");
+    expect(sheet.footerNote).toBe("D&D 5E 2024 | SRD 5.2.1");
 
     const equipment = sheetSection(sheet, 2, "equipment");
     expect(equipment.kind).toBe("list");
@@ -76,13 +78,17 @@ describe("D&D dedicated character sheet", () => {
     expect(saves.items).toContainEqual(expect.objectContaining({ label: "Strength", detail: "Proficient" }));
   });
 
-  it("reserves portrait and VTT-token space in the dedicated sheet header", () => {
+  it("reserves portrait and VTT-token space without adding product branding to the sheet", () => {
     const html = renderCharacterSheet(buildDnd5eCharacterSheet(fighterCharacter()));
 
     expect(html).toContain('data-sheet-media-slot="portrait"');
     expect(html).toContain('data-sheet-media-slot="token"');
     expect(html).toContain("Portrait");
     expect(html).toContain("VTT Token");
+    expect(html).toContain('<footer class="sheet-footer">D&amp;D 5E 2024 | SRD 5.2.1</footer>');
+    expect(html).not.toContain("Character Forge");
+    expect(html).not.toContain("Rules Context");
+    expect(html).not.toContain("Generation seed");
   });
 
   it("uses icon-only print, copy, and download actions with hover and accessible text", () => {
