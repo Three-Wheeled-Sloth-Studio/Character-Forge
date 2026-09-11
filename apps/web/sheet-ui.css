@@ -5,3 +5,9 @@
 .result-panel .sheet-page {
   scroll-margin-top: 12px;
 }
+
+@media print {
+  .sheet-print-document .sheet-page {
+    min-height: 0;
+  }
+}

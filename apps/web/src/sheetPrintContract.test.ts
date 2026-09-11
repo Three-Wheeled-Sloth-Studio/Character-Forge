@@ -31,6 +31,12 @@ describe("dedicated character-sheet print contract", () => {
     expect(printDocument).toContain('href="http://localhost:5174/sheet-ui.css"');
   });
 
+  it("lets compact logical pages keep their intrinsic physical print height", () => {
+    expect(sheetUiCss).toContain("@media print");
+    expect(sheetUiCss).toContain(".sheet-print-document .sheet-page");
+    expect(sheetUiCss).toContain("min-height: 0");
+  });
+
   it("prints a separate desktop-width document containing only the current sheet markup", () => {
     const printDocument = printableCharacterSheetDocument(
       '<article class="character-sheet"><section class="sheet-page">Only the character sheet</section></article>',
