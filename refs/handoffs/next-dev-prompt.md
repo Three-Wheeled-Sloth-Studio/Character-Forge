@@ -24,17 +24,18 @@ Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requeste
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "roadmap prioritization Character Forge productization sheets VTT naming universal grammar"
+python refs/tools/generate_agent_context.py --focus "roadmap prioritization Character Forge productization engineering health sheets VTT naming universal grammar"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/unprioritized-product-todos-2026-09-11.md`
-3. `refs/planning/roadmap.yaml`
-4. `refs/architecture/adaptive-character-sheet-framework.md`
-5. `refs/product/creator-workspace.md`
-6. GitHub Issue #14
+3. `refs/planning/engineering-health-cleanup.md`
+4. `refs/planning/roadmap.yaml`
+5. `refs/architecture/adaptive-character-sheet-framework.md`
+6. `refs/product/creator-workspace.md`
+7. GitHub Issue #14
 
 Do not reread the entire repository history.
 
@@ -64,11 +65,15 @@ No additional fix was attempted during the documentation closeout.
 
 ## Newly Captured Backlog
 
-The unprioritized capture is authoritative at:
+The unprioritized product capture is authoritative at:
 
 `refs/planning/unprioritized-product-todos-2026-09-11.md`
 
-It includes, among other items:
+The engineering-health cleanup capture is at:
+
+`refs/planning/engineering-health-cleanup.md`
+
+Together they include, among other items:
 
 - remaining sheet pagination acceptance work;
 - studio/product branding using `TWS-Design-Principles/Branding/`;
@@ -82,10 +87,11 @@ It includes, among other items:
 - correct system-switch clear/translate semantics;
 - BRP and D&D primary-UI minimalism cleanup;
 - Character Forge `version:build:revision` user-facing version identity;
-- a matching parent Parchment Worlds version pill; and
-- deeper inheritance of authoritative project/campaign choices.
+- a matching parent Parchment Worlds version pill;
+- deeper inheritance of authoritative project/campaign choices; and
+- an engineering-health pass covering stale/obsolete tests, duplicate/low-value tests, dead scaffolding, responsibility boundaries, refactoring opportunities, and explicit monolith/file-growth detection.
 
-Do not infer priority from the order in that file.
+Do not infer priority from the order in either file.
 
 ## First Task - Propose Priority Order
 
@@ -95,9 +101,10 @@ Group the work into:
 
 1. **Current acceptance blockers** - items that prevent closing active player-usability/browser acceptance.
 2. **Productization / external-demo readiness** - items needed before actively shopping/demoing the product.
-3. **Near-term companion capabilities** - valuable user-facing additions that fit naturally after acceptance.
-4. **Architecture/platform investments** - Universal Grammar, proprietary-system foundations, durable media/assets, translation semantics, etc.
-5. **Later integrations** - Foundry push/sync and other integrations that depend on earlier foundations.
+3. **Engineering health / maintainability** - stale-test cleanup, refactoring, dead-code removal, monolith/file-growth audit, and maintainability guardrails.
+4. **Near-term companion capabilities** - valuable user-facing additions that fit naturally after acceptance.
+5. **Architecture/platform investments** - Universal Grammar, proprietary-system foundations, durable media/assets, translation semantics, etc.
+6. **Later integrations** - Foundry push/sync and other integrations that depend on earlier foundations.
 
 For each proposed work package include:
 
@@ -142,6 +149,10 @@ Do not ask the character creator to repeat project/campaign choices already supp
 ### Sheet direction
 
 The sheet is a play artifact. Preserve system-specific play hierarchy, screen/print parity, quiet empty media space, campaign-owned badging, and the standalone print-document boundary.
+
+### Engineering-health boundary
+
+Treat cleanup as evidence-driven maintenance, not an excuse for a broad rewrite. Remove stale tests only after determining the behavior they protect is obsolete; preserve high-value regression and native-state guarantees; split monoliths by coherent responsibility rather than arbitrary line-count targets.
 
 ## Active Issue Boundary
 
