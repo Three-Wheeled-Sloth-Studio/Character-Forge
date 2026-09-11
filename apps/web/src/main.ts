@@ -34,13 +34,16 @@ app.innerHTML = `
       <aside id="creator-root" class="creator-column" aria-label="Character generation controls"></aside>
       <section id="result" class="result-panel empty-result" aria-live="polite"><div class="empty-state"><p class="eyebrow">Character details</p><h2>Build a character</h2><p>Your generated character will stay visible here while you adjust generation choices on the left.</p></div></section>
     </div>
-  </section>`;
+  </section>
+  <div id="character-print-root" class="character-print-root" aria-hidden="true"></div>`;
 
 const creatorRootCandidate = document.querySelector<HTMLElement>("#creator-root");
 const resultCandidate = document.querySelector<HTMLElement>("#result");
-if (!creatorRootCandidate || !resultCandidate) throw new Error("Character Forge workspace failed to initialize.");
+const printRootCandidate = document.querySelector<HTMLElement>("#character-print-root");
+if (!creatorRootCandidate || !resultCandidate || !printRootCandidate) throw new Error("Character Forge workspace failed to initialize.");
 const creatorRoot: HTMLElement = creatorRootCandidate;
 const resultElement: HTMLElement = resultCandidate;
+const printRoot: HTMLElement = printRootCandidate;
 const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter);
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
@@ -95,15 +98,18 @@ function renderBrpCharacter(character: CharacterDocument, nativeState: NativeSys
 }
 
 function renderDedicatedSheet(character: CharacterDocument, sheet: ReturnType<typeof buildBrpCharacterSheet>): void {
+  const sheetHtml = renderCharacterSheet(sheet);
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
     ${characterDocumentControlsHtml(true)}
-    ${renderCharacterSheet(sheet)}
+    ${sheetHtml}
     <details class="document-inspector no-print"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
+  printRoot.innerHTML = sheetHtml;
   bindCharacterDocumentControls(resultElement, character);
 }
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
+  printRoot.replaceChildren();
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `<div class="result-heading"><div><p class="eyebrow">Character details</p><h2>${escapeHtml(character.displayName)}</h2></div><span class="validation-pill invalid">Validation failed</span></div><p>${escapeHtml(message)}</p><details class="document-inspector"><summary>Inspect retained character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
 }
