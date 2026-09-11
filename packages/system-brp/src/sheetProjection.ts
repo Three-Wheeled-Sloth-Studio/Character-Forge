@@ -11,7 +11,6 @@ import {
 import { readBrpFinishingDetailsForPayload } from "./finishing.js";
 import { brpUge105Adapter } from "./finishingAdapter.js";
 import type { BrpNativeCharacter, BrpProfessionState } from "./nativeCharacter.js";
-import { BRP_UGE_ORC_1_05_SOURCE } from "./rulesSource.js";
 import { BRP_FIRST_SLICE_SKILL_CATALOG, type BrpFirstSliceSkillKey } from "./skills.js";
 
 const CHARACTERISTIC_IDS = ["STR", "CON", "SIZ", "INT", "POW", "DEX", "CHA"] as const;
@@ -26,7 +25,6 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
 
   const payload = nativeState.payload as BrpNativeCharacter;
   const profession = professionLabel(payload.identity.profession);
-  const profile = `${titleCase(payload.rulesProfile.powerLevel)} / ${titleCase(payload.rulesProfile.characteristicGeneration)}`;
   const finishing = readBrpFinishingDetailsForPayload(payload);
   const equipmentIds = payload.equipment.map((itemId) => {
     if (!isBrpEquipmentId(itemId)) throw new Error(`Unsupported BRP equipment ID ${itemId}.`);
@@ -150,19 +148,6 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
     });
   }
 
-  pageOneSections.push({
-    id: "profile",
-    title: "BRP Profile",
-    role: "provenance",
-    priority: 20,
-    kind: "details",
-    preferredColumns: 2,
-    items: [
-      { label: "Rules profile", value: profile },
-      { label: "Rules source", value: "BRP UGE ORC 1.05" },
-    ],
-  });
-
   const pageTwoSections: CharacterSheetSection[] = [
     {
       id: "equipment",
@@ -226,23 +211,10 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
     });
   }
 
-  pageTwoSections.push({
-    id: "source-context",
-    title: "Rules Context",
-    role: "provenance",
-    priority: 20,
-    kind: "details",
-    preferredColumns: 2,
-    items: [
-      { label: "System", value: "Basic Roleplaying: Universal Game Engine" },
-      { label: "Profile", value: profile },
-      { label: "Source", value: `${BRP_UGE_ORC_1_05_SOURCE.title}, corrections ${BRP_UGE_ORC_1_05_SOURCE.version}` },
-    ],
-  });
-
   return {
     title: character.displayName,
-    subtitle: `${profession} | BRP UGE 2023`,
+    subtitle: profession,
+    footerNote: "BRP UGE 2023 | ORC 1.05",
     sourceNativeStateId: nativeState.id,
     sourceSchemaVersion: nativeState.schemaVersion,
     pages: [
