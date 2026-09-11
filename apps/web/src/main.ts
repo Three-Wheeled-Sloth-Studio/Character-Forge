@@ -15,6 +15,7 @@ import {
   projectContextLocksCreatorSystem,
   readCharacterForgeProjectContext,
 } from "./projectContext.js";
+import { SHEET_TOOLBAR_STYLES } from "./sheetToolbarStyles.js";
 
 const CHARACTER_GENERATED_MESSAGE = "character-forge:character-generated";
 const params = new URLSearchParams(window.location.search);
@@ -111,12 +112,17 @@ function renderDedicatedSheet(character: CharacterDocument, sheet: ReturnType<ty
   });
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
+    <style data-sheet-toolbar-styles>${SHEET_TOOLBAR_STYLES}</style>
     ${characterDocumentControlsHtml(true, true)}
     ${sheetHtml}
     <details class="document-inspector no-print"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
-  bindCharacterDocumentControls(resultElement, character, () => (
-    resultElement.querySelector<HTMLElement>(".character-sheet")?.outerHTML ?? sheetHtml
-  ));
+  bindCharacterDocumentControls(resultElement, character, () => printableSheetFromResult(sheetHtml));
+}
+
+function printableSheetFromResult(fallback: string): string {
+  const style = resultElement.querySelector<HTMLStyleElement>("style[data-character-sheet-styles]")?.outerHTML ?? "";
+  const sheet = resultElement.querySelector<HTMLElement>(".character-sheet")?.outerHTML ?? "";
+  return style && sheet ? `${style}${sheet}` : fallback;
 }
 
 function renderCharacterFailure(character: CharacterDocument, message: string): void {
