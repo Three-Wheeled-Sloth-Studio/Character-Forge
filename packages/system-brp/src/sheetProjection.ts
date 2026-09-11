@@ -15,6 +15,7 @@ import type { BrpNativeCharacter, BrpProfessionState } from "./nativeCharacter.j
 import { BRP_FIRST_SLICE_SKILL_CATALOG, type BrpFirstSliceSkillKey } from "./skills.js";
 
 const CHARACTERISTIC_IDS = ["STR", "CON", "SIZ", "INT", "POW", "DEX", "CHA"] as const;
+const BRP_SINGLE_PAGE_COLUMN_BUDGET = 30;
 
 type BrpSheetSkillGroup = "Communication" | "Mental" | "Perception" | "Physical" | "Combat";
 
@@ -205,6 +206,8 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
     });
   }
 
+  const compactToOnePage = shouldCompactBrpSheet(pageOneSections, pageTwoSections);
+
   return {
     title: character.displayName,
     subtitle: profession,
@@ -217,11 +220,71 @@ export function buildBrpCharacterSheet(character: CharacterDocument): CharacterS
     footerNote: "BRP UGE 2023 | ORC 1.05",
     sourceNativeStateId: nativeState.id,
     sourceSchemaVersion: nativeState.schemaVersion,
-    pages: [
-      { id: "play", number: 1, title: "At the table", layout: "play-3", sections: pageOneSections },
-      { id: "depth", number: 2, title: "Depth and logistics", layout: "play-2", sections: pageTwoSections },
-    ],
+    pages: compactToOnePage
+      ? [
+          {
+            id: "play",
+            number: 1,
+            title: "At the table",
+            layout: "play-3",
+            sections: [...pageOneSections, ...pageTwoSections],
+          },
+        ]
+      : [
+          { id: "play", number: 1, title: "At the table", layout: "play-3", sections: pageOneSections },
+          { id: "depth", number: 2, title: "Depth and logistics", layout: "play-2", sections: pageTwoSections },
+        ],
   };
+}
+
+function shouldCompactBrpSheet(
+  pageOneSections: CharacterSheetSection[],
+  pageTwoSections: CharacterSheetSection[],
+): boolean {
+  const sections = [...pageOneSections, ...pageTwoSections];
+  const wideLoad = sections
+    .filter((section) => section.zone === "wide")
+    .reduce((total, section) => total + estimatedSectionRows(section), 0);
+
+  return (["left", "main", "right"] as const).every((zone) => {
+    const columnLoad = sections
+      .filter((section) => section.zone !== "wide" && (section.zone ?? "main") === zone)
+      .reduce((total, section) => total + estimatedSectionRows(section), 0);
+    return columnLoad + wideLoad <= BRP_SINGLE_PAGE_COLUMN_BUDGET;
+  });
+}
+
+function estimatedSectionRows(section: CharacterSheetSection): number {
+  const columns = section.preferredColumns ?? 1;
+  switch (section.kind) {
+    case "stats":
+      return 1 + Math.ceil(section.items.length / columns);
+    case "ratings": {
+      const itemRows = Math.ceil(section.items.length / columns);
+      const detailRows = section.items.filter((item) => item.detail).length * 0.4;
+      return 1 + itemRows + detailRows;
+    }
+    case "details": {
+      const itemRows = section.items.reduce(
+        (total, item) => total + wrappedRowEstimate(`${item.label} ${item.value}`, 68),
+        0,
+      );
+      return 1 + Math.ceil(itemRows / columns);
+    }
+    case "list": {
+      const itemRows = section.items.reduce(
+        (total, item) => total + wrappedRowEstimate(`${item.label} ${item.detail ?? ""}`, 58),
+        0,
+      );
+      return 1 + Math.ceil(itemRows / columns);
+    }
+    case "table":
+      return 2 + section.rows.length;
+  }
+}
+
+function wrappedRowEstimate(value: string, charactersPerRow: number): number {
+  return Math.max(1, Math.ceil(value.trim().length / charactersPerRow));
 }
 
 function skillSection(
