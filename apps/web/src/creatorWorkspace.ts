@@ -11,6 +11,12 @@ import { mountWorkspaceSplitter } from "./workspaceSplitter.js";
 
 export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
 
+export interface CreatorWorkspaceOptions {
+  initialSystem?: CreatorSystemId;
+  lockedSystem?: CreatorSystemId | null;
+  allowedSystems?: CreatorSystemId[];
+}
+
 export interface CreatorWorkspaceController {
   openCharacter(character: CharacterDocument): void;
 }
@@ -58,21 +64,29 @@ export function creatorRandomizationHelp(
 export function mountCreatorWorkspace(
   root: HTMLElement,
   onCharacter: (character: CharacterDocument) => void,
+  options: CreatorWorkspaceOptions = {},
 ): CreatorWorkspaceController {
   mountCreatorWorkspaceSplitter(root);
+  const allowedSystems = normalizeAllowedSystems(options.allowedSystems);
+  const lockedSystem = options.lockedSystem && allowedSystems.includes(options.lockedSystem)
+    ? options.lockedSystem
+    : null;
+  const initialSystem = lockedSystem
+    ?? (options.initialSystem && allowedSystems.includes(options.initialSystem) ? options.initialSystem : null)
+    ?? (allowedSystems.includes(defaultCreatorSystem()) ? defaultCreatorSystem() : allowedSystems[0]!);
+  const systemOptions = allowedSystems.map((system) => `<option value="${system}">${creatorSystemLabel(system)}</option>`).join("");
+  const systemSelector = lockedSystem
+    ? `<select id="creator-rules-system" hidden aria-hidden="true">${systemOptions}</select>`
+    : `<label>Rules system<select id="creator-rules-system">${systemOptions}</select></label>`;
+
   root.innerHTML = `
-    <section class="creator-panel creator-system-panel">
+    <section class="creator-panel creator-system-panel${lockedSystem ? " creator-system-panel-locked" : ""}">
       <div class="creator-system-actions">
-        <label>Rules system
-          <select id="creator-rules-system">
-            <option value="dnd5e-2024">D&D 5E 2024</option>
-            <option value="brp-uge">BRP UGE</option>
-          </select>
-        </label>
+        ${systemSelector}
         <button id="creator-randomize-all" type="button" class="secondary-button icon-button creator-randomize-all" title="Randomize All" aria-label="Randomize All"><span aria-hidden="true">⚄⚅</span></button>
       </div>
-      <p id="creator-randomization-help" class="muted"></p>
-      <p class="muted">System-specific generation controls stay below. Native rules state remains authoritative.</p>
+      ${lockedSystem ? "" : '<p id="creator-randomization-help" class="muted"></p><p class="muted">System-specific generation controls stay below. Native rules state remains authoritative.</p>'}
+      ${lockedSystem ? '<p id="creator-randomization-help" class="visually-hidden"></p>' : ""}
     </section>
     <div id="creator-system-host"></div>`;
 
@@ -109,7 +123,7 @@ export function mountCreatorWorkspace(
     });
   };
 
-  systemSelect.value = defaultCreatorSystem();
+  systemSelect.value = initialSystem;
   systemSelect.addEventListener("change", renderSystem);
   randomizeAll.addEventListener("click", () => {
     if (!creatorRandomizeAllAvailable(currentSystem(), dndMode)) return;
@@ -124,12 +138,22 @@ export function mountCreatorWorkspace(
   return {
     openCharacter(character: CharacterDocument): void {
       const system = creatorSystemForCharacter(character);
-      if (!system) return;
+      if (!system || !allowedSystems.includes(system)) return;
       systemSelect.value = system;
       renderSystem();
       if (system === "brp-uge") brpController?.openCharacter(character);
     },
   };
+}
+
+function normalizeAllowedSystems(systems: CreatorSystemId[] | undefined): CreatorSystemId[] {
+  const all: CreatorSystemId[] = ["dnd5e-2024", "brp-uge"];
+  const filtered = systems?.filter((system, index) => all.includes(system) && systems.indexOf(system) === index) ?? [];
+  return filtered.length ? filtered : all;
+}
+
+function creatorSystemLabel(system: CreatorSystemId): string {
+  return system === "brp-uge" ? "BRP UGE" : "D&D 5E 2024";
 }
 
 function mountCreatorWorkspaceSplitter(root: HTMLElement): void {
