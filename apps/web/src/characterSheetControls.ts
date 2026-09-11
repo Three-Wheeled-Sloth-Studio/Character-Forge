@@ -47,16 +47,20 @@ function sheetActionButton(action: string, label: string, icon: string): string 
   return `<button type="button" class="sheet-action-button" data-sheet-action="${action}" aria-label="${label}" title="${label}">${icon}</button>`;
 }
 
+function svgIcon(contents: string): string {
+  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${contents}</svg>`;
+}
+
 function copyIcon(): string {
-  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>`;
+  return svgIcon(`<rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>`);
 }
 
 function downloadIcon(): string {
-  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="m7.5 10.5 4.5 4.5 4.5-4.5"></path><path d="M5 20h14"></path></svg>`;
+  return svgIcon(`<path d="M12 3v12"></path><path d="m7.5 10.5 4.5 4.5 4.5-4.5"></path><path d="M5 20h14"></path>`);
 }
 
 function printIcon(): string {
-  return `<svg class="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 8V3h10v5"></path><path d="M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2"></path><rect x="7" y="14" width="10" height="7" rx="1"></rect></svg>`;
+  return svgIcon(`<path d="M7 8V3h10v5"></path><path d="M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2"></path><rect x="7" y="14" width="10" height="7" rx="1"></rect>`);
 }
 
 function downloadCharacterDocumentJson(character: CharacterDocument): void {
