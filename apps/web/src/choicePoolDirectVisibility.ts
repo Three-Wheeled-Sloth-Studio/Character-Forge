@@ -4,8 +4,21 @@ export interface DirectChoiceOptionState {
   disabled: boolean;
 }
 
+export interface DirectChoiceDisplayOption {
+  id: string;
+  label: string;
+}
+
 export function directSelectableIds(options: readonly DirectChoiceOptionState[]): string[] {
   return [...new Set(options.filter((option) => !option.disabled).map((option) => option.id))];
+}
+
+export function directChoiceDisplayMatches(
+  current: readonly DirectChoiceDisplayOption[],
+  desired: readonly DirectChoiceDisplayOption[],
+): boolean {
+  return current.length === desired.length
+    && current.every((option, index) => option.id === desired[index]?.id && option.label === desired[index]?.label);
 }
 
 interface ChoicePoolBinding {
@@ -84,15 +97,19 @@ function refreshBinding(doc: Document, binding: ChoicePoolBinding): void {
       label: checkbox.closest("label")?.querySelector("span")?.textContent?.replace(/\s*·\s*later\s*$/u, "").trim() || checkbox.value,
     }));
   const desiredIds = directSelectableIds(enabled.map((option) => ({ id: option.id, checked: true, disabled: false })));
-  const currentIds = [...binding.select.options].map((option) => option.value);
-  if (sameIds(currentIds, desiredIds)) return;
+  const labels = new Map(enabled.map((option) => [option.id, option.label]));
+  const desired = desiredIds.map((id) => ({ id, label: labels.get(id) ?? id }));
+  const current = [...binding.select.options].map((option) => ({
+    id: option.value,
+    label: option.textContent?.trim() ?? "",
+  }));
+  if (directChoiceDisplayMatches(current, desired)) return;
 
   const selectedId = binding.select.value;
-  const labels = new Map(enabled.map((option) => [option.id, option.label]));
-  binding.select.replaceChildren(...desiredIds.map((id) => {
+  binding.select.replaceChildren(...desired.map((entry) => {
     const option = doc.createElement("option");
-    option.value = id;
-    option.textContent = labels.get(id) ?? id;
+    option.value = entry.id;
+    option.textContent = entry.label;
     return option;
   }));
   if (desiredIds.includes(selectedId)) binding.select.value = selectedId;
@@ -102,10 +119,6 @@ function uniqueAttributeValues(doc: Document, selector: string, attribute: strin
   return [...new Set([...doc.querySelectorAll<HTMLElement>(selector)]
     .map((element) => element.getAttribute(attribute))
     .filter((value): value is string => Boolean(value)))];
-}
-
-function sameIds(left: readonly string[], right: readonly string[]): boolean {
-  return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 function attributeSafe(value: string): string {
