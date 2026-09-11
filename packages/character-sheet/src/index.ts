@@ -11,6 +11,8 @@ export type CharacterSheetRole =
   | "provenance";
 
 export type CharacterSheetMediaSlotKind = "portrait" | "token";
+export type CharacterSheetPageLayout = "flow" | "play-3" | "play-2";
+export type CharacterSheetZone = "left" | "main" | "right" | "wide";
 
 export interface CharacterSheetMediaSlot {
   id: string;
@@ -18,10 +20,23 @@ export interface CharacterSheetMediaSlot {
   kind: CharacterSheetMediaSlotKind;
 }
 
+export interface CharacterSheetHeaderFact {
+  label: string;
+  value: string;
+}
+
+export interface CharacterSheetPresentationContext {
+  campaignName?: string;
+  portraitSrc?: string;
+  tokenSrc?: string;
+}
+
 export interface CharacterSheetDescriptor {
   title: string;
   subtitle?: string;
   footerNote?: string;
+  systemTheme?: string;
+  headerFacts?: CharacterSheetHeaderFact[];
   sourceNativeStateId: string;
   sourceSchemaVersion: string;
   pages: CharacterSheetPage[];
@@ -31,6 +46,7 @@ export interface CharacterSheetPage {
   id: string;
   number: number;
   title?: string;
+  layout?: CharacterSheetPageLayout;
   mediaSlots?: CharacterSheetMediaSlot[];
   sections: CharacterSheetSection[];
 }
@@ -43,6 +59,7 @@ export interface CharacterSheetSectionBase {
   preferredColumns?: 1 | 2 | 3 | 4;
   allowSplit?: boolean;
   help?: string;
+  zone?: CharacterSheetZone;
 }
 
 export interface CharacterSheetStatItem {
@@ -112,31 +129,82 @@ const DEFAULT_PRIMARY_MEDIA_SLOTS: CharacterSheetMediaSlot[] = [
   { id: "token", label: "VTT Token", kind: "token" },
 ];
 
-export function renderCharacterSheet(descriptor: CharacterSheetDescriptor): string {
+export function renderCharacterSheet(
+  descriptor: CharacterSheetDescriptor,
+  context: CharacterSheetPresentationContext = {},
+): string {
   const label = `${descriptor.title} character sheet`;
-  return `<article class="character-sheet" aria-label="${escapeHtml(label)}" data-source-native-state="${escapeHtml(descriptor.sourceNativeStateId)}" data-source-schema="${escapeHtml(descriptor.sourceSchemaVersion)}">
-    ${descriptor.pages.map((page) => renderPage(page, descriptor)).join("")}
+  const systemTheme = descriptor.systemTheme?.trim() || "neutral";
+  return `<article class="character-sheet" aria-label="${escapeHtml(label)}" data-sheet-system="${escapeHtml(systemTheme)}" data-source-native-state="${escapeHtml(descriptor.sourceNativeStateId)}" data-source-schema="${escapeHtml(descriptor.sourceSchemaVersion)}">
+    ${descriptor.pages.map((page) => renderPage(page, descriptor, context)).join("")}
   </article>`;
 }
 
-function renderPage(page: CharacterSheetPage, descriptor: CharacterSheetDescriptor): string {
+function renderPage(
+  page: CharacterSheetPage,
+  descriptor: CharacterSheetDescriptor,
+  context: CharacterSheetPresentationContext,
+): string {
   const subtitle = descriptor.subtitle ? `<p>${escapeHtml(descriptor.subtitle)}</p>` : "";
   const ariaPageTitle = page.title ? `: ${page.title}` : "";
   const effectiveMediaSlots = page.mediaSlots ?? (page.number === 1 ? DEFAULT_PRIMARY_MEDIA_SLOTS : []);
-  const mediaSlots = effectiveMediaSlots.length ? renderMediaSlots(effectiveMediaSlots) : "";
+  const portrait = effectiveMediaSlots.find((slot) => slot.kind === "portrait");
+  const token = effectiveMediaSlots.find((slot) => slot.kind === "token");
+  const campaignBadge = context.campaignName?.trim()
+    ? `<div class="sheet-campaign-badge" title="Campaign">${escapeHtml(context.campaignName.trim())}</div>`
+    : "";
+  const headerFacts = descriptor.headerFacts?.length
+    ? `<dl class="sheet-header-facts">${descriptor.headerFacts.map((fact) => `<div><dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd></div>`).join("")}</dl>`
+    : "";
   const footer = descriptor.footerNote ? `<footer class="sheet-footer">${escapeHtml(descriptor.footerNote)}</footer>` : "";
-  return `<section class="sheet-page" data-sheet-page="${page.number}" aria-label="${escapeHtml(`Page ${page.number}${ariaPageTitle}`)}">
+  const layout = page.layout ?? "flow";
+
+  return `<section class="sheet-page sheet-layout-${layout}" data-sheet-page="${page.number}" aria-label="${escapeHtml(`Page ${page.number}${ariaPageTitle}`)}">
     <header class="sheet-page-header">
-      <div class="sheet-page-header-copy"><h2>${escapeHtml(descriptor.title)}</h2>${subtitle}</div>
-      ${mediaSlots}
+      ${portrait ? renderMediaSlot(portrait, context.portraitSrc) : ""}
+      <div class="sheet-page-header-copy">
+        <h2>${escapeHtml(descriptor.title)}</h2>
+        ${subtitle}
+        ${headerFacts}
+      </div>
+      <div class="sheet-page-header-side">${campaignBadge}${token ? renderMediaSlot(token, context.tokenSrc) : ""}</div>
     </header>
-    <div class="sheet-page-content">${page.sections.map(renderSection).join("")}</div>
+    ${renderPageContent(page.sections, layout)}
     ${footer}
   </section>`;
 }
 
-function renderMediaSlots(slots: CharacterSheetMediaSlot[]): string {
-  return `<div class="sheet-media-slots" aria-label="Character media spaces">${slots.map((slot) => `<div class="sheet-media-slot sheet-media-slot-${slot.kind}" data-sheet-media-slot="${escapeHtml(slot.id)}" aria-label="Reserved ${escapeHtml(slot.label)} space"><span>${escapeHtml(slot.label)}</span></div>`).join("")}</div>`;
+function renderMediaSlot(slot: CharacterSheetMediaSlot, source?: string): string {
+  const image = source?.trim()
+    ? `<img src="${escapeHtml(source.trim())}" alt="" />`
+    : "";
+  return `<div class="sheet-media-slot sheet-media-slot-${slot.kind}${image ? " has-image" : ""}" data-sheet-media-slot="${escapeHtml(slot.id)}" aria-label="Reserved ${escapeHtml(slot.label)} space">${image}</div>`;
+}
+
+function renderPageContent(sections: CharacterSheetSection[], layout: CharacterSheetPageLayout): string {
+  if (layout === "flow") {
+    return `<div class="sheet-page-content">${sections.map(renderSection).join("")}</div>`;
+  }
+
+  const left = sections.filter((section) => (section.zone ?? "main") === "left");
+  const main = sections.filter((section) => (section.zone ?? "main") === "main");
+  const right = sections.filter((section) => section.zone === "right");
+  const wide = sections.filter((section) => section.zone === "wide");
+
+  if (layout === "play-2") {
+    return `<div class="sheet-page-content sheet-play-grid sheet-play-grid-2">
+      <div class="sheet-zone-column sheet-zone-left">${left.map(renderSection).join("")}</div>
+      <div class="sheet-zone-column sheet-zone-right">${[...main, ...right].map(renderSection).join("")}</div>
+      ${wide.length ? `<div class="sheet-zone-wide">${wide.map(renderSection).join("")}</div>` : ""}
+    </div>`;
+  }
+
+  return `<div class="sheet-page-content sheet-play-grid sheet-play-grid-3">
+    <div class="sheet-zone-column sheet-zone-left">${left.map(renderSection).join("")}</div>
+    <div class="sheet-zone-column sheet-zone-main">${main.map(renderSection).join("")}</div>
+    <div class="sheet-zone-column sheet-zone-right">${right.map(renderSection).join("")}</div>
+    ${wide.length ? `<div class="sheet-zone-wide">${wide.map(renderSection).join("")}</div>` : ""}
+  </div>`;
 }
 
 function renderSection(section: CharacterSheetSection): string {
@@ -164,7 +232,7 @@ function renderSectionBody(section: CharacterSheetSection): string {
     case "list":
       return `<ul class="sheet-list sheet-columns-${section.preferredColumns ?? 1}">${section.items.map((item) => `<li><strong>${escapeHtml(item.label)}</strong>${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}</li>`).join("")}</ul>`;
     case "table":
-      return `<div class="sheet-table-wrap"><table><thead><tr>${section.columns.map((column) => `<th class="sheet-align-${column.align ?? "left"}" scope="col">${escapeHtml(column.label)}</th>`).join("")}</tr></thead><tbody>${section.rows.map((row) => `<tr>${section.columns.map((column) => `<td class="sheet-align-${column.align ?? "left"}">${escapeHtml(row[column.key] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      return `<div class="sheet-table-wrap"><table><thead><tr>${section.columns.map((column) => `<th class="sheet-align-${column.align ?? "left"}" scope="col">${escapeHtml(column.label)}</th>`).join("")}</tr></thead><tbody>${section.rows.map((row) => `<tr>${section.columns.map((column) => `<td class="sheet-align-${column.align ?? "left"}">${escapeHtml(row[column.key] ?? "")}</td>`).join("")}</tbody></table></div>`;
   }
 }
 
