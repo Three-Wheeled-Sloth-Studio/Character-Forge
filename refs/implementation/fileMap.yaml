@@ -18,9 +18,9 @@ areas:
       - packages/character-sheet
       - packages/system-brp/src/sheetProjection.ts
       - packages/system-dnd5e/src/sheetProjection.ts
+      - apps/web/src/characterResultRenderer.ts
       - apps/web/src/characterSheetControls.ts
       - apps/web/src/sheetPrintContract.test.ts
-      - apps/web/src/main.ts
       - apps/web/sheet.css
       - apps/web/sheet-ui.css
     notes: >-
@@ -29,11 +29,12 @@ areas:
       character information, portrait/token presentation slots, and only a tiny
       rules-source footer; Character Forge branding, generation provenance,
       creator controls, native-document inspection, and document-action chrome
-      are not sheet content. main.ts maintains a dedicated character-print-root
-      containing rendered sheet HTML only. Print CSS hides the full forge-shell
-      and exposes only that print root. The logical model is exactly two pages
-      for both current systems; real browser QA must still confirm physical page
-      count and long-content overflow.
+      are not sheet content. characterResultRenderer.ts owns system routing into
+      the dedicated sheet result surface and extracts only the current rendered
+      sheet artifact for printing. characterSheetControls.ts prints that artifact
+      through an isolated desktop-width iframe document. D&D and BRP both use
+      adaptive logical pagination: one page when content comfortably fits and two
+      when it genuinely requires more space. Owner browser QA passed both systems.
   generator-core:
     guidance:
       - refs/product/generation-methods.md
@@ -72,14 +73,15 @@ areas:
       - packages/system-dnd5e/src/sheetProjection.ts
       - apps/web/src/choicePoolDirectVisibility.ts
     notes: >-
-      D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. D&D now projects native
+      D&D 5E 2024 SRD 5.2.1 Level 1 breadth is proven. D&D projects native
       abilities/resources/saves/skills/equipment/features/spells into the shared
-      character-sheet renderer. Starting-equipment A/B/C IDs remain internal
-      generation/provenance choices. Guided Mechanical visible option labels use
-      the source-owned equipment descriptions, and direct-choice reconciliation
-      compares both IDs and labels so raw A/B/C labels cannot survive merely
-      because their values are technically correct. Guided Narrative remains
-      parked and must not resume by chronology.
+      character-sheet renderer and passed owner browser print acceptance.
+      Starting-equipment A/B/C IDs remain internal generation/provenance choices.
+      Guided Mechanical visible option labels use source-owned equipment
+      descriptions, and direct-choice reconciliation compares both IDs and labels
+      so raw A/B/C labels cannot survive merely because their values are
+      technically correct. Guided Narrative remains parked by chronology and must
+      not be resumed outside the owner-approved stage sequence.
   brp:
     guidance:
       - refs/handoffs/currentHandoff.md
@@ -100,21 +102,22 @@ areas:
       - apps/web/src/brpCreatorRandomization.ts
     notes: >-
       BRP UGE 2023 ORC plus corrections 1.05. brp-character/0.1 and canonical
-      adapter 0.7 remain stable. Issue #14 includes profession/skill breadth,
-      equipment, finishing, allocation UX, adaptive two-page sheet, isolated
-      browser print, full CharacterDocument JSON controls, the BRP campaign/rules
-      profile seam, and legal whole-character Randomize All. Large profile/rules
-      provenance blocks are not part of the sheet; current rules identity is a
-      tiny footer only. Owner browser sheet/save/reopen/print acceptance still
-      gates Issue #14.
+      adapter 0.7 remain stable. Issue #14 is completed and owner browser
+      acceptance passed create, finish, review, save, reopen, and adaptive print.
+      The player-facing core includes profession/skill breadth, equipment,
+      finishing, allocation UX, campaign/rules profiles, full CharacterDocument
+      JSON controls, and legal whole-character Randomize All. Issue #15 contains
+      two nonblocking polish items and must not be pulled ahead implicitly.
   creator-web:
     guidance:
       - refs/product/creator-workspace.md
       - refs/product/generation-methods.md
       - refs/architecture/adaptive-character-sheet-framework.md
-      - refs/planning/brp-player-usable-core.md
+      - refs/planning/engineering-health-audit-2026-09-11.md
     source_roots:
       - apps/web/src
+      - apps/web/src/characterResultRenderer.ts
+      - apps/web/src/creatorPresentationAdapter.ts
       - apps/web/src/brpCreatorRandomization.ts
       - apps/web/src/workspaceSplitter.ts
       - apps/web/src/characterSheetControls.ts
@@ -123,13 +126,15 @@ areas:
       - apps/web/sheet.css
       - apps/web/sheet-ui.css
     notes: >-
-      Creator UI must keep controls contained, distinguish actions from data
-      entry, and prefer compact familiar icons with title/ARIA text. Supported
-      systems with sheet projections render the system-owned sheet as the result
-      surface. The screen sheet toolbar is application chrome and never prints.
-      A dedicated print root, not selective in-place hiding, is the authoritative
-      print surface. Choice menus must preserve player-facing labels even when
-      their internal IDs remain unchanged.
+      Stage 1 engineering-health work is active. main.ts is app bootstrap/host
+      coordination rather than character-result rendering. characterResultRenderer.ts
+      owns supported-system validation/routing and the sheet result surface.
+      creatorWorkspace.ts coordinates rules systems and randomization without
+      owning primary-UI cleanup. Remaining Stage 0 post-render minimalism is
+      temporarily isolated in creatorPresentationAdapter.ts plus
+      primaryUiMinimalism.ts and should be absorbed into source renderers next.
+      Screen toolbar chrome never prints; isolated sheet-only printing remains the
+      authoritative export path.
   foundry-integration:
     guidance:
       - refs/architecture/character-architecture.md
@@ -156,7 +161,7 @@ areas:
     source_roots:
       - packages
       - apps/web/src
-    notes: Planned only after BRP Investigative Horror. Fate Condensed remains the bounded architecture stress test before Universal Grammar v0.1 is frozen.
+    notes: Planned only at the owner-approved later stress-test stage. Universal Grammar must remain evidence-driven from concrete native systems rather than preemptively frozen.
   project-memory:
     guidance:
       - AGENTS.md
@@ -167,23 +172,19 @@ areas:
       - refs
     notes: Durable project truth, OKF discovery, re-entry tooling, and validation guidance.
 common_tasks:
-  - task: Continue BRP Player-Usable Core closeout
+  - task: Continue Stage 1 engineering health cleanup
     look_in:
       - refs/handoffs/currentHandoff.md
       - refs/handoffs/next-dev-prompt.md
-      - refs/product/creator-workspace.md
-      - refs/planning/brp-player-usable-core.md
-      - refs/planning/brp-player-usability-gap-audit.md
-      - packages/system-brp/src/sheetProjection.ts
-      - packages/system-dnd5e/src/sheetProjection.ts
-      - apps/web/src/characterSheetControls.ts
-      - apps/web/src/choicePoolDirectVisibility.ts
-      - apps/web/src/main.ts
-      - apps/web/sheet.css
-  - task: Re-check dedicated sheet browser QA
+      - refs/planning/engineering-health-audit-2026-09-11.md
+      - refs/planning/engineering-health-cleanup.md
+      - apps/web/src/creatorPresentationAdapter.ts
+      - apps/web/src/primaryUiMinimalism.ts
+      - apps/web/src/creatorWorkspace.ts
+      - apps/web/src/characterResultRenderer.ts
+  - task: Re-check dedicated sheet browser contracts
     look_in:
       - refs/handoffs/currentHandoff.md
-      - refs/handoffs/next-dev-prompt.md
       - refs/architecture/adaptive-character-sheet-framework.md
       - refs/product/creator-workspace.md
       - packages/system-dnd5e/src/sheetProjection.ts
@@ -191,20 +192,16 @@ common_tasks:
       - apps/web/src/dndCharacterSheet.test.ts
       - apps/web/src/brpCharacterSheet.test.ts
       - apps/web/src/sheetPrintContract.test.ts
+      - apps/web/src/characterResultRenderer.ts
       - apps/web/src/characterSheetControls.ts
-      - apps/web/src/choicePoolDirectVisibility.ts
-      - apps/web/src/main.ts
       - apps/web/sheet.css
-  - task: Re-check BRP creator browser QA blockers
+  - task: Inspect deferred BRP creator polish
     look_in:
       - refs/handoffs/currentHandoff.md
-      - refs/product/creator-workspace.md
+      - apps/web/src/brpEquipmentControls.ts
+      - apps/web/src/brpCreatorPanelView.ts
+      - apps/web/src/brpCreatorState.ts
       - apps/web/src/brpCreatorRandomization.ts
-      - apps/web/src/brpCreatorRandomization.test.ts
-      - apps/web/src/workspaceSplitter.ts
-      - apps/web/src/workspaceSplitter.test.ts
-      - apps/web/src/brpCreatorStyles.ts
-      - apps/web/src/styles.css
   - task: Inspect Foundry integration readiness
     look_in:
       - refs/architecture/character-architecture.md

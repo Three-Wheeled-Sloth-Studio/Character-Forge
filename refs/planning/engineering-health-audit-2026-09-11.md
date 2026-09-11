@@ -14,17 +14,28 @@ Status: **active Stage 1 baseline**
 
 Accepted starting checkpoint: `02913690d859d4116661214c9f48b5899134cec3`
 
+Current exact green Stage 1 checkpoint: `c8ab49a6732eb99fc1adb6fec62e4b73a1b25141`
+
 Stage 0 player-usable acceptance is complete. This audit identifies bounded engineering-health work to perform before productization or another major architecture layer.
 
 ## Findings
 
 ### 1. Mixed-responsibility orchestration
 
-`apps/web/src/main.ts` owns application bootstrap, host messaging, system/native-state validation, result rendering, print-sheet extraction, failure rendering, and document-control binding. These are separable responsibilities. The first Stage 1 slice extracts result rendering behind a small controller while preserving the exact owner-accepted browser behavior.
+Opening finding: `apps/web/src/main.ts` owned application bootstrap, host messaging, system/native-state validation, result rendering, print-sheet extraction, failure rendering, and document-control binding.
+
+Progress: **addressed in the opening Stage 1 slice.** Result validation/routing/rendering and print-sheet extraction now live in `apps/web/src/characterResultRenderer.ts`. `main.ts` remains app bootstrap, project context, host messaging, workspace coordination, and result-controller delegation.
 
 ### 2. Transitional presentation scaffolding
 
-`apps/web/src/primaryUiMinimalism.ts` and the `MutationObserver` in `creatorWorkspace.ts` are intentional Stage 0 compatibility scaffolding. They rewrite renderer output after the fact so accepted primary-UI minimalism could land without broad renderer churn. They should now be absorbed into source renderers and removed. This is the highest-value next cleanup after the result-renderer extraction.
+Opening finding: `apps/web/src/primaryUiMinimalism.ts` plus a `MutationObserver` in `creatorWorkspace.ts` rewrote renderer output after the fact.
+
+Progress: **partially addressed.** Workspace orchestration no longer imports the cleanup function or owns a global observer. Remaining temporary behavior is isolated behind `apps/web/src/creatorPresentationAdapter.ts`:
+
+- D&D cleanup is explicit after render/mode changes;
+- BRP temporarily retains a scoped observer because its panel replaces markup on state changes.
+
+Next action: absorb accepted minimalism into BRP/D&D source renderers, then delete `primaryUiMinimalism.ts` and the scoped BRP observer rather than letting the adapter become permanent architecture.
 
 ### 3. BRP creator state has several named responsibilities
 
@@ -51,7 +62,11 @@ The size is not the problem by itself; the responsibility count is. Split only a
 
 ### 6. Some tests over-specify source placement
 
-A small set of tests read source files and assert exact implementation strings. These were useful during rapid acceptance work but can make behavior-preserving moves artificially expensive. When touching those seams, keep assertions that protect important architecture invariants, but prefer behavior/output contracts over requiring code to live in a specific file.
+A small set of tests read source files and assert exact implementation strings. These were useful during rapid acceptance work but can make behavior-preserving moves artificially expensive.
+
+Progress: the result-renderer extraction exposed two such print assertions. They were rewritten to protect the moved result-renderer/print contract rather than requiring print extraction to remain in `main.ts`.
+
+When touching other seams, keep assertions that protect important architecture invariants, but prefer behavior/output contracts over requiring code to live in a specific file.
 
 High-value owner-QA regressions remain non-negotiable, especially:
 
@@ -64,8 +79,8 @@ High-value owner-QA regressions remain non-negotiable, especially:
 
 ## Ordered cleanup candidates
 
-1. Extract result rendering from `main.ts` while preserving UI and print behavior.
-2. Absorb `primaryUiMinimalism.ts` into BRP/D&D renderers and delete the global `MutationObserver` adapter.
+1. **Completed:** extract result rendering from `main.ts` while preserving UI and print behavior.
+2. **In progress:** absorb `primaryUiMinimalism.ts` into BRP/D&D renderers and remove post-render observation/rewriting.
 3. Split BRP creator state into state/defaults, preview/allocation, build, and reopen responsibilities where those seams remain clean after step 2.
 4. Split BRP creator view by named sections if doing so materially improves local reasoning and tests.
 5. Audit D&D guided creator for one responsibility seam at a time; avoid a wholesale rewrite.
@@ -78,7 +93,7 @@ No high-confidence stale functional test was identified in the bounded opening a
 Missing high-value coverage to add when the relevant seam is touched:
 
 - direct primary-renderer output tests after the Stage 0 presentation shim is removed;
-- BRP preview semantics for legal natural/base skill ratings above the normal cap (tracked separately as polish in Issue #15); and
+- BRP preview semantics for legal natural/base skill ratings above the normal cap, tracked separately as polish in Issue #15; and
 - a dedicated result-renderer contract if future rendering behavior becomes independently complex.
 
 ## Cheap maintainability guardrail
