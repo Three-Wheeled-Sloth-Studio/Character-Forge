@@ -9,6 +9,7 @@ import {
   type Dnd5eAbilityId,
   type Dnd5eNativeCharacter,
 } from "../../system-dnd5e/src/nativeCharacter.js";
+import { buildFoundryDnd5eIdentityItems } from "./dnd5eIdentityItems.js";
 import {
   FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION,
   FOUNDRY_DND5E_ACTOR_EXPORT_SCHEMA,
@@ -100,6 +101,11 @@ function buildActorDocument(
   state: NativeSystemState,
   payload: Dnd5eNativeCharacter,
 ): JsonObject {
+  const identityItems = buildFoundryDnd5eIdentityItems(character.characterId, payload);
+  const classItemId = identityItems.classItem._id as string;
+  const backgroundItemId = identityItems.backgroundItem._id as string;
+  const raceItemId = identityItems.raceItem._id as string;
+
   return {
     name: character.displayName,
     type: "character",
@@ -110,9 +116,9 @@ function buildActorDocument(
       details: {
         biography: { value: "", public: "" },
         alignment: humanizeId(payload.identity.alignment),
-        race: null,
-        background: null,
-        originalClass: "",
+        race: raceItemId,
+        background: backgroundItemId,
+        originalClass: classItemId,
         xp: { value: payload.identity.experiencePoints },
         appearance: "",
         trait: "",
@@ -147,7 +153,11 @@ function buildActorDocument(
       bar2: { attribute: "attributes.ac.value" },
       texture: { src: null },
     },
-    items: [],
+    items: [
+      identityItems.classItem,
+      identityItems.backgroundItem,
+      identityItems.raceItem,
+    ],
     effects: [],
     flags: {
       "character-forge": {
@@ -283,6 +293,18 @@ function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] 
       detail: "Core identity, ability, proficiency, hit-point, movement, skill, language, currency, and spell-slot state is mapped directly into the pinned D&D5e Actor data model.",
     },
     {
+      sourcePath: "class.classId/origin.backgroundId/origin.speciesId",
+      targetPath: "Actor.items + Actor.system.details",
+      disposition: "mapped",
+      detail: "Class, background, and species identities are represented by deterministic embedded Class, Background, and Race Items and referenced by the Actor detail fields.",
+    },
+    {
+      sourcePath: "class/origin advancement causality",
+      targetPath: "Actor.items[*].system.advancement",
+      disposition: "deferred",
+      detail: "Identity Items intentionally contain no Foundry advancement automation. Character Forge native state already contains the authoritative resolved character; later mapping must not replay advancements and double-apply choices.",
+    },
+    {
       sourcePath: "derived.armorClass",
       targetPath: "Actor.system.attributes.ac",
       disposition: "derived",
@@ -295,10 +317,10 @@ function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] 
       detail: "Only the bonus beyond the Dexterity modifier is exported so Foundry does not double-count Dexterity.",
     },
     {
-      sourcePath: "class/origin/equipment/featureIds/spells",
+      sourcePath: "equipment/featureIds/spells",
       targetPath: "Actor.items",
       disposition: "deferred",
-      detail: "Class, background, species, equipment, feature, and spell embedded Item documents are intentionally deferred to the next bounded slice; Actor.items remains empty in adapter 0.1.0.",
+      detail: "Equipment, feature, and spell embedded Items remain intentionally deferred; adapter 0.2.0 adds identity-bearing Class, Background, and Race Items only.",
     },
     {
       sourcePath: "resources",
@@ -319,7 +341,7 @@ function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] 
       sourcePath: "class.weaponProficiencyIds/class.armorTrainingIds",
       targetPath: "Actor.system.traits.weaponProf / armorProf",
       disposition: "deferred",
-      detail: "Character Forge proficiency identifiers are not assumed to be Foundry trait keys; explicit identifier mapping will accompany embedded Item support.",
+      detail: "Character Forge proficiency identifiers are not assumed to be Foundry trait keys; explicit identifier mapping will accompany equipment and feature Item support.",
     });
   }
   return notes;
