@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.4.0`
+Character Forge adapter: `0.5.0`
 
 ## Purpose
 
@@ -22,14 +22,23 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.4.0` currently maps:
+Adapter `0.5.0` currently maps:
 
-### Weapons / armor proof
+### Weapons
 
-- `chain-mail` -> Foundry `equipment`
 - `greatsword` -> Foundry `weapon`
 - `flail` -> Foundry `weapon`
 - `javelin` -> Foundry `weapon`, including stack quantity
+
+### Armor and shield
+
+- `chain-mail` -> Foundry `equipment`
+- `chain-shirt` -> Foundry `equipment`, medium armor, base item `chainshirt`
+- `shield` -> Foundry `equipment`, shield, base item `shield`
+- `leather-armor` -> Foundry `equipment`, light armor, base item `leather`
+- `studded-leather-armor` -> Foundry `equipment`, light armor, base item `studded`
+
+The four breadth mappings use exact pinned D&D5e 6.0 price, weight, armor, Dex-cap, category, and base-item fields. They remain unequipped because item identity alone does not prove equipped state. Actor AC remains the authoritative Character Forge flat value even when mapped armor/shield Items are present.
 
 ### Ammunition
 
@@ -56,7 +65,7 @@ Container mapping uses the live D&D5e 6.0 model shape after fixture migration:
 - `quiver` uses `capacity.count = 20`;
 - Foundry containers have target quantity max 1, so an unsupported native multi-container stack is deferred rather than silently collapsed.
 
-All mapped Items use deterministic embedded IDs, empty descriptions, no copied compendium prose, no Foundry advancement replay, and no copied attack/activity automation. Actor AC remains the authoritative Character Forge flat value until Foundry calculation parity is separately proven.
+All mapped Items use deterministic embedded IDs, empty descriptions, no copied compendium prose, no Foundry advancement replay, and no copied attack/activity automation.
 
 Unknown equipment IDs are reported as deferred mappings rather than silently dropped or fabricated as generic loot.
 
@@ -72,37 +81,37 @@ Implemented:
 - `flail`
 - `javelin`
 
-Still deferred:
+Next bounded simple-weapon targets:
 
 - `dagger`
 - `quarterstaff`
 - `spear`
 - `shortbow`
+- `handaxe`
+- `mace`
+- `sickle`
+
+Still deferred martial weapons:
+
 - `scimitar`
 - `shortsword`
 - `longbow`
 - `greataxe`
-- `handaxe`
-- `mace`
-- `sickle`
 - `longsword`
 
 Do not infer weapon activities from Character Forge IDs. Activities are a separate Foundry automation layer.
 
 ### Armor and Shield Equipment
 
-Implemented:
+All currently emitted armor/shield IDs are implemented:
 
 - `chain-mail`
-
-Next bounded targets:
-
 - `chain-shirt`
 - `shield`
 - `leather-armor`
 - `studded-leather-armor`
 
-These are Foundry `equipment`-family targets. Actor AC remains flat even after their Items are mapped.
+Actor AC remains flat and authoritative; equipment presence does not trigger Foundry AC recalculation in the adapter yet.
 
 ### Consumables / Ammunition
 
@@ -217,6 +226,10 @@ Pinned Foundry D&D5e 6.0 schema/examples:
 - `module/data/item/templates/equippable-item.mjs`
 - `module/data/shared/damage-field.mjs`
 - `packs/_source/equipment24/armor/heavy/chain-mail.yml`
+- `packs/_source/equipment24/armor/medium/chain-shirt.yml`
+- `packs/_source/equipment24/armor/shield.yml`
+- `packs/_source/equipment24/armor/light/leather-armor.yml`
+- `packs/_source/equipment24/armor/light/studded-leather-armor.yml`
 - `packs/_source/equipment24/weapons/martial-melee/greatsword.yml`
 - `packs/_source/equipment24/weapons/martial-melee/flail.yml`
 - `packs/_source/equipment24/weapons/simple-melee/javelin.yml`
@@ -235,12 +248,12 @@ Pinned Foundry D&D5e 6.0 schema/examples:
 
 ## Recommended Next Slice
 
-Expand armor/shield breadth only:
+Expand the simple-weapon seam only:
 
-1. inspect and map exact pinned fixtures for `chain-shirt`, `shield`, `leather-armor`, and `studded-leather-armor`;
-2. retain deterministic IDs and explicit source provenance;
-3. keep Actor AC flat and authoritative;
-4. do not infer equipped state or advancement/activity automation beyond proven native data;
-5. retain explicit deferred notes for all remaining equipment IDs.
+1. inspect and map exact pinned fixtures for `dagger`, `quarterstaff`, `spear`, `shortbow`, `handaxe`, `mace`, and `sickle`;
+2. preserve native quantity, deterministic IDs, and explicit source provenance;
+3. keep descriptions and activities empty;
+4. do not infer equipped state or ammunition/container linkage;
+5. keep the remaining martial weapons and all non-weapon gaps explicit and deferred.
 
-Do not combine this with remaining weapon breadth, tool/focus alias translation, feature/activity Items, spell Items, media packaging, a Download UI, or real Foundry runtime acceptance.
+Do not combine this with martial-weapon breadth, tool/focus alias translation, feature/activity Items, spell Items, media packaging, a Download UI, or real Foundry runtime acceptance.

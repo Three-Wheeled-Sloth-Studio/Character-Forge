@@ -6,7 +6,7 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- armor
+- weapons
 ---
 # Next Development Prompt
 
@@ -23,7 +23,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry armor and shield mapping"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry simple weapon mapping"
 ```
 
 Then read only:
@@ -33,23 +33,22 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eActor.ts`
 5. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
-6. `packages/foundry-adapter/src/dnd5eActor.test.ts`
-7. exact pinned Foundry D&D5e 6.0 fixtures/schema for the four armor/shield IDs below
+6. exact pinned Foundry D&D5e 6.0 weapon fixtures/schema for the seven IDs below
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `ba6a0422d061f5f2668307ffa461defa8ee5d77d`
-- Actions: `34717871458`
-- Job: `103618240347`
-- 68 test files / 325 tests / 0 failures
+- SHA: `8e4e0d61d75d96fb69f4fd50b35869360e30e4ae`
+- Actions: `34718636640`
+- Job: `103620274100`
+- 68 test files / 327 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- agent context: 3717 characters
-- build: `Character Forge build 0.0.1 ba6a0422`
-- Foundry adapter: `0.4.0`
+- agent context: 3674 characters
+- build: `Character Forge build 0.0.1 8e4e0d61`
+- Foundry adapter: `0.5.0`
 
 Promoted branches remain unchanged:
 
@@ -65,36 +64,39 @@ Pin this slice to:
 
 Foundry remains an adapter target. Character Forge native D&D state remains authoritative.
 
-## Immediate Work - Armor + Shield Breadth
+## Immediate Work - Simple Weapon Breadth
 
-Map only these currently emitted Character Forge IDs after inspecting their exact pinned Foundry 6.0 definitions:
+Map only these currently emitted Character Forge IDs after inspecting their exact pinned Foundry D&D5e 6.0 definitions:
 
-- `chain-shirt`
-- `shield`
-- `leather-armor`
-- `studded-leather-armor`
+- `dagger`
+- `quarterstaff`
+- `spear`
+- `shortbow`
+- `handaxe`
+- `mace`
+- `sickle`
 
 ### Rules
 
-- Use exact Foundry Item type/identifier/armor/type/properties/strength/weight/price fields supported by the pinned schema.
+- Use exact Foundry Item type, identifier, weapon type/base item, damage, properties, mastery, range, weight, and price fields supported by the pinned schema.
+- Preserve native quantity exactly and keep deterministic embedded IDs source-ID based.
 - Keep descriptions empty; do not copy compendium prose.
-- Preserve deterministic embedded IDs and Character Forge source ID/quantity flags.
-- Respect target quantity semantics rather than silently mutating native state.
-- Do not infer Foundry advancement or activities.
-- Do not change Actor AC calculation mode. `derived.armorClass` remains exported as flat authoritative state until a separate parity slice proves Foundry-derived AC.
-- Do not assume equipped state from item identity alone. Preserve the existing adapter boundary unless native state explicitly proves more.
+- Keep Foundry activities empty. Activity/attack automation remains a separate Stage 5 slice.
+- Do not infer equipped state from weapon identity.
+- Do not infer ammunition/container linkage beyond static target Item fields explicitly present in the pinned schema.
+- Do not alter Actor AC, advancement, feature-resource, spell, or media behavior.
 - Unsupported IDs remain explicit deferred mapping notes; no generic loot fallback.
 
 ### Coverage
 
 Add focused tests proving:
 
-- all four IDs map to the correct Foundry target type and identifier;
-- armor category and key armor fields match the pinned target model;
-- deterministic embedded IDs remain stable;
-- no compendium prose or advancement/activity automation is copied;
-- Actor AC remains flat when a representative mapped armor/shield Item is present;
-- unrelated unsupported equipment remains explicit.
+- all seven IDs map to their exact target identifiers and weapon categories/base items;
+- damage dice/types and weapon properties match the pinned target fixtures;
+- thrown/ranged distance fields are exact where applicable;
+- native quantities and deterministic embedded IDs remain stable;
+- descriptions and activities stay empty;
+- an unrelated martial weapon such as `longsword` remains explicitly deferred in this slice.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -102,8 +104,8 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
-- remaining weapon breadth;
-- tool/instrument/focus alias translation;
+- remaining martial weapon breadth (`scimitar`, `shortsword`, `longbow`, `greataxe`, `longsword`);
+- tools/instruments/focus aliases;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
