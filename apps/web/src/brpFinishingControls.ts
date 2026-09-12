@@ -1,6 +1,7 @@
 import {
   BRP_FINISHING_FIELD_KEYS,
   createEmptyBrpFinishingDetails,
+  suggestBrpAppearance,
   type BrpFinishingDetails,
   type BrpFinishingFieldKey,
 } from "../../../packages/system-brp/src/index.js";
@@ -21,13 +22,27 @@ export function mountBrpFinishingControls(
   for (const control of fieldset.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-brp-finishing]")) {
     control.addEventListener("input", () => onChange(readBrpFinishingControls(fieldset)));
   }
+
+  fieldset.querySelector<HTMLButtonElement>("[data-brp-finishing-suggest=\"appearance\"]")?.addEventListener("click", () => {
+    const appearance = fieldset.querySelector<HTMLTextAreaElement>("[data-brp-finishing=\"appearance\"]");
+    if (!appearance) return;
+    appearance.value = suggestBrpAppearance().result.appearance;
+    onChange(readBrpFinishingControls(fieldset));
+    appearance.focus();
+  });
 }
 
 export function brpFinishingControlsHtml(details: BrpFinishingDetails): string {
   return `
     <legend>Finish: identity and background</legend>
     <label>Size / build<input data-brp-finishing="sizeDescription" value="${escapeHtml(details.sizeDescription)}" placeholder="Tall, compact, slender, broad-shouldered..."></label>
-    <label>Appearance<textarea data-brp-finishing="appearance" rows="2" placeholder="Hair, eyes, dress, scars, notable physical details...">${escapeHtml(details.appearance)}</textarea></label>
+    <div class="brp-finishing-control">
+      <div class="brp-finishing-heading">
+        <label for="brp-finishing-appearance">Appearance</label>
+        <button type="button" class="brp-finishing-suggest" data-brp-finishing-suggest="appearance" title="Suggest appearance" aria-label="Suggest appearance">Suggest appearance</button>
+      </div>
+      <textarea id="brp-finishing-appearance" data-brp-finishing="appearance" rows="2" placeholder="Hair, eyes, dress, scars, notable physical details...">${escapeHtml(details.appearance)}</textarea>
+    </div>
     <label>Mannerisms / motto<textarea data-brp-finishing="mannerisms" rows="2" placeholder="Habits, gestures, sayings, or a recurring motto...">${escapeHtml(details.mannerisms)}</textarea></label>
     <label>Reputation<textarea data-brp-finishing="reputation" rows="2" placeholder="What do people who know of this character tend to say about them?">${escapeHtml(details.reputation)}</textarea></label>
     <label>Personal item / keepsake<textarea data-brp-finishing="personalItem" rows="2" placeholder="An heirloom, keepsake, or emotionally important trinket...">${escapeHtml(details.personalItem)}</textarea></label>

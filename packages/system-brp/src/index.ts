@@ -4,6 +4,7 @@ export { brpUge105Adapter as brpUge105PsychicAdapter } from "./psychicAdapter.js
 export { brpUge105Adapter as brpUge105PlayerCoreAdapter } from "./playerCoreAdapter.js";
 export { brpUge105Adapter as brpUge105EquipmentAdapter } from "./equipmentAdapter.js";
 export { brpUge105Adapter } from "./finishingAdapter.js";
+export * from "./appearanceSuggestion.js";
 export * from "./campaignProfile.js";
 export * from "./characteristicGeneration.js";
 export * from "./equipment.js";

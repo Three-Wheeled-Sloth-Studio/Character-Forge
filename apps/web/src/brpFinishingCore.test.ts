@@ -4,6 +4,7 @@ import {
   brpFinishingReviewRows,
   createEmptyBrpFinishingDetails,
   readBrpFinishingDetails,
+  suggestBrpAppearance,
   brpUge105Adapter,
   type BrpNativeCharacter,
 } from "../../../packages/system-brp/src/index.js";
@@ -13,7 +14,7 @@ import {
   createDefaultBrpCreatorState,
   reopenBrpCreatorState,
 } from "./brpCreatorState.js";
-import { brpFinishingControlsHtml } from "./brpFinishingControls.js";
+import { brpFinishingControlsHtml, updateBrpFinishingField } from "./brpFinishingControls.js";
 
 function validDefaultCharacter() {
   return buildBrpCreatorCharacter(autoAllocateBrpCreatorState(createDefaultBrpCreatorState()));
@@ -78,7 +79,7 @@ describe("BRP identity and background finishing", () => {
     ]);
   });
 
-  it("shows compact finishing prompts without unavailable-feature callouts", () => {
+  it("shows one appearance suggestion affordance inside the compact finishing controls", () => {
     const html = brpFinishingControlsHtml({
       ...createEmptyBrpFinishingDetails(),
       sizeDescription: "Short and broad",
@@ -88,6 +89,22 @@ describe("BRP identity and background finishing", () => {
     expect(html).toContain("Short and broad");
     expect(html).toContain("Former dockworker");
     expect(html).toContain("Personal item / keepsake");
+    expect(html).toContain('data-brp-finishing-suggest="appearance"');
+    expect(html.match(/data-brp-finishing-suggest=/g)).toHaveLength(1);
     expect(html).not.toContain("Distinctive Features");
+  });
+
+  it("treats a suggested appearance as ordinary editable input before native-state persistence", () => {
+    const suggested = suggestBrpAppearance({ seed: "editable-appearance" });
+    const withSuggestion = updateBrpFinishingField(
+      createEmptyBrpFinishingDetails(),
+      "appearance",
+      suggested.result.appearance,
+    );
+    const edited = updateBrpFinishingField(withSuggestion, "appearance", "Player-authored final appearance");
+    const character = applyBrpFinishingDetails(validDefaultCharacter(), edited);
+
+    expect(readBrpFinishingDetails(character).appearance).toBe("Player-authored final appearance");
+    expect(JSON.stringify(character)).not.toContain(suggested.provenance.seed);
   });
 });

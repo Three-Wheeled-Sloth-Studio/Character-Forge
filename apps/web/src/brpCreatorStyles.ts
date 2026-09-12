@@ -23,17 +23,21 @@ export function ensureBrpCreatorStyles(): void {
     .brp-academic-labels, .brp-skill-labels, .brp-review-skill-labels { color: #74685a; font-size: .68rem; font-weight: 800; }
     #brp-profession-random,
     #brp-reroll,
-    .brp-academic-suggest { width: 40px; height: 40px; padding: 0; border-radius: 999px; font-size: 0; white-space: nowrap; justify-self: end; }
+    .brp-academic-suggest,
+    .brp-finishing-suggest { width: 40px; height: 40px; padding: 0; border-radius: 999px; font-size: 0; white-space: nowrap; justify-self: end; }
     #brp-profession-random::before,
     #brp-reroll::before,
-    .brp-academic-suggest::before { content: "⚄"; font-size: 1.12rem; line-height: 1; }
+    .brp-academic-suggest::before,
+    .brp-finishing-suggest::before { content: "⚄"; font-size: 1.12rem; line-height: 1; }
     .brp-academic-suggest.suggested { font-weight: 800; }
+    .brp-finishing-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .brp-finishing-heading label { margin: 0; }
     .creator-inline-help { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-left: 6px; border: 1px solid #9b8c77; border-radius: 999px; color: #5f5548; font-size: .7rem; font-weight: 800; line-height: 1; cursor: help; vertical-align: middle; }
     .compact-status-note { display: block; margin-top: 4px; font-size: .76rem; }
     .brp-redistribution-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(46px, 64px); gap: 6px; align-items: center; min-width: 0; }
     .brp-budget-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
     .brp-budget-card { min-width: 0; padding: 9px 10px; border: 1px solid #d4c8b8; border-radius: 9px; background: #f3eadc; }
-    .brp-budget-card span, .brp-budget-card small { display: block; color: #74685a; font-size: .7rem; overflow-wrap: anywhere; }
+    .brp-budget-card span, .brp-budget-card small { display: block; color: #74685a; font-size: .7rem; }
     .brp-budget-card strong { display: block; margin: 2px 0; }
     .brp-budget-card progress { width: 100%; height: 7px; margin: 3px 0 5px; }
     .brp-budget-card.complete { border-width: 2px; }
