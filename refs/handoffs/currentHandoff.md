@@ -107,7 +107,7 @@ The equipment adapter:
 
 The durable source/target inventory is:
 
-`refs/integrations/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
+`refs/integration/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
 
 Key result:
 

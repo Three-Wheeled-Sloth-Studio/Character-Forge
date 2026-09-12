@@ -29,7 +29,7 @@ python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry ammunition 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/integrations/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
+2. `refs/integration/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eActor.ts`
 5. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
