@@ -1,0 +1,61 @@
+export const DND5E_DEMO_NAME_CORPUS_SOURCE = {
+  id: "character-forge.dnd5e.demo-name-corpus",
+  version: "1",
+} as const;
+
+// Original Character Forge demonstration samples. These are training/reference
+// data for the generator, not D&D rules content, setting canon, or a direct
+// pick-list exposed to users.
+export const DND5E_DEMO_GIVEN_NAME_CORPUS = [
+  "Avelin",
+  "Mara",
+  "Rowan",
+  "Tamsin",
+  "Jonas",
+  "Nia",
+  "Calen",
+  "Mira",
+  "Soren",
+  "Elara",
+  "Darian",
+  "Kessa",
+  "Riven",
+  "Liora",
+  "Bren",
+  "Talia",
+  "Orin",
+  "Vessa",
+  "Kael",
+  "Anara",
+  "Toren",
+  "Selka",
+  "Corin",
+  "Nyra",
+] as const;
+
+export const DND5E_DEMO_FAMILY_NAME_CORPUS = [
+  "Stone",
+  "Voss",
+  "Hale",
+  "Reed",
+  "Vale",
+  "Calder",
+  "Ashford",
+  "Marren",
+  "Thorn",
+  "Vey",
+  "Corven",
+  "Dain",
+  "Fallow",
+  "Kestrel",
+  "Merrow",
+  "Quill",
+  "Rook",
+  "Serrin",
+  "Talven",
+  "Briar",
+  "Ember",
+  "Dunley",
+  "Farren",
+  "Veyra",
+] as const;

@@ -1,41 +1,57 @@
 import type { CharacterDocument, GenerationDecision, JsonObject } from "../../character-model/src/index.js";
 import {
+  NAME_MARKOV_GENERATOR_VERSION,
   NAME_SUGGESTION_CONTRACT_VERSION,
+  generateNameFromMarkovModel,
   suggestGeneratedName,
+  trainNameMarkovModel,
   type NameSuggestion,
   type NameSuggestionProvider,
   type RandomSource,
 } from "../../generator-core/src/index.js";
+import {
+  DND5E_DEMO_FAMILY_NAME_CORPUS,
+  DND5E_DEMO_GIVEN_NAME_CORPUS,
+  DND5E_DEMO_NAME_CORPUS_SOURCE,
+} from "./nameGenerationCorpus.js";
 
-const DND5E_GENERATED_NAMES = [
-  "Avery Stone",
-  "Mara Voss",
-  "Rowan Hale",
-  "Tamsin Reed",
-  "Jonas Vale",
-  "Nia Calder",
-] as const;
+const DND5E_GIVEN_NAME_MODEL = trainNameMarkovModel(DND5E_DEMO_GIVEN_NAME_CORPUS, { order: 2 });
+const DND5E_FAMILY_NAME_MODEL = trainNameMarkovModel(DND5E_DEMO_FAMILY_NAME_CORPUS, { order: 2 });
+const DND5E_GIVEN_NAME_SAMPLES = new Set<string>(DND5E_DEMO_GIVEN_NAME_CORPUS);
+const DND5E_FAMILY_NAME_SAMPLES = new Set<string>(DND5E_DEMO_FAMILY_NAME_CORPUS);
 
-export const DND5E_PLACEHOLDER_NAME_PROVIDER: NameSuggestionProvider<undefined> = {
-  id: "dnd5e:placeholder-display-name",
-  version: "0.1",
-  sources: [{ id: "character-forge.dnd5e.placeholder-names", version: "1" }],
+export const DND5E_MARKOV_NAME_PROVIDER: NameSuggestionProvider<undefined> = {
+  id: "dnd5e:demo-markov-display-name",
+  version: `0.2-${NAME_MARKOV_GENERATOR_VERSION}`,
+  sources: [DND5E_DEMO_NAME_CORPUS_SOURCE],
   generate(_context, random) {
     return { displayName: pickDnd5eGeneratedName(random) };
   },
 };
 
+// Compatibility alias for callers that imported the original temporary provider
+// constant. New code should use DND5E_MARKOV_NAME_PROVIDER.
+export const DND5E_PLACEHOLDER_NAME_PROVIDER = DND5E_MARKOV_NAME_PROVIDER;
+
 export type Dnd5eNameSuggestion = NameSuggestion;
 export type Dnd5eNameSuggestionTrigger = "explicit-randomize" | "blank-fallback";
 
 export function pickDnd5eGeneratedName(random: RandomSource): string {
-  const selected = DND5E_GENERATED_NAMES[Math.floor(random() * DND5E_GENERATED_NAMES.length)];
-  if (!selected) throw new Error("D&D generated-name catalog is empty.");
-  return selected;
+  const givenName = generateNameFromMarkovModel(DND5E_GIVEN_NAME_MODEL, random, {
+    minLength: 3,
+    maxLength: 10,
+    accept: (candidate) => !DND5E_GIVEN_NAME_SAMPLES.has(candidate),
+  });
+  const familyName = generateNameFromMarkovModel(DND5E_FAMILY_NAME_MODEL, random, {
+    minLength: 4,
+    maxLength: 12,
+    accept: (candidate) => !DND5E_FAMILY_NAME_SAMPLES.has(candidate),
+  });
+  return `${givenName} ${familyName}`;
 }
 
 export function suggestDnd5eCharacterName(seed?: string): Dnd5eNameSuggestion {
-  return suggestGeneratedName(DND5E_PLACEHOLDER_NAME_PROVIDER, {
+  return suggestGeneratedName(DND5E_MARKOV_NAME_PROVIDER, {
     context: undefined,
     ...(seed?.trim() ? { seed } : {}),
   });
@@ -49,12 +65,12 @@ export function matchingDnd5eNameSuggestion(
   const provenance = suggestion.provenance;
   if (
     provenance.contractVersion !== NAME_SUGGESTION_CONTRACT_VERSION
-    || provenance.providerId !== DND5E_PLACEHOLDER_NAME_PROVIDER.id
-    || provenance.providerVersion !== DND5E_PLACEHOLDER_NAME_PROVIDER.version
+    || provenance.providerId !== DND5E_MARKOV_NAME_PROVIDER.id
+    || provenance.providerVersion !== DND5E_MARKOV_NAME_PROVIDER.version
     || !provenance.seed.trim()
   ) return undefined;
 
-  const expectedSources = DND5E_PLACEHOLDER_NAME_PROVIDER.sources ?? [];
+  const expectedSources = DND5E_MARKOV_NAME_PROVIDER.sources ?? [];
   if (provenance.sources.length !== expectedSources.length) return undefined;
   if (expectedSources.some((source, index) => (
     provenance.sources[index]?.id !== source.id
