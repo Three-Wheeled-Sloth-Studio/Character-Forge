@@ -6,6 +6,7 @@ import {
   FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS,
   FOUNDRY_DND5E_ARMOR_SHIELD_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
+  FOUNDRY_DND5E_MARTIAL_WEAPON_IDS,
   FOUNDRY_DND5E_SIMPLE_WEAPON_IDS,
 } from "./dnd5eEquipmentItems.js";
 import { stableFoundryDocumentId } from "./dnd5eIdentityItems.js";
@@ -199,13 +200,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the pinned simple-weapon slice while keeping martial breadth explicit", () => {
+  it("maps the pinned simple-weapon slice while keeping unrelated equipment gaps explicit", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "longsword", quantity: 1 },
+        { itemId: "thieves-tools", quantity: 1 },
       ],
     };
 
@@ -215,7 +216,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "longsword",
+        itemId: "thieves-tools",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -325,6 +326,124 @@ describe("Foundry D&D5e equipment mapping", () => {
         magicalBonus: null,
       });
       expect((item.system as { ammunition?: { item?: unknown } }).ammunition?.item).toBeUndefined();
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("maps the pinned martial-weapon slice while leaving tool translation deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "thieves-tools", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-martial-weapons", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-martial-weapons", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "thieves-tools",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const byIdentifier = new Map(first.items.map((item) => [
+      (item.system as { identifier: string }).identifier,
+      item,
+    ]));
+
+    expect(byIdentifier.get("scimitar")).toMatchObject({
+      name: "Scimitar",
+      system: {
+        price: { value: 25, denomination: "gp" },
+        weight: { value: 3, units: "lb" },
+        damage: { base: { number: 1, denomination: 6, types: ["slashing"] } },
+        type: { value: "martialM", baseItem: "scimitar" },
+        properties: ["fin", "lgt"],
+        mastery: "nick",
+        range: { value: null, long: null, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("shortsword")).toMatchObject({
+      name: "Shortsword",
+      system: {
+        price: { value: 10, denomination: "gp" },
+        weight: { value: 2, units: "lb" },
+        damage: { base: { number: 1, denomination: 6, types: ["piercing"] } },
+        type: { value: "martialM", baseItem: "shortsword" },
+        properties: ["fin", "lgt"],
+        mastery: "vex",
+        range: { value: null, long: null, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("longbow")).toMatchObject({
+      name: "Longbow",
+      system: {
+        price: { value: 50, denomination: "gp" },
+        weight: { value: 2, units: "lb" },
+        damage: { base: { number: 1, denomination: 8, types: ["piercing"] } },
+        type: { value: "martialR", baseItem: "longbow" },
+        properties: ["amm", "hvy", "two"],
+        mastery: "slow",
+        range: { value: 150, long: 600, units: "ft", reach: null },
+        ammunition: { type: "arrow" },
+      },
+    });
+    expect(byIdentifier.get("greataxe")).toMatchObject({
+      name: "Greataxe",
+      system: {
+        price: { value: 30, denomination: "gp" },
+        weight: { value: 7, units: "lb" },
+        damage: { base: { number: 1, denomination: 12, types: ["slashing"] } },
+        type: { value: "martialM", baseItem: "greataxe" },
+        properties: ["hvy", "two"],
+        mastery: "cleave",
+        range: { value: null, long: null, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("longsword")).toMatchObject({
+      name: "Longsword",
+      system: {
+        price: { value: 15, denomination: "gp" },
+        weight: { value: 3, units: "lb" },
+        damage: {
+          base: { number: 1, denomination: 8, types: ["slashing"] },
+          versatile: { denomination: 0, custom: { enabled: false } },
+        },
+        type: { value: "martialM", baseItem: "longsword" },
+        properties: ["ver"],
+        mastery: "sap",
+        range: { value: null, long: null, units: "ft", reach: null },
+      },
+    });
+
+    for (const itemId of FOUNDRY_DND5E_MARTIAL_WEAPON_IDS) {
+      const item = byIdentifier.get(itemId);
+      expect(item).toMatchObject({
+        _id: stableFoundryDocumentId(`character-martial-weapons:equipment:${itemId}`),
+        type: "weapon",
+        system: {
+          identifier: itemId,
+          quantity: 2,
+          equipped: false,
+          description: { value: "", chat: "" },
+          activities: {},
+          magicalBonus: null,
+        },
+        flags: {
+          "character-forge": {
+            role: "equipment",
+            sourceId: itemId,
+            sourceQuantity: 2,
+          },
+        },
+      });
+      expect((item?.system as { ammunition?: { item?: unknown } } | undefined)?.ammunition?.item).toBeUndefined();
       expect(JSON.stringify(item)).not.toContain("@UUID");
     }
   });
