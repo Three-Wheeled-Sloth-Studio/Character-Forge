@@ -5,9 +5,8 @@ tags:
 - character-forge
 - handoffs
 - foundry
-- vtt
 - stage-5
-- stage-4-qa-hold
+- equipment
 ---
 # Next Development Prompt
 
@@ -17,147 +16,132 @@ Continue implementation in:
 
 Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requested.
 
-Stage 4 browser QA is intentionally deferred until the owner is back at a primary workstation. It is pinned in GitHub Issue #16 and is **not a Stage 5 development blocker**.
-
-The owner-approved sequence remains:
-
-`refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-
-Current development stage: **Stage 5 - Foundry Export / Import Validation**.
+Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portrait/token browser QA is intentionally deferred to the owner's primary workstation and pinned in Issue #16; it does not block Stage 5 development.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry D&D equipment Item mapping"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry ammunition and container mapping"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-3. `packages/foundry-adapter/src/target.ts`
+2. `refs/integrations/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
+3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eActor.ts`
-5. `packages/foundry-adapter/src/dnd5eIdentityItems.ts`
+5. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 6. `packages/foundry-adapter/src/dnd5eActor.test.ts`
-7. D&D native equipment/catalog generation code only as needed to inventory emitted IDs
-8. pinned public Foundry D&D5e 6.0.0 Item schemas only for equipment types actually touched
+7. the pinned Foundry D&D5e 6.0 ammunition/container schema or exact fixtures needed for the IDs being mapped
 
-Do not reread repository history. Do not perform the deferred Stage 4 browser QA away from a primary workstation.
+Do not reread repository history or reopen Stage 4 implementation.
 
-## Exact Green Stage 5 Checkpoint
+## Exact Green Implementation Checkpoint
 
-Accepted implementation checkpoint:
-
-- SHA: `3ebf76461a7592878f66f089a51b261868460fa3`
-- Actions: `34696689106`
-- Job: `103561269477`
-- 67 test files / 319 tests / 0 failures
-- 248 tracked paths
+- SHA: `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3`
+- Actions: `34697740762`
+- Job: `103564028657`
+- 68 test files / 322 tests / 0 failures
+- 250 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- agent context: 3649 characters
-- build: `Character Forge build 0.0.1 3ebf7646`
+- agent context: 3877 characters
+- build: `Character Forge build 0.0.1 e2e9470f`
+- Foundry adapter: `0.3.0`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 4 QA Hold
+## Current Foundry Target
 
-Issue #16 is the durable primary-workstation checklist for portrait/token acceptance.
+Pin this slice to:
 
-Preserve while Stage 5 proceeds:
+- Foundry VTT `14.367`
+- D&D5e `6.0.0`
 
-- Parchment owns media bytes/storage/lifecycle/relationships;
-- Character Forge consumes presentation media only;
-- no media state enters native RPG state;
-- user-supplied or explicitly accepted tokens remain authoritative until explicit replace/regenerate/remove.
+Foundry remains an adapter target. Character Forge native D&D state remains authoritative.
 
-Do not mark Stage 4 owner-accepted or close Issue #16 without the real integrated browser pass.
+## Immediate Work - Ammunition + Container Breadth
 
-## Foundry Target Contract
+Expand only low-ambiguity inventory mapping from the completed equipment audit.
 
-Pinned target:
+### 1. Ammunition
 
-- Foundry core `14.367`
-- D&D5e system `6.0.0`
-- Character Forge Foundry D&D Actor adapter `0.2.0`
-- export wrapper `character-forge/foundry-dnd5e-actor-export/0.1`
+Map Character Forge `arrow` explicitly to the pinned Foundry D&D5e ammunition/consumable representation.
 
-Never replace version pins with `latest`.
+Important:
 
-Foundry is an adapter target. D&D native state stays canonical.
+- Character Forge uses `arrow`.
+- Pinned Foundry 2024 equipment data uses an ammunition `consumable` such as identifier `arrows`.
+- Implement this as an explicit translation rule, not string guessing.
+- Preserve Character Forge quantity exactly (`arrow x20` -> target quantity 20).
+- Do not add attack automation or infer ammunition linkage beyond what the pinned target schema requires for a valid Item.
 
-## Current Implemented Foundry Shape
+### 2. Containers
 
-`packages/foundry-adapter` currently provides:
+Add `quiver` and the mundane pack containers that have exact pinned Foundry fixtures confirmed during the slice.
 
-- direct validated D&D5e 2024 native-state -> Foundry Actor mapping;
-- deterministic pretty JSON serializer;
-- mapping/deferred notes separate from raw import JSON;
-- stable Character Forge source flags;
-- Actor-level abilities/saves/HP/flat AC/initiative/movement/senses/alignment/XP/size/languages/currency/skills/spell slots;
-- deterministic embedded identity Items for Class, Background, and Race;
-- Actor detail references to those embedded Item IDs.
+Start with:
 
-The embedded identity Items intentionally contain no copied Foundry rules descriptions, no advancement automation, and no starting-equipment automation. Character Forge is exporting an already-resolved character; do not double-apply choices through Foundry advancement.
+- `quiver`
+- `explorers-pack`
 
-## Immediate Slice - Equipment Item Proof
+Then inspect before adding:
 
-Audit first, then implement narrowly.
+- `entertainers-pack`
+- `priests-pack`
+- `burglars-pack`
+- `scholars-pack`
+- `pouch`
 
-1. Inventory every equipment `itemId` actually emitted by current D&D Level 1 generation paths.
-2. Group those IDs by actual Foundry D&D5e 6.0.0 Item semantics: `weapon`, `equipment`, `consumable`, `tool`, `container`, `loot`, or other proven type.
-3. Inspect only the pinned public schemas/examples needed for those types.
-4. Implement one representative coherent fixture path first, preferably Avery/Fighter, proving:
-   - armor Item identity/state;
-   - weapon Item identity/state;
-   - quantity-bearing ammunition/stacking where applicable;
-   - pack/container or simple gear behavior where the schema is clear;
-   - deterministic embedded Item IDs.
-5. Keep unsupported IDs explicit in the adapter report rather than silently dropping them or typing everything as `loot`.
-6. Do not copy copyrighted Foundry/D&D rules text into Character Forge. Map Character Forge-owned native facts and minimal target fields only.
-7. Do not let imported Items replay Character Forge-resolved advancement/equipment choices.
-8. Keep Actor AC flat until Foundry equipment calculation parity is proven from the mapped Items.
-9. Add deterministic tests and run exact-SHA `npm run verify`.
+Rules:
 
-After one representative equipment path is green, expand by real semantic category only where the existing Level 1 catalog supplies evidence.
+- use exact Foundry type/identifier/capacity fields from pinned sources;
+- retain Character Forge quantity;
+- do not copy descriptive compendium text;
+- do not manufacture nested contents merely because Foundry's source pack describes contents;
+- if an exact fixture is absent or semantics are ambiguous, leave the ID deferred.
 
-## Explicitly Deferred
+### 3. Coverage
 
-Do not conflate the equipment slice with:
+Add focused tests proving:
 
-- feature/feat/activity mapping;
-- spell Item mapping;
-- Parchment portrait/token export packaging;
-- a user-facing Download Foundry button;
-- real Foundry runtime import acceptance;
-- bidirectional sync.
+- explicit `arrow` -> Foundry identifier translation;
+- quantity preservation;
+- deterministic embedded IDs;
+- `quiver`/pack container typing and capacity where target data actually provides it;
+- no nested pack contents are invented;
+- unsupported equipment remains explicit rather than becoming generic loot.
 
-Those are later Stage 5/9 slices.
+Then run exact-SHA GitHub Actions `Verify`.
 
-## Foundry Runtime / License Trigger
+## Do Not Pull Forward Yet
 
-Do not purchase/use Foundry merely because implementation is underway.
+Do not combine this slice with:
 
-Runtime validation becomes the next required step when the export artifact is mature enough that actual import behavior is the blocker, or when public schema/API evidence is no longer sufficient.
-
-The deferred Stage 4 browser QA and later real Foundry runtime acceptance may be performed during the same primary-workstation session if useful, but they remain separate acceptance gates.
+- remaining weapon/armor breadth unless necessary to support the selected fixture;
+- tool/instrument/focus alias translation;
+- feature/activity Items;
+- spell Items;
+- Parchment portrait/token packaging;
+- a user-facing Foundry Download action;
+- real Foundry runtime import acceptance; or
+- bidirectional Foundry sync.
 
 ## Guardrails
 
-- Native system state is mandatory and lossless.
-- Native D&D and BRP state remain canonical.
-- Foundry Actor/Item data is target-specific export state only.
-- Do not project D&D through Universal Grammar to produce Foundry output.
-- Unsupported target semantics must be reported, not fabricated.
-- No copied Foundry compendium rules text.
-- No implicit advancement replay.
-- Do not pull Issue #15 forward.
+- No copied Foundry compendium prose.
+- No Foundry advancement replay for already-resolved Character Forge choices.
+- Do not use Universal Grammar as the Foundry source.
+- Do not silently drop unsupported equipment.
+- Do not fabricate fallback loot.
+- Keep Actor AC flat until Foundry calculation parity is separately proven.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
+- Keep Issue #16 pinned for deferred Stage 4 owner/browser QA.
 
 ## Validation
 
@@ -165,4 +149,4 @@ The deferred Stage 4 browser QA and later real Foundry runtime acceptance may be
 npm run verify
 ```
 
-Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
+Do not call the slice green until the exact committed SHA passes GitHub Actions.
