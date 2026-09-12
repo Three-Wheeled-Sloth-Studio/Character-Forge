@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { defaultGuidedDnd5eCoreChoices } from "./guidedDefaults.js";
 import { guidedGenerateDnd5eFirstSlice } from "./guidedGenerate.js";
-import { applyDnd5eNameSuggestion, suggestDnd5eCharacterName } from "./nameGeneration.js";
+import {
+  DND5E_MARKOV_NAME_PROVIDER,
+  applyDnd5eNameSuggestion,
+  suggestDnd5eCharacterName,
+} from "./nameGeneration.js";
 import type { Dnd5eNativeCharacter } from "./nativeCharacter.js";
 
 const standardAssignment = { strength: 15, dexterity: 14, constitution: 13, intelligence: 12, wisdom: 10, charisma: 8 };
@@ -41,8 +45,8 @@ describe("guided D&D name suggestion provenance", () => {
         displayName: suggestion.result.displayName,
         trigger: "explicit-randomize",
         provenance: expect.objectContaining({
-          providerId: "dnd5e:placeholder-display-name",
-          providerVersion: "0.1",
+          providerId: DND5E_MARKOV_NAME_PROVIDER.id,
+          providerVersion: DND5E_MARKOV_NAME_PROVIDER.version,
           seed: "creator-name-seed",
         }),
       }),
@@ -76,7 +80,8 @@ describe("guided D&D name suggestion provenance", () => {
       displayName: character.displayName,
       trigger: "blank-fallback",
       provenance: expect.objectContaining({
-        providerId: "dnd5e:placeholder-display-name",
+        providerId: DND5E_MARKOV_NAME_PROVIDER.id,
+        providerVersion: DND5E_MARKOV_NAME_PROVIDER.version,
         seed: expect.stringMatching(/^name-/),
       }),
     }));
