@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   applyBrpFinishingDetails,
+  BRP_FINISHING_FIELD_KEYS,
   brpFinishingReviewRows,
   createEmptyBrpFinishingDetails,
   readBrpFinishingDetails,
-  suggestBrpAppearance,
+  suggestBrpFinishingField,
   brpUge105Adapter,
   type BrpNativeCharacter,
 } from "../../../packages/system-brp/src/index.js";
@@ -79,7 +80,7 @@ describe("BRP identity and background finishing", () => {
     ]);
   });
 
-  it("shows one appearance suggestion affordance inside the compact finishing controls", () => {
+  it("offers one compact suggestion affordance for every finishing field", () => {
     const html = brpFinishingControlsHtml({
       ...createEmptyBrpFinishingDetails(),
       sizeDescription: "Short and broad",
@@ -89,22 +90,24 @@ describe("BRP identity and background finishing", () => {
     expect(html).toContain("Short and broad");
     expect(html).toContain("Former dockworker");
     expect(html).toContain("Personal item / keepsake");
-    expect(html).toContain('data-brp-finishing-suggest="appearance"');
-    expect(html.match(/data-brp-finishing-suggest=/g)).toHaveLength(1);
+    for (const fieldKey of BRP_FINISHING_FIELD_KEYS) {
+      expect(html).toContain(`data-brp-finishing-suggest="${fieldKey}"`);
+    }
+    expect(html.match(/data-brp-finishing-suggest=/g)).toHaveLength(BRP_FINISHING_FIELD_KEYS.length);
     expect(html).not.toContain("Distinctive Features");
   });
 
-  it("treats a suggested appearance as ordinary editable input before native-state persistence", () => {
-    const suggested = suggestBrpAppearance({ seed: "editable-appearance" });
+  it("treats any generated flavor as ordinary editable input before native-state persistence", () => {
+    const suggested = suggestBrpFinishingField("background", { seed: "editable-background" });
     const withSuggestion = updateBrpFinishingField(
       createEmptyBrpFinishingDetails(),
-      "appearance",
-      suggested.result.appearance,
+      "background",
+      suggested.result.value,
     );
-    const edited = updateBrpFinishingField(withSuggestion, "appearance", "Player-authored final appearance");
+    const edited = updateBrpFinishingField(withSuggestion, "background", "Player-authored final background");
     const character = applyBrpFinishingDetails(validDefaultCharacter(), edited);
 
-    expect(readBrpFinishingDetails(character).appearance).toBe("Player-authored final appearance");
+    expect(readBrpFinishingDetails(character).background).toBe("Player-authored final background");
     expect(JSON.stringify(character)).not.toContain(suggested.provenance.seed);
   });
 });

@@ -4,8 +4,9 @@ import {
   BRP_APPEARANCE_SUGGESTION_TABLE,
   suggestBrpAppearance,
 } from "./appearanceSuggestion.js";
+import { suggestBrpFinishingField } from "./flavorSuggestion.js";
 
-describe("BRP appearance suggestions", () => {
+describe("BRP appearance suggestion compatibility wrapper", () => {
   it("replays deterministically from the same seed and draw index", () => {
     const first = suggestBrpAppearance({ seed: "appearance-replay", drawIndex: 2 });
     const second = suggestBrpAppearance({ seed: "appearance-replay", drawIndex: 2 });
@@ -14,23 +15,21 @@ describe("BRP appearance suggestions", () => {
     expect(first.result.appearance.trim().length).toBeGreaterThan(0);
   });
 
-  it("identifies the inspiration table as Character Forge content rather than BRP rules text", () => {
-    const suggestion = suggestBrpAppearance({ seed: "appearance-source" });
+  it("delegates to the shared finishing-field catalog", () => {
+    const appearance = suggestBrpAppearance({ seed: "appearance-shared", drawIndex: 1 });
+    const generic = suggestBrpFinishingField("appearance", { seed: "appearance-shared", drawIndex: 1 });
 
-    expect(BRP_APPEARANCE_SUGGESTION_SOURCE.id).toBe("character-forge.brp.appearance-inspiration");
-    expect(suggestion.provenance).toMatchObject({
-      tableId: BRP_APPEARANCE_SUGGESTION_TABLE.id,
-      tableVersion: BRP_APPEARANCE_SUGGESTION_TABLE.version,
-      sourceId: BRP_APPEARANCE_SUGGESTION_SOURCE.id,
-      sourceVersion: BRP_APPEARANCE_SUGGESTION_SOURCE.version,
-      seed: "appearance-source",
-    });
+    expect(appearance.result.appearance).toBe(generic.result.value);
+    expect(appearance.provenance.selectedEntryId).toBe(generic.provenance.selectedEntryId);
+    expect(BRP_APPEARANCE_SUGGESTION_TABLE.id).toBe(generic.provenance.tableId);
+    expect(BRP_APPEARANCE_SUGGESTION_SOURCE.id).toBe("character-forge.brp.flavor-inspiration");
   });
 
-  it("keeps the bounded table purely descriptive and non-mechanical", () => {
+  it("keeps appearance content descriptive and non-mechanical", () => {
     for (const entry of BRP_APPEARANCE_SUGGESTION_TABLE.entries) {
-      expect(entry.result.appearance.trim().length).toBeGreaterThan(0);
-      expect(JSON.stringify(entry.result)).not.toMatch(/strength|dexterity|constitution|skill|damage|armor|hit points/i);
+      expect(entry.result.value.trim().length).toBeGreaterThan(0);
+      expect(entry.result.fieldKey).toBe("appearance");
+      expect(entry.result.value).not.toMatch(/\b(?:STR|CON|SIZ|INT|POW|DEX|CHA|hit points?|damage modifier|armor points?|skill rating)\b/i);
     }
   });
 });

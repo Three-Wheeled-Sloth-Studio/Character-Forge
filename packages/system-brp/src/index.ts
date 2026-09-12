@@ -10,6 +10,7 @@ export * from "./characteristicGeneration.js";
 export * from "./equipment.js";
 export * from "./finishing.js";
 export * from "./firstSlice.js";
+export * from "./flavorSuggestion.js";
 export * from "./nativeCharacter.js";
 export * from "./playerCoreBuilder.js";
 export * from "./powerLevel.js";
