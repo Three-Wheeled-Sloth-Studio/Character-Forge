@@ -4,6 +4,7 @@ import {
   exportCharacterToFoundryDnd5eActor,
   serializeFoundryDnd5eActorDocument,
 } from "./dnd5eActor.js";
+import { stableFoundryDocumentId } from "./dnd5eIdentityItems.js";
 import {
   FOUNDRY_CORE_TARGET_VERSION,
   FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION,
@@ -11,7 +12,7 @@ import {
 } from "./target.js";
 
 describe("Foundry D&D5e Actor adapter", () => {
-  it("pins the first adapter proof to Foundry 14.367 and D&D5e 6.0.0", () => {
+  it("pins the adapter to Foundry 14.367 and D&D5e 6.0.0", () => {
     const exported = exportCharacterToFoundryDnd5eActor(createFirstSliceCharacterDocument());
 
     expect(exported.adapterVersion).toBe(FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION);
@@ -22,10 +23,11 @@ describe("Foundry D&D5e Actor adapter", () => {
     });
   });
 
-  it("maps authoritative actor-level state without fabricating embedded Items", () => {
+  it("maps authoritative actor-level state and identity-bearing embedded Items", () => {
     const exported = exportCharacterToFoundryDnd5eActor(createFirstSliceCharacterDocument());
+    const document = JSON.parse(JSON.stringify(exported.document));
 
-    expect(exported.document).toMatchObject({
+    expect(document).toMatchObject({
       name: "Avery Stone",
       type: "character",
       system: {
@@ -62,17 +64,70 @@ describe("Foundry D&D5e Actor adapter", () => {
         name: "Avery Stone",
         actorLink: true,
       },
-      items: [],
       effects: [],
     });
 
+    expect(document.items).toHaveLength(3);
+    expect(document.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: "Fighter",
+        type: "class",
+        system: expect.objectContaining({
+          identifier: "fighter",
+          levels: 1,
+          hd: expect.objectContaining({ denomination: "d10", spent: 0 }),
+          advancement: {},
+        }),
+      }),
+      expect.objectContaining({
+        name: "Soldier",
+        type: "background",
+        system: expect.objectContaining({ identifier: "soldier", advancement: {} }),
+      }),
+      expect.objectContaining({
+        name: "Human",
+        type: "race",
+        system: expect.objectContaining({ identifier: "human", advancement: {} }),
+      }),
+    ]));
+
+    const classItem = document.items.find((item: { type: string }) => item.type === "class");
+    const backgroundItem = document.items.find((item: { type: string }) => item.type === "background");
+    const raceItem = document.items.find((item: { type: string }) => item.type === "race");
+    expect(document.system.details.originalClass).toBe(classItem._id);
+    expect(document.system.details.background).toBe(backgroundItem._id);
+    expect(document.system.details.race).toBe(raceItem._id);
+
     expect(exported.mappingNotes).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        sourcePath: "class/origin/equipment/featureIds/spells",
+        sourcePath: "class.classId/origin.backgroundId/origin.speciesId",
+        targetPath: "Actor.items + Actor.system.details",
+        disposition: "mapped",
+      }),
+      expect.objectContaining({
+        sourcePath: "equipment/featureIds/spells",
         targetPath: "Actor.items",
         disposition: "deferred",
       }),
     ]));
+  });
+
+  it("uses stable valid Foundry document IDs without copying rules text or advancement automation", () => {
+    const character = createFirstSliceCharacterDocument();
+    const first = JSON.parse(JSON.stringify(exportCharacterToFoundryDnd5eActor(character).document));
+    const second = JSON.parse(JSON.stringify(exportCharacterToFoundryDnd5eActor(character).document));
+
+    expect(first.items.map((item: { _id: string }) => item._id)).toEqual(
+      second.items.map((item: { _id: string }) => item._id),
+    );
+    for (const item of first.items as Array<{ _id: string; system: { description: { value: string; chat: string }; advancement: object } }>) {
+      expect(item._id).toMatch(/^[0-9a-f]{16}$/);
+      expect(item.system.description).toEqual({ value: "", chat: "" });
+      expect(item.system.advancement).toEqual({});
+    }
+
+    expect(stableFoundryDocumentId("same input")).toBe(stableFoundryDocumentId("same input"));
+    expect(stableFoundryDocumentId("same input")).not.toBe(stableFoundryDocumentId("other input"));
   });
 
   it("serializes the Foundry actor document deterministically without adapter metadata in the import JSON", () => {
