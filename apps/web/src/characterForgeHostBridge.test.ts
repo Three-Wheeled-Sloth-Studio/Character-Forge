@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createCharacterDocument } from "../../../packages/character-model/src/index.js";
 import {
+  CHARACTER_MEDIA_CONTEXT_MESSAGE,
+  CHARACTER_MEDIA_REQUEST_MESSAGE,
   CHARACTER_OPEN_MESSAGE,
+  buildCharacterMediaRequestMessage,
+  parseCharacterMediaContextMessage,
   parseCharacterOpenMessage,
   resolveHostOrigin,
 } from "./characterForgeHostBridge.js";
@@ -53,6 +57,45 @@ describe("Character Forge host bridge", () => {
       },
     })).toBeNull();
     expect(parseCharacterOpenMessage({ type: "other" })).toBeNull();
+  });
+
+  it("accepts ephemeral host-owned portrait/token bytes without changing character state", () => {
+    const parsed = parseCharacterMediaContextMessage({
+      type: CHARACTER_MEDIA_CONTEXT_MESSAGE,
+      payload: {
+        projectId: "project_ashfall",
+        characterId: character.characterId,
+        portrait: { mediaType: "image/png", bytes: new Uint8Array([1, 2, 3]) },
+        token: null,
+      },
+    });
+
+    expect(parsed?.payload.characterId).toBe(character.characterId);
+    expect(parsed?.payload.portrait?.mediaType).toBe("image/png");
+    expect([...(parsed?.payload.portrait?.bytes ?? [])]).toEqual([1, 2, 3]);
+    expect(parsed?.payload.token).toBeNull();
+    expect(character.nativeStates[0]?.payload).toEqual({ preserve: { this: ["exactly", 42] } });
+  });
+
+  it("rejects malformed media payloads and builds explicit host media requests", () => {
+    expect(parseCharacterMediaContextMessage({
+      type: CHARACTER_MEDIA_CONTEXT_MESSAGE,
+      payload: {
+        projectId: "project_ashfall",
+        characterId: character.characterId,
+        portrait: { mediaType: "image/png", bytes: [] },
+        token: null,
+      },
+    })).toBeNull();
+
+    expect(buildCharacterMediaRequestMessage("project_ashfall", character.characterId, "portrait")).toEqual({
+      type: CHARACTER_MEDIA_REQUEST_MESSAGE,
+      payload: {
+        projectId: "project_ashfall",
+        characterId: character.characterId,
+        role: "portrait",
+      },
+    });
   });
 
   it("derives the trusted Parchment origin from the return URL", () => {
