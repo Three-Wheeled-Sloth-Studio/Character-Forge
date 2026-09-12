@@ -9,6 +9,10 @@ import {
   type Dnd5eAbilityId,
   type Dnd5eNativeCharacter,
 } from "../../system-dnd5e/src/nativeCharacter.js";
+import {
+  buildFoundryDnd5eEquipmentItems,
+  type FoundryDnd5eEquipmentBuildResult,
+} from "./dnd5eEquipmentItems.js";
 import { buildFoundryDnd5eIdentityItems } from "./dnd5eIdentityItems.js";
 import {
   FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION,
@@ -68,7 +72,8 @@ export function exportCharacterToFoundryDnd5eActor(
   }
 
   const payload = state.payload as Dnd5eNativeCharacter;
-  const mappingNotes = buildMappingNotes(payload);
+  const equipment = buildFoundryDnd5eEquipmentItems(character.characterId, payload);
+  const mappingNotes = buildMappingNotes(payload, equipment);
   return {
     schemaVersion: FOUNDRY_DND5E_ACTOR_EXPORT_SCHEMA,
     adapterVersion: FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION,
@@ -79,7 +84,7 @@ export function exportCharacterToFoundryDnd5eActor(
       nativeSchemaVersion: state.schemaVersion,
       rulesVersion: state.rulesVersion,
     },
-    document: buildActorDocument(character, state, payload),
+    document: buildActorDocument(character, state, payload, equipment.items),
     mappingNotes,
   };
 }
@@ -100,6 +105,7 @@ function buildActorDocument(
   character: CharacterDocument,
   state: NativeSystemState,
   payload: Dnd5eNativeCharacter,
+  equipmentItems: JsonObject[],
 ): JsonObject {
   const identityItems = buildFoundryDnd5eIdentityItems(character.characterId, payload);
   const classItemId = identityItems.classItem._id as string;
@@ -157,6 +163,7 @@ function buildActorDocument(
       identityItems.classItem,
       identityItems.backgroundItem,
       identityItems.raceItem,
+      ...equipmentItems,
     ],
     effects: [],
     flags: {
@@ -284,7 +291,10 @@ function buildSpellSlots(payload: Dnd5eNativeCharacter): JsonObject {
   return spells;
 }
 
-function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] {
+function buildMappingNotes(
+  payload: Dnd5eNativeCharacter,
+  equipment: FoundryDnd5eEquipmentBuildResult,
+): FoundryMappingNote[] {
   const notes: FoundryMappingNote[] = [
     {
       sourcePath: "identity/origin/abilities/class/resources/derived",
@@ -308,7 +318,7 @@ function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] 
       sourcePath: "derived.armorClass",
       targetPath: "Actor.system.attributes.ac",
       disposition: "derived",
-      detail: "Armor Class is exported as a flat value until equipment Items are mapped, preserving Character Forge's current authoritative derived value without pretending Foundry can recalculate it from missing Items.",
+      detail: "Armor Class remains exported as a flat authoritative value even when representative equipment Items are present; Foundry-derived AC will not replace it until mapped-equipment calculation parity is proven.",
     },
     {
       sourcePath: "derived.initiativeModifier",
@@ -316,11 +326,32 @@ function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] 
       disposition: "derived",
       detail: "Only the bonus beyond the Dexterity modifier is exported so Foundry does not double-count Dexterity.",
     },
-    {
-      sourcePath: "equipment/featureIds/spells",
+  ];
+
+  if (equipment.items.length) {
+    notes.push({
+      sourcePath: "equipment",
+      targetPath: "Actor.items",
+      disposition: "mapped",
+      detail: `${equipment.items.length} equipment stacks are mapped through pinned D&D5e 6.0 Item definitions with deterministic IDs and native quantities.`,
+    });
+  }
+
+  for (const unsupported of equipment.unsupported) {
+    notes.push({
+      sourcePath: `equipment[itemId=${unsupported.itemId}]`,
       targetPath: "Actor.items",
       disposition: "deferred",
-      detail: "Equipment, feature, and spell embedded Items remain intentionally deferred; adapter 0.2.0 adds identity-bearing Class, Background, and Race Items only.",
+      detail: `${unsupported.itemId} x${unsupported.quantity}: ${unsupported.reason}`,
+    });
+  }
+
+  notes.push(
+    {
+      sourcePath: "featureIds/spells",
+      targetPath: "Actor.items",
+      disposition: "deferred",
+      detail: "Feature and spell embedded Items remain intentionally deferred; equipment support does not imply feature/activity or spell mapping.",
     },
     {
       sourcePath: "resources",
@@ -334,14 +365,14 @@ function buildMappingNotes(payload: Dnd5eNativeCharacter): FoundryMappingNote[] 
       disposition: "deferred",
       detail: "Media remains Parchment-owned and is not converted to a Foundry path until the export packaging layer can provide a durable packaged path.",
     },
-  ];
+  );
 
   if (payload.class.weaponProficiencyIds?.length || payload.class.armorTrainingIds?.length) {
     notes.push({
       sourcePath: "class.weaponProficiencyIds/class.armorTrainingIds",
       targetPath: "Actor.system.traits.weaponProf / armorProf",
       disposition: "deferred",
-      detail: "Character Forge proficiency identifiers are not assumed to be Foundry trait keys; explicit identifier mapping will accompany equipment and feature Item support.",
+      detail: "Character Forge proficiency identifiers are not assumed to be Foundry trait keys; explicit identifier mapping will accompany broader equipment and feature Item support.",
     });
   }
   return notes;

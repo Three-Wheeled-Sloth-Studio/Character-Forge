@@ -23,7 +23,7 @@ describe("Foundry D&D5e Actor adapter", () => {
     });
   });
 
-  it("maps authoritative actor-level state and identity-bearing embedded Items", () => {
+  it("maps authoritative actor state, identity Items, and the bounded Fighter equipment proof", () => {
     const exported = exportCharacterToFoundryDnd5eActor(createFirstSliceCharacterDocument());
     const document = JSON.parse(JSON.stringify(exported.document));
 
@@ -67,7 +67,7 @@ describe("Foundry D&D5e Actor adapter", () => {
       effects: [],
     });
 
-    expect(document.items).toHaveLength(3);
+    expect(document.items).toHaveLength(8);
     expect(document.items).toEqual(expect.arrayContaining([
       expect.objectContaining({
         name: "Fighter",
@@ -89,6 +89,53 @@ describe("Foundry D&D5e Actor adapter", () => {
         type: "race",
         system: expect.objectContaining({ identifier: "human", advancement: {} }),
       }),
+      expect.objectContaining({
+        name: "Chain Mail",
+        type: "equipment",
+        system: expect.objectContaining({
+          identifier: "chain-mail",
+          quantity: 1,
+          equipped: true,
+          armor: expect.objectContaining({ value: 16, dex: 0 }),
+          type: { value: "heavy", baseItem: "chainmail" },
+        }),
+      }),
+      expect.objectContaining({
+        name: "Greatsword",
+        type: "weapon",
+        system: expect.objectContaining({
+          identifier: "greatsword",
+          quantity: 1,
+          damage: expect.objectContaining({
+            base: expect.objectContaining({ number: 2, denomination: 6, types: ["slashing"] }),
+          }),
+          type: { value: "martialM", baseItem: "greatsword" },
+        }),
+      }),
+      expect.objectContaining({
+        name: "Flail",
+        type: "weapon",
+        system: expect.objectContaining({ identifier: "flail", quantity: 1, mastery: "sap" }),
+      }),
+      expect.objectContaining({
+        name: "Javelin",
+        type: "weapon",
+        system: expect.objectContaining({
+          identifier: "javelin",
+          quantity: 8,
+          range: { value: 30, long: 120, units: "ft", reach: null },
+          properties: ["thr"],
+        }),
+      }),
+      expect.objectContaining({
+        name: "Dungeoneer's Pack",
+        type: "container",
+        system: expect.objectContaining({
+          identifier: "dungeoneers-pack",
+          quantity: 1,
+          capacity: { weight: { value: 30, units: "lb" } },
+        }),
+      }),
     ]));
 
     const classItem = document.items.find((item: { type: string }) => item.type === "class");
@@ -105,11 +152,17 @@ describe("Foundry D&D5e Actor adapter", () => {
         disposition: "mapped",
       }),
       expect.objectContaining({
-        sourcePath: "equipment/featureIds/spells",
+        sourcePath: "equipment",
+        targetPath: "Actor.items",
+        disposition: "mapped",
+      }),
+      expect.objectContaining({
+        sourcePath: "featureIds/spells",
         targetPath: "Actor.items",
         disposition: "deferred",
       }),
     ]));
+    expect(exported.mappingNotes.some((note) => note.sourcePath.startsWith("equipment[itemId="))).toBe(false);
   });
 
   it("uses stable valid Foundry document IDs without copying rules text or advancement automation", () => {
@@ -120,9 +173,14 @@ describe("Foundry D&D5e Actor adapter", () => {
     expect(first.items.map((item: { _id: string }) => item._id)).toEqual(
       second.items.map((item: { _id: string }) => item._id),
     );
-    for (const item of first.items as Array<{ _id: string; system: { description: { value: string; chat: string }; advancement: object } }>) {
+    for (const item of first.items as Array<{ _id: string; system: { description?: { value: string; chat: string } } }>) {
       expect(item._id).toMatch(/^[0-9a-f]{16}$/);
-      expect(item.system.description).toEqual({ value: "", chat: "" });
+      if (item.system.description) expect(item.system.description).toEqual({ value: "", chat: "" });
+    }
+
+    const identityItems = first.items.filter((item: { type: string }) =>
+      item.type === "class" || item.type === "background" || item.type === "race");
+    for (const item of identityItems as Array<{ system: { advancement: object } }>) {
       expect(item.system.advancement).toEqual({});
     }
 
