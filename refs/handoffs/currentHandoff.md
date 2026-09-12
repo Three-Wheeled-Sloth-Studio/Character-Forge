@@ -17,9 +17,7 @@ Current stage: **Stage 3 - Name Generator and Random Tables**
 
 ## Current State
 
-Stages 0, 1, and 2 are complete.
-
-The owner visually accepted the final Stage 2 branding treatment. Do not reopen general productization/branding work without a concrete new defect.
+Stages 0, 1, and 2 are complete. Stage 3 has now proven both reusable name generation and a live editable random-table flavor suggestion.
 
 The authoritative stage order remains:
 
@@ -29,19 +27,20 @@ Two explicitly nonblocking BRP polish items remain parked in Issue #15. Do not p
 
 ## Exact Green Stage 3 Checkpoint
 
-Current accepted `dev` implementation checkpoint before the BRP appearance-suggestion slice:
+Current accepted `dev` implementation head:
 
-- SHA: `90af2bb90165f314a75c758f69484043720dac36`
-- Actions: `34690245360`
-- Job: `103544104724`
+- SHA: `9202ce38ec22fdb68b6d4d917068d61d14a8de9f`
+- Actions: `34691033880`
+- Job: `103546180252`
 - `npm run verify`: green
-- 64 test files
-- 305 tests passed
+- 65 test files
+- 309 tests passed
 - 0 failures
-- 239 tracked paths
+- 241 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Build: `Character Forge build 0.0.1 90af2bb9`
+- Agent context: 3755 characters
+- Build: `Character Forge build 0.0.1 9202ce38`
 
 Promoted branches remain unchanged:
 
@@ -54,20 +53,25 @@ No promotion is authorized unless the owner explicitly requests it.
 
 The shared generator layer includes `name-markov/0.1` in `packages/generator-core/src/nameMarkov.ts`.
 
-D&D name suggestions now use that mechanism through a separate, versioned corpus boundary instead of choosing from six literal names. Existing explicit-randomize, blank fallback, editable final name behavior, deterministic replay, and provenance checks remain intact.
+D&D name suggestions use that mechanism through a separate, versioned corpus boundary instead of choosing from literal complete names. Existing explicit-randomize, blank fallback, editable final-name behavior, deterministic replay, and provenance checks remain intact.
 
-## Stage 3 Random-Table Proof Slice
+## Stage 3 Random-Table Proof Complete
 
-The next active slice uses the existing `RandomTable` evaluator to suggest exactly one editable BRP finishing field: `appearance`.
+BRP `appearance` now proves the random-table companion end to end.
 
-Required behavior:
+Implemented:
 
-- table content is Character Forge-owned inspiration content, not BRP ORC rules text;
-- deterministic seed/table/source provenance exists at suggestion time;
-- the suggestion is written into the same editable appearance field already used by the creator;
-- later user edits overwrite the suggestion normally;
-- only the final descriptive text is persisted into BRP native identity finishing state;
-- no hidden authoritative sidecar state or mechanical effect is introduced.
+- `packages/system-brp/src/appearanceSuggestion.ts` defines a small versioned appearance-inspiration table;
+- content source identity is `character-forge.brp.appearance-inspiration`, explicitly separate from BRP ORC rules provenance;
+- evaluation uses the existing system-neutral `RandomTable` / `evaluateRandomTable` engine;
+- the finishing UI exposes exactly one compact appearance suggestion action;
+- clicking it writes into the ordinary editable appearance textarea;
+- later user typing overrides or clears the suggestion normally;
+- submit persists only the final text into BRP native identity finishing state;
+- suggestion provenance is not hidden inside native state or required to reconstruct the character;
+- no BRP mechanical rules or calculations changed.
+
+Focused tests cover deterministic replay, source/table identity, non-mechanical table content, the single UI affordance, manual override, and absence of hidden suggestion-seed state in the persisted character.
 
 ## Future Parchment Worlds Asset Retrieval Boundary
 
@@ -80,6 +84,21 @@ Implications for Character Forge work now:
 - avoid UI-only or hidden sidecar state required to reconstruct an asset;
 - keep generation provenance explicit where retained, but do not make it a prerequisite for reading the canonical asset;
 - do not implement the endpoint inside Character Forge; Parchment Worlds should own the cross-asset retrieval surface.
+
+## Next Bounded Slice
+
+Expand the proven BRP flavor-suggestion pattern across the remaining useful optional finishing fields without changing `generator-core`.
+
+Prefer a small BRP-owned table catalog/helper over copy-pasted one-off suggestion functions. Candidate fields already present in native finishing state include:
+
+- size/build;
+- mannerisms;
+- reputation;
+- personal item;
+- background;
+- beliefs.
+
+Keep each result editable and non-mechanical. Do not add a general random-table browser/editor yet. Keep source/version identity explicit, and do not misattribute studio-written inspiration content to BRP rules sources.
 
 ## Architecture Baseline To Preserve
 
