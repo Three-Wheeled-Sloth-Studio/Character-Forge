@@ -28,17 +28,17 @@ Stages 0, 1, and 2 are complete. Resume **Stage 3 - Name Generator and Random Ta
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 3 D&D name provider Markov corpus boundary"
+python refs/tools/generate_agent_context.py --focus "Stage 3 BRP random table flavor suggestion"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-3. `packages/generator-core/src/nameMarkov.ts`
-4. `packages/generator-core/src/nameSuggestion.ts`
-5. `packages/system-dnd5e/src/nameGeneration.ts` and its focused tests
-6. BRP random-table/flavor code only after the D&D provider migration is green
+3. `packages/generator-core/src/randomTable.ts` and its focused tests
+4. BRP native state/schema for optional free-text flavor fields
+5. the narrow BRP creator-state/view path for the selected field
+6. existing BRP suggestion/provenance patterns only where useful
 
 Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
 
@@ -46,51 +46,51 @@ Do not reread the entire repository history. Do not resume D&D Guided Narrative 
 
 Current accepted `dev` implementation head:
 
-- SHA: `7b535143e188dd26d1ff41f6517adffd9dc3d7b4`
-- Actions: `34647775925`
-- Job: `103422558786`
-- 64 test files / 304 tests / 0 failures
-- 238 tracked paths
+- SHA: `90af2bb90165f314a75c758f69484043720dac36`
+- Actions: `34690245360`
+- Job: `103544104724`
+- 64 test files / 305 tests / 0 failures
+- 239 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3735 characters
-- build `Character Forge build 0.0.1 7b535143`
+- agent context 3764 characters
+- build `Character Forge build 0.0.1 90af2bb9`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 3 First Slice Completed
+## Stage 3 Name Generator Status
 
-The shared generator layer now includes `name-markov/0.1` in `packages/generator-core/src/nameMarkov.ts`.
+Two name-generation slices are complete:
 
-It provides:
+1. shared `name-markov/0.1` mechanism in `generator-core`;
+2. D&D provider migration to a separate versioned demonstration corpus using that mechanism.
 
-- corpus-trained character-level transition generation;
-- frequency-weighted transitions;
-- deterministic behavior through the existing seeded random source;
-- caller-owned length and acceptance constraints;
-- bounded retries and explicit failure;
-- no embedded D&D, BRP, species, culture, or language semantics.
+The D&D provider now generates novel given/family sequences, preserves deterministic replay and source/provider provenance, keeps names editable, and does not infer culture/language from species.
 
-The existing `NameSuggestionProvider` remains the provenance/provider contract. The existing `RandomTable` evaluator remains the system-neutral random-table contract.
+Do not broaden the D&D corpus in the next slice.
 
-## Next Bounded Slice
+## Next Bounded Slice - BRP Random-Table Proof
 
-Migrate only the existing D&D placeholder name provider onto the shared Markov mechanism.
+Use the existing `RandomTable` / `evaluateRandomTable` contract to populate exactly one optional BRP free-text flavor field as an editable suggestion.
+
+Preferred target: `appearance`, if the current BRP native schema and creator UI confirm it is an optional non-mechanical free-text field. If `appearance` is not a clean boundary, select the nearest equivalent flavor-only field already present rather than adding a new schema field.
 
 Required shape:
 
-1. Separate D&D training/reference samples into their own corpus module or data boundary.
-2. Give that corpus explicit source/version identity and retain it through `NameSuggestion` provenance.
-3. Train/use `name-markov/0.1` from the D&D provider instead of selecting one of six complete names.
-4. Preserve existing explicit-randomize and blank-fallback behavior, replay validation, generation decisions, and editable final name behavior.
-5. Add tests proving deterministic replay and stale provenance rejection when provider/corpus identity does not match.
-6. Keep the first corpus intentionally bounded; this slice proves architecture, not linguistic completeness.
-7. Do not infer culture or language from D&D species.
+1. Define a small, explicitly versioned BRP flavor table outside `generator-core`.
+2. Evaluate it through `evaluateRandomTable` using a retained deterministic seed.
+3. Retain table/source provenance through the creator/generation path where provenance already belongs; do not invent a parallel document model.
+4. Write the suggestion into the ordinary editable BRP field.
+5. Manual user edits remain authoritative and may replace or clear the suggestion.
+6. Add focused tests for deterministic replay, table/source provenance, and editability/override behavior.
+7. Keep the table intentionally bounded; this is an integration proof, not final content breadth.
+8. Do not add a general random-table browser/editor UI in this slice.
+9. Do not modify mechanical BRP calculations or validation behavior.
 
-Once that is green, the next Stage 3 slice should use the existing random-table evaluator to populate one editable BRP flavor-field suggestion path as a proof of integration.
+If the proof is clean, the following slice can expand the same pattern to the remaining optional BRP inspiration fields such as mannerisms, reputation, background, distinctive details, or equivalent existing fields.
 
 ## Guardrails
 
@@ -101,6 +101,7 @@ Once that is green, the next Stage 3 slice should use the existing random-table 
 - Shared generator code owns reusable mechanics, not system/culture semantics.
 - Preserve deterministic generation and provenance.
 - Random-table output is suggestion/input, not hidden authoritative state.
+- User edits override generated flavor suggestions.
 - Do not pull deferred Issue #15 BRP polish into Stage 3 unless it becomes a blocker.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
