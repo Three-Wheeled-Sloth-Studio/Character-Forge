@@ -31,6 +31,16 @@ export const FOUNDRY_DND5E_ARMOR_SHIELD_IDS = [
   "studded-leather-armor",
 ] as const;
 
+export const FOUNDRY_DND5E_SIMPLE_WEAPON_IDS = [
+  "dagger",
+  "quarterstaff",
+  "spear",
+  "shortbow",
+  "handaxe",
+  "mace",
+  "sickle",
+] as const;
+
 export interface FoundryDnd5eUnsupportedEquipment {
   itemId: string;
   quantity: number;
@@ -168,6 +178,104 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       });
     },
   },
+  dagger: weaponDefinition({
+    name: "Dagger",
+    identifier: "dagger",
+    priceValue: 2,
+    priceDenomination: "gp",
+    weight: 1,
+    damageNumber: 1,
+    damageDenomination: 4,
+    damageType: "piercing",
+    weaponType: "simpleM",
+    properties: ["fin", "lgt", "thr"],
+    mastery: "nick",
+    range: { value: 20, long: 60, units: "ft", reach: null },
+  }),
+  quarterstaff: weaponDefinition({
+    name: "Quarterstaff",
+    identifier: "quarterstaff",
+    priceValue: 2,
+    priceDenomination: "sp",
+    weight: 4,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "bludgeoning",
+    weaponType: "simpleM",
+    properties: ["ver"],
+    mastery: "topple",
+    versatileMarker: true,
+  }),
+  spear: weaponDefinition({
+    name: "Spear",
+    identifier: "spear",
+    priceValue: 1,
+    priceDenomination: "gp",
+    weight: 3,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "piercing",
+    weaponType: "simpleM",
+    properties: ["thr", "ver"],
+    mastery: "sap",
+    range: { value: 20, long: 60, units: "ft", reach: null },
+    versatileMarker: true,
+  }),
+  shortbow: weaponDefinition({
+    name: "Shortbow",
+    identifier: "shortbow",
+    priceValue: 25,
+    priceDenomination: "gp",
+    weight: 2,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "piercing",
+    weaponType: "simpleR",
+    properties: ["amm", "two"],
+    mastery: "vex",
+    range: { value: 80, long: 320, units: "ft", reach: null },
+    ammunitionType: "arrow",
+  }),
+  handaxe: weaponDefinition({
+    name: "Handaxe",
+    identifier: "handaxe",
+    priceValue: 5,
+    priceDenomination: "gp",
+    weight: 2,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "slashing",
+    weaponType: "simpleM",
+    properties: ["lgt", "thr"],
+    mastery: "vex",
+    range: { value: 20, long: 60, units: "ft", reach: null },
+  }),
+  mace: weaponDefinition({
+    name: "Mace",
+    identifier: "mace",
+    priceValue: 5,
+    priceDenomination: "gp",
+    weight: 4,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "bludgeoning",
+    weaponType: "simpleM",
+    properties: [],
+    mastery: "sap",
+  }),
+  sickle: weaponDefinition({
+    name: "Sickle",
+    identifier: "sickle",
+    priceValue: 1,
+    priceDenomination: "gp",
+    weight: 2,
+    damageNumber: 1,
+    damageDenomination: 4,
+    damageType: "slashing",
+    weaponType: "simpleM",
+    properties: ["lgt"],
+    mastery: "nick",
+  }),
   arrow: {
     name: "Arrows",
     type: "consumable",
@@ -379,9 +487,43 @@ interface WeaponSystemInput {
   properties: string[];
   mastery: string;
   range?: JsonObject;
+  ammunitionType?: string;
+  versatileMarker?: boolean;
+}
+
+interface WeaponDefinitionInput extends Omit<WeaponSystemInput, "quantity"> {
+  name: string;
+}
+
+function weaponDefinition(input: WeaponDefinitionInput): EquipmentDefinition {
+  return {
+    name: input.name,
+    type: "weapon",
+    buildSystem(quantity) {
+      return weaponSystem({ ...input, quantity });
+    },
+  };
 }
 
 function weaponSystem(input: WeaponSystemInput): JsonObject {
+  const versatile = input.versatileMarker
+    ? {
+        number: null,
+        denomination: 0,
+        bonus: "",
+        types: [],
+        custom: { enabled: false, formula: "" },
+        scaling: { mode: "", number: null, formula: "" },
+      }
+    : {
+        number: null,
+        denomination: null,
+        bonus: "",
+        types: [],
+        custom: { enabled: true, formula: "" },
+        scaling: { mode: "", number: null, formula: "" },
+      };
+
   return {
     ...physicalSystem(
       input.identifier,
@@ -394,14 +536,7 @@ function weaponSystem(input: WeaponSystemInput): JsonObject {
     range: input.range ?? { value: null, long: null, units: "ft", reach: null },
     uses: emptyUses(),
     damage: {
-      versatile: {
-        number: null,
-        denomination: null,
-        bonus: "",
-        types: [],
-        custom: { enabled: true, formula: "" },
-        scaling: { mode: "", number: null, formula: "" },
-      },
+      versatile,
       base: {
         number: input.damageNumber,
         denomination: input.damageDenomination,
@@ -413,11 +548,11 @@ function weaponSystem(input: WeaponSystemInput): JsonObject {
     },
     armor: { value: null },
     type: { value: input.weaponType, baseItem: input.identifier },
-    magicalBonus: "",
+    magicalBonus: null,
     properties: input.properties,
     proficient: null,
     activities: {},
-    ammunition: {},
+    ammunition: input.ammunitionType ? { type: input.ammunitionType } : {},
     mastery: input.mastery,
   };
 }

@@ -6,6 +6,7 @@ import {
   FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS,
   FOUNDRY_DND5E_ARMOR_SHIELD_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
+  FOUNDRY_DND5E_SIMPLE_WEAPON_IDS,
 } from "./dnd5eEquipmentItems.js";
 import { stableFoundryDocumentId } from "./dnd5eIdentityItems.js";
 
@@ -195,6 +196,136 @@ describe("Foundry D&D5e equipment mapping", () => {
       });
       expect(JSON.stringify(item)).not.toContain("@UUID");
       expect(JSON.stringify(item)).not.toContain("advancement");
+    }
+  });
+
+  it("maps the pinned simple-weapon slice while keeping martial breadth explicit", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "longsword", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-simple-weapons", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-simple-weapons", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "longsword",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const byIdentifier = new Map(first.items.map((item) => [
+      (item.system as { identifier: string }).identifier,
+      item,
+    ]));
+
+    expect(byIdentifier.get("dagger")).toMatchObject({
+      _id: stableFoundryDocumentId("character-simple-weapons:equipment:dagger"),
+      name: "Dagger",
+      type: "weapon",
+      system: {
+        identifier: "dagger",
+        quantity: 2,
+        equipped: false,
+        price: { value: 2, denomination: "gp" },
+        weight: { value: 1, units: "lb" },
+        damage: { base: { number: 1, denomination: 4, types: ["piercing"] } },
+        type: { value: "simpleM", baseItem: "dagger" },
+        properties: ["fin", "lgt", "thr"],
+        mastery: "nick",
+        range: { value: 20, long: 60, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("quarterstaff")).toMatchObject({
+      name: "Quarterstaff",
+      system: {
+        price: { value: 2, denomination: "sp" },
+        weight: { value: 4, units: "lb" },
+        damage: {
+          base: { number: 1, denomination: 6, types: ["bludgeoning"] },
+          versatile: { denomination: 0, custom: { enabled: false } },
+        },
+        type: { value: "simpleM", baseItem: "quarterstaff" },
+        properties: ["ver"],
+        mastery: "topple",
+        range: { value: null, long: null, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("spear")).toMatchObject({
+      name: "Spear",
+      system: {
+        price: { value: 1, denomination: "gp" },
+        weight: { value: 3, units: "lb" },
+        damage: {
+          base: { number: 1, denomination: 6, types: ["piercing"] },
+          versatile: { denomination: 0, custom: { enabled: false } },
+        },
+        properties: ["thr", "ver"],
+        mastery: "sap",
+        range: { value: 20, long: 60, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("shortbow")).toMatchObject({
+      name: "Shortbow",
+      system: {
+        price: { value: 25, denomination: "gp" },
+        weight: { value: 2, units: "lb" },
+        damage: { base: { number: 1, denomination: 6, types: ["piercing"] } },
+        type: { value: "simpleR", baseItem: "shortbow" },
+        properties: ["amm", "two"],
+        mastery: "vex",
+        range: { value: 80, long: 320, units: "ft", reach: null },
+        ammunition: { type: "arrow" },
+      },
+    });
+    expect(byIdentifier.get("handaxe")).toMatchObject({
+      name: "Handaxe",
+      system: {
+        price: { value: 5, denomination: "gp" },
+        weight: { value: 2, units: "lb" },
+        damage: { base: { number: 1, denomination: 6, types: ["slashing"] } },
+        properties: ["lgt", "thr"],
+        mastery: "vex",
+        range: { value: 20, long: 60, units: "ft", reach: null },
+      },
+    });
+    expect(byIdentifier.get("mace")).toMatchObject({
+      name: "Mace",
+      system: {
+        price: { value: 5, denomination: "gp" },
+        weight: { value: 4, units: "lb" },
+        damage: { base: { number: 1, denomination: 6, types: ["bludgeoning"] } },
+        properties: [],
+        mastery: "sap",
+      },
+    });
+    expect(byIdentifier.get("sickle")).toMatchObject({
+      name: "Sickle",
+      system: {
+        price: { value: 1, denomination: "gp" },
+        weight: { value: 2, units: "lb" },
+        damage: { base: { number: 1, denomination: 4, types: ["slashing"] } },
+        properties: ["lgt"],
+        mastery: "nick",
+      },
+    });
+
+    for (const item of first.items) {
+      expect(item.system).toMatchObject({
+        description: { value: "", chat: "" },
+        quantity: 2,
+        activities: {},
+        magicalBonus: null,
+      });
+      expect((item.system as { ammunition?: { item?: unknown } }).ammunition?.item).toBeUndefined();
+      expect(JSON.stringify(item)).not.toContain("@UUID");
     }
   });
 
