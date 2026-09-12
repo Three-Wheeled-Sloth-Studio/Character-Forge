@@ -14,34 +14,36 @@ tags:
 
 Date: 2026-09-12
 Branch: `dev`
-Current stage: **Stage 4 - Durable Portrait and Token Assets**
+Current stage: **Stage 4 - Durable Portrait and Token Assets (feature-complete candidate; owner/browser QA pending)**
 
 ## Current State
 
 Stages 0, 1, 2, and 3 are complete.
 
+Stage 4 implementation is now complete enough for owner/browser acceptance. Do not begin Stage 5 until the integrated portrait/token workflow has been exercised and accepted.
+
 The authoritative stage order remains:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-Two explicitly nonblocking BRP polish items remain parked in Issue #15. Do not pull them ahead of the approved sequence unless they become blockers or the owner explicitly asks.
+Issue #15 remains parked and nonblocking.
 
-## Exact Green Stage 3 Completion Checkpoint
+## Exact Green Character Forge Stage 4 Checkpoint
 
 Accepted `dev` implementation head:
 
-- SHA: `43c2a2a380a35137cc655afdb49c0a0f5551ee73`
-- Actions: `34691975393`
-- Job: `103548720467`
+- SHA: `824514fc6971cb2dd2a53bf84533b218922417e5`
+- Actions: `34692945279`
+- Job: `103551334264`
 - `npm run verify`: green
 - 66 test files
-- 312 tests passed
+- 314 tests passed
 - 0 failures
 - 243 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Agent context: 3624 characters
-- Build: `Character Forge build 0.0.1 43c2a2a3`
+- Agent context: 3865 characters
+- Build: `Character Forge build 0.0.1 824514fc`
 
 Promoted branches remain unchanged:
 
@@ -50,73 +52,143 @@ Promoted branches remain unchanged:
 
 No promotion is authorized unless the owner explicitly requests it.
 
-## Stage 3 Completed - Name Generator and Random Tables
+## Exact Green Parchment Worlds Companion Checkpoint
 
-Name generation now has the reusable architecture required for future language/culture integration:
+The complete durable-media Stage 4 candidate is coordinated in Parchment Worlds `dev`:
 
-- shared `name-markov/0.1` sequence-generation mechanism in `generator-core`;
-- separate mechanism versus corpus/provider boundaries;
-- deterministic seeded replay and provider/source provenance;
-- D&D demonstration provider migrated away from literal complete-name selection;
-- species remains distinct from culture/language assumptions.
+- SHA: `38aa8c865e81b4826265bd4ec2aa69c5592ad0c9`
+- Actions: `34694067917`
+- Job: `103554608657`
+- `npm run verify:metadata-only`: green
+- 58 test files
+- 203 tests passed
+- 0 failures
+- production Vite bundle green
+- existing `>500 kB` bundle warning remains nonblocking
 
-Random-table support now has a live reusable creator pattern:
+Parchment project-memory was refreshed after that implementation checkpoint; treat `38aa8c...` as the exact Stage 4 implementation candidate.
 
-- the existing system-neutral `RandomTable` evaluator remains the only table engine;
-- `packages/system-brp/src/flavorSuggestion.ts` provides one typed finishing-field suggestion contract;
-- all seven existing BRP finishing fields have bounded Character Forge-owned inspiration tables: size/build, appearance, mannerisms, reputation, personal item, background, and beliefs;
-- all tables share explicit studio-owned source/version identity rather than being mislabeled as BRP rules text;
-- every finishing field exposes the same compact suggestion affordance;
-- generated text enters the ordinary editable field and may be replaced or cleared normally;
-- only final visible text persists into canonical BRP native state;
-- no reconstruction-critical hidden seed/provenance sidecar is introduced;
-- the original appearance API remains as a compatibility wrapper over the generic catalog.
+## Stage 4 Ownership Boundary
 
-Do not expand corpora or table content merely for volume. Reopen Stage 3 only when a later culture/language system, new RPG system, or concrete UX need supplies useful new requirements.
+The architecture audit resolved portrait/token ownership cleanly:
 
-## Future Parchment Worlds Asset Retrieval Boundary
+- portrait/token are independent Parchment `custom:media` assets;
+- characters point to them through `character.portrait` and `character.token` relationships;
+- the relationship records selection authority;
+- Parchment owns binary storage, identity, lifecycle, revision, provenance, rights, and relationships;
+- Character Forge consumes ephemeral presentation context only;
+- CharacterDocument and native D&D/BRP state remain unchanged.
 
-Keep a future generic Parchment Worlds API retrieval endpoint in the architecture. The intended boundary is asset-oriented rather than character-specific: callers should eventually be able to request a PW asset such as a project, character, world, portrait/token/media asset, or later asset type by stable identity and type and receive its canonical serializable representation.
+Do not add media IDs, file paths, base64, object URLs, upload URLs, or VTT-specific IDs to RPG native state.
 
-Implications for Character Forge work:
+## Durable Media Storage
 
-- preserve stable asset/document IDs;
-- keep native character state canonical and serializable;
-- avoid UI-only or hidden sidecar state required to reconstruct an asset;
-- keep generation provenance explicit where retained, but do not make it a prerequisite for reading the canonical asset;
-- do not implement the generic endpoint inside Character Forge; Parchment Worlds owns the cross-asset retrieval surface.
+Parchment stores browser-local media bytes in a dedicated IndexedDB media store outside project JSON.
 
-## Stage 4 Goal - Durable Portrait and Token Assets
+Canonical manifestations retain only durable product/storage metadata such as:
 
-Move portrait/token handling beyond session-only presentation while preserving ownership boundaries.
+- opaque provider identity;
+- provider scope;
+- opaque external ID;
+- content hash; and
+- manifestation kind.
 
-Core rule:
+Supported portrait/token imports now include PNG, JPEG, WebP, and SVG up to 10 MB.
 
-- portrait/token binaries, storage metadata, lifecycle, and relationships are Parchment-owned assets/relationships;
-- Character Forge may consume stable references for creator/sheet presentation and future adapters;
-- do not place image binaries, local paths, upload URLs, or VTT-specific IDs into D&D/BRP native RPG state.
+## Character Forge Host Bridge
 
-Preferred UX direction remains:
+Character Forge now supports a narrow trusted host-media protocol:
 
-`empty portrait region -> add/import -> durable portrait -> generated token suggestion -> quick crop/frame editor -> accept`
+- media context from Parchment supplies portrait/token bytes for presentation;
+- portrait/token sheet regions become keyboard-accessible add/replace surfaces only when a Parchment host is present;
+- role requests go back to the trusted Parchment origin;
+- received bytes become temporary browser object URLs for sheet rendering;
+- temporary URLs are presentation-only and never enter CharacterDocument.
 
-A user-supplied token remains authoritative until explicitly replaced or regenerated.
+Standalone Character Forge remains storage-agnostic.
 
-## Next Bounded Slice
+## Parchment Hosted Interaction
 
-Begin Stage 4 with an architecture audit before adding media code.
+Parchment owns the actual interaction and persistence:
 
-Inspect only the current CharacterDocument/host-presentation seams and Parchment's generic asset persistence/relationship contracts. Determine:
+- hidden file picker and validation;
+- durable save/replace;
+- role relationship removal;
+- reload/reopen media resolution;
+- project lifecycle/sync guards; and
+- trusted context delivery back to Character Forge.
 
-1. the minimal stable portrait/token reference shape Character Forge needs to consume;
-2. which existing Parchment generic asset identity/lifecycle fields can be reused unchanged;
-3. whether portrait and token should be media assets related to a character asset or typed relationship payloads pointing to media assets;
-4. replacement/removal semantics and authoritative-user-token behavior;
-5. how local development and hosted storage references remain durable without leaking local filesystem paths into canonical assets;
-6. how the future generic `(assetType, assetId)` retrieval API can return characters and their media relationships without flattening module-owned CharacterDocument state;
-7. the smallest first implementation slice after the boundary is proven.
+Removing a role withdraws the active relationship without deleting retained media/history.
 
-Do not implement image generation, cropping, upload providers, or Foundry mapping during the audit unless an existing contract requires a tiny enabling change.
+## Token Suggestion / Editor
+
+The owner-approved product hypothesis is now implemented:
+
+`portrait -> Create token from portrait -> quick crop/frame editor -> Accept token`
+
+The editor supports:
+
+- deterministic cover-crop math;
+- zoom;
+- horizontal and vertical positioning;
+- round or square framing;
+- Reset;
+- Cancel with no persistence; and
+- explicit Accept that encodes/persists a PNG token.
+
+A manual/imported token is never silently replaced. Regeneration is an explicit user action. Once a generated suggestion is explicitly accepted, that selected token is authoritative until explicit replace/regenerate/remove.
+
+## Native-State Guardrail
+
+All Stage 4 media behavior must preserve:
+
+- full CharacterDocument round trip;
+- primary native state identity;
+- D&D/BRP native payloads;
+- generation provenance; and
+- native validation behavior.
+
+Media is presentation/project state, not RPG-native state.
+
+## Owner / Browser QA Required Before Stage 4 Closure
+
+Use current Character Forge and Parchment Worlds `dev` builds and run this integrated acceptance path:
+
+1. Open a persisted D&D character from a project and add a portrait from the sheet portrait region.
+2. Reopen and confirm portrait persistence.
+3. Replace the portrait and confirm replacement persistence.
+4. Choose `Create token from portrait`; exercise zoom, horizontal/vertical positioning, round/square, and Reset.
+5. Cancel and confirm no token mutation.
+6. Reopen the editor, Accept, reopen the character, and confirm token persistence.
+7. Import a manual token and confirm it replaces the accepted generated token only by explicit action.
+8. Confirm portrait replacement does not silently replace a manual token; regeneration remains explicit.
+9. Remove portrait and token individually, reopen, and confirm active relationships stay removed.
+10. Repeat representative media persistence/presentation with BRP to prove the path is system-neutral.
+11. Inspect/save/reopen CharacterDocument and confirm native state remains unchanged by media operations.
+12. Sanity-check keyboard activation and compact/mobile token-editor behavior.
+
+If this passes without material defects, formally close Stage 4 and enter **Stage 5 - Foundry Export / Import Validation**.
+
+## Stage 5 Boundary - Do Not Start Yet
+
+Once Stage 4 is owner-accepted, Stage 5 remains the next approved work:
+
+1. bounded Foundry adapter;
+2. authoritative Character Forge -> Foundry Actor/embedded Item mapping;
+3. pin supported Foundry/game-system versions;
+4. deterministic fixtures;
+5. downloadable import artifact; and
+6. real Foundry runtime validation when that becomes the next blocker.
+
+Foundry data remains an adapter target, not canonical state.
+
+## Future Generic Parchment Asset Retrieval Boundary
+
+Keep the future generic Parchment API direction:
+
+`(assetType, assetId) -> authorization/membership/revision -> canonical serializable asset`
+
+The Stage 4 media architecture now fits that boundary without flattening module-owned CharacterDocument state.
 
 ## Architecture Baseline To Preserve
 
@@ -140,4 +212,6 @@ For every Character Forge implementation milestone:
 npm run verify
 ```
 
-Do not call a Character Forge milestone green unless the exact committed SHA passes GitHub Actions.
+For coordinated Parchment work, use its exact committed SHA and repository validation gate.
+
+Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
