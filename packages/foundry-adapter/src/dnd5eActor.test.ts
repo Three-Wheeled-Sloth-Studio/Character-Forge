@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createFirstSliceCharacterDocument } from "../../system-dnd5e/src/firstSliceCharacter.js";
+import type { Dnd5eNativeCharacter } from "../../system-dnd5e/src/nativeCharacter.js";
 import {
   exportCharacterToFoundryDnd5eActor,
   serializeFoundryDnd5eActorDocument,
@@ -163,6 +164,44 @@ describe("Foundry D&D5e Actor adapter", () => {
       }),
     ]));
     expect(exported.mappingNotes.some((note) => note.sourcePath.startsWith("equipment[itemId="))).toBe(false);
+  });
+
+  it("keeps authoritative flat AC when newly mapped armor and shield Items are present", () => {
+    const character = createFirstSliceCharacterDocument();
+    const primaryState = character.nativeStates.find((state) => state.id === character.primaryNativeStateId);
+    if (!primaryState) throw new Error("test fixture primary state missing");
+    const payload = primaryState.payload as Dnd5eNativeCharacter;
+    const withArmor = {
+      ...character,
+      nativeStates: character.nativeStates.map((state) => state.id === primaryState.id
+        ? {
+            ...state,
+            payload: {
+              ...payload,
+              equipment: [
+                { itemId: "chain-shirt", quantity: 1 },
+                { itemId: "shield", quantity: 1 },
+              ],
+            },
+          }
+        : state),
+    } as typeof character;
+
+    const exported = exportCharacterToFoundryDnd5eActor(withArmor);
+    const document = JSON.parse(JSON.stringify(exported.document));
+    expect(document.system.attributes.ac).toEqual({ flat: 17, calc: "flat", formula: "" });
+
+    const armorItems = document.items.filter((item: { type: string }) => item.type === "equipment");
+    expect(armorItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: "Chain Shirt",
+        system: expect.objectContaining({ identifier: "chain-shirt", equipped: false }),
+      }),
+      expect.objectContaining({
+        name: "Shield",
+        system: expect.objectContaining({ identifier: "shield", equipped: false }),
+      }),
+    ]));
   });
 
   it("uses stable valid Foundry document IDs without copying rules text or advancement automation", () => {

@@ -24,6 +24,13 @@ export const FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS = [
   "pouch",
 ] as const;
 
+export const FOUNDRY_DND5E_ARMOR_SHIELD_IDS = [
+  "chain-shirt",
+  "shield",
+  "leather-armor",
+  "studded-leather-armor",
+] as const;
+
 export interface FoundryDnd5eUnsupportedEquipment {
   itemId: string;
   quantity: number;
@@ -59,6 +66,50 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       };
     },
   },
+  "chain-shirt": armorDefinition({
+    name: "Chain Shirt",
+    identifier: "chain-shirt",
+    priceValue: 50,
+    priceDenomination: "gp",
+    weight: 20,
+    armorValue: 13,
+    armorDex: 2,
+    armorType: "medium",
+    baseItem: "chainshirt",
+  }),
+  shield: armorDefinition({
+    name: "Shield",
+    identifier: "shield",
+    priceValue: 10,
+    priceDenomination: "gp",
+    weight: 6,
+    armorValue: 2,
+    armorDex: null,
+    armorType: "shield",
+    baseItem: "shield",
+  }),
+  "leather-armor": armorDefinition({
+    name: "Leather Armor",
+    identifier: "leather-armor",
+    priceValue: 10,
+    priceDenomination: "gp",
+    weight: 10,
+    armorValue: 11,
+    armorDex: null,
+    armorType: "light",
+    baseItem: "leather",
+  }),
+  "studded-leather-armor": armorDefinition({
+    name: "Studded Leather Armor",
+    identifier: "studded-leather-armor",
+    priceValue: 45,
+    priceDenomination: "gp",
+    weight: 13,
+    armorValue: 12,
+    armorDex: null,
+    armorType: "light",
+    baseItem: "studded",
+  }),
   greatsword: {
     name: "Greatsword",
     type: "weapon",
@@ -226,6 +277,46 @@ function physicalSystem(
     attunement: "",
     attuned: false,
     equipped,
+  };
+}
+
+interface ArmorSystemInput {
+  name: string;
+  identifier: string;
+  priceValue: number;
+  priceDenomination: string;
+  weight: number;
+  armorValue: number;
+  armorDex: number | null;
+  armorType: "light" | "medium" | "heavy" | "shield";
+  baseItem: string;
+  properties?: string[];
+  strength?: number | null;
+}
+
+function armorDefinition(input: ArmorSystemInput): EquipmentDefinition {
+  return {
+    name: input.name,
+    type: "equipment",
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem(
+          input.identifier,
+          quantity,
+          input.priceValue,
+          input.priceDenomination,
+          input.weight,
+          false,
+        ),
+        activities: {},
+        uses: emptyUses(),
+        armor: { value: input.armorValue, magicalBonus: null, dex: input.armorDex },
+        proficient: null,
+        properties: input.properties ?? [],
+        strength: input.strength ?? null,
+        type: { value: input.armorType, baseItem: input.baseItem },
+      };
+    },
   };
 }
 

@@ -4,6 +4,7 @@ import type { Dnd5eNativeCharacter } from "../../system-dnd5e/src/nativeCharacte
 import {
   buildFoundryDnd5eEquipmentItems,
   FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS,
+  FOUNDRY_DND5E_ARMOR_SHIELD_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
 } from "./dnd5eEquipmentItems.js";
 import { stableFoundryDocumentId } from "./dnd5eIdentityItems.js";
@@ -118,6 +119,82 @@ describe("Foundry D&D5e equipment mapping", () => {
       });
       expect("items" in item).toBe(false);
       expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("maps pinned armor and shield fixtures without copying prose or automation", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: FOUNDRY_DND5E_ARMOR_SHIELD_IDS.map((itemId) => ({ itemId, quantity: 1 })),
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-armor", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-armor", payload);
+    expect(first.unsupported).toEqual([]);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(4);
+
+    const byIdentifier = new Map(first.items.map((item) => [
+      (item.system as { identifier: string }).identifier,
+      item,
+    ]));
+
+    expect(byIdentifier.get("chain-shirt")).toMatchObject({
+      _id: stableFoundryDocumentId("character-armor:equipment:chain-shirt"),
+      name: "Chain Shirt",
+      type: "equipment",
+      system: {
+        identifier: "chain-shirt",
+        quantity: 1,
+        equipped: false,
+        weight: { value: 20, units: "lb" },
+        price: { value: 50, denomination: "gp" },
+        armor: { value: 13, magicalBonus: null, dex: 2 },
+        type: { value: "medium", baseItem: "chainshirt" },
+        properties: [],
+        strength: null,
+        activities: {},
+      },
+    });
+    expect(byIdentifier.get("shield")).toMatchObject({
+      name: "Shield",
+      type: "equipment",
+      system: {
+        identifier: "shield",
+        equipped: false,
+        weight: { value: 6, units: "lb" },
+        price: { value: 10, denomination: "gp" },
+        armor: { value: 2, magicalBonus: null, dex: null },
+        type: { value: "shield", baseItem: "shield" },
+      },
+    });
+    expect(byIdentifier.get("leather-armor")).toMatchObject({
+      name: "Leather Armor",
+      system: {
+        weight: { value: 10, units: "lb" },
+        price: { value: 10, denomination: "gp" },
+        armor: { value: 11, magicalBonus: null, dex: null },
+        type: { value: "light", baseItem: "leather" },
+      },
+    });
+    expect(byIdentifier.get("studded-leather-armor")).toMatchObject({
+      name: "Studded Leather Armor",
+      system: {
+        weight: { value: 13, units: "lb" },
+        price: { value: 45, denomination: "gp" },
+        armor: { value: 12, magicalBonus: null, dex: null },
+        type: { value: "light", baseItem: "studded" },
+      },
+    });
+
+    for (const item of first.items) {
+      expect(item.system).toMatchObject({
+        description: { value: "", chat: "" },
+        activities: {},
+      });
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+      expect(JSON.stringify(item)).not.toContain("advancement");
     }
   });
 
