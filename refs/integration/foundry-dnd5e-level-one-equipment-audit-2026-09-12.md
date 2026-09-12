@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.5.0`
+Character Forge adapter: `0.6.0`
 
 ## Purpose
 
@@ -22,66 +22,17 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.5.0` currently maps:
+Adapter `0.6.0` currently maps:
 
 ### Weapons
 
-- `greatsword` -> Foundry `weapon`
-- `flail` -> Foundry `weapon`
-- `javelin` -> Foundry `weapon`, including stack quantity
-
-### Armor and shield
-
-- `chain-mail` -> Foundry `equipment`
-- `chain-shirt` -> Foundry `equipment`, medium armor, base item `chainshirt`
-- `shield` -> Foundry `equipment`, shield, base item `shield`
-- `leather-armor` -> Foundry `equipment`, light armor, base item `leather`
-- `studded-leather-armor` -> Foundry `equipment`, light armor, base item `studded`
-
-The four breadth mappings use exact pinned D&D5e 6.0 price, weight, armor, Dex-cap, category, and base-item fields. They remain unequipped because item identity alone does not prove equipped state. Actor AC remains the authoritative Character Forge flat value even when mapped armor/shield Items are present.
-
-### Ammunition
-
-- `arrow` -> Foundry `consumable`
-  - explicit Character Forge source ID `arrow`
-  - explicit Foundry target identifier `arrows`
-  - target type `ammo`, subtype `arrow`
-  - Character Forge quantity preserved
-
-### Containers
-
-- `dungeoneers-pack`
-- `quiver`
-- `explorers-pack`
-- `entertainers-pack`
-- `priests-pack`
-- `burglars-pack`
-- `scholars-pack`
-- `pouch`
-
-Container mapping uses the live D&D5e 6.0 model shape after fixture migration:
-
-- weight-capacity containers use `capacity.weight.value/units`;
-- `quiver` uses `capacity.count = 20`;
-- Foundry containers have target quantity max 1, so an unsupported native multi-container stack is deferred rather than silently collapsed.
-
-All mapped Items use deterministic embedded IDs, empty descriptions, no copied compendium prose, no Foundry advancement replay, and no copied attack/activity automation.
-
-Unknown equipment IDs are reported as deferred mappings rather than silently dropped or fabricated as generic loot.
-
-## Emitted Character Forge Equipment Space
-
-The current Level 1 generator has 48 literal equipment IDs plus 27 possible dynamic prefixed tool/instrument IDs, for 75 possible distinct Character Forge equipment IDs.
-
-### Weapons
-
-Implemented:
+Initial proof:
 
 - `greatsword`
 - `flail`
 - `javelin`
 
-Next bounded simple-weapon targets:
+Simple-weapon breadth:
 
 - `dagger`
 - `quarterstaff`
@@ -91,7 +42,11 @@ Next bounded simple-weapon targets:
 - `mace`
 - `sickle`
 
-Still deferred martial weapons:
+All weapon mappings preserve deterministic embedded IDs, native quantity, pinned price/weight, base damage, weapon category/base item, properties, mastery, and range. Activities remain empty.
+
+`shortbow` preserves the pinned static `ammunition.type = "arrow"` filter without inventing a relationship to an Arrows Item. Quarterstaff and spear preserve the pinned versatile marker shape without inventing alternate-damage automation.
+
+Remaining emitted martial weapon gap:
 
 - `scimitar`
 - `shortsword`
@@ -99,11 +54,9 @@ Still deferred martial weapons:
 - `greataxe`
 - `longsword`
 
-Do not infer weapon activities from Character Forge IDs. Activities are a separate Foundry automation layer.
-
 ### Armor and Shield Equipment
 
-All currently emitted armor/shield IDs are implemented:
+Implemented:
 
 - `chain-mail`
 - `chain-shirt`
@@ -111,12 +64,17 @@ All currently emitted armor/shield IDs are implemented:
 - `leather-armor`
 - `studded-leather-armor`
 
-Actor AC remains flat and authoritative; equipment presence does not trigger Foundry AC recalculation in the adapter yet.
+All armor/shield Items use the pinned target category/base-item and armor fields. Newly broadened armor remains unequipped; Actor AC remains flat and authoritative until calculation parity is separately proven.
 
 ### Consumables / Ammunition
 
-- `arrow` - implemented with explicit translation to Foundry identifier `arrows`.
-- `healers-kit` - deferred; Foundry target is `consumable`, but its activity remains outside the equipment-data proof.
+Implemented:
+
+- `arrow` -> Foundry identifier `arrows`, type `ammo`, subtype `arrow`, native quantity preserved.
+
+Deferred:
+
+- `healers-kit` - Foundry target is `consumable`, but its activity remains outside the equipment-data proof.
 
 ### Containers and Packs
 
@@ -131,11 +89,11 @@ All currently emitted mundane container IDs are implemented:
 - `scholars-pack`
 - `pouch`
 
-Container contents are not inferred from the Character Forge pack ID. No nested inventory is manufactured from Foundry compendium descriptions.
+Container mapping uses the live D&D5e 6.0 model shape. Pack contents are not inferred, and unsupported multi-container native stacks are deferred rather than silently collapsed.
 
 ### Direct Tool Concepts
 
-Pinned Foundry evidence establishes `calligraphers-supplies` as a `tool`. These remain deferred pending an explicit tool translation slice:
+Pinned Foundry evidence establishes tool-family targets, but these remain deferred pending an explicit tool translation slice:
 
 - `calligraphers-supplies`
 - `thieves-tools`
@@ -196,7 +154,7 @@ These require decomposition/translation and must not be passed through as Foundr
 - `book:prayers`
 - `book:history`
 - `book:occult-lore`
-- `holy-symbol` - pinned Foundry 2024 data uses a `loot` target such as `holy-symbol-varies`; do not assume identifier equality.
+- `holy-symbol` - pinned Foundry 2024 data uses a target such as `holy-symbol-varies`; do not assume identifier equality.
 
 ### Simple Gear Still Requiring Exact Target Fixture Review
 
@@ -205,6 +163,12 @@ These require decomposition/translation and must not be passed through as Foundr
 - `crowbar`
 - `travelers-clothes`
 - `spellbook`
+
+## Emitted Character Forge Equipment Space
+
+The current Level 1 generator has 48 literal equipment IDs plus 27 possible dynamic prefixed tool/instrument IDs, for 75 possible distinct Character Forge equipment IDs.
+
+The adapter intentionally treats these as Character Forge semantic IDs rather than assuming string equality with Foundry identifiers.
 
 ## Source Paths Audited
 
@@ -215,45 +179,29 @@ Character Forge:
 - `packages/system-dnd5e/src/firstSliceCharacter.ts`
 - `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 
-Pinned Foundry D&D5e 6.0 schema/examples:
+Pinned Foundry D&D5e 6.0 schema/examples now include:
 
 - `module/data/item/weapon.mjs`
 - `module/data/item/equipment.mjs`
 - `module/data/item/consumable.mjs`
 - `module/data/item/container.mjs`
-- `module/data/item/templates/physical-item.mjs`
-- `module/data/item/templates/identifiable.mjs`
-- `module/data/item/templates/equippable-item.mjs`
-- `module/data/shared/damage-field.mjs`
-- `packs/_source/equipment24/armor/heavy/chain-mail.yml`
-- `packs/_source/equipment24/armor/medium/chain-shirt.yml`
-- `packs/_source/equipment24/armor/shield.yml`
-- `packs/_source/equipment24/armor/light/leather-armor.yml`
-- `packs/_source/equipment24/armor/light/studded-leather-armor.yml`
-- `packs/_source/equipment24/weapons/martial-melee/greatsword.yml`
-- `packs/_source/equipment24/weapons/martial-melee/flail.yml`
-- `packs/_source/equipment24/weapons/simple-melee/javelin.yml`
-- `packs/_source/equipment24/adventuring-gear/ammunition/arrows.yml`
-- `packs/_source/equipment24/adventuring-gear/dungeoneers-pack/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/explorers-pack/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/entertainers-pack/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/priests-pack/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/burglars-pack/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/scholars-pack/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/quiver/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/pouch/_container.yml`
-- `packs/_source/equipment24/adventuring-gear/healers-kit.yml`
-- `packs/_source/equipment24/tools/artisan/calligraphers-supplies.yml`
-- `packs/_source/equipment24/adventuring-gear/spellcasting-focuses/holy-symbol-varies.yml`
+- `packs/_source/equipment24/weapons/simple-melee/dagger.yml`
+- `packs/_source/equipment24/weapons/simple-melee/quarterstaff.yml`
+- `packs/_source/equipment24/weapons/simple-melee/spear.yml`
+- `packs/_source/equipment24/weapons/simple-ranged/shortbow.yml`
+- `packs/_source/equipment24/weapons/simple-melee/handaxe.yml`
+- `packs/_source/equipment24/weapons/simple-melee/mace.yml`
+- `packs/_source/equipment24/weapons/simple-melee/sickle.yml`
+- prior pinned armor, ammunition, container, and Fighter proof fixtures recorded in repository history.
 
 ## Recommended Next Slice
 
-Expand the simple-weapon seam only:
+Expand only the remaining emitted martial weapon breadth:
 
-1. inspect and map exact pinned fixtures for `dagger`, `quarterstaff`, `spear`, `shortbow`, `handaxe`, `mace`, and `sickle`;
-2. preserve native quantity, deterministic IDs, and explicit source provenance;
-3. keep descriptions and activities empty;
-4. do not infer equipped state or ammunition/container linkage;
-5. keep the remaining martial weapons and all non-weapon gaps explicit and deferred.
+1. inspect and map exact pinned fixtures for `scimitar`, `shortsword`, `longbow`, `greataxe`, and `longsword`;
+2. retain deterministic IDs, native quantity, and explicit source provenance;
+3. preserve exact static item data such as ammunition subtype where the target fixture defines it;
+4. keep activities, descriptions, and equipped-state inference out of the slice;
+5. retain explicit deferred notes for all remaining non-weapon equipment IDs.
 
-Do not combine this with martial-weapon breadth, tool/focus alias translation, feature/activity Items, spell Items, media packaging, a Download UI, or real Foundry runtime acceptance.
+Do not combine this with tool/focus alias translation, healer's-kit activity semantics, feature/activity Items, spell Items, media packaging, a Download UI, or real Foundry runtime acceptance.

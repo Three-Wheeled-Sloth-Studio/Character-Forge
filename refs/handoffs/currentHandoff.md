@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `8e4e0d61d75d96fb69f4fd50b35869360e30e4ae`
-- Actions: `34718636640`
-- Job: `103620274100`
+- SHA: `fc06c28973f23e5a962c121764509ab5e1545dce`
+- Actions: `34720925963`
+- Job: `103626501628`
 - `npm run verify`: green
 - 68 test files
-- 327 tests passed
+- 328 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3674 characters
-- Build: `Character Forge build 0.0.1 8e4e0d61`
-- Foundry adapter: `0.5.0`
+- Agent context: 3488 characters
+- Build: `Character Forge build 0.0.1 fc06c289`
+- Foundry adapter: `0.6.0`
 
 Promoted branches remain unchanged:
 
@@ -79,7 +79,11 @@ Checkpoint `ca345ca693ac269f4ca900160a2611f8ebb93a01` proved deterministic Actor
 
 Checkpoint `3ebf76461a7592878f66f089a51b261868460fa3` added deterministic embedded Class, Background, and Race Items with Actor detail references.
 
-Identity Items intentionally contain no copied rules text, no advancement automation, and no starting-equipment replay.
+Identity Items intentionally contain:
+
+- no copied rules text;
+- no advancement automation; and
+- no starting-equipment replay.
 
 ### Bounded Fighter equipment proof - complete
 
@@ -93,34 +97,42 @@ Checkpoint `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3` added a pinned equipment-d
 
 ### Ammunition and container breadth - complete
 
-Checkpoint `ba6a0422d061f5f2668307ffa461defa8ee5d77d` added:
-
-- explicit `arrow` -> Foundry `arrows` consumable translation with native quantity preserved;
-- `quiver`, `explorers-pack`, `entertainers-pack`, `priests-pack`, `burglars-pack`, `scholars-pack`, and `pouch` container mappings;
-- live D&D5e 6.0 container-capacity shapes;
-- explicit deferral for unsupported native multi-container stacks rather than quantity mutation.
-
-No nested pack contents are manufactured from Foundry compendium descriptions.
+Checkpoint `ba6a0422d061f5f2668307ffa461defa8ee5d77d` added explicit `arrow` -> Foundry `arrows` ammunition translation and all currently emitted mundane pack/container IDs. Native quantities remain explicit and unsupported multi-container stacks are deferred rather than collapsed.
 
 ### Armor and shield breadth - complete
 
-Checkpoint `8e4e0d61d75d96fb69f4fd50b35869360e30e4ae` adds exact pinned D&D5e 6.0 mappings for:
+Checkpoint `8e4e0d61d75d96fb69f4fd50b35869360e30e4ae` added exact pinned mappings for:
 
-- `chain-shirt` -> equipment, medium armor, base item `chainshirt`, AC 13, Dex cap 2;
-- `shield` -> equipment, shield, base item `shield`, AC bonus 2;
-- `leather-armor` -> equipment, light armor, base item `leather`, AC 11;
-- `studded-leather-armor` -> equipment, light armor, base item `studded`, AC 12.
+- `chain-shirt`
+- `shield`
+- `leather-armor`
+- `studded-leather-armor`
+
+These Items remain unequipped and contain no copied prose or activity automation. Actor AC remains flat and authoritative.
+
+### Simple weapon breadth - complete
+
+Checkpoint `fc06c28973f23e5a962c121764509ab5e1545dce` adds exact pinned mappings for:
+
+- `dagger`
+- `quarterstaff`
+- `spear`
+- `shortbow`
+- `handaxe`
+- `mace`
+- `sickle`
 
 The slice proves:
 
-- exact pinned price/weight/armor/type/base-item fields;
-- deterministic embedded IDs and Character Forge source provenance;
-- empty descriptions and empty Foundry activities;
-- no advancement automation or copied compendium prose;
-- new armor/shield Items remain unequipped because item identity alone does not prove equipped state;
-- Actor `derived.armorClass` remains exported as flat authoritative state even when mapped armor and shield Items are present.
+- deterministic embedded IDs remain Character Forge source-ID based;
+- native stack quantities are preserved;
+- pinned price, weight, damage, weapon category/base item, properties, mastery, and range fields are mapped;
+- quarterstaff and spear retain the pinned versatile marker shape without inventing alternate damage automation;
+- `shortbow` retains static `ammunition.type = "arrow"` as target item data, but no relationship to a consumable Item is invented;
+- activities remain empty and descriptions remain empty;
+- unrelated martial weapons remain explicit deferred mappings.
 
-The equipment adapter still aggregates ordinary repeated stacks before export and emits explicit unsupported-equipment records rather than fabricating fallback Items.
+The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
 
@@ -131,35 +143,27 @@ The durable source/target inventory is:
 Key result:
 
 - current Level 1 generation can emit 48 literal equipment IDs plus 27 dynamic prefixed tool/instrument IDs;
-- all currently emitted armor/shield IDs, mundane pack/container IDs, and `arrow` now have pinned mappings;
-- Character Forge compound IDs remain semantic IDs, not assumed Foundry identifiers;
+- Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
+- ammunition, all currently emitted mundane containers, all currently emitted armor/shield IDs, and the seven bounded simple weapons now have pinned mappings;
+- five emitted martial weapons remain the next bounded weapon gap;
 - focus, book, gaming-set, artisan-tool, and musical-instrument compound IDs still require deliberate decomposition/translation.
 
 ## Next Bounded Stage 5 Slice
 
-Expand the remaining **simple weapon** seam only, after inspecting the exact pinned Foundry D&D5e 6.0 fixtures:
+Expand the remaining emitted martial weapon breadth only:
 
-1. `dagger`
-2. `quarterstaff`
-3. `spear`
-4. `shortbow`
-5. `handaxe`
-6. `mace`
-7. `sickle`
-
-For each mapped weapon:
-
-- use exact pinned target identifier, weapon category/base item, damage, properties, mastery, range, weight, and price fields;
-- preserve native quantity and deterministic embedded IDs;
-- keep descriptions empty and activities empty;
-- do not infer equipped state;
-- do not infer ammunition/container linkage beyond the target Item's own static schema;
-- leave martial weapons and all non-weapon gaps explicitly deferred.
+1. inspect and map exact pinned fixtures for `scimitar`, `shortsword`, `longbow`, `greataxe`, and `longsword`;
+2. preserve exact target category/base item, damage, properties, mastery, range, weight, price, and static ammunition subtype fields where present;
+3. preserve deterministic IDs and Character Forge source provenance;
+4. preserve native quantity exactly;
+5. keep descriptions and activities empty;
+6. do not infer equipped state or ammunition Item relationships;
+7. leave all non-weapon equipment gaps explicit and deferred.
 
 Do not combine this with:
 
-- remaining martial weapon breadth (`scimitar`, `shortsword`, `longbow`, `greataxe`, `longsword`);
 - tools/instruments/focus aliases;
+- healer's-kit activity semantics;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
