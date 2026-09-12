@@ -1,7 +1,7 @@
 import type { JsonObject } from "../../character-model/src/index.js";
 
 export const FOUNDRY_DND5E_ACTOR_EXPORT_SCHEMA = "character-forge/foundry-dnd5e-actor-export/0.1" as const;
-export const FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION = "0.1.0" as const;
+export const FOUNDRY_DND5E_ACTOR_ADAPTER_VERSION = "0.2.0" as const;
 export const FOUNDRY_CORE_TARGET_VERSION = "14.367" as const;
 export const FOUNDRY_DND5E_TARGET_VERSION = "6.0.0" as const;
 
