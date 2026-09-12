@@ -13,6 +13,17 @@ export const FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS = [
   "dungeoneers-pack",
 ] as const;
 
+export const FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS = [
+  "arrow",
+  "quiver",
+  "explorers-pack",
+  "entertainers-pack",
+  "priests-pack",
+  "burglars-pack",
+  "scholars-pack",
+  "pouch",
+] as const;
+
 export interface FoundryDnd5eUnsupportedEquipment {
   itemId: string;
   quantity: number;
@@ -26,7 +37,7 @@ export interface FoundryDnd5eEquipmentBuildResult {
 
 interface EquipmentDefinition {
   name: string;
-  type: "equipment" | "weapon" | "container";
+  type: "equipment" | "weapon" | "container" | "consumable";
   maximumQuantity?: number;
   buildSystem(quantity: number): JsonObject;
 }
@@ -106,21 +117,35 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       });
     },
   },
-  "dungeoneers-pack": {
-    name: "Dungeoneer's Pack",
-    type: "container",
-    maximumQuantity: 1,
+  arrow: {
+    name: "Arrows",
+    type: "consumable",
     buildSystem(quantity) {
-      return {
-        ...physicalSystem("dungeoneers-pack", quantity, 12, "gp", 5, false),
-        currency: { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 },
-        properties: [],
-        capacity: {
-          weight: { value: 30, units: "lb" },
-        },
-      };
+      return ammunitionSystem(quantity);
     },
   },
+  "dungeoneers-pack": containerDefinition("Dungeoneer's Pack", "dungeoneers-pack", 12, "gp", 5, {
+    weight: { value: 30, units: "lb" },
+  }),
+  quiver: containerDefinition("Quiver", "quiver", 1, "gp", 1, { count: 20 }),
+  "explorers-pack": containerDefinition("Explorer's Pack", "explorers-pack", 10, "gp", 5, {
+    weight: { value: 30, units: "lb" },
+  }),
+  "entertainers-pack": containerDefinition("Entertainer's Pack", "entertainers-pack", 40, "gp", 5, {
+    weight: { value: 30, units: "lb" },
+  }),
+  "priests-pack": containerDefinition("Priest's Pack", "priests-pack", 33, "gp", 5, {
+    weight: { value: 30, units: "lb" },
+  }),
+  "burglars-pack": containerDefinition("Burglar's Pack", "burglars-pack", 16, "gp", 5, {
+    weight: { value: 30, units: "lb" },
+  }),
+  "scholars-pack": containerDefinition("Scholar's Pack", "scholars-pack", 40, "gp", 5, {
+    weight: { value: 30, units: "lb" },
+  }),
+  pouch: containerDefinition("Pouch", "pouch", 5, "sp", 1, {
+    weight: { value: 6, units: "lb" },
+  }),
 };
 
 export function buildFoundryDnd5eEquipmentItems(
@@ -201,6 +226,52 @@ function physicalSystem(
     attunement: "",
     attuned: false,
     equipped,
+  };
+}
+
+function ammunitionSystem(quantity: number): JsonObject {
+  return {
+    ...physicalSystem("arrows", quantity, 1, "gp", 0.05, false),
+    uses: { ...emptyUses(), autoDestroy: false },
+    damage: {
+      base: {
+        number: null,
+        denomination: 0,
+        bonus: "",
+        types: [],
+        custom: { enabled: false, formula: "" },
+        modifiers: [],
+        scaling: { mode: "", number: 1, formula: "" },
+      },
+      replace: false,
+    },
+    magicalBonus: "",
+    properties: [],
+    type: { value: "ammo", subtype: "arrow" },
+    activities: {},
+  };
+}
+
+function containerDefinition(
+  name: string,
+  identifier: string,
+  priceValue: number,
+  priceDenomination: string,
+  weight: number,
+  capacity: JsonObject,
+): EquipmentDefinition {
+  return {
+    name,
+    type: "container",
+    maximumQuantity: 1,
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem(identifier, quantity, priceValue, priceDenomination, weight, false),
+        currency: { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 },
+        properties: [],
+        capacity,
+      };
+    },
   };
 }
 

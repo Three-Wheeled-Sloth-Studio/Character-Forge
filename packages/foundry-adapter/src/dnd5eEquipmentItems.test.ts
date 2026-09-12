@@ -3,6 +3,7 @@ import { createFirstSliceNativePayload } from "../../system-dnd5e/src/firstSlice
 import type { Dnd5eNativeCharacter } from "../../system-dnd5e/src/nativeCharacter.js";
 import {
   buildFoundryDnd5eEquipmentItems,
+  FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
 } from "./dnd5eEquipmentItems.js";
 import { stableFoundryDocumentId } from "./dnd5eIdentityItems.js";
@@ -41,6 +42,101 @@ describe("Foundry D&D5e equipment mapping", () => {
     const result = buildFoundryDnd5eEquipmentItems("character-1", payload);
     const javelin = result.items.find((item) => (item.system as { identifier: string }).identifier === "javelin");
     expect(javelin).toMatchObject({ system: { quantity: 10 } });
+  });
+
+  it("translates Character Forge arrow explicitly to Foundry arrows and preserves quantity", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [{ itemId: "arrow", quantity: 20 }],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-ranger", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-ranger", payload);
+
+    expect(first.unsupported).toEqual([]);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(1);
+    expect(first.items[0]).toMatchObject({
+      _id: stableFoundryDocumentId("character-ranger:equipment:arrow"),
+      name: "Arrows",
+      type: "consumable",
+      system: {
+        identifier: "arrows",
+        quantity: 20,
+        weight: { value: 0.05, units: "lb" },
+        type: { value: "ammo", subtype: "arrow" },
+        activities: {},
+      },
+      flags: {
+        "character-forge": {
+          sourceId: "arrow",
+          sourceQuantity: 20,
+        },
+      },
+    });
+  });
+
+  it("maps proven mundane containers without inventing nested contents", () => {
+    const original = createFirstSliceNativePayload();
+    const containerIds = FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS.filter((id) => id !== "arrow");
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: containerIds.map((itemId) => ({ itemId, quantity: 1 })),
+    };
+
+    const result = buildFoundryDnd5eEquipmentItems("character-containers", payload);
+    expect(result.unsupported).toEqual([]);
+    expect(result.items).toHaveLength(containerIds.length);
+    expect(result.items.every((item) => item.type === "container")).toBe(true);
+
+    const byIdentifier = new Map(result.items.map((item) => [
+      (item.system as { identifier: string }).identifier,
+      item,
+    ]));
+    expect(byIdentifier.get("quiver")).toMatchObject({ system: { capacity: { count: 20 } } });
+    expect(byIdentifier.get("pouch")).toMatchObject({
+      system: { capacity: { weight: { value: 6, units: "lb" } } },
+    });
+    for (const identifier of [
+      "explorers-pack",
+      "entertainers-pack",
+      "priests-pack",
+      "burglars-pack",
+      "scholars-pack",
+    ]) {
+      expect(byIdentifier.get(identifier)).toMatchObject({
+        system: { capacity: { weight: { value: 30, units: "lb" } } },
+      });
+    }
+
+    for (const item of result.items) {
+      expect(item.system).toMatchObject({
+        description: { value: "", chat: "" },
+        container: null,
+        quantity: 1,
+      });
+      expect("items" in item).toBe(false);
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("reports multi-container stacks explicitly because Foundry containers cannot stack", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [{ itemId: "pouch", quantity: 2 }],
+    };
+
+    const result = buildFoundryDnd5eEquipmentItems("character-1", payload);
+    expect(result.items).toEqual([]);
+    expect(result.unsupported).toEqual([
+      {
+        itemId: "pouch",
+        quantity: 2,
+        reason: "Foundry container mapping supports a maximum stack of 1.",
+      },
+    ]);
   });
 
   it("reports unsupported IDs explicitly instead of inventing generic loot", () => {
