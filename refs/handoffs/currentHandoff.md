@@ -11,13 +11,13 @@ tags:
 ---
 # Current Handoff
 
-Date: 2026-09-11
+Date: 2026-09-12
 Branch: `dev`
 Current stage: **Stage 3 - Name Generator and Random Tables**
 
 ## Current State
 
-Stages 0, 1, and 2 are complete.
+Stages 0, 1, and 2 are complete. Stage 3 is active.
 
 The owner visually accepted the final Stage 2 branding treatment on 2026-09-11. Do not reopen general productization/branding work without a concrete new defect.
 
@@ -31,18 +31,18 @@ Two explicitly nonblocking BRP polish items remain parked in Issue #15. Do not p
 
 Current accepted `dev` implementation head:
 
-- SHA: `7b535143e188dd26d1ff41f6517adffd9dc3d7b4`
-- Actions: `34647775925`
-- Job: `103422558786`
+- SHA: `90af2bb90165f314a75c758f69484043720dac36`
+- Actions: `34690245360`
+- Job: `103544104724`
 - `npm run verify`: green
 - 64 test files
-- 304 tests passed
+- 305 tests passed
 - 0 failures
-- 238 tracked paths
+- 239 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- Agent context: 3735 characters
-- Build: `Character Forge build 0.0.1 7b535143`
+- Agent context: 3764 characters
+- Build: `Character Forge build 0.0.1 90af2bb9`
 
 Promoted branches remain unchanged:
 
@@ -51,64 +51,72 @@ Promoted branches remain unchanged:
 
 No promotion is authorized unless the owner explicitly requests it.
 
-## Stage 2 Closed
+## Stage 3 Foundation
 
-Final Parchment branding checkpoint:
+The shared generator layer now has three distinct responsibilities:
 
-- SHA: `1eb8714849e0aa45384cdf0ca582649254544b96`
-- Actions: `34647328140`
-- Job: `103421124752`
-- 54 test files / 184 tests / 0 failures
-- production bundle green
+1. `NameSuggestionProvider` / `suggestGeneratedName` own deterministic seed and provider/source provenance while keeping naming context opaque to the shared layer.
+2. `name-markov/0.1` owns reusable character-sequence generation from caller-supplied training samples.
+3. `RandomTable` / `evaluateRandomTable` own deterministic weighted random-table evaluation and explicit table/source provenance.
 
-Accepted final treatment:
+The shared layer contains no D&D, BRP, species, culture, or language semantics.
 
-- canonical TWS Studio logo with underlay at the far upper left of the Parchment global header;
-- TAGS logo as favicon;
-- quiet Parchment `v0.2.0` and Character Forge `v0.0.1` version identity;
-- Character Forge retains subordinate studio text identity rather than duplicating the parent shell's visual maker mark.
+## Stage 3 Name-Generator Slices Completed
 
-## Stage 3 Architecture Audit
-
-The bounded audit found that two important system-neutral foundations already exist in `packages/generator-core`:
-
-1. `NameSuggestionProvider` / `suggestGeneratedName` already own deterministic seed and provider/source provenance while leaving naming context opaque to the shared layer.
-2. `RandomTable` / `evaluateRandomTable` already provide deterministic weighted evaluation and explicit source/table provenance.
-
-The missing name-generation layer was the generation mechanism itself. D&D still uses a six-name literal placeholder catalog.
-
-## Stage 3 First Slice Completed
+### Slice 1 - shared Markov mechanism
 
 Added `packages/generator-core/src/nameMarkov.ts` and focused tests.
 
-The new `name-markov/0.1` mechanism:
+The mechanism:
 
 - trains a character-level Markov transition model from caller-supplied samples;
 - preserves observed transition frequency as weighting;
 - is deterministic when driven by the existing seeded random source;
 - accepts caller-owned min/max length and candidate acceptance constraints;
 - has bounded retry behavior with explicit failure;
-- carries no D&D, BRP, species, culture, or language semantics;
-- keeps corpora/reference data outside the mechanism so future culture/language generators can supply different models cleanly.
+- keeps corpora/reference data outside the mechanism.
 
-`generator-core/index.ts` exports the mechanism.
+### Slice 2 - D&D provider migration
 
-No existing D&D provider, corpus, UI, native state, or generation behavior changed in this slice.
+The D&D name suggestion provider no longer selects one of six complete placeholder names.
+
+Implemented:
+
+- `packages/system-dnd5e/src/nameGenerationCorpus.ts` as a separate, explicitly versioned demonstration corpus boundary;
+- separate given-name and family-name Markov models trained from that corpus;
+- `DND5E_MARKOV_NAME_PROVIDER` with new provider/version identity and retained corpus source provenance;
+- rejection of exact training exemplars so generated suggestions are sequence-generated rather than direct corpus picks;
+- preservation of explicit-randomize, blank-fallback, editable final names, deterministic replay, stale-provenance rejection, and generation-decision recording;
+- compatibility alias `DND5E_PLACEHOLDER_NAME_PROVIDER` only to avoid unnecessary caller breakage while new code uses the Markov provider identity.
+
+The corpus is original Character Forge demonstration data, not D&D rules content or setting canon. It is intentionally bounded; this slice proves architecture rather than linguistic completeness.
+
+## Companion Parchment Development Portability Fix
+
+While testing from a clean backup laptop, Parchment Worlds exposed a dev-only workspace-resolution defect: the web app depended on a previously built `packages/project-model/dist/index.js`.
+
+Parchment `dev` now resolves `@parchment-worlds/project-model` directly to workspace source for Vite development while leaving production/API package exports unchanged.
+
+- Parchment SHA: `1039c98ba8c023be74432eb93980a8b0ef956cc0`
+- Actions: `34688623418`
+- Job: `103539899056`
+- validation: green
 
 ## Next Bounded Slice
 
-Migrate the existing D&D placeholder name provider onto the new mechanism without turning Stage 3 into a corpus-building project.
+Use the already-existing random-table evaluator to prove one editable BRP flavor-field suggestion path.
 
-Recommended shape:
+Recommended boundary:
 
-1. move D&D reference/training samples into a separate corpus module with explicit source/version identity;
-2. have the D&D `NameSuggestionProvider` train/use the shared Markov mechanism;
-3. preserve current `NameSuggestion` seed/provider/source provenance and replay checks;
-4. keep generated names as editable suggestions/fallbacks exactly as today;
-5. add regression tests proving deterministic replay and that provenance invalidates when provider/corpus identity changes;
-6. do not introduce species-as-culture assumptions or broad culture/language schema yet.
+1. choose one optional BRP free-text flavor field already owned by native BRP state, preferably `appearance` or another field with no mechanical meaning;
+2. define a small, explicitly versioned suggestion table outside `generator-core`;
+3. evaluate it through `evaluateRandomTable` with retained seed/table/source provenance;
+4. place the result into the ordinary editable creator field rather than a parallel hidden state model;
+5. user edits remain authoritative and may replace the suggestion freely;
+6. add focused tests for deterministic replay, provenance, and editability;
+7. do not widen this slice into all BRP flavor fields or a general random-table UI yet.
 
-After that provider migration is green, use the already-existing random-table evaluator to prove one BRP flavor-field suggestion path rather than inventing a second randomization framework.
+If that proof is clean, expand the same pattern to the remaining optional BRP inspiration fields before considering richer table composition.
 
 ## Architecture Baseline To Preserve
 
