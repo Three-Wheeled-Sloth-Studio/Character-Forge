@@ -4,162 +4,165 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- durable-assets
-- portrait
-- token
-- stage-4
-- acceptance
+- foundry
+- vtt
+- stage-5
+- stage-4-qa-hold
 ---
 # Next Development Prompt
 
-Continue coordinated implementation/QA in:
+Continue implementation in:
 
 `https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge`
 
-and:
+Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requested.
 
-`https://github.com/Three-Wheeled-Sloth-Studio/Parchment-Worlds`
-
-Work directly on `dev` only. Do not promote Character Forge `qa` or `main` unless explicitly requested. Do not begin Stage 5 until Stage 4 browser acceptance is complete.
+Stage 4 browser QA is intentionally deferred until the owner is back at a primary workstation. It is pinned in GitHub Issue #16 and is **not a Stage 5 development blocker**.
 
 The owner-approved sequence remains:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-Stages 0 through 3 are complete. Stage 4 is a **feature-complete candidate with owner/browser QA pending**.
+Current development stage: **Stage 5 - Foundry Export / Import Validation**.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 4 durable portrait token browser acceptance"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry D&D equipment Item mapping"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-3. Character Forge `apps/web/src/characterForgeHostBridge.ts`
-4. Character Forge `apps/web/src/characterResultRenderer.ts`
-5. Parchment `refs/handoffs/currentHandoff.md`
-6. Parchment `apps/web/src/modules/character-forge/CharacterMediaHost.tsx`
-7. Parchment `apps/web/src/modules/character-forge/CharacterTokenEditor.tsx`
-8. Parchment `apps/web/src/projects/data/CharacterMediaService.ts`
+3. `packages/foundry-adapter/src/target.ts`
+4. `packages/foundry-adapter/src/dnd5eActor.ts`
+5. `packages/foundry-adapter/src/dnd5eIdentityItems.ts`
+6. `packages/foundry-adapter/src/dnd5eActor.test.ts`
+7. D&D native equipment/catalog generation code only as needed to inventory emitted IDs
+8. pinned public Foundry D&D5e 6.0.0 Item schemas only for equipment types actually touched
 
-Do not reread repository history or reopen Stage 3 work.
+Do not reread repository history. Do not perform the deferred Stage 4 browser QA away from a primary workstation.
 
-## Exact Green Stage 4 Implementation Checkpoints
+## Exact Green Stage 5 Checkpoint
 
-Character Forge:
+Accepted implementation checkpoint:
 
-- SHA: `824514fc6971cb2dd2a53bf84533b218922417e5`
-- Actions: `34692945279`
-- Job: `103551334264`
-- 66 test files / 314 tests / 0 failures
-- 243 tracked paths
+- SHA: `3ebf76461a7592878f66f089a51b261868460fa3`
+- Actions: `34696689106`
+- Job: `103561269477`
+- 67 test files / 319 tests / 0 failures
+- 248 tracked paths
 - 14 required project-memory files
 - OKF: 32 concepts / 10 indexes
-- agent context: 3865 characters
-- build: `Character Forge build 0.0.1 824514fc`
+- agent context: 3649 characters
+- build: `Character Forge build 0.0.1 3ebf7646`
 
-Parchment Worlds:
-
-- SHA: `38aa8c865e81b4826265bd4ec2aa69c5592ad0c9`
-- Actions: `34694067917`
-- Job: `103554608657`
-- 58 test files / 203 tests / 0 failures
-- production bundle green
-- existing bundle-size warning nonblocking
-
-Character Forge promoted branches remain unchanged:
+Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 4 Implemented Shape
+## Stage 4 QA Hold
 
-Preserve these boundaries during QA/fixes:
+Issue #16 is the durable primary-workstation checklist for portrait/token acceptance.
 
-- Parchment `custom:media` assets own portrait/token media identity and lifecycle.
-- `character.portrait` / `character.token` relationships attach media to character assets.
-- browser-local bytes live in Parchment's IndexedDB media store outside project JSON.
-- canonical manifestations use opaque provider refs + content hashes, never raw paths/object URLs/base64 identity.
-- Character Forge receives ephemeral presentation bytes and turns them into temporary object URLs only for rendering.
-- no media state enters CharacterDocument or native D&D/BRP payloads.
-- manual/accepted token remains authoritative until explicit replacement, regeneration, or removal.
+Preserve while Stage 5 proceeds:
 
-Supported manual media imports: PNG, JPEG, WebP, SVG, <= 10 MB.
+- Parchment owns media bytes/storage/lifecycle/relationships;
+- Character Forge consumes presentation media only;
+- no media state enters native RPG state;
+- user-supplied or explicitly accepted tokens remain authoritative until explicit replace/regenerate/remove.
 
-Implemented token flow:
+Do not mark Stage 4 owner-accepted or close Issue #16 without the real integrated browser pass.
 
-`portrait -> Create token from portrait -> zoom/pan + round/square editor -> explicit Accept -> durable PNG token`
+## Foundry Target Contract
 
-Cancel must make no durable change.
+Pinned target:
 
-## Immediate Work - Integrated Browser Acceptance
+- Foundry core `14.367`
+- D&D5e system `6.0.0`
+- Character Forge Foundry D&D Actor adapter `0.2.0`
+- export wrapper `character-forge/foundry-dnd5e-actor-export/0.1`
 
-Do not add more architecture before exercising the real flow.
+Never replace version pins with `latest`.
 
-Validate in a real browser from project-scoped Parchment using current `dev` checkouts:
+Foundry is an adapter target. D&D native state stays canonical.
 
-1. Persisted D&D character -> click empty portrait region -> select portrait -> verify immediate render.
-2. Reopen -> portrait remains.
-3. Replace portrait -> reopen -> replacement remains.
-4. Create token from portrait -> exercise zoom, horizontal/vertical pan, round/square, Reset.
-5. Cancel -> verify no token is created/replaced.
-6. Create again -> Accept -> verify immediate token render and reopen persistence.
-7. Click token region -> import a manual token -> verify explicit replacement.
-8. Replace portrait -> verify the manual token is not silently replaced.
-9. Explicitly choose Regenerate token from portrait -> verify replacement only after Accept.
-10. Remove portrait and token independently -> reopen -> verify relationships remain removed.
-11. Repeat representative persisted BRP character checks to prove the media path is system-neutral.
-12. Inspect/save/reopen CharacterDocument before/after media operations and verify RPG-native state is unchanged.
-13. Exercise keyboard activation for portrait/token sheet slots.
-14. Sanity-check the token editor at a narrow/mobile viewport.
+## Current Implemented Foundry Shape
 
-Fix only concrete acceptance defects exposed by this flow. Preserve the current ownership model unless the runtime evidence proves a real boundary flaw.
+`packages/foundry-adapter` currently provides:
 
-## Stage 4 Closure Rule
+- direct validated D&D5e 2024 native-state -> Foundry Actor mapping;
+- deterministic pretty JSON serializer;
+- mapping/deferred notes separate from raw import JSON;
+- stable Character Forge source flags;
+- Actor-level abilities/saves/HP/flat AC/initiative/movement/senses/alignment/XP/size/languages/currency/skills/spell slots;
+- deterministic embedded identity Items for Class, Background, and Race;
+- Actor detail references to those embedded Item IDs.
 
-If the integrated acceptance flow passes, update project memory to mark Stage 4 complete and enter:
+The embedded identity Items intentionally contain no copied Foundry rules descriptions, no advancement automation, and no starting-equipment automation. Character Forge is exporting an already-resolved character; do not double-apply choices through Foundry advancement.
 
-**Stage 5 - Foundry Export / Import Validation**
+## Immediate Slice - Equipment Item Proof
 
-Do not automatically promote `qa`/`main` during closure.
+Audit first, then implement narrowly.
 
-## Stage 5 Preview - Parked Until Acceptance
+1. Inventory every equipment `itemId` actually emitted by current D&D Level 1 generation paths.
+2. Group those IDs by actual Foundry D&D5e 6.0.0 Item semantics: `weapon`, `equipment`, `consumable`, `tool`, `container`, `loot`, or other proven type.
+3. Inspect only the pinned public schemas/examples needed for those types.
+4. Implement one representative coherent fixture path first, preferably Avery/Fighter, proving:
+   - armor Item identity/state;
+   - weapon Item identity/state;
+   - quantity-bearing ammunition/stacking where applicable;
+   - pack/container or simple gear behavior where the schema is clear;
+   - deterministic embedded Item IDs.
+5. Keep unsupported IDs explicit in the adapter report rather than silently dropping them or typing everything as `loot`.
+6. Do not copy copyrighted Foundry/D&D rules text into Character Forge. Map Character Forge-owned native facts and minimal target fields only.
+7. Do not let imported Items replay Character Forge-resolved advancement/equipment choices.
+8. Keep Actor AC flat until Foundry equipment calculation parity is proven from the mapped Items.
+9. Add deterministic tests and run exact-SHA `npm run verify`.
 
-After Stage 4 closure:
+After one representative equipment path is green, expand by real semantic category only where the existing Level 1 catalog supplies evidence.
 
-1. bounded Foundry adapter;
-2. authoritative Character Forge -> Foundry Actor/embedded Item mapping;
-3. pin supported Foundry/game-system versions;
-4. deterministic fixtures;
-5. downloadable import artifact; and
-6. real Foundry runtime validation when it becomes the next blocker.
+## Explicitly Deferred
 
-Foundry schemas are adapter targets, not canonical state.
+Do not conflate the equipment slice with:
+
+- feature/feat/activity mapping;
+- spell Item mapping;
+- Parchment portrait/token export packaging;
+- a user-facing Download Foundry button;
+- real Foundry runtime import acceptance;
+- bidirectional sync.
+
+Those are later Stage 5/9 slices.
+
+## Foundry Runtime / License Trigger
+
+Do not purchase/use Foundry merely because implementation is underway.
+
+Runtime validation becomes the next required step when the export artifact is mature enough that actual import behavior is the blocker, or when public schema/API evidence is no longer sufficient.
+
+The deferred Stage 4 browser QA and later real Foundry runtime acceptance may be performed during the same primary-workstation session if useful, but they remain separate acceptance gates.
 
 ## Guardrails
 
 - Native system state is mandatory and lossless.
-- Native BRP and D&D state remain canonical.
-- Portrait/token/media ownership belongs to Parchment asset relationships, not RPG native state.
-- Project/campaign context remains authoritative upstream.
-- User-supplied or accepted tokens remain authoritative until explicit replacement/regeneration/removal.
-- Foundry remains a later adapter target.
-- Do not pull Issue #15 into Stage 4 unless it becomes a blocker.
+- Native D&D and BRP state remain canonical.
+- Foundry Actor/Item data is target-specific export state only.
+- Do not project D&D through Universal Grammar to produce Foundry output.
+- Unsupported target semantics must be reported, not fabricated.
+- No copied Foundry compendium rules text.
+- No implicit advancement replay.
+- Do not pull Issue #15 forward.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Validation
-
-For Character Forge changes:
 
 ```bash
 npm run verify
 ```
 
-For Parchment changes, use its repository exact-SHA validation gate.
-
-Do not call any milestone green unless its exact committed SHA passes GitHub Actions.
+Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
