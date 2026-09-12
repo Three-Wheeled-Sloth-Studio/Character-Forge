@@ -66,6 +66,32 @@ export const SHEET_TOOLBAR_STYLES = String.raw`
   text-align: right;
 }
 
+.sheet-media-slot[data-sheet-media-action] {
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.sheet-media-slot[data-sheet-media-action]:hover,
+.sheet-media-slot[data-sheet-media-action]:focus-visible {
+  border-color: #755438;
+  box-shadow: 0 0 0 3px rgba(117, 84, 56, .16);
+  outline: none;
+}
+
+.sheet-media-slot[data-sheet-media-action]:not(.has-image)::after {
+  content: attr(data-sheet-media-action-label);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  color: #6d6259;
+  font-size: .62rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
+
 @media (max-width: 760px) {
   .sheet-toolbar { justify-content: flex-start; }
   .sheet-action-status { flex-basis: 100%; text-align: left; }
