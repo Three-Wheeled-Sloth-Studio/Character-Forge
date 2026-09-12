@@ -4,9 +4,10 @@ title: "Next Development Prompt"
 tags:
 - character-forge
 - handoffs
-- name-generation
-- random-tables
-- stage-3
+- durable-assets
+- portrait
+- token
+- stage-4
 - roadmap
 ---
 # Next Development Prompt
@@ -15,117 +16,117 @@ Continue implementation in:
 
 `https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge`
 
-Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requested.
+Coordinate read-only architecture inspection with:
+
+`https://github.com/Three-Wheeled-Sloth-Studio/Parchment-Worlds`
+
+Work directly on Character Forge `dev`. Do not promote `qa` or `main` unless explicitly requested. If a proven Stage 4 boundary requires a Parchment change, use Parchment `dev` only and preserve its exact-SHA validation discipline.
 
 The owner-approved execution sequence is in:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-Stages 0, 1, and 2 are complete. Resume **Stage 3 - Name Generator and Random Tables**. Do not reopen branding or roadmap prioritization without materially new evidence.
+Stages 0 through 3 are complete. Resume **Stage 4 - Durable Portrait and Token Assets**.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 3 BRP flavor suggestion catalog"
+python refs/tools/generate_agent_context.py --focus "Stage 4 durable portrait token asset boundary"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
 2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
-3. `packages/generator-core/src/randomTable.ts`
-4. `packages/system-brp/src/appearanceSuggestion.ts`
-5. `packages/system-brp/src/finishing.ts`
-6. `apps/web/src/brpFinishingControls.ts`
-7. focused finishing/random-table tests
+3. `packages/character-model/src/characterDocument.ts`
+4. Character Forge host/presentation seams that currently receive Parchment project context
+5. Parchment `refs/handoffs/currentHandoff.md`
+6. Parchment generic asset identity/persistence/relationship contracts
+7. targeted portrait/token/media searches in both repos only as needed
 
-Do not reread the entire repository history. Do not resume D&D Guided Narrative by chronology.
+Do not reread repository history. Do not resume D&D Guided Narrative or expand Stage 3 content by chronology.
 
-## Exact Green Checkpoint
+## Exact Green Stage 3 Completion Checkpoint
 
-Current accepted implementation checkpoint:
+Accepted Character Forge implementation checkpoint:
 
-- SHA: `9202ce38ec22fdb68b6d4d917068d61d14a8de9f`
-- Actions: `34691033880`
-- Job: `103546180252`
-- 65 test files / 309 tests / 0 failures
-- 241 tracked paths
+- SHA: `43c2a2a380a35137cc655afdb49c0a0f5551ee73`
+- Actions: `34691975393`
+- Job: `103548720467`
+- 66 test files / 312 tests / 0 failures
+- 243 tracked paths
 - 14 required project-memory files
 - OKF 32 concepts / 10 indexes
-- agent context 3755 characters
-- build `Character Forge build 0.0.1 9202ce38`
+- agent context 3624 characters
+- build `Character Forge build 0.0.1 43c2a2a3`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Stage 3 Status
+## Stage 3 Closed
 
-Name generation:
+Name generation now has a system-neutral Markov mechanism, separate versioned provider/corpus boundaries, deterministic provenance, and a D&D demonstration provider.
 
-- shared `name-markov/0.1` mechanism is complete;
-- D&D provider uses a separate versioned demonstration corpus and deterministic replay/provenance.
+Random tables now have a reusable BRP finishing-field integration across all seven existing descriptive fields through one typed catalog/helper. Suggestions remain ordinary editable input and only final user-visible text persists into native BRP state.
 
-Random-table integration:
+Do not broaden those corpora/tables unless a later system or concrete UX requirement supplies new evidence.
 
-- BRP `appearance` is the completed proof slice;
-- it uses the shared `RandomTable` evaluator through a BRP-owned versioned table;
-- studio-authored appearance inspiration is explicitly not labeled as BRP ORC rules content;
-- suggestion writes into the ordinary editable field;
-- user edits remain authoritative;
-- only final text is persisted in BRP native state;
-- no hidden suggestion seed/provenance is required to reconstruct the character.
+## Stage 4 Architecture Audit
 
-## Next Bounded Slice - BRP Flavor Suggestion Catalog
+Before media implementation, define the ownership and reference boundary.
 
-Generalize only the proven BRP finishing-field pattern.
+Required questions to resolve:
 
-Required shape:
+1. What is the minimal stable media-reference contract Character Forge needs for portrait and token presentation?
+2. Can existing Parchment generic asset identity/lifecycle contracts represent portrait/token media without a new special-purpose asset model?
+3. Should character-to-portrait and character-to-token be typed relationships from the character asset to media assets, and what relationship payload is actually necessary?
+4. How are replace/remove/regenerate semantics represented, especially the rule that an explicitly supplied token stays authoritative until the user asks to replace/regenerate it?
+5. How should storage/provider-specific location information stay behind Parchment while canonical relationships use durable IDs rather than filesystem paths or expiring URLs?
+6. How will future generic Parchment asset retrieval by `(assetType, assetId)` expose a character's media relationships while preserving the module-owned CharacterDocument payload unchanged?
+7. What is the smallest implementation slice that proves durability and sheet consumption without prematurely building image generation/cropping/upload-provider complexity?
 
-1. Prefer a small BRP-owned flavor table catalog/helper over one new bespoke suggestion module per field.
-2. Reuse `evaluateRandomTable`; do not add another randomization engine.
-3. Extend suggestions to useful existing optional finishing fields such as size/build, mannerisms, reputation, personal item, background, and beliefs.
-4. Keep studio-written inspiration source/version identity explicit and separate from BRP rules provenance.
-5. Keep each field editable and overridable through the existing finishing controls.
-6. Persist only the final user-visible text into BRP native state.
-7. Add compact suggestion affordances without adding a general random-table browser/editor UI.
-8. Keep tables bounded; this is reusable infrastructure/content shape, not final corpus breadth.
-9. Do not alter BRP mechanics, native-state authority, or finishing-field semantics.
+Preferred product flow remains:
 
-## Future Parchment Worlds Asset Retrieval Boundary
+`portrait add/import -> durable Parchment media asset -> character relationship -> Character Forge sheet display -> token suggestion -> optional crop/frame editor -> accepted durable token relationship`
 
-Preserve the option for a future Parchment Worlds API endpoint that retrieves any PW asset - project, character, world, or later asset type - by stable asset type and identity and returns its canonical serializable representation.
+## Future Generic Parchment Asset Retrieval Boundary
+
+Preserve the future Parchment-owned API direction:
+
+`(assetType, assetId) -> authorization/membership/revision -> canonical serializable asset`
+
+This must work for projects, characters, worlds, media assets, and later PW asset types without forcing module-owned payloads into one flattened schema.
 
 Character Forge implications:
 
-- preserve stable document/asset IDs;
-- keep canonical native state self-contained and serializable;
-- avoid reconstruction-critical UI-only sidecars;
-- generation provenance may enrich an asset but must not be required simply to retrieve/read it;
-- the generic cross-asset API belongs in Parchment Worlds, not Character Forge.
+- stable CharacterDocument/native-state identity;
+- no reconstruction-critical UI-only sidecars;
+- no media binaries, local paths, upload URLs, or VTT IDs in native RPG state;
+- consume stable Parchment-owned references/relationships for presentation and adapters.
 
 ## Guardrails
 
 - Native system state is mandatory and lossless.
 - Native BRP and D&D state remain canonical.
-- Do not add name/culture/language semantics to Universal Grammar prematurely.
-- Species is not synonymous with culture or language.
-- Shared generator code owns reusable mechanics, not system/culture semantics.
-- Preserve deterministic generation where suggestions expose provenance.
-- Random-table output is suggestion/input, not hidden authoritative state.
-- User edits override generated flavor suggestions.
-- Do not pull deferred Issue #15 BRP polish into Stage 3 unless it becomes a blocker.
+- Portrait/token/media ownership belongs to Parchment asset relationships, not RPG native state.
+- Project/campaign context remains authoritative upstream.
+- User-supplied token remains authoritative until explicitly replaced/regenerated.
+- Foundry schemas remain later adapter targets, not canonical media state.
+- Do not pull Issue #15 into Stage 4 unless it blocks this work.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 
 ## Validation
 
-For every implementation milestone:
+For every Character Forge implementation milestone:
 
 ```bash
 npm run verify
 ```
 
-Do not call a milestone green unless the exact committed SHA passes GitHub Actions.
+For any Parchment change, use its repository validation gate and exact committed SHA.
+
+Do not call a milestone green unless its exact committed SHA passes GitHub Actions.
