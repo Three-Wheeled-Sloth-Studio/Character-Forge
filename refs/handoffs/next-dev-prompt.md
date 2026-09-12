@@ -134,6 +134,7 @@ Do not combine this slice with:
 
 ## Guardrails
 
+- Native system state is mandatory and lossless.
 - No copied Foundry compendium prose.
 - No Foundry advancement replay for already-resolved Character Forge choices.
 - Do not use Universal Grammar as the Foundry source.
