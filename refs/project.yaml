@@ -1,5 +1,5 @@
 version: 1
-updated: 2026-09-08
+updated: 2026-09-12
 identity:
   name: Character Forge
   repository_url: https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge
@@ -7,7 +7,7 @@ identity:
   production_branch: main
   acceptance_branch: qa
   development_branch: dev
-  current_phase: BRP UGE first creator UI after automated-green named-language backend closure
+  current_phase: Stage 5 - Foundry Export / Import Validation active; remaining martial weapon breadth is the next bounded adapter slice.
   summary: Public modular character generation, maintenance, and cross-system translation engine for Parchment Worlds.
 thesis:
   core_promise: Create and maintain system-native RPG characters while building an evidence-driven semantic bridge for translation, VTT integration, and future original-system design.
@@ -23,7 +23,7 @@ first_system:
   id: dnd5e
   edition: "2024"
   initial_content_target: SRD 5.2.1
-  current_slice: Mechanical SRD Level 1 breadth is automated-green on dev; owner accumulated runtime QA remains the promotion gate.
+  current_slice: Mechanical SRD Level 1 breadth is complete on dev; Stage 5 Foundry export/import validation is active with deterministic Actor/Item mapping expanding from pinned D&D5e 6.0 fixtures.
 second_system:
   id: brp-uge
   name: Basic Roleplaying Universal Game Engine
@@ -61,12 +61,12 @@ repository_layout:
     - packages/character-model
     - packages/system-dnd5e
     - packages/system-brp
-  planned_source_roots:
     - packages/generator-core
-    - packages/semantic-model
-    - packages/translator
     - packages/foundry-adapter
     - apps/web
+  planned_source_roots:
+    - packages/semantic-model
+    - packages/translator
 source_of_truth:
   planning: refs/planning
   architecture: refs/architecture
