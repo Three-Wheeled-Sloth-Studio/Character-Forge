@@ -6,7 +6,7 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- equipment
+- armor
 ---
 # Next Development Prompt
 
@@ -23,7 +23,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry ammunition and container mapping"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry armor and shield mapping"
 ```
 
 Then read only:
@@ -34,22 +34,22 @@ Then read only:
 4. `packages/foundry-adapter/src/dnd5eActor.ts`
 5. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 6. `packages/foundry-adapter/src/dnd5eActor.test.ts`
-7. the pinned Foundry D&D5e 6.0 ammunition/container schema or exact fixtures needed for the IDs being mapped
+7. exact pinned Foundry D&D5e 6.0 fixtures/schema for the four armor/shield IDs below
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3`
-- Actions: `34697740762`
-- Job: `103564028657`
-- 68 test files / 322 tests / 0 failures
-- 250 tracked paths
+- SHA: `ba6a0422d061f5f2668307ffa461defa8ee5d77d`
+- Actions: `34717871458`
+- Job: `103618240347`
+- 68 test files / 325 tests / 0 failures
+- 251 tracked paths
 - 14 required project-memory files
-- OKF: 32 concepts / 10 indexes
-- agent context: 3877 characters
-- build: `Character Forge build 0.0.1 e2e9470f`
-- Foundry adapter: `0.3.0`
+- OKF: 33 concepts / 10 indexes
+- agent context: 3717 characters
+- build: `Character Forge build 0.0.1 ba6a0422`
+- Foundry adapter: `0.4.0`
 
 Promoted branches remain unchanged:
 
@@ -65,57 +65,36 @@ Pin this slice to:
 
 Foundry remains an adapter target. Character Forge native D&D state remains authoritative.
 
-## Immediate Work - Ammunition + Container Breadth
+## Immediate Work - Armor + Shield Breadth
 
-Expand only low-ambiguity inventory mapping from the completed equipment audit.
+Map only these currently emitted Character Forge IDs after inspecting their exact pinned Foundry 6.0 definitions:
 
-### 1. Ammunition
+- `chain-shirt`
+- `shield`
+- `leather-armor`
+- `studded-leather-armor`
 
-Map Character Forge `arrow` explicitly to the pinned Foundry D&D5e ammunition/consumable representation.
+### Rules
 
-Important:
+- Use exact Foundry Item type/identifier/armor/type/properties/strength/weight/price fields supported by the pinned schema.
+- Keep descriptions empty; do not copy compendium prose.
+- Preserve deterministic embedded IDs and Character Forge source ID/quantity flags.
+- Respect target quantity semantics rather than silently mutating native state.
+- Do not infer Foundry advancement or activities.
+- Do not change Actor AC calculation mode. `derived.armorClass` remains exported as flat authoritative state until a separate parity slice proves Foundry-derived AC.
+- Do not assume equipped state from item identity alone. Preserve the existing adapter boundary unless native state explicitly proves more.
+- Unsupported IDs remain explicit deferred mapping notes; no generic loot fallback.
 
-- Character Forge uses `arrow`.
-- Pinned Foundry 2024 equipment data uses an ammunition `consumable` such as identifier `arrows`.
-- Implement this as an explicit translation rule, not string guessing.
-- Preserve Character Forge quantity exactly (`arrow x20` -> target quantity 20).
-- Do not add attack automation or infer ammunition linkage beyond what the pinned target schema requires for a valid Item.
-
-### 2. Containers
-
-Add `quiver` and the mundane pack containers that have exact pinned Foundry fixtures confirmed during the slice.
-
-Start with:
-
-- `quiver`
-- `explorers-pack`
-
-Then inspect before adding:
-
-- `entertainers-pack`
-- `priests-pack`
-- `burglars-pack`
-- `scholars-pack`
-- `pouch`
-
-Rules:
-
-- use exact Foundry type/identifier/capacity fields from pinned sources;
-- retain Character Forge quantity;
-- do not copy descriptive compendium text;
-- do not manufacture nested contents merely because Foundry's source pack describes contents;
-- if an exact fixture is absent or semantics are ambiguous, leave the ID deferred.
-
-### 3. Coverage
+### Coverage
 
 Add focused tests proving:
 
-- explicit `arrow` -> Foundry identifier translation;
-- quantity preservation;
-- deterministic embedded IDs;
-- `quiver`/pack container typing and capacity where target data actually provides it;
-- no nested pack contents are invented;
-- unsupported equipment remains explicit rather than becoming generic loot.
+- all four IDs map to the correct Foundry target type and identifier;
+- armor category and key armor fields match the pinned target model;
+- deterministic embedded IDs remain stable;
+- no compendium prose or advancement/activity automation is copied;
+- Actor AC remains flat when a representative mapped armor/shield Item is present;
+- unrelated unsupported equipment remains explicit.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -123,7 +102,7 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
-- remaining weapon/armor breadth unless necessary to support the selected fixture;
+- remaining weapon breadth;
 - tool/instrument/focus alias translation;
 - feature/activity Items;
 - spell Items;

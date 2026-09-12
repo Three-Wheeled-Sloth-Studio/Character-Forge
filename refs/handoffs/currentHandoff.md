@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3`
-- Actions: `34697740762`
-- Job: `103564028657`
+- SHA: `ba6a0422d061f5f2668307ffa461defa8ee5d77d`
+- Actions: `34717871458`
+- Job: `103618240347`
 - `npm run verify`: green
 - 68 test files
-- 322 tests passed
+- 325 tests passed
 - 0 failures
-- 250 tracked paths
+- 251 tracked paths
 - 14 required project-memory files
-- OKF: 32 concepts / 10 indexes
-- Agent context: 3877 characters
-- Build: `Character Forge build 0.0.1 e2e9470f`
-- Foundry adapter: `0.3.0`
+- OKF: 33 concepts / 10 indexes
+- Agent context: 3717 characters
+- Build: `Character Forge build 0.0.1 ba6a0422`
+- Foundry adapter: `0.4.0`
 
 Promoted branches remain unchanged:
 
@@ -60,6 +60,7 @@ The current adapter is pinned to:
 
 Preserve these rules:
 
+- Native system state is mandatory and lossless.
 - Character Forge native D&D state is canonical.
 - Foundry Actor/Item data is an adapter target only.
 - Do not project through Universal Grammar.
@@ -84,9 +85,9 @@ Identity Items intentionally contain:
 - no advancement automation; and
 - no starting-equipment replay.
 
-### Bounded equipment proof - complete
+### Bounded Fighter equipment proof - complete
 
-Checkpoint `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3` adds a pinned equipment-definition registry and maps the complete Avery/Fighter fixture:
+Checkpoint `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3` added a pinned equipment-definition registry and mapped the complete Avery/Fighter fixture:
 
 - `chain-mail` -> equipment
 - `greatsword` -> weapon
@@ -94,14 +95,29 @@ Checkpoint `e2e9470f90671ed7cdcb7032eb9720f0b1c0afe3` adds a pinned equipment-de
 - `javelin x8` -> weapon stack
 - `dungeoneers-pack` -> container
 
-The equipment adapter:
+### Ammunition and container breadth - complete
 
-- aggregates repeated native stacks before export;
-- uses deterministic embedded IDs;
-- retains Character Forge source ID/quantity flags;
-- emits explicit unsupported-equipment records instead of fabricating fallback Items;
-- leaves Foundry attack activities empty;
-- keeps Actor AC flat and authoritative until calculation parity is proven.
+Checkpoint `ba6a0422d061f5f2668307ffa461defa8ee5d77d` expands the low-ambiguity inventory seam:
+
+- `arrow` -> Foundry `consumable` with explicit target identifier `arrows`, subtype `arrow`, and native quantity preserved;
+- `quiver` -> container with count capacity 20;
+- `explorers-pack` -> container;
+- `entertainers-pack` -> container;
+- `priests-pack` -> container;
+- `burglars-pack` -> container;
+- `scholars-pack` -> container;
+- `pouch` -> container.
+
+The slice also proves:
+
+- explicit Character Forge -> Foundry identifier translation rather than string guessing;
+- deterministic embedded IDs remain source-ID based;
+- no Foundry compendium prose is copied;
+- no nested pack contents are manufactured;
+- the live D&D5e 6.0 container model's quantity cap of 1 is respected by deferring unsupported multi-container native stacks rather than mutating source quantity;
+- Actor AC remains flat and authoritative.
+
+The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
 
@@ -113,22 +129,26 @@ Key result:
 
 - current Level 1 generation can emit 48 literal equipment IDs plus 27 dynamic prefixed tool/instrument IDs;
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
-- `arrow` requires explicit translation to the pinned Foundry ammunition representation;
-- `holy-symbol` likewise requires explicit target translation;
-- focus, book, gaming-set, artisan-tool, and musical-instrument compound IDs must be decomposed/translated deliberately.
+- ammunition and all currently emitted mundane pack/container IDs now have pinned mappings;
+- focus, book, gaming-set, artisan-tool, and musical-instrument compound IDs still require deliberate decomposition/translation.
 
 ## Next Bounded Stage 5 Slice
 
-Expand the low-ambiguity equipment seam only:
+Expand armor/shield breadth only:
 
-1. map `arrow` to the pinned Foundry ammunition/consumable target while preserving quantity;
-2. add `quiver` and proven/fixture-checked mundane pack containers;
-3. prove Character Forge -> Foundry identifier translation where IDs differ;
-4. do not manufacture pack contents that are absent from native state;
-5. leave all other equipment IDs explicitly deferred.
+1. map `chain-shirt` from the exact pinned Foundry 6.0 fixture;
+2. map `shield` from the exact pinned Foundry 6.0 fixture;
+3. map `leather-armor` from the exact pinned Foundry 6.0 fixture;
+4. map `studded-leather-armor` from the exact pinned Foundry 6.0 fixture;
+5. preserve deterministic IDs and Character Forge source provenance;
+6. keep Actor AC exported as flat authoritative state even when these equipment Items are present;
+7. do not infer equipped state beyond what Character Forge native state and the existing adapter contract can prove;
+8. leave all other unmapped equipment explicit and deferred.
 
 Do not combine this with:
 
+- remaining weapon breadth;
+- tools/instruments/focus aliases;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
