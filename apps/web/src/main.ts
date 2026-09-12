@@ -1,7 +1,14 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
 import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
-import { parseCharacterOpenMessage, resolveHostOrigin } from "./characterForgeHostBridge.js";
-import { createCharacterResultRenderer } from "./characterResultRenderer.js";
+import {
+  buildCharacterMediaRequestMessage,
+  parseCharacterMediaContextMessage,
+  parseCharacterOpenMessage,
+  resolveHostOrigin,
+  type CharacterMediaBinary,
+  type CharacterMediaRole,
+} from "./characterForgeHostBridge.js";
+import { createCharacterResultRenderer, type CharacterResultMediaPresentation } from "./characterResultRenderer.js";
 import { mountCreatorWorkspace } from "./creatorWorkspace.js";
 import {
   creatorSystemsForProjectContext,
@@ -40,8 +47,12 @@ const resultCandidate = document.querySelector<HTMLElement>("#result");
 if (!creatorRootCandidate || !resultCandidate) throw new Error("Character Forge workspace failed to initialize.");
 const creatorRoot: HTMLElement = creatorRootCandidate;
 const resultElement: HTMLElement = resultCandidate;
+let currentCharacterId = "";
+let mediaObjectUrls: CharacterResultMediaPresentation = {};
+const hostedMediaActions = window.parent !== window && !!hostOrigin;
 const resultRenderer = createCharacterResultRenderer(resultElement, {
   ...(projectName ? { campaignName: projectName } : {}),
+  ...(hostedMediaActions ? { onMediaSlotRequest: requestMediaFromHost } : {}),
 });
 const projectSystems = creatorSystemsForProjectContext(projectContext);
 const lockedProjectSystem = projectContextLocksCreatorSystem(projectContext);
@@ -53,20 +64,61 @@ const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter, {
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (window.parent === window || event.source !== window.parent || !hostOrigin || event.origin !== hostOrigin) return;
+
   const opened = parseCharacterOpenMessage(event.data);
-  if (!opened || (projectId && opened.payload.projectId !== projectId)) return;
-  try { creatorController.openCharacter(opened.payload.character); }
-  catch { /* The review surface below reports invalid retained native state. */ }
-  resultRenderer.render(opened.payload.character);
+  if (opened && (!projectId || opened.payload.projectId === projectId)) {
+    currentCharacterId = opened.payload.character.characterId;
+    clearMediaObjectUrls();
+    try { creatorController.openCharacter(opened.payload.character); }
+    catch { /* The review surface below reports invalid retained native state. */ }
+    resultRenderer.render(opened.payload.character);
+    return;
+  }
+
+  const media = parseCharacterMediaContextMessage(event.data);
+  if (!media || (projectId && media.payload.projectId !== projectId) || media.payload.characterId !== currentCharacterId) return;
+  applyMediaContext(media.payload.portrait, media.payload.token);
 });
 
+window.addEventListener("beforeunload", clearMediaObjectUrls);
+
 function publishCharacter(character: CharacterDocument): void {
+  if (currentCharacterId !== character.characterId) clearMediaObjectUrls();
+  currentCharacterId = character.characterId;
   resultRenderer.render(character);
   postCharacterToHost(character);
 }
 
 function clearRenderedCharacter(): void {
+  currentCharacterId = "";
+  clearMediaObjectUrls();
   resultRenderer.clear();
+}
+
+function applyMediaContext(portrait: CharacterMediaBinary | null, token: CharacterMediaBinary | null): void {
+  clearMediaObjectUrls();
+  mediaObjectUrls = {
+    ...(portrait ? { portraitSrc: objectUrlForMedia(portrait) } : {}),
+    ...(token ? { tokenSrc: objectUrlForMedia(token) } : {}),
+  };
+  resultRenderer.setMedia(mediaObjectUrls);
+}
+
+function objectUrlForMedia(media: CharacterMediaBinary): string {
+  const buffer = new ArrayBuffer(media.bytes.byteLength);
+  new Uint8Array(buffer).set(media.bytes);
+  return URL.createObjectURL(new Blob([buffer], { type: media.mediaType }));
+}
+
+function clearMediaObjectUrls(): void {
+  if (mediaObjectUrls.portraitSrc) URL.revokeObjectURL(mediaObjectUrls.portraitSrc);
+  if (mediaObjectUrls.tokenSrc) URL.revokeObjectURL(mediaObjectUrls.tokenSrc);
+  mediaObjectUrls = {};
+}
+
+function requestMediaFromHost(role: CharacterMediaRole): void {
+  if (!hostOrigin || window.parent === window || !projectId || !currentCharacterId) return;
+  window.parent.postMessage(buildCharacterMediaRequestMessage(projectId, currentCharacterId, role), hostOrigin);
 }
 
 function postCharacterToHost(character: CharacterDocument): void {
