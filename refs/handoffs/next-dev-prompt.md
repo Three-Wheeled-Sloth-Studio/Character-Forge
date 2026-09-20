@@ -130,7 +130,8 @@ Once the downloadable artifact is green, real Foundry import testing becomes the
 
 ## Guardrails
 
-- Native D&D state remains canonical and lossless.
+- Native system state is mandatory and lossless.
+- Native D&D state remains canonical.
 - Foundry Actor/Item data remains an adapter target.
 - Do not project through Universal Grammar.
 - No copied Foundry compendium prose.
