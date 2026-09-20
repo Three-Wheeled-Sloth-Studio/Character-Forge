@@ -6,7 +6,8 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- gaming-set
+- books
+- loot
 ---
 # Next Development Prompt
 
@@ -23,7 +24,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry gaming set dice translation"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry semantic book alias translation"
 ```
 
 Then read only:
@@ -33,22 +34,23 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 5. `packages/foundry-adapter/src/target.ts`
-6. exact pinned Foundry D&D5e 6.0 `packs/_source/equipment24/tools/other/gaming-set/dice.yml`
+6. `packages/system-dnd5e/src/guidedFirstSlice.ts` only as needed to reconfirm the three source IDs
+7. exact pinned Foundry D&D5e 6.0 `packs/_source/equipment24/adventuring-gear/book.yml`
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `07dc02f79d144c7371df50576d39c1ec0a9e469f`
-- Actions: `35511885830`
-- Job: `106081096259`
-- 68 test files / 334 tests / 0 failures
+- SHA: `d4908d19799b3925a0f609302866eaaf22f46e03`
+- Actions: `35513128436`
+- Job: `106084444614`
+- 68 test files / 335 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 3625 characters
-- build: `Character Forge build 0.0.1 07dc02f7`
-- Foundry adapter: `0.12.0`
+- agent context 3583 characters
+- build: `Character Forge build 0.0.1 d4908d19`
+- Foundry adapter: `0.13.0`
 
 Promoted branches remain unchanged:
 
@@ -62,48 +64,52 @@ Promoted branches remain unchanged:
 
 Character Forge native D&D state remains authoritative. Foundry remains an adapter target.
 
-## Immediate Work - Gaming Dice Only
+## Immediate Work - Three Semantic Book Aliases Only
 
-Translate:
+Translate exactly:
 
-`gaming-set:dice` -> `dice`
+- `book:prayers`
+- `book:history`
+- `book:occult-lore`
 
-Pinned target:
+All three use the pinned Foundry target identifier `book` and Item type `loot`.
 
-- name: `Dice`
-- Item type: `tool`
-- identifier: `dice`
-- price: `1 sp`
-- weight: `0 lb`
-- `type.value = "game"`
-- `type.baseItem = "dice"`
-- ability: `wis`
-- proficient: null
+Pinned static fields:
+
+- price: `25 gp`
+- weight: `5 lb`
+- `type.value = "gear"`
+- subtype: blank
 - properties: empty
-- bonus: blank
 
-The pinned fixture includes two check activities. Do not export them in this slice.
+Preserve Character Forge's existing source semantics through exported display names:
+
+- `book:prayers` -> `Prayer Book`
+- `book:history` -> `History Book`
+- `book:occult-lore` -> `Occult Lore Book`
 
 ### Rules
 
-- Use an explicit mapping from the complete Character Forge compound source ID.
-- Preserve original source ID `gaming-set:dice` in provenance and deterministic embedded-ID generation.
+- Use explicit mappings for all three complete Character Forge source IDs.
+- All three target Foundry identifier `book`; do not invent separate target identifiers.
+- Preserve original source IDs in provenance and deterministic embedded-ID generation.
 - Preserve native quantity exactly.
-- Keep description empty.
-- Keep activities empty.
-- Do not infer proficiency or gameplay automation.
+- Keep descriptions empty.
+- Do not copy the generic Foundry Book description.
+- Do not implement or infer the generic Book's +5 Intelligence-check behavior.
 - Unsupported IDs remain explicit; no generic fallback.
 
 ### Coverage
 
 Add focused deterministic tests proving:
 
-- `gaming-set:dice` maps to Foundry tool identifier `dice`;
-- exact pinned static price, weight, type/base item, ability, proficiency, properties, and bonus are preserved;
-- native quantity and deterministic source-ID-based embedded ID are preserved;
-- source provenance remains `gaming-set:dice`;
-- descriptions and activities remain empty; and
-- `book:history` remains explicitly deferred.
+- all three source IDs map to Foundry `loot` Items with target identifier `book`;
+- exported names remain `Prayer Book`, `History Book`, and `Occult Lore Book`;
+- exact pinned static price, weight, type/subtype, and properties are preserved;
+- native quantities and deterministic source-ID-based embedded IDs are preserved independently for all three aliases;
+- source provenance retains each complete Character Forge source ID;
+- descriptions remain empty; and
+- `spellbook` remains explicitly deferred.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -111,7 +117,7 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
-- `book:prayers`, `book:history`, or `book:occult-lore`;
+- `spellbook`;
 - healer's-kit activity semantics;
 - simple gear fixture review;
 - feature/activity Items;

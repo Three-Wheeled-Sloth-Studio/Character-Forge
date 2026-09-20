@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.12.0`
+Character Forge adapter: `0.13.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.12.0` currently maps:
+Adapter `0.13.0` currently maps:
 
 ### Weapons
 
@@ -166,12 +166,21 @@ Implemented:
 
 The adapter preserves zero price/weight, gear type, blank subtype, empty properties, native quantity, deterministic source-ID-based embedded IDs, and `holy-symbol` provenance. It intentionally does not select amulet, emblem, or reliquary because Character Forge does not carry that form choice.
 
-### Other Semantic Aliases Requiring Explicit Translation
+### Gaming Set
 
-- `gaming-set:dice`
+Implemented:
+
+- `gaming-set:dice` -> pinned Foundry `tool` target `dice`
+
+The adapter preserves `1 sp` price, zero weight, tool type `game`, base item `dice`, Wisdom ability, null proficiency, empty properties/bonus, native quantity, deterministic compound-source-ID-based embedded IDs, and source provenance. Descriptions and activities remain empty; the pinned Catch Cheating and Play to Win checks are intentionally not replayed.
+
+### Book Semantic Aliases Requiring Explicit Translation
+
 - `book:prayers`
 - `book:history`
 - `book:occult-lore`
+
+All three target Foundry's pinned generic 2024 `book` loot Item. Character Forge source semantics should remain visible through export names `Prayer Book`, `History Book`, and `Occult Lore Book` while the target identifier remains `book`.
 
 ### Simple Gear Still Requiring Exact Target Fixture Review
 
@@ -227,13 +236,16 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 
 ## Recommended Next Slice
 
-Map only `gaming-set:dice` to the pinned Foundry `dice` tool target.
+Map the three Character Forge `book:*` semantic aliases to the pinned generic Foundry `book` loot target.
 
-1. preserve name `Dice`, identifier `dice`, price `1 sp`, weight `0 lb`, tool type `game`, base item `dice`, and ability `wis`;
-2. preserve native quantity, deterministic source-ID-based embedded IDs, and original compound Character Forge `gaming-set:dice` provenance;
-3. keep descriptions and activities empty;
-4. do not replay the pinned Foundry cheating/win-game check activities;
-5. do not infer proficiency; and
-6. keep all `book:*` aliases, healer's-kit semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. preserve the pinned Foundry physical/static fields: identifier `book`, price `25 gp`, weight `5 lb`, loot type `gear`, blank subtype, and empty properties;
+2. preserve Character Forge semantic display names:
+   - `book:prayers` -> `Prayer Book`
+   - `book:history` -> `History Book`
+   - `book:occult-lore` -> `Occult Lore Book`
+3. preserve native quantity, deterministic source-ID-based embedded IDs, and the original complete Character Forge source ID in provenance;
+4. keep descriptions empty and do not copy the pinned generic Book's rules text;
+5. do not implement or infer the generic Book's +5 Intelligence-check behavior; and
+6. keep `spellbook`, healer's-kit semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-The book aliases remain separate because three distinct Character Forge semantic IDs converge on Foundry's generic `book` identifier and still require an explicit export naming/loss policy.
+This policy preserves source semantics at the display/provenance layer while deliberately converging on Foundry's generic `book` identifier.

@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `07dc02f79d144c7371df50576d39c1ec0a9e469f`
-- Actions: `35511885830`
-- Job: `106081096259`
+- SHA: `d4908d19799b3925a0f609302866eaaf22f46e03`
+- Actions: `35513128436`
+- Job: `106084444614`
 - `npm run verify`: green
 - 68 test files
-- 334 tests passed
+- 335 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3625 characters
-- Build: `Character Forge build 0.0.1 07dc02f7`
-- Foundry adapter: `0.12.0`
+- Agent context: 3583 characters
+- Build: `Character Forge build 0.0.1 d4908d19`
+- Foundry adapter: `0.13.0`
 
 Promoted branches remain unchanged:
 
@@ -223,6 +223,20 @@ The slice proves:
 - no amulet, emblem, reliquary, worn/held/shield relationship, or spellcasting behavior is invented; and
 - `gaming-set:dice` remains explicit deferred equipment.
 
+### Gaming-set dice breadth - complete
+
+Checkpoint `d4908d19799b3925a0f609302866eaaf22f46e03` maps the compound Character Forge `gaming-set:dice` concept to the pinned Foundry `dice` tool target.
+
+The slice proves:
+
+- the complete Character Forge compound source ID remains authoritative for deterministic embedded IDs and provenance;
+- pinned name, identifier, `1 sp` price, zero weight, `type.value = "game"`, base item `dice`, and `ability = "wis"` are preserved;
+- native quantity remains stable;
+- proficiency remains null and properties/bonus remain empty;
+- descriptions and activities remain empty;
+- the pinned Foundry Catch Cheating and Play to Win check activities are intentionally not replayed; and
+- `book:history` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -237,35 +251,42 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, and generic `holy-symbol` now have pinned mappings; and
-- book aliases and `gaming-set:dice` still require deliberate translation.
+- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, generic `holy-symbol`, and `gaming-set:dice` now have pinned mappings; and
+- the three `book:*` aliases remain the final semantic-alias group requiring deliberate translation.
 
 ## Next Bounded Stage 5 Slice
 
-Map only the compound Character Forge ID `gaming-set:dice` to the pinned Foundry `dice` tool target.
+Map only the three semantic Character Forge book aliases:
 
-Pinned Foundry 6.0.x evidence:
+- `book:prayers`
+- `book:history`
+- `book:occult-lore`
 
-- target Item type: `tool`
-- target identifier: `dice`
-- target name: `Dice`
-- price: `1 sp`
-- weight: `0 lb`
-- `type.value = "game"`
-- `type.baseItem = "dice"`
-- `ability = "wis"`
-- proficiency: null
+All three target the pinned Foundry 2024 generic `book` loot Item.
+
+Pinned Foundry 6.0.x generic Book fields:
+
+- target Item type: `loot`
+- target identifier: `book`
+- price: `25 gp`
+- weight: `5 lb`
+- type: `gear`
+- subtype: blank
 - properties: empty
-- bonus: blank
-- Foundry check activities exist in the compendium fixture but remain intentionally omitted from Character Forge export.
 
-Use an explicit source mapping from `gaming-set:dice` to `dice`. Preserve the original compound Character Forge source ID for deterministic embedded IDs and provenance. Keep descriptions and activities empty and do not infer proficiency or game-check automation.
+Preserve Character Forge's existing semantic display labels rather than collapsing all three exported Items to the display name `Book`:
 
-Keep all three `book:*` aliases separate because they collapse onto Foundry's generic `book` identifier and still need an explicit export naming/loss policy.
+- `book:prayers` -> `Prayer Book`
+- `book:history` -> `History Book`
+- `book:occult-lore` -> `Occult Lore Book`
+
+This is an adapter-level display-name preservation policy, not a new canonical item model. All three still use Foundry identifier `book`, while the original complete Character Forge source ID remains authoritative in provenance and deterministic embedded-ID generation.
+
+Keep descriptions empty. Do not copy or reproduce the pinned generic Book's +5 Intelligence-check rules text or invent automation from it.
 
 Do not combine this with:
 
-- book aliases;
+- `spellbook`;
 - healer's-kit activity semantics;
 - simple gear fixture review;
 - feature/activity Items;
