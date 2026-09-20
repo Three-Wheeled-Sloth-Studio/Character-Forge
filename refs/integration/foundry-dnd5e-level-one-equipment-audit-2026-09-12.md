@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.11.0`
+Character Forge adapter: `0.12.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.11.0` currently maps:
+Adapter `0.12.0` currently maps:
 
 ### Weapons
 
@@ -158,13 +158,20 @@ Implemented through an explicit whitelist:
 
 The two Character Forge `*:quarterstaff` aliases deliberately resolve to different Foundry target identifiers. Source compound IDs remain intact for deterministic IDs and provenance. Descriptions and activities remain empty.
 
+### Generic Holy Symbol
+
+Implemented:
+
+- `holy-symbol` -> pinned generic Foundry `loot` target `holy-symbol-varies`
+
+The adapter preserves zero price/weight, gear type, blank subtype, empty properties, native quantity, deterministic source-ID-based embedded IDs, and `holy-symbol` provenance. It intentionally does not select amulet, emblem, or reliquary because Character Forge does not carry that form choice.
+
 ### Other Semantic Aliases Requiring Explicit Translation
 
 - `gaming-set:dice`
 - `book:prayers`
 - `book:history`
 - `book:occult-lore`
-- `holy-symbol` -> pinned generic Foundry target `holy-symbol-varies` is confirmed as a `loot` Item; do not select amulet/emblem/reliquary without native form data.
 
 ### Simple Gear Still Requiring Exact Target Fixture Review
 
@@ -220,13 +227,13 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 
 ## Recommended Next Slice
 
-Map only `holy-symbol` to the pinned generic Foundry `holy-symbol-varies` loot target.
+Map only `gaming-set:dice` to the pinned Foundry `dice` tool target.
 
-1. add the minimum `loot` Item support needed for this pinned target;
-2. preserve target identifier `holy-symbol-varies`, name `Holy Symbol (Varies)`, zero price/weight, gear type, blank subtype, and empty properties;
-3. preserve native quantity, deterministic source-ID-based embedded IDs, and original Character Forge `holy-symbol` provenance;
-4. keep descriptions empty;
-5. do not choose amulet, emblem, or reliquary because the native Character Forge state does not specify a form; and
-6. keep gaming-set, book aliases, healer's-kit semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. preserve name `Dice`, identifier `dice`, price `1 sp`, weight `0 lb`, tool type `game`, base item `dice`, and ability `wis`;
+2. preserve native quantity, deterministic source-ID-based embedded IDs, and original compound Character Forge `gaming-set:dice` provenance;
+3. keep descriptions and activities empty;
+4. do not replay the pinned Foundry cheating/win-game check activities;
+5. do not infer proficiency; and
+6. keep all `book:*` aliases, healer's-kit semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-Book aliases remain deliberately separate because three distinct Character Forge semantic IDs currently converge on Foundry's generic `book` target and need an explicit naming/loss policy.
+The book aliases remain separate because three distinct Character Forge semantic IDs converge on Foundry's generic `book` identifier and still require an explicit export naming/loss policy.

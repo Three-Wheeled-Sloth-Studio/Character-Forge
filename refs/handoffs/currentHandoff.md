@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `9d1d9ca941b29e04354f5ac3922f099365b94f26`
-- Actions: `35511448798`
-- Job: `106079940383`
+- SHA: `07dc02f79d144c7371df50576d39c1ec0a9e469f`
+- Actions: `35511885830`
+- Job: `106081096259`
 - `npm run verify`: green
 - 68 test files
-- 333 tests passed
+- 334 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3552 characters
-- Build: `Character Forge build 0.0.1 9d1d9ca9`
-- Foundry adapter: `0.11.0`
+- Agent context: 3625 characters
+- Build: `Character Forge build 0.0.1 07dc02f7`
+- Foundry adapter: `0.12.0`
 
 Promoted branches remain unchanged:
 
@@ -210,6 +210,19 @@ The slice proves:
 - equipped/proficiency/spellcasting/container relationships remain uninferred; and
 - `holy-symbol` remains explicit deferred equipment.
 
+### Generic holy-symbol breadth - complete
+
+Checkpoint `07dc02f79d144c7371df50576d39c1ec0a9e469f` maps the literal Character Forge `holy-symbol` concept to the pinned generic Foundry `holy-symbol-varies` target.
+
+The slice proves:
+
+- the target remains a Foundry `loot` Item rather than fabricating a tool/equipment form;
+- pinned name, identifier, zero price/weight, gear type, blank subtype, and empty properties are preserved;
+- native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance remain stable;
+- description remains empty;
+- no amulet, emblem, reliquary, worn/held/shield relationship, or spellcasting behavior is invented; and
+- `gaming-set:dice` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -224,34 +237,35 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, and all five compound focus IDs now have pinned mappings; and
-- `holy-symbol`, book aliases, and gaming-set aliases still require deliberate translation.
+- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, and generic `holy-symbol` now have pinned mappings; and
+- book aliases and `gaming-set:dice` still require deliberate translation.
 
 ## Next Bounded Stage 5 Slice
 
-Map only the literal Character Forge ID `holy-symbol` to the pinned generic Foundry target `holy-symbol-varies`.
+Map only the compound Character Forge ID `gaming-set:dice` to the pinned Foundry `dice` tool target.
 
 Pinned Foundry 6.0.x evidence:
 
-- target Item type: `loot`
-- target identifier: `holy-symbol-varies`
-- target name: `Holy Symbol (Varies)`
-- price: `0 gp`
+- target Item type: `tool`
+- target identifier: `dice`
+- target name: `Dice`
+- price: `1 sp`
 - weight: `0 lb`
-- type: `gear`
-- subtype: blank
+- `type.value = "game"`
+- `type.baseItem = "dice"`
+- `ability = "wis"`
+- proficiency: null
 - properties: empty
+- bonus: blank
+- Foundry check activities exist in the compendium fixture but remain intentionally omitted from Character Forge export.
 
-Do not choose a concrete amulet, emblem, or reliquary target. Character Forge currently records only the generic `holy-symbol` concept, so selecting a specific form would invent native information.
+Use an explicit source mapping from `gaming-set:dice` to `dice`. Preserve the original compound Character Forge source ID for deterministic embedded IDs and provenance. Keep descriptions and activities empty and do not infer proficiency or game-check automation.
 
-This slice should establish the minimal pinned `loot` Item shape needed for this exact generic target while preserving Character Forge source provenance and deterministic embedded IDs. Keep descriptions empty.
-
-Keep book aliases separate because `book:prayers`, `book:history`, and `book:occult-lore` carry source semantics that all collapse onto Foundry's generic `book` identifier and need an explicit export naming/loss policy before implementation.
+Keep all three `book:*` aliases separate because they collapse onto Foundry's generic `book` identifier and still need an explicit export naming/loss policy.
 
 Do not combine this with:
 
-- concrete holy-symbol form selection;
-- gaming-set or book aliases;
+- book aliases;
 - healer's-kit activity semantics;
 - simple gear fixture review;
 - feature/activity Items;
