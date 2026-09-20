@@ -9,6 +9,7 @@ import {
   FOUNDRY_DND5E_DIRECT_TOOL_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
   FOUNDRY_DND5E_MARTIAL_WEAPON_IDS,
+  FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS,
   FOUNDRY_DND5E_SIMPLE_WEAPON_IDS,
 } from "./dnd5eEquipmentItems.js";
 import { stableFoundryDocumentId } from "./dnd5eIdentityItems.js";
@@ -208,7 +209,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "musical-instrument:lute", quantity: 1 },
+        { itemId: "arcane-focus:orb", quantity: 1 },
       ],
     };
 
@@ -218,7 +219,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "musical-instrument:lute",
+        itemId: "arcane-focus:orb",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -338,7 +339,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "musical-instrument:lute", quantity: 1 },
+        { itemId: "arcane-focus:orb", quantity: 1 },
       ],
     };
 
@@ -348,7 +349,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "musical-instrument:lute",
+        itemId: "arcane-focus:orb",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -450,13 +451,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps direct tool concepts while keeping musical instrument translation deferred", () => {
+  it("maps direct tool concepts while keeping focus translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "musical-instrument:lute", quantity: 1 },
+        { itemId: "arcane-focus:orb", quantity: 1 },
       ],
     };
 
@@ -466,7 +467,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "musical-instrument:lute",
+        itemId: "arcane-focus:orb",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -539,13 +540,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit artisan-tool whitelist while keeping musical instruments deferred", () => {
+  it("maps the explicit artisan-tool whitelist while keeping focus aliases deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_ARTISAN_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "musical-instrument:lute", quantity: 1 },
+        { itemId: "arcane-focus:orb", quantity: 1 },
       ],
     };
 
@@ -555,7 +556,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_ARTISAN_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "musical-instrument:lute",
+        itemId: "arcane-focus:orb",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -722,6 +723,140 @@ describe("Foundry D&D5e equipment mapping", () => {
           weight: { value: pinned.weight, units: "lb" },
           type: { value: "art", baseItem: pinned.baseItem },
           ability: pinned.ability,
+          proficient: null,
+          properties: [],
+          bonus: "",
+          activities: {},
+        },
+        flags: {
+          "character-forge": {
+            role: "equipment",
+            sourceId,
+            sourceQuantity: 2,
+          },
+        },
+      });
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("maps the explicit musical-instrument whitelist while keeping focus aliases deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "arcane-focus:orb", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-musical-instruments", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-musical-instruments", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "arcane-focus:orb",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const expected = {
+      "musical-instrument:bagpipes": {
+        name: "Bagpipes",
+        identifier: "bagpipes",
+        price: 30,
+        weight: 1,
+        baseItem: "bagpipes",
+      },
+      "musical-instrument:drum": {
+        name: "Drum",
+        identifier: "drum",
+        price: 6,
+        weight: 3,
+        baseItem: "drum",
+      },
+      "musical-instrument:dulcimer": {
+        name: "Dulcimer",
+        identifier: "dulcimer",
+        price: 25,
+        weight: 10,
+        baseItem: "dulcimer",
+      },
+      "musical-instrument:flute": {
+        name: "Flute",
+        identifier: "flute",
+        price: 2,
+        weight: 1,
+        baseItem: "flute",
+      },
+      "musical-instrument:horn": {
+        name: "Horn",
+        identifier: "horn",
+        price: 3,
+        weight: 2,
+        baseItem: "horn",
+      },
+      "musical-instrument:lute": {
+        name: "Lute",
+        identifier: "lute",
+        price: 35,
+        weight: 2,
+        baseItem: "lute",
+      },
+      "musical-instrument:lyre": {
+        name: "Lyre",
+        identifier: "lyre",
+        price: 30,
+        weight: 2,
+        baseItem: "lyre",
+      },
+      "musical-instrument:pan-flute": {
+        name: "Pan Flute",
+        identifier: "pan-flute",
+        price: 12,
+        weight: 2,
+        baseItem: "panflute",
+      },
+      "musical-instrument:shawm": {
+        name: "Shawm",
+        identifier: "shawm",
+        price: 2,
+        weight: 1,
+        baseItem: "shawm",
+      },
+      "musical-instrument:viol": {
+        name: "Viol",
+        identifier: "viol",
+        price: 30,
+        weight: 1,
+        baseItem: "viol",
+      },
+    } as const;
+
+    const bySourceId = new Map(first.items.map((item) => [
+      (item.flags as { "character-forge": { sourceId: string } })["character-forge"].sourceId,
+      item,
+    ]));
+
+    for (const sourceId of FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS) {
+      const pinned = expected[sourceId];
+      const item = bySourceId.get(sourceId);
+      expect(item).toMatchObject({
+        _id: stableFoundryDocumentId(`character-musical-instruments:equipment:${sourceId}`),
+        name: pinned.name,
+        type: "tool",
+        system: {
+          identifier: pinned.identifier,
+          quantity: 2,
+          equipped: false,
+          container: null,
+          description: { value: "", chat: "" },
+          price: { value: pinned.price, denomination: "gp" },
+          weight: { value: pinned.weight, units: "lb" },
+          type: { value: "music", baseItem: pinned.baseItem },
+          ability: "cha",
           proficient: null,
           properties: [],
           bonus: "",
