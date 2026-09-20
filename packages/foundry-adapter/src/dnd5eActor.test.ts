@@ -237,6 +237,7 @@ describe("Foundry D&D5e Actor adapter", () => {
     expect(firstJson).toBe(secondJson);
     expect(JSON.parse(firstJson)).toEqual(first.document);
     expect(firstJson).not.toContain("mappingNotes");
+    expect(firstJson).not.toContain('"schemaVersion"');
     expect(firstJson).not.toContain("character-forge/foundry-dnd5e-actor-export/0.1");
     expect(firstJson).toContain('"character-forge"');
   });
