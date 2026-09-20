@@ -4,7 +4,7 @@ import { buildBrpCharacterSheet, brpUge105Adapter } from "../../../packages/syst
 import { buildDnd5eCharacterSheet, dnd5eSrd521Adapter } from "../../../packages/system-dnd5e/src/index.js";
 import {
   bindCharacterDocumentControls,
-  characterDocumentControlsHtml,
+  characterDocumentControlsHtmlForCharacter,
   characterDocumentJson,
 } from "./characterSheetControls.js";
 import { SHEET_TOOLBAR_STYLES } from "./sheetToolbarStyles.js";
@@ -129,7 +129,7 @@ function renderDedicatedSheet(
   resultElement.classList.remove("empty-result");
   resultElement.innerHTML = `
     <style data-sheet-toolbar-styles>${SHEET_TOOLBAR_STYLES}</style>
-    ${characterDocumentControlsHtml(true, true)}
+    ${characterDocumentControlsHtmlForCharacter(character, true, true)}
     ${sheetHtml}
     <details class="document-inspector no-print"><summary>Inspect native character document</summary><pre>${escapeHtml(characterDocumentJson(character))}</pre></details>`;
   bindCharacterDocumentControls(resultElement, character, () => printableSheetFromResult(resultElement, sheetHtml));
