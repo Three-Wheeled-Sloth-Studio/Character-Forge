@@ -88,6 +88,14 @@ export const FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS = [
   "musical-instrument:viol",
 ] as const;
 
+export const FOUNDRY_DND5E_FOCUS_IDS = [
+  "arcane-focus:crystal",
+  "arcane-focus:orb",
+  "arcane-focus:quarterstaff",
+  "druidic-focus:sprig-of-mistletoe",
+  "druidic-focus:quarterstaff",
+] as const;
+
 export interface FoundryDnd5eUnsupportedEquipment {
   itemId: string;
   quantity: number;
@@ -691,6 +699,56 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
     baseItem: "viol",
     ability: "cha",
   }),
+  "arcane-focus:crystal": focusEquipmentDefinition({
+    name: "Crystal",
+    identifier: "crystal",
+    priceValue: 10,
+    weight: 1,
+  }),
+  "arcane-focus:orb": focusEquipmentDefinition({
+    name: "Orb",
+    identifier: "orb",
+    priceValue: 20,
+    weight: 3,
+  }),
+  "arcane-focus:quarterstaff": weaponDefinition({
+    name: "Staff",
+    identifier: "staff",
+    priceValue: 5,
+    priceDenomination: "gp",
+    weight: 4,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "bludgeoning",
+    weaponType: "simpleM",
+    baseItem: "quarterstaff",
+    properties: ["foc", "ver"],
+    mastery: "topple",
+    range: { value: null, long: null, units: "", reach: null },
+    versatileMarker: true,
+  }),
+  "druidic-focus:sprig-of-mistletoe": focusEquipmentDefinition({
+    name: "Sprig of mistletoe",
+    identifier: "sprig-of-mistletoe",
+    priceValue: 1,
+    weight: 0,
+  }),
+  "druidic-focus:quarterstaff": weaponDefinition({
+    name: "Wooden staff",
+    identifier: "wooden-staff",
+    priceValue: 5,
+    priceDenomination: "gp",
+    weight: 4,
+    damageNumber: 1,
+    damageDenomination: 6,
+    damageType: "bludgeoning",
+    weaponType: "simpleM",
+    baseItem: "quarterstaff",
+    properties: ["foc", "ver"],
+    mastery: "topple",
+    range: { value: null, long: null, units: "", reach: null },
+    versatileMarker: true,
+  }),
   arrow: {
     name: "Arrows",
     type: "consumable",
@@ -889,6 +947,43 @@ function containerDefinition(
   };
 }
 
+interface FocusEquipmentDefinitionInput {
+  name: string;
+  identifier: string;
+  priceValue: number;
+  weight: number;
+}
+
+function focusEquipmentDefinition(input: FocusEquipmentDefinitionInput): EquipmentDefinition {
+  return {
+    name: input.name,
+    type: "equipment",
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem(
+          input.identifier,
+          quantity,
+          input.priceValue,
+          "gp",
+          input.weight,
+          false,
+        ),
+        cover: null,
+        crewed: false,
+        uses: emptyUses(),
+        armor: { value: null, magicalBonus: null, dex: null },
+        hp: { value: null, max: null, dt: null, conditions: "" },
+        type: { value: "trinket", baseItem: "" },
+        properties: [],
+        speed: { value: null, conditions: "" },
+        strength: null,
+        proficient: null,
+        activities: {},
+      };
+    },
+  };
+}
+
 interface ToolDefinitionInput {
   name: string;
   identifier: string;
@@ -937,6 +1032,7 @@ interface WeaponSystemInput {
   damageDenomination: number;
   damageType: string;
   weaponType: string;
+  baseItem?: string;
   properties: string[];
   mastery: string;
   range?: JsonObject;
@@ -1000,7 +1096,7 @@ function weaponSystem(input: WeaponSystemInput): JsonObject {
       },
     },
     armor: { value: null },
-    type: { value: input.weaponType, baseItem: input.identifier },
+    type: { value: input.weaponType, baseItem: input.baseItem ?? input.identifier },
     magicalBonus: null,
     properties: input.properties,
     proficient: null,

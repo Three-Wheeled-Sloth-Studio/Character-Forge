@@ -8,6 +8,7 @@ import {
   FOUNDRY_DND5E_ARTISAN_TOOL_IDS,
   FOUNDRY_DND5E_DIRECT_TOOL_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
+  FOUNDRY_DND5E_FOCUS_IDS,
   FOUNDRY_DND5E_MARTIAL_WEAPON_IDS,
   FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS,
   FOUNDRY_DND5E_SIMPLE_WEAPON_IDS,
@@ -209,7 +210,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "arcane-focus:orb", quantity: 1 },
+        { itemId: "holy-symbol", quantity: 1 },
       ],
     };
 
@@ -219,7 +220,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "arcane-focus:orb",
+        itemId: "holy-symbol",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -339,7 +340,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "arcane-focus:orb", quantity: 1 },
+        { itemId: "holy-symbol", quantity: 1 },
       ],
     };
 
@@ -349,7 +350,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "arcane-focus:orb",
+        itemId: "holy-symbol",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -451,13 +452,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps direct tool concepts while keeping focus translation deferred", () => {
+  it("maps direct tool concepts while keeping holy-symbol translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "arcane-focus:orb", quantity: 1 },
+        { itemId: "holy-symbol", quantity: 1 },
       ],
     };
 
@@ -467,7 +468,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "arcane-focus:orb",
+        itemId: "holy-symbol",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -540,13 +541,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit artisan-tool whitelist while keeping focus aliases deferred", () => {
+  it("maps the explicit artisan-tool whitelist while keeping holy-symbol translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_ARTISAN_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "arcane-focus:orb", quantity: 1 },
+        { itemId: "holy-symbol", quantity: 1 },
       ],
     };
 
@@ -556,7 +557,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_ARTISAN_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "arcane-focus:orb",
+        itemId: "holy-symbol",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -740,13 +741,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit musical-instrument whitelist while keeping focus aliases deferred", () => {
+  it("maps the explicit musical-instrument whitelist while keeping holy-symbol translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "arcane-focus:orb", quantity: 1 },
+        { itemId: "holy-symbol", quantity: 1 },
       ],
     };
 
@@ -756,7 +757,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "arcane-focus:orb",
+        itemId: "holy-symbol",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -869,6 +870,156 @@ describe("Foundry D&D5e equipment mapping", () => {
             sourceQuantity: 2,
           },
         },
+      });
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("maps compound spellcasting-focus aliases while keeping holy-symbol deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...FOUNDRY_DND5E_FOCUS_IDS.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "holy-symbol", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-focuses", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-focuses", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(FOUNDRY_DND5E_FOCUS_IDS.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "holy-symbol",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const bySourceId = new Map(first.items.map((item) => [
+      (item.flags as { "character-forge": { sourceId: string } })["character-forge"].sourceId,
+      item,
+    ]));
+
+    for (const sourceId of [
+      "arcane-focus:crystal",
+      "arcane-focus:orb",
+      "druidic-focus:sprig-of-mistletoe",
+    ] as const) {
+      const item = bySourceId.get(sourceId);
+      expect(item).toMatchObject({
+        _id: stableFoundryDocumentId(`character-focuses:equipment:${sourceId}`),
+        type: "equipment",
+        system: {
+          quantity: 2,
+          equipped: false,
+          container: null,
+          description: { value: "", chat: "" },
+          type: { value: "trinket", baseItem: "" },
+          properties: [],
+          strength: null,
+          proficient: null,
+          activities: {},
+        },
+        flags: {
+          "character-forge": {
+            role: "equipment",
+            sourceId,
+            sourceQuantity: 2,
+          },
+        },
+      });
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+
+    expect(bySourceId.get("arcane-focus:crystal")).toMatchObject({
+      name: "Crystal",
+      system: {
+        identifier: "crystal",
+        price: { value: 10, denomination: "gp" },
+        weight: { value: 1, units: "lb" },
+      },
+    });
+    expect(bySourceId.get("arcane-focus:orb")).toMatchObject({
+      name: "Orb",
+      system: {
+        identifier: "orb",
+        price: { value: 20, denomination: "gp" },
+        weight: { value: 3, units: "lb" },
+      },
+    });
+    expect(bySourceId.get("druidic-focus:sprig-of-mistletoe")).toMatchObject({
+      name: "Sprig of mistletoe",
+      system: {
+        identifier: "sprig-of-mistletoe",
+        price: { value: 1, denomination: "gp" },
+        weight: { value: 0, units: "lb" },
+      },
+    });
+
+    expect(bySourceId.get("arcane-focus:quarterstaff")).toMatchObject({
+      _id: stableFoundryDocumentId("character-focuses:equipment:arcane-focus:quarterstaff"),
+      name: "Staff",
+      type: "weapon",
+      system: {
+        identifier: "staff",
+        quantity: 2,
+        price: { value: 5, denomination: "gp" },
+        weight: { value: 4, units: "lb" },
+        damage: {
+          base: { number: 1, denomination: 6, types: ["bludgeoning"] },
+          versatile: { denomination: 0, custom: { enabled: false } },
+        },
+        type: { value: "simpleM", baseItem: "quarterstaff" },
+        properties: ["foc", "ver"],
+        mastery: "topple",
+        range: { value: null, long: null, units: "", reach: null },
+        activities: {},
+        proficient: null,
+      },
+      flags: {
+        "character-forge": {
+          sourceId: "arcane-focus:quarterstaff",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    expect(bySourceId.get("druidic-focus:quarterstaff")).toMatchObject({
+      _id: stableFoundryDocumentId("character-focuses:equipment:druidic-focus:quarterstaff"),
+      name: "Wooden staff",
+      type: "weapon",
+      system: {
+        identifier: "wooden-staff",
+        quantity: 2,
+        price: { value: 5, denomination: "gp" },
+        weight: { value: 4, units: "lb" },
+        damage: {
+          base: { number: 1, denomination: 6, types: ["bludgeoning"] },
+          versatile: { denomination: 0, custom: { enabled: false } },
+        },
+        type: { value: "simpleM", baseItem: "quarterstaff" },
+        properties: ["foc", "ver"],
+        mastery: "topple",
+        range: { value: null, long: null, units: "", reach: null },
+        activities: {},
+        proficient: null,
+      },
+      flags: {
+        "character-forge": {
+          sourceId: "druidic-focus:quarterstaff",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    for (const item of first.items) {
+      expect(item.system).toMatchObject({
+        description: { value: "", chat: "" },
+        equipped: false,
+        container: null,
+        activities: {},
       });
       expect(JSON.stringify(item)).not.toContain("@UUID");
     }
