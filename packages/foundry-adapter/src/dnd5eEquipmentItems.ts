@@ -765,6 +765,16 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       });
     },
   },
+  "gaming-set:dice": toolDefinition({
+    name: "Dice",
+    identifier: "dice",
+    priceValue: 1,
+    priceDenomination: "sp",
+    weight: 0,
+    toolType: "game",
+    baseItem: "dice",
+    ability: "wis",
+  }),
   arrow: {
     name: "Arrows",
     type: "consumable",

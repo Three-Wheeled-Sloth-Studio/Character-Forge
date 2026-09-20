@@ -210,7 +210,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -220,7 +220,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -340,7 +340,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -350,7 +350,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -452,13 +452,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps direct tool concepts while keeping gaming-set translation deferred", () => {
+  it("maps direct tool concepts while keeping book alias translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -468,7 +468,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -541,13 +541,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit artisan-tool whitelist while keeping gaming-set translation deferred", () => {
+  it("maps the explicit artisan-tool whitelist while keeping book alias translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_ARTISAN_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -557,7 +557,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_ARTISAN_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -741,13 +741,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit musical-instrument whitelist while keeping gaming-set translation deferred", () => {
+  it("maps the explicit musical-instrument whitelist while keeping book alias translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -757,7 +757,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -881,7 +881,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_FOCUS_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -891,7 +891,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_FOCUS_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1031,7 +1031,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         { itemId: "holy-symbol", quantity: 2 },
-        { itemId: "gaming-set:dice", quantity: 1 },
+        { itemId: "book:history", quantity: 1 },
       ],
     };
 
@@ -1041,7 +1041,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(1);
     expect(first.unsupported).toEqual([
       {
-        itemId: "gaming-set:dice",
+        itemId: "book:history",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1078,6 +1078,62 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(serialized).not.toContain("amulet");
     expect(serialized).not.toContain("emblem");
     expect(serialized).not.toContain("reliquary");
+  });
+
+  it("maps the compound gaming-set dice concept while keeping book aliases deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        { itemId: "gaming-set:dice", quantity: 2 },
+        { itemId: "book:history", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-gaming-dice", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-gaming-dice", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(1);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "book:history",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    expect(first.items[0]).toMatchObject({
+      _id: stableFoundryDocumentId("character-gaming-dice:equipment:gaming-set:dice"),
+      name: "Dice",
+      type: "tool",
+      system: {
+        description: { value: "", chat: "" },
+        identifier: "dice",
+        container: null,
+        quantity: 2,
+        weight: { value: 0, units: "lb" },
+        price: { value: 1, denomination: "sp" },
+        equipped: false,
+        type: { value: "game", baseItem: "dice" },
+        ability: "wis",
+        proficient: null,
+        properties: [],
+        bonus: "",
+        activities: {},
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "gaming-set:dice",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    const serialized = JSON.stringify(first.items[0]);
+    expect(serialized).not.toContain("@UUID");
+    expect(serialized).not.toContain("Catch Cheating");
+    expect(serialized).not.toContain("Play to Win");
   });
 
   it("reports multi-container stacks explicitly because Foundry containers cannot stack", () => {
