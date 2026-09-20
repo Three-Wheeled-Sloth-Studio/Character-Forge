@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.10.0`
+Character Forge adapter: `0.11.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.10.0` currently maps:
+Adapter `0.11.0` currently maps:
 
 ### Weapons
 
@@ -148,7 +148,7 @@ Musical instruments preserve the pinned `type.value = "music"`, `ability = "cha"
 
 ### Compound Focus IDs
 
-These require explicit decomposition/translation and must not be passed through as Foundry identifiers:
+Implemented through an explicit whitelist:
 
 - `druidic-focus:quarterstaff` -> pinned weapon target `wooden-staff`
 - `druidic-focus:sprig-of-mistletoe` -> pinned equipment target `sprig-of-mistletoe`
@@ -156,7 +156,7 @@ These require explicit decomposition/translation and must not be passed through 
 - `arcane-focus:orb` -> pinned equipment target `orb`
 - `arcane-focus:quarterstaff` -> pinned weapon target `staff`
 
-The two Character Forge `*:quarterstaff` aliases deliberately resolve to different Foundry target identifiers and must remain whitelist entries rather than a shared generic transform.
+The two Character Forge `*:quarterstaff` aliases deliberately resolve to different Foundry target identifiers. Source compound IDs remain intact for deterministic IDs and provenance. Descriptions and activities remain empty.
 
 ### Other Semantic Aliases Requiring Explicit Translation
 
@@ -164,7 +164,7 @@ The two Character Forge `*:quarterstaff` aliases deliberately resolve to differe
 - `book:prayers`
 - `book:history`
 - `book:occult-lore`
-- `holy-symbol` - pinned Foundry 2024 data uses a target such as `holy-symbol-varies`; do not assume identifier equality.
+- `holy-symbol` -> pinned generic Foundry target `holy-symbol-varies` is confirmed as a `loot` Item; do not select amulet/emblem/reliquary without native form data.
 
 ### Simple Gear Still Requiring Exact Target Fixture Review
 
@@ -213,20 +213,20 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 - `packs/_source/equipment24/weapons/martial-melee/longsword.yml`
 - all 17 `packs/_source/equipment24/tools/artisan/*.yml` fixtures corresponding to the emitted artisan suffix set
 - all 10 `packs/_source/equipment24/tools/other/musical-instrument/*.yml` fixtures corresponding to the emitted instrument suffix set
-- pinned spellcasting-focus fixtures under `packs/_source/equipment24/adventuring-gear/spellcasting-focuses/`, including arcane `crystal`, `orb`, `staff`, and druidic `sprig-of-mistletoe`, `wooden-staff`
+- pinned spellcasting-focus fixtures under `packs/_source/equipment24/adventuring-gear/spellcasting-focuses/`, including arcane `crystal`, `orb`, `staff`, druidic `sprig-of-mistletoe`, `wooden-staff`, and generic `holy-symbol-varies`
+- pinned `packs/_source/equipment24/tools/other/gaming-set/dice.yml`
+- pinned generic `packs/_source/equipment24/adventuring-gear/book.yml`
 - prior pinned armor, ammunition, container, and Fighter proof fixtures recorded in repository history.
 
 ## Recommended Next Slice
 
-Translate only the five emitted compound focus IDs.
+Map only `holy-symbol` to the pinned generic Foundry `holy-symbol-varies` loot target.
 
-1. map `arcane-focus:crystal` to pinned equipment target `crystal`;
-2. map `arcane-focus:orb` to pinned equipment target `orb`;
-3. map `arcane-focus:quarterstaff` to pinned weapon target `staff`;
-4. map `druidic-focus:sprig-of-mistletoe` to pinned equipment target `sprig-of-mistletoe`;
-5. map `druidic-focus:quarterstaff` to pinned weapon target `wooden-staff`;
-6. use an explicit whitelist and preserve the original compound Character Forge source IDs for deterministic IDs and provenance;
-7. preserve exact pinned static equipment/weapon fields while keeping descriptions and activities empty; and
-8. keep `holy-symbol`, gaming/book aliases, healer's-kit activity semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. add the minimum `loot` Item support needed for this pinned target;
+2. preserve target identifier `holy-symbol-varies`, name `Holy Symbol (Varies)`, zero price/weight, gear type, blank subtype, and empty properties;
+3. preserve native quantity, deterministic source-ID-based embedded IDs, and original Character Forge `holy-symbol` provenance;
+4. keep descriptions empty;
+5. do not choose amulet, emblem, or reliquary because the native Character Forge state does not specify a form; and
+6. keep gaming-set, book aliases, healer's-kit semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-This is the next bounded semantic category because the pinned target family is known and it exercises deliberate cross-type aliasing: three equipment targets and two weapon targets.
+Book aliases remain deliberately separate because three distinct Character Forge semantic IDs currently converge on Foundry's generic `book` target and need an explicit naming/loss policy.

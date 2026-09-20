@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `ec48798b5c05ccb08803e4a19a4af8ed24b8db3f`
-- Actions: `35511196960`
-- Job: `106079291713`
+- SHA: `9d1d9ca941b29e04354f5ac3922f099365b94f26`
+- Actions: `35511448798`
+- Job: `106079940383`
 - `npm run verify`: green
 - 68 test files
-- 332 tests passed
+- 333 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 4048 characters
-- Build: `Character Forge build 0.0.1 ec48798b`
-- Foundry adapter: `0.10.0`
+- Agent context: 3552 characters
+- Build: `Character Forge build 0.0.1 9d1d9ca9`
+- Foundry adapter: `0.11.0`
 
 Promoted branches remain unchanged:
 
@@ -190,6 +190,26 @@ The slice proves:
 - proficiency, equipped state, and container relationships remain uninferred; and
 - `arcane-focus:orb` remains explicit deferred equipment.
 
+### Compound spellcasting-focus breadth - complete
+
+Checkpoint `9d1d9ca941b29e04354f5ac3922f099365b94f26` maps all five emitted compound focus IDs through an explicit whitelist:
+
+- `arcane-focus:crystal` -> equipment `crystal`
+- `arcane-focus:orb` -> equipment `orb`
+- `arcane-focus:quarterstaff` -> weapon `staff`
+- `druidic-focus:sprig-of-mistletoe` -> equipment `sprig-of-mistletoe`
+- `druidic-focus:quarterstaff` -> weapon `wooden-staff`
+
+The slice proves:
+
+- Character Forge compound source IDs remain authoritative for deterministic embedded IDs and provenance;
+- the two `*:quarterstaff` aliases deliberately map to different pinned target identifiers;
+- crystal/orb/mistletoe preserve pinned `equipment` + `trinket` static fields;
+- both staff targets preserve quarterstaff base item, 1d6 bludgeoning, `foc` + `ver`, Topple mastery, and the bounded versatile marker;
+- descriptions and activities remain empty;
+- equipped/proficiency/spellcasting/container relationships remain uninferred; and
+- `holy-symbol` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -204,36 +224,33 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- the three direct literal tool concepts, all 17 artisan-tool compound IDs, and all 10 musical-instrument compound IDs now have pinned mappings; and
-- focus, book, and gaming-set aliases still require deliberate decomposition/translation.
+- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, and all five compound focus IDs now have pinned mappings; and
+- `holy-symbol`, book aliases, and gaming-set aliases still require deliberate translation.
 
 ## Next Bounded Stage 5 Slice
 
-Translate only the five emitted compound focus IDs:
+Map only the literal Character Forge ID `holy-symbol` to the pinned generic Foundry target `holy-symbol-varies`.
 
-- `arcane-focus:crystal`
-- `arcane-focus:orb`
-- `arcane-focus:quarterstaff`
-- `druidic-focus:sprig-of-mistletoe`
-- `druidic-focus:quarterstaff`
+Pinned Foundry 6.0.x evidence:
 
-Pinned Foundry 6.0.x evidence shows this is a mixed target family:
+- target Item type: `loot`
+- target identifier: `holy-symbol-varies`
+- target name: `Holy Symbol (Varies)`
+- price: `0 gp`
+- weight: `0 lb`
+- type: `gear`
+- subtype: blank
+- properties: empty
 
-- arcane crystal -> equipment target `crystal`;
-- arcane orb -> equipment target `orb`;
-- arcane quarterstaff semantic alias -> weapon target `staff`;
-- druidic sprig -> equipment target `sprig-of-mistletoe`; and
-- druidic quarterstaff semantic alias -> weapon target `wooden-staff`.
+Do not choose a concrete amulet, emblem, or reliquary target. Character Forge currently records only the generic `holy-symbol` concept, so selecting a specific form would invent native information.
 
-Use an explicit whitelist. Do not pass Character Forge compound IDs through as Foundry identifiers, and do not assume the two `*:quarterstaff` aliases share one target.
+This slice should establish the minimal pinned `loot` Item shape needed for this exact generic target while preserving Character Forge source provenance and deterministic embedded IDs. Keep descriptions empty.
 
-Preserve pinned static equipment/weapon fields, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance. Keep descriptions and activities empty. Do not infer equipped state, attack automation, proficiency, spellcasting relationships, or container relationships.
-
-Keep `holy-symbol`, gaming/book aliases, healer's-kit activity semantics, and simple-gear review separate.
+Keep book aliases separate because `book:prayers`, `book:history`, and `book:occult-lore` carry source semantics that all collapse onto Foundry's generic `book` identifier and need an explicit export naming/loss policy before implementation.
 
 Do not combine this with:
 
-- `holy-symbol` translation;
+- concrete holy-symbol form selection;
 - gaming-set or book aliases;
 - healer's-kit activity semantics;
 - simple gear fixture review;

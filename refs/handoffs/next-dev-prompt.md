@@ -6,7 +6,8 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- spellcasting-focuses
+- holy-symbol
+- loot
 ---
 # Next Development Prompt
 
@@ -23,7 +24,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry spellcasting focus alias translation"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry generic holy symbol loot mapping"
 ```
 
 Then read only:
@@ -33,23 +34,23 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 5. `packages/foundry-adapter/src/target.ts`
-6. the Character Forge source defining the emitted focus IDs, if needed to reconfirm the audit
-7. exact pinned Foundry D&D5e 6.0 spellcasting-focus fixtures needed for the five IDs below
+6. exact pinned Foundry D&D5e 6.0 `holy-symbol-varies.yml`
+7. the pinned D&D5e 6.0 loot schema/model only if needed to confirm required fields
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `ec48798b5c05ccb08803e4a19a4af8ed24b8db3f`
-- Actions: `35511196960`
-- Job: `106079291713`
-- 68 test files / 332 tests / 0 failures
+- SHA: `9d1d9ca941b29e04354f5ac3922f099365b94f26`
+- Actions: `35511448798`
+- Job: `106079940383`
+- 68 test files / 333 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 4048 characters
-- build: `Character Forge build 0.0.1 ec48798b`
-- Foundry adapter: `0.10.0`
+- agent context 3552 characters
+- build: `Character Forge build 0.0.1 9d1d9ca9`
+- Foundry adapter: `0.11.0`
 
 Promoted branches remain unchanged:
 
@@ -63,51 +64,43 @@ Promoted branches remain unchanged:
 
 Character Forge native D&D state remains authoritative. Foundry remains an adapter target.
 
-## Current Equipment Coverage
+## Immediate Work - Generic Holy Symbol Only
 
-All currently emitted weapons, ammunition, mundane containers, armor/shields, direct literal tools, all 17 `artisan-tools:*` variants, and all 10 `musical-instrument:*` variants now have pinned mappings.
+Translate:
 
-## Immediate Work - Compound Focus IDs Only
+`holy-symbol` -> `holy-symbol-varies`
 
-Translate exactly these five Character Forge IDs:
+Pinned target:
 
-- `arcane-focus:crystal`
-- `arcane-focus:orb`
-- `arcane-focus:quarterstaff`
-- `druidic-focus:sprig-of-mistletoe`
-- `druidic-focus:quarterstaff`
-
-Pinned targets already identified:
-
-- `arcane-focus:crystal` -> equipment `crystal`
-- `arcane-focus:orb` -> equipment `orb`
-- `arcane-focus:quarterstaff` -> weapon `staff`
-- `druidic-focus:sprig-of-mistletoe` -> equipment `sprig-of-mistletoe`
-- `druidic-focus:quarterstaff` -> weapon `wooden-staff`
+- name: `Holy Symbol (Varies)`
+- Item type: `loot`
+- identifier: `holy-symbol-varies`
+- price: `0 gp`
+- weight: `0 lb`
+- type.value: `gear`
+- type.subtype: blank
+- properties: empty
 
 ### Rules
 
-- Inspect each exact pinned Foundry D&D5e 6.0 fixture before registering it.
-- Use an explicit whitelist. Do not implement a generic prefix-strip or suffix-only transform.
-- Preserve the original compound Character Forge source ID in provenance flags and deterministic embedded-ID generation.
+- Preserve original Character Forge source ID `holy-symbol` in provenance and deterministic embedded-ID generation.
 - Preserve native quantity exactly.
-- Preserve exact pinned static fields appropriate to each target type.
-- Keep descriptions empty; do not copy compendium prose.
-- Keep activities empty; do not replay attack or spellcasting automation.
-- Do not infer proficiency, equipped state, container relationships, spellcasting links, or focus usage.
+- Keep description empty; do not copy compendium prose.
+- Do not choose a specific holy-symbol form.
+- Do not infer worn/held/shield relationships or spellcasting behavior.
 - Unsupported IDs remain explicit; no generic fallback.
 
 ### Coverage
 
 Add focused deterministic tests proving:
 
-- all five compound focus IDs map to the exact pinned target identifiers and correct Foundry Item types;
-- the two `*:quarterstaff` aliases map differently: arcane -> `staff`, druidic -> `wooden-staff`;
-- original compound Character Forge IDs drive deterministic embedded IDs and remain in source provenance;
-- exact pinned static fields and native quantities are preserved;
-- descriptions and activities remain empty;
-- no proficiency/equipped/relationship/automation state is invented; and
-- `holy-symbol` remains explicitly deferred.
+- `holy-symbol` maps to a Foundry `loot` Item with identifier `holy-symbol-varies`;
+- exact pinned static price, weight, type/subtype, and properties are preserved;
+- native quantity and deterministic source-ID-based embedded ID are preserved;
+- Character Forge source provenance remains `holy-symbol`;
+- description remains empty;
+- no concrete amulet/emblem/reliquary form or relationship state is invented; and
+- `gaming-set:dice` remains explicitly deferred.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -115,8 +108,9 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
-- `holy-symbol` translation;
-- gaming-set or book aliases;
+- concrete holy-symbol form selection;
+- `gaming-set:dice`;
+- `book:prayers`, `book:history`, or `book:occult-lore`;
 - healer's-kit activity semantics;
 - simple gear fixture review;
 - feature/activity Items;
