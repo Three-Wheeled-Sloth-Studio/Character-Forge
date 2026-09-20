@@ -6,8 +6,8 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- equipment
-- spellbook
+- export
+- download
 ---
 # Next Development Prompt
 
@@ -24,116 +24,93 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry final literal equipment travelers clothes spellbook"
+python refs/tools/generate_agent_context.py --focus "Stage 5 downloadable Foundry D&D5e Actor import JSON"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/integration/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
-3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
-4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
-5. `packages/foundry-adapter/src/target.ts`
-6. exact pinned Foundry D&D5e 6.0 evidence:
-   - `packs/_source/equipment24/adventuring-gear/clothes-travelers.yml`
-   - `packs/_source/items/loot/spellbook.yml`
-   - `packs/_source/classes24/wizard/wizard.yml` around the Spellbook equipment reference
+2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md` - Stage 5 only
+3. `packages/foundry-adapter/src/dnd5eActor.ts`
+4. `packages/foundry-adapter/src/dnd5eActor.test.ts`
+5. `apps/web/src/characterSheetControls.ts`
+6. `apps/web/src/characterResultRenderer.ts`
+7. directly relevant existing web tests only; add a focused controls/download test rather than broadening unrelated suites
 
-Do not reread repository history or reopen Stage 4 implementation.
+Do not reread repository history or reopen completed equipment mapping work.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `c5800941dc4d42c5d3b051a8835971f9972a9f4a`
-- Actions: `35529546838`
-- Job: `106127595405`
-- 68 test files / 338 tests / 0 failures
+- SHA: `bc1e12d6a1434ef8d7003f922140a808896740f9`
+- Actions: `35532475018`
+- Job: `106135408145`
+- 68 test files / 339 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 3644 characters
-- build: `Character Forge build 0.0.1 c5800941`
-- Foundry adapter: `0.16.0`
+- agent context 3574 characters
+- build: `Character Forge build 0.0.1 bc1e12d6`
+- Foundry adapter: `0.17.0`
 
 Promoted branches remain unchanged:
 
 - `qa`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 - `main`: `c7b64ac774b9f903baf5bad74f903f0ca1882812`
 
-## Current Foundry Target
+## Current Stage 5 State
+
+The pinned target remains:
 
 - Foundry VTT `14.367`
 - D&D5e `6.0.0`
 
-Character Forge native D&D state remains authoritative. Foundry remains an adapter target.
+The current Level 1 equipment audit is complete: all 48 literal IDs plus 27 dynamic prefixed tool/instrument IDs have supported mappings.
 
-## Immediate Work - Final Literal Equipment IDs
+The Actor adapter already exposes:
 
-### Traveler's Clothes
+```ts
+exportCharacterToFoundryDnd5eActor(character)
+serializeFoundryDnd5eActorDocument(exported)
+```
 
-Translate:
+The serializer returns only the raw Foundry Actor document JSON, with a trailing newline. It intentionally excludes Character Forge wrapper metadata such as `mappingNotes` and `schemaVersion`.
 
-`travelers-clothes` -> `clothes-travelers`
+## Immediate Work - Downloadable Foundry Import Artifact
 
-Pinned 2024 target:
+Add a D&D-only toolbar action that downloads the existing serialized Foundry Actor document.
 
-- name: `Clothes, Traveler's`
-- Item type: `equipment`
-- identifier: `clothes-travelers`
-- price: `2 gp`
-- weight: `4 lb`
-- equipped: false
-- cover: null
-- crewed: false
-- uses: empty
-- armor value/magicalBonus/dex: null
-- hp value/max/dt: null, conditions blank
-- `type.value = "clothing"`
-- `type.baseItem = ""`
-- properties: empty
-- speed value: null, conditions blank
-- strength: null
-- proficient: null
-- activities: empty
+Required behavior:
 
-### Spellbook
+- action label/title: `Download Foundry D&D5e import JSON`;
+- action is visible for a valid primary D&D 5E 2024 character;
+- action is absent for BRP and unsupported systems;
+- use `exportCharacterToFoundryDnd5eActor(character)` followed by `serializeFoundryDnd5eActorDocument(...)`;
+- download MIME type `application/json;charset=utf-8`;
+- stable sanitized filename: `<character-slug>-foundry-dnd5e.json`;
+- use the existing Blob + `URL.createObjectURL` + hidden anchor pattern;
+- revoke the object URL after triggering the download;
+- keep existing CharacterDocument Copy JSON and Download JSON actions unchanged;
+- report a concise toolbar status on success/failure rather than surfacing an uncaught UI exception.
 
-Translate:
+Prefer a small pure filename helper and reuse/factor the existing slug logic rather than duplicating divergent sanitization.
 
-`spellbook` -> `spellbook`
+Do not add adapter wrapper metadata to the downloaded file. Foundry import receives the raw Actor document only.
 
-Pinned target shape comes from legacy Item `LBajgahniRJbAgDr`, because the pinned 2024 Wizard class explicitly references that exact Item in its starting equipment.
+Do not bump the Foundry adapter version merely for browser download wiring unless the exported Actor document shape itself changes.
 
-Static fields:
-
-- name: `Spellbook`
-- Item type: `loot`
-- identifier: `spellbook`
-- price: `50 gp`
-- weight: `3 lb`
-- type value: blank
-- subtype: blank
-- properties: empty
-
-### Cross-pack reuse rule
-
-This is not a general permission to mix 2014 and 2024 data.
-
-Use the legacy Spellbook target only because pinned 2024 Foundry content explicitly references `Compendium.dnd5e.items.Item.LBajgahniRJbAgDr`. Treat that target-package reference as authoritative evidence for this adapter path.
-
-Do not copy the legacy Spellbook's description or its `source.rules` field into Character Forge canonical state. Character Forge export provenance remains 2024-native.
-
-### Coverage
+## Coverage
 
 Add focused deterministic tests proving:
 
-- exact target Item type, name, identifier, price, and weight for both IDs;
-- Traveler's Clothes exact pinned clothing/equipment static fields;
-- Spellbook exact pinned loot static fields;
-- native quantities and deterministic source-ID-based embedded IDs;
-- exact Character Forge source provenance;
-- descriptions remain empty;
-- no legacy Spellbook prose is copied; and
-- no unsupported record remains for either of these two generated IDs.
+- repeated serialization of the same character is byte-identical;
+- the artifact parses to the exact adapter `document`;
+- `mappingNotes`, `schemaVersion`, and `character-forge/foundry-dnd5e-actor-export/0.1` are absent from the downloaded import JSON;
+- the stable filename ends in `-foundry-dnd5e.json` and uses the same sanitized character slug behavior as CharacterDocument download;
+- D&D controls include the Foundry action;
+- BRP controls do not include it;
+- the existing generic CharacterDocument download remains available.
+
+Use the narrowest test surface that proves browser download wiring. Do not create a large UI integration harness if pure/control-level tests suffice.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -145,19 +122,21 @@ Do not combine this slice with:
 - general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
-- user-facing Foundry Download UX;
-- real Foundry runtime import acceptance; or
+- real Foundry runtime import acceptance;
+- one-click Foundry push/update; or
 - bidirectional Foundry synchronization.
+
+Once the downloadable artifact is green, real Foundry import testing becomes the next major Stage 5 blocker. At that point reevaluate the owner-approved Foundry-license purchase trigger; do not claim runtime acceptance before an actual Foundry import test.
 
 ## Guardrails
 
-- Native system state is mandatory and lossless.
+- Native D&D state remains canonical and lossless.
+- Foundry Actor/Item data remains an adapter target.
+- Do not project through Universal Grammar.
 - No copied Foundry compendium prose.
 - No Foundry advancement replay for already-resolved Character Forge choices.
-- Do not use Universal Grammar as the Foundry source.
-- Do not silently drop unsupported equipment.
-- Do not fabricate fallback loot.
-- Keep Actor AC flat until Foundry calculation parity is separately proven.
+- Do not fabricate fallback equipment.
+- Actor AC remains flat until calculation parity is separately proven.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
 - Keep Issue #16 pinned for deferred Stage 4 owner/browser QA.
 

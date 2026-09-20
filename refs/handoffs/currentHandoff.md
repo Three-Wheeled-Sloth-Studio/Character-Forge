@@ -6,7 +6,7 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- equipment
+- export
 ---
 # Current Handoff
 
@@ -26,23 +26,23 @@ The authoritative stage order remains:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-## Exact Green Stage 5 Equipment Checkpoint
+## Exact Green Stage 5 Equipment Completion Checkpoint
 
 Accepted `dev` implementation head:
 
-- SHA: `c5800941dc4d42c5d3b051a8835971f9972a9f4a`
-- Actions: `35529546838`
-- Job: `106127595405`
+- SHA: `bc1e12d6a1434ef8d7003f922140a808896740f9`
+- Actions: `35532475018`
+- Job: `106135408145`
 - `npm run verify`: green
 - 68 test files
-- 338 tests passed
+- 339 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3644 characters
-- Build: `Character Forge build 0.0.1 c5800941`
-- Foundry adapter: `0.16.0`
+- Agent context: 3574 characters
+- Build: `Character Forge build 0.0.1 bc1e12d6`
+- Foundry adapter: `0.17.0`
 
 Promoted branches remain unchanged:
 
@@ -245,8 +245,7 @@ The slice proves:
 - pinned `25 gp`, `5 lb`, `gear`, blank subtype, and empty properties are preserved;
 - native quantities and deterministic source-ID-based embedded IDs remain independent for each alias;
 - descriptions remain empty;
-- the generic Foundry Book's +5 Intelligence-check rules text is not copied or automated; and
-- `spellbook` remains explicit deferred equipment.
+- the generic Foundry Book's +5 Intelligence-check rules text is not copied or automated.
 
 ### Confirmed 2024 simple gear - complete
 
@@ -263,8 +262,7 @@ The slice proves:
 - Robe preserves `1 gp`, `4 lb`, clothing type, blank base item, unequipped state, null armor/proficiency fields, empty properties, and empty activities;
 - Crowbar preserves `2 gp`, `5 lb`, gear type, blank subtype, and empty properties;
 - native quantities, deterministic Character Forge source-ID-based embedded IDs, and source provenance remain stable;
-- descriptions remain empty and Crowbar's leverage Advantage rule is not copied or automated; and
-- `spellbook` remains explicit deferred equipment.
+- descriptions remain empty and Crowbar's leverage Advantage rule is not copied or automated.
 
 ### Healer's Kit consumable state - complete
 
@@ -278,8 +276,27 @@ The slice proves:
 - native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance remain stable;
 - descriptions remain empty;
 - `activities = {}` remains explicit;
-- no Stabilize, Medicine, Unconscious-targeting, or item-use activity semantics are copied; and
-- `spellbook` remains explicit deferred equipment.
+- no Stabilize, Medicine, Unconscious-targeting, or item-use activity semantics are copied.
+
+### Final literal equipment breadth - complete
+
+Checkpoint `bc1e12d6a1434ef8d7003f922140a808896740f9` completes the emitted Level 1 equipment mapping space:
+
+- `travelers-clothes` -> pinned 2024 equipment target `clothes-travelers`;
+- `spellbook` -> pinned legacy loot target `spellbook`, accepted only because Foundry's own 2024 Wizard content explicitly references legacy Item `LBajgahniRJbAgDr`.
+
+The slice proves:
+
+- Traveler's Clothes preserves `2 gp`, `4 lb`, clothing type, blank base item, unequipped state, null armor/proficiency/strength fields, and empty activities;
+- Spellbook preserves `50 gp`, `3 lb`, blank loot type/subtype, and empty properties;
+- Character Forge source IDs remain authoritative for deterministic embedded IDs and provenance;
+- native quantities remain stable;
+- exported source provenance remains Character Forge 2024-native even though Spellbook reuses an evidenced legacy Foundry target shape;
+- no Traveler's Clothes or Spellbook compendium prose is copied;
+- no `source.rules = "2014"` value leaks into the Character Forge export; and
+- older equipment tests now use an intentionally unmapped proof ID instead of relying on Spellbook as the unsupported sentinel.
+
+All 48 literal equipment IDs plus all 27 dynamic prefixed tool/instrument IDs currently emitted by Level 1 generation now have supported mappings.
 
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
@@ -297,76 +314,52 @@ Key result:
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
 - the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, generic `holy-symbol`, `gaming-set:dice`, and all three `book:*` aliases now have pinned mappings;
 - all currently identified semantic-alias equipment groups are now covered;
-- the confirmed 2024 literal simple-gear group and Healer's Kit consumable state are now covered; and
-- the only remaining emitted literal equipment IDs are `travelers-clothes` and `spellbook`.
+- the confirmed 2024 literal simple-gear group and Healer's Kit consumable state are covered;
+- `travelers-clothes` and the evidenced 2024 Wizard cross-pack Spellbook target are covered; and
+- all 75 currently emit-able Character Forge equipment IDs now have supported target mappings.
 
 ## Next Bounded Stage 5 Slice
 
-Map the final two emitted literal equipment IDs:
+Produce the first user-downloadable Foundry D&D5e Actor import artifact.
 
-- `travelers-clothes`
-- `spellbook`
+The adapter already provides:
 
-### Traveler's Clothes
+- `exportCharacterToFoundryDnd5eActor(character)`
+- `serializeFoundryDnd5eActorDocument(exported)`
 
-A direct 2024 Foundry target exists:
+The serializer intentionally returns only the raw Foundry Actor document JSON, not Character Forge adapter wrapper metadata or mapping notes. Preserve that boundary.
 
-`packs/_source/equipment24/adventuring-gear/clothes-travelers.yml`
+Implement D&D-only download wiring in the character-sheet toolbar:
 
-Pinned fields:
+- add a clearly labeled `Download Foundry D&D5e import JSON` action;
+- show it only for a valid D&D 5E 2024 character, never for BRP;
+- reuse the existing deterministic Foundry Actor exporter and serializer;
+- download a stable filename such as `<character-slug>-foundry-dnd5e.json`;
+- keep the existing full CharacterDocument Copy JSON and Download JSON actions unchanged;
+- use the existing Blob/Object URL browser-download pattern;
+- keep status/error handling local to the toolbar rather than throwing through the UI.
 
-- name: `Clothes, Traveler's`
-- Item type: `equipment`
-- identifier: `clothes-travelers`
-- price: `2 gp`
-- weight: `4 lb`
-- equipped: false
-- cover: null
-- crewed: false
-- empty uses
-- armor value/magical bonus/dex: null
-- hp value/max/dt: null, conditions blank
-- `type.value = "clothing"`
-- `type.baseItem = ""`
-- properties: empty
-- speed value: null, conditions blank
-- strength: null
-- proficient: null
-- activities: empty
+Add deterministic coverage proving:
 
-Earlier audit language saying only a 2014 Traveler's Clothes fixture existed was incorrect. The 2024 target above is authoritative for this adapter slice.
+- repeated Foundry artifact generation is byte-identical for the same character;
+- the downloaded JSON parses to the adapter's raw `document`;
+- wrapper fields such as `mappingNotes` and the export schema identifier are absent from the import JSON;
+- the D&D toolbar exposes the Foundry download action;
+- the BRP toolbar does not;
+- filename generation is stable and sanitized.
 
-### Spellbook
+This is Stage 5 step 5 from the owner-approved sequence. Do not add new equipment, feature/activity, or spell mappings merely to make the artifact richer.
 
-No separate `equipment24` Spellbook fixture exists, but Foundry's own 2024 Wizard class explicitly references the legacy Item:
-
-`Compendium.dnd5e.items.Item.LBajgahniRJbAgDr`
-
-This is a target-package cross-pack reuse, not an inferred Character Forge compatibility rule. Treat that exact legacy Spellbook Item as the accepted Foundry target shape for the 2024 Wizard path.
-
-Pinned static fields from `packs/_source/items/loot/spellbook.yml`:
-
-- name: `Spellbook`
-- Item type: `loot`
-- identifier: `spellbook`
-- price: `50 gp`
-- weight: `3 lb`
-- type value: blank
-- subtype: blank
-- properties: empty
-
-Preserve Character Forge export provenance and native quantity. Keep descriptions empty; do not copy the legacy Spellbook's 100-page prose. Do not treat the legacy fixture's `source.rules = "2014"` as Character Forge canonical rules state.
-
-This bounded exception establishes a narrow adapter policy: when pinned 2024 Foundry content explicitly references a legacy Item UUID as its own equipment target, that exact Item may be used as the target shape for the 2024 adapter path. Do not generalize legacy-item reuse without equivalent target-package evidence.
+After this artifact exists and exact-SHA CI is green, real Foundry runtime import validation becomes the next major blocker and the documented Foundry-license purchase trigger should be reevaluated.
 
 Do not combine this with:
 
-- the Healer's Kit Stabilize activity;
+- Healer's Kit Stabilize activity automation;
 - general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
-- a user-facing Foundry Download button;
-- real Foundry runtime acceptance; or
+- real Foundry runtime import acceptance;
+- one-click Foundry push/update; or
 - bidirectional Foundry sync.
 
 ## Deferred QA Return Point

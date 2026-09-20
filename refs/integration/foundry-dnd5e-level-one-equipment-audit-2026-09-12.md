@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.16.0`
+Character Forge adapter: `0.17.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.16.0` currently maps:
+Adapter `0.17.0` maps:
 
 ### Weapons
 
@@ -198,20 +198,20 @@ All three preserve exact pinned static target fields, native quantity, determini
 
 ### Final Literal Gear Targets
 
-Ready for the next bounded slice:
+Implemented:
 
-- `travelers-clothes` -> direct 2024 target `packs/_source/equipment24/adventuring-gear/clothes-travelers.yml`, identifier `clothes-travelers`
-- `spellbook` -> legacy Item `LBajgahniRJbAgDr`, explicitly referenced by the pinned 2024 Wizard class
+- `travelers-clothes` -> direct 2024 equipment target `clothes-travelers`
+- `spellbook` -> loot target `spellbook` using legacy Item `LBajgahniRJbAgDr`, explicitly referenced by the pinned 2024 Wizard class
 
-The prior audit statement that Traveler's Clothes had only a 2014 fixture was incorrect. A 2024 equipment24 target exists.
-
-Spellbook is a narrower exception: the pinned 2024 Wizard class itself references `Compendium.dnd5e.items.Item.LBajgahniRJbAgDr`. Therefore that exact legacy Item is an evidenced 2024 target-package reuse rather than an inferred fallback.
+Traveler's Clothes preserves the pinned 2024 static equipment fields. Spellbook uses a deliberately narrow cross-pack exception: the target-package's own 2024 Wizard content references that exact legacy Item UUID. Character Forge export provenance remains 2024-native and no legacy compendium prose or `source.rules = "2014"` state is copied.
 
 ## Emitted Character Forge Equipment Space
 
 The current Level 1 generator has 48 literal equipment IDs plus 27 possible dynamic prefixed tool/instrument IDs, for 75 possible distinct Character Forge equipment IDs.
 
 The adapter intentionally treats these as Character Forge semantic IDs rather than assuming string equality with Foundry identifiers.
+
+**Audit status: complete.** Adapter `0.17.0` has supported mappings for all 75 currently emit-able Level 1 equipment IDs. Unknown future IDs still remain explicit unsupported records rather than becoming fallback loot, and unsupported multi-container stacks remain explicit.
 
 ## Source Paths Audited
 
@@ -261,38 +261,10 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
   - `packs/_source/origins24/backgrounds/criminal.yml` and `soldier.yml`, which demonstrate 2024 Traveler's Clothes usage
 - prior pinned armor, ammunition, container, and Fighter proof fixtures recorded in repository history.
 
-## Recommended Next Slice
+## Audit Conclusion
 
-Map the final two emitted literal equipment IDs.
+The Level 1 equipment mapping audit is complete at adapter `0.17.0`.
 
-### `travelers-clothes`
+No currently emit-able equipment ID remains unmapped. Healer's Kit's Stabilize activity, feature/activity Items, spells, media packaging, and runtime Foundry acceptance are separate adapter/product concerns and are not equipment-coverage blockers.
 
-Use the direct 2024 target:
-
-- target: `clothes-travelers`
-- name: `Clothes, Traveler's`
-- Item type: `equipment`
-- price: `2 gp`
-- weight: `4 lb`
-- clothing type, blank base item
-- unequipped
-- null armor/proficiency/strength fields
-- empty properties and activities
-
-### `spellbook`
-
-Use the legacy Item shape intentionally referenced by Foundry's 2024 Wizard class:
-
-- target identifier: `spellbook`
-- name: `Spellbook`
-- Item type: `loot`
-- price: `50 gp`
-- weight: `3 lb`
-- blank type/subtype
-- empty properties
-
-Preserve native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance for both. Keep descriptions empty. Do not copy legacy Spellbook prose.
-
-The adapter policy for Spellbook is intentionally narrow: legacy Item reuse is acceptable here because pinned 2024 Foundry content explicitly references that exact legacy Item UUID. Do not generalize this rule without equivalent evidence.
-
-Keep Healer's Kit Stabilize automation, general feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+Per the owner-approved Stage 5 sequence, the next work leaves this equipment audit: expose the already deterministic raw Foundry Actor JSON as a user-downloadable D&D import artifact. Do not reopen equipment mapping breadth unless generator output changes or regression evidence exposes a gap.
