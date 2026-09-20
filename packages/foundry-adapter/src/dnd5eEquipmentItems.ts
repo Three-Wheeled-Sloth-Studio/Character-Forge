@@ -109,7 +109,7 @@ export interface FoundryDnd5eEquipmentBuildResult {
 
 interface EquipmentDefinition {
   name: string;
-  type: "equipment" | "weapon" | "container" | "consumable" | "tool";
+  type: "equipment" | "weapon" | "container" | "consumable" | "tool" | "loot";
   maximumQuantity?: number;
   buildSystem(quantity: number): JsonObject;
 }
@@ -749,6 +749,22 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
     range: { value: null, long: null, units: "", reach: null },
     versatileMarker: true,
   }),
+  "holy-symbol": {
+    name: "Holy Symbol (Varies)",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "holy-symbol-varies",
+        quantity,
+        priceValue: 0,
+        priceDenomination: "gp",
+        weight: 0,
+        lootType: "gear",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
   arrow: {
     name: "Arrows",
     type: "consumable",
@@ -830,6 +846,38 @@ function aggregateEquipment(entries: readonly Dnd5eEquipmentEntry[]): Dnd5eEquip
     quantities.set(entry.itemId, (quantities.get(entry.itemId) ?? 0) + entry.quantity);
   }
   return [...quantities].map(([itemId, quantity]) => ({ itemId, quantity }));
+}
+
+interface LootSystemInput {
+  identifier: string;
+  quantity: number;
+  priceValue: number;
+  priceDenomination: string;
+  weight: number;
+  lootType: string;
+  subtype: string;
+  properties: string[];
+}
+
+function lootSystem(input: LootSystemInput): JsonObject {
+  return {
+    description: { value: "", chat: "" },
+    source: {
+      custom: "Character Forge export",
+      rules: "2024",
+      revision: 1,
+    },
+    identifier: input.identifier,
+    identified: true,
+    unidentified: { description: "" },
+    container: null,
+    quantity: input.quantity,
+    weight: { value: input.weight, units: "lb" },
+    price: { value: input.priceValue, denomination: input.priceDenomination },
+    rarity: "",
+    type: { value: input.lootType, subtype: input.subtype },
+    properties: input.properties,
+  };
 }
 
 function physicalSystem(
