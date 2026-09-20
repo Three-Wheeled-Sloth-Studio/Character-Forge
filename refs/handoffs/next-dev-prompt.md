@@ -6,8 +6,8 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- export
-- download
+- import
+- runtime-validation
 ---
 # Next Development Prompt
 
@@ -24,32 +24,35 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 downloadable Foundry D&D5e Actor import JSON"
+python refs/tools/generate_agent_context.py --focus "Stage 5 real Foundry D&D5e runtime import validation"
 ```
 
 Then read only:
 
 1. `refs/handoffs/currentHandoff.md`
-2. `refs/planning/owner-approved-priority-sequence-2026-09-11.md` - Stage 5 only
+2. Stage 5 of `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 3. `packages/foundry-adapter/src/dnd5eActor.ts`
 4. `packages/foundry-adapter/src/dnd5eActor.test.ts`
 5. `apps/web/src/characterSheetControls.ts`
-6. `apps/web/src/characterResultRenderer.ts`
-7. directly relevant existing web tests only; add a focused controls/download test rather than broadening unrelated suites
+6. `refs/integration/foundry-dnd5e-level-one-equipment-audit-2026-09-12.md`
+7. only the exact adapter files implicated by any runtime defect
 
-Do not reread repository history or reopen completed equipment mapping work.
+Do not reread repository history or reopen completed equipment mapping work without runtime evidence.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `bc1e12d6a1434ef8d7003f922140a808896740f9`
-- Actions: `35532475018`
-- Job: `106135408145`
-- 68 test files / 339 tests / 0 failures
-- 251 tracked paths
+- SHA: `2e642d67d1033e0a917077c246b38bb36e5d80a7`
+- Actions: `35533225275`
+- Job: `106137552956`
+- `npm run verify`: green
+- 69 test files
+- 342 tests passed
+- 0 failures
+- 252 tracked paths
 - 14 required project-memory files
-- OKF 33 concepts / 10 indexes
-- agent context 3574 characters
-- build: `Character Forge build 0.0.1 bc1e12d6`
+- OKF: 33 concepts / 10 indexes
+- Agent context: 3797 characters
+- Build: `Character Forge build 0.0.1 2e642d67`
 - Foundry adapter: `0.17.0`
 
 Promoted branches remain unchanged:
@@ -59,87 +62,88 @@ Promoted branches remain unchanged:
 
 ## Current Stage 5 State
 
-The pinned target remains:
+Pinned target:
 
 - Foundry VTT `14.367`
 - D&D5e `6.0.0`
 
-The current Level 1 equipment audit is complete: all 48 literal IDs plus 27 dynamic prefixed tool/instrument IDs have supported mappings.
+The Level 1 equipment audit is complete. All 75 currently emit-able Character Forge equipment IDs have supported Foundry mappings.
 
-The Actor adapter already exposes:
+The first downloadable Foundry import artifact is also complete:
 
-```ts
-exportCharacterToFoundryDnd5eActor(character)
-serializeFoundryDnd5eActorDocument(exported)
-```
+- D&D-only toolbar action: `Download Foundry D&D5e import JSON`;
+- raw Actor document only, with no Character Forge adapter wrapper metadata;
+- MIME type `application/json;charset=utf-8`;
+- stable filename `<character-slug>-foundry-dnd5e.json`;
+- existing CharacterDocument Copy JSON and Download JSON actions preserved;
+- deterministic artifact coverage is green;
+- adapter version remains `0.17.0`.
 
-The serializer returns only the raw Foundry Actor document JSON, with a trailing newline. It intentionally excludes Character Forge wrapper metadata such as `mappingNotes` and `schemaVersion`.
+## Immediate Work - Real Foundry Runtime Import Validation
 
-## Immediate Work - Downloadable Foundry Import Artifact
+Real Foundry import testing is now the next major Stage 5 blocker.
 
-Add a D&D-only toolbar action that downloads the existing serialized Foundry Actor document.
+The owner-approved license purchase/use trigger has been reached because the exporter/import artifact is mature enough that runtime validation is the next required evidence.
 
-Required behavior:
+Use an actual runtime pinned to:
 
-- action label/title: `Download Foundry D&D5e import JSON`;
-- action is visible for a valid primary D&D 5E 2024 character;
-- action is absent for BRP and unsupported systems;
-- use `exportCharacterToFoundryDnd5eActor(character)` followed by `serializeFoundryDnd5eActorDocument(...)`;
-- download MIME type `application/json;charset=utf-8`;
-- stable sanitized filename: `<character-slug>-foundry-dnd5e.json`;
-- use the existing Blob + `URL.createObjectURL` + hidden anchor pattern;
-- revoke the object URL after triggering the download;
-- keep existing CharacterDocument Copy JSON and Download JSON actions unchanged;
-- report a concise toolbar status on success/failure rather than surfacing an uncaught UI exception.
+- Foundry VTT `14.367`;
+- D&D5e `6.0.0`.
 
-Prefer a small pure filename helper and reuse/factor the existing slug logic rather than duplicating divergent sanitization.
+Generate and download a representative D&D 5E 2024 character artifact through the Character Forge UI, then import that raw Actor JSON into Foundry.
 
-Do not add adapter wrapper metadata to the downloaded file. Foundry import receives the raw Actor document only.
+Record concrete runtime evidence for:
 
-Do not bump the Foundry adapter version merely for browser download wiring unless the exported Actor document shape itself changes.
+- whether Foundry accepts the artifact without manual structural repair;
+- Actor identity and core system state;
+- abilities and saving throws;
+- HP and authoritative flat AC;
+- initiative, movement, senses, alignment, XP, size, languages, currency, skills, and spell slots;
+- embedded Class, Background, Race, and mapped equipment Items;
+- deterministic embedded IDs and Character Forge source provenance;
+- Foundry/D&D5e migration, normalization, warnings, rejected fields, or schema mutations;
+- any mismatch between pre-import JSON and the resulting runtime Actor.
 
-## Coverage
+Do not claim runtime acceptance unless the actual import is performed and inspected.
 
-Add focused deterministic tests proving:
+If runtime evidence exposes an adapter defect:
 
-- repeated serialization of the same character is byte-identical;
-- the artifact parses to the exact adapter `document`;
-- `mappingNotes`, `schemaVersion`, and `character-forge/foundry-dnd5e-actor-export/0.1` are absent from the downloaded import JSON;
-- the stable filename ends in `-foundry-dnd5e.json` and uses the same sanitized character slug behavior as CharacterDocument download;
-- D&D controls include the Foundry action;
-- BRP controls do not include it;
-- the existing generic CharacterDocument download remains available.
+1. isolate the smallest failing field or Item shape;
+2. confirm the expected pinned-runtime shape;
+3. make only the evidence-backed adapter correction;
+4. update deterministic fixture coverage;
+5. bump the Foundry adapter version only if the exported Actor/Item document shape changes;
+6. run exact-SHA `Verify` before updating handoff documentation.
 
-Use the narrowest test surface that proves browser download wiring. Do not create a large UI integration harness if pure/control-level tests suffice.
-
-Then run exact-SHA GitHub Actions `Verify`.
+If the runtime is unavailable because a Foundry license has not yet been purchased or installed, record that as the active blocker rather than inventing runtime acceptance.
 
 ## Do Not Pull Forward Yet
 
-Do not combine this slice with:
+Do not combine runtime acceptance with:
 
 - Healer's Kit Stabilize activity automation;
 - general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
-- real Foundry runtime import acceptance;
-- one-click Foundry push/update; or
+- one-click Foundry push/update;
 - bidirectional Foundry synchronization.
-
-Once the downloadable artifact is green, real Foundry import testing becomes the next major Stage 5 blocker. At that point reevaluate the owner-approved Foundry-license purchase trigger; do not claim runtime acceptance before an actual Foundry import test.
 
 ## Guardrails
 
 - Native system state is mandatory and lossless.
-- Native D&D state remains canonical.
+- Native D&D and BRP state remain canonical.
 - Foundry Actor/Item data remains an adapter target.
 - Do not project through Universal Grammar.
-- No copied Foundry compendium prose.
-- No Foundry advancement replay for already-resolved Character Forge choices.
+- Universal Grammar remains a future derived translation/semantic layer.
+- Do not copy Foundry compendium prose.
+- Do not replay Foundry advancement for choices Character Forge already resolved.
+- Unsupported equipment remains explicit.
 - Do not fabricate fallback equipment.
-- Actor AC remains flat until calculation parity is separately proven.
+- Actor AC remains flat and authoritative until Foundry calculation parity is separately proven.
+- Portrait/token/VTT media identity remains Parchment-owned, not RPG native state.
 - Preserve exact-SHA `dev -> qa -> main` promotion.
-- Keep Issue #16 pinned for deferred Stage 4 owner/browser QA.
+- Keep Character Forge Issue #16 open as the deferred Stage 4 owner/browser portrait-token QA return point.
+- Issue #15 remains parked and nonblocking.
 
 ## Validation
 
@@ -147,4 +151,13 @@ Once the downloadable artifact is green, real Foundry import testing becomes the
 npm run verify
 ```
 
-Do not call the slice green until the exact committed SHA passes GitHub Actions.
+For every milestone:
+
+1. commit implementation;
+2. push exact SHA to `dev`;
+3. validate that exact SHA in GitHub Actions;
+4. capture Actions run, job, test counts, tracked paths, OKF, agent-context size, and build identity;
+5. only then update handoff/audit documentation;
+6. validate the exact documentation SHA too.
+
+Do not promote `qa` or `main` without explicit owner authorization.
