@@ -6,8 +6,7 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- books
-- loot
+- simple-gear
 ---
 # Next Development Prompt
 
@@ -24,7 +23,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry semantic book alias translation"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry 2024 simple gear parchment robe crowbar"
 ```
 
 Then read only:
@@ -34,23 +33,25 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 5. `packages/foundry-adapter/src/target.ts`
-6. `packages/system-dnd5e/src/guidedFirstSlice.ts` only as needed to reconfirm the three source IDs
-7. exact pinned Foundry D&D5e 6.0 `packs/_source/equipment24/adventuring-gear/book.yml`
+6. exact pinned Foundry D&D5e 6.0 fixtures:
+   - `packs/_source/equipment24/adventuring-gear/parchment.yml`
+   - `packs/_source/equipment24/adventuring-gear/robe.yml`
+   - `packs/_source/equipment24/adventuring-gear/crowbar.yml`
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `d4908d19799b3925a0f609302866eaaf22f46e03`
-- Actions: `35513128436`
-- Job: `106084444614`
-- 68 test files / 335 tests / 0 failures
+- SHA: `0c06ec6aaf21f0719f54929890cf4f67f68093c9`
+- Actions: `35514407369`
+- Job: `106087797352`
+- 68 test files / 336 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 3583 characters
-- build: `Character Forge build 0.0.1 d4908d19`
-- Foundry adapter: `0.13.0`
+- agent context 3582 characters
+- build: `Character Forge build 0.0.1 0c06ec6a`
+- Foundry adapter: `0.14.0`
 
 Promoted branches remain unchanged:
 
@@ -64,51 +65,73 @@ Promoted branches remain unchanged:
 
 Character Forge native D&D state remains authoritative. Foundry remains an adapter target.
 
-## Immediate Work - Three Semantic Book Aliases Only
+## Immediate Work - Confirmed 2024 Simple Gear Only
 
 Translate exactly:
 
-- `book:prayers`
-- `book:history`
-- `book:occult-lore`
+- `parchment-sheet` -> `parchment`
+- `robe` -> `robe`
+- `crowbar` -> `crowbar`
 
-All three use the pinned Foundry target identifier `book` and Item type `loot`.
+### Pinned Parchment Target
 
-Pinned static fields:
+- name: `Parchment`
+- Item type: `loot`
+- identifier: `parchment`
+- price: `1 sp`
+- weight: `0 lb`
+- `type.value = "gear"`
+- subtype: blank
+- properties: empty
 
-- price: `25 gp`
+### Pinned Robe Target
+
+- name: `Robe`
+- Item type: `equipment`
+- identifier: `robe`
+- price: `1 gp`
+- weight: `4 lb`
+- `type.value = "clothing"`
+- `type.baseItem = ""`
+- equipped: false
+- armor value/magicalBonus/dex: null
+- strength: null
+- proficient: null
+- properties: empty
+- activities: empty
+
+### Pinned Crowbar Target
+
+- name: `Crowbar`
+- Item type: `loot`
+- identifier: `crowbar`
+- price: `2 gp`
 - weight: `5 lb`
 - `type.value = "gear"`
 - subtype: blank
 - properties: empty
 
-Preserve Character Forge's existing source semantics through exported display names:
-
-- `book:prayers` -> `Prayer Book`
-- `book:history` -> `History Book`
-- `book:occult-lore` -> `Occult Lore Book`
-
 ### Rules
 
-- Use explicit mappings for all three complete Character Forge source IDs.
-- All three target Foundry identifier `book`; do not invent separate target identifiers.
+- Use explicit Character Forge source-ID mappings.
 - Preserve original source IDs in provenance and deterministic embedded-ID generation.
-- Preserve native quantity exactly.
+- Preserve native quantities exactly.
 - Keep descriptions empty.
-- Do not copy the generic Foundry Book description.
-- Do not implement or infer the generic Book's +5 Intelligence-check behavior.
+- Do not copy Parchment/Robe/Crowbar compendium prose.
+- Do not implement Crowbar's leverage Advantage rule.
+- Do not infer equipped state beyond the pinned Robe `false`.
 - Unsupported IDs remain explicit; no generic fallback.
 
 ### Coverage
 
 Add focused deterministic tests proving:
 
-- all three source IDs map to Foundry `loot` Items with target identifier `book`;
-- exported names remain `Prayer Book`, `History Book`, and `Occult Lore Book`;
-- exact pinned static price, weight, type/subtype, and properties are preserved;
-- native quantities and deterministic source-ID-based embedded IDs are preserved independently for all three aliases;
-- source provenance retains each complete Character Forge source ID;
-- descriptions remain empty; and
+- exact target identifiers and Item types for all three IDs;
+- exact pinned static price, weight, type/base-item or subtype, properties, and Robe armor/proficiency/activity fields;
+- native quantities and deterministic source-ID-based embedded IDs;
+- exact Character Forge source provenance;
+- empty descriptions;
+- no copied Crowbar Advantage rule; and
 - `spellbook` remains explicitly deferred.
 
 Then run exact-SHA GitHub Actions `Verify`.
@@ -118,14 +141,16 @@ Then run exact-SHA GitHub Actions `Verify`.
 Do not combine this slice with:
 
 - `spellbook`;
-- healer's-kit activity semantics;
-- simple gear fixture review;
+- `travelers-clothes`;
+- healer's-kit uses/activity semantics;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
 - user-facing Foundry Download UX;
 - real Foundry runtime import acceptance; or
 - bidirectional Foundry synchronization.
+
+The pinned D&D5e 6.0.x tree currently exposes only 2014-rule fixtures for `spellbook` and `travelers-clothes`. Do not map them until a cross-rules-version adapter policy is explicitly accepted.
 
 ## Guardrails
 

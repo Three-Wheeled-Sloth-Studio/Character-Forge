@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `d4908d19799b3925a0f609302866eaaf22f46e03`
-- Actions: `35513128436`
-- Job: `106084444614`
+- SHA: `0c06ec6aaf21f0719f54929890cf4f67f68093c9`
+- Actions: `35514407369`
+- Job: `106087797352`
 - `npm run verify`: green
 - 68 test files
-- 335 tests passed
+- 336 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3583 characters
-- Build: `Character Forge build 0.0.1 d4908d19`
-- Foundry adapter: `0.13.0`
+- Agent context: 3582 characters
+- Build: `Character Forge build 0.0.1 0c06ec6a`
+- Foundry adapter: `0.14.0`
 
 Promoted branches remain unchanged:
 
@@ -237,6 +237,24 @@ The slice proves:
 - the pinned Foundry Catch Cheating and Play to Win check activities are intentionally not replayed; and
 - `book:history` remains explicit deferred equipment.
 
+### Semantic book aliases - complete
+
+Checkpoint `0c06ec6aaf21f0719f54929890cf4f67f68093c9` maps all three Character Forge book aliases to the pinned Foundry 2024 generic `book` loot target:
+
+- `book:prayers` -> display name `Prayer Book`
+- `book:history` -> display name `History Book`
+- `book:occult-lore` -> display name `Occult Lore Book`
+
+The slice proves:
+
+- all three exported Items use Foundry identifier `book`;
+- Character Forge source semantics remain visible through distinct display names and full source-ID provenance;
+- pinned `25 gp`, `5 lb`, `gear`, blank subtype, and empty properties are preserved;
+- native quantities and deterministic source-ID-based embedded IDs remain independent for each alias;
+- descriptions remain empty;
+- the generic Foundry Book's +5 Intelligence-check rules text is not copied or automated; and
+- `spellbook` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -251,44 +269,67 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, generic `holy-symbol`, and `gaming-set:dice` now have pinned mappings; and
-- the three `book:*` aliases remain the final semantic-alias group requiring deliberate translation.
+- the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, generic `holy-symbol`, `gaming-set:dice`, and all three `book:*` aliases now have pinned mappings;
+- all currently identified semantic-alias equipment groups are now covered; and
+- remaining equipment work is literal simple gear plus the intentionally deferred healer's-kit activity/uses semantics.
 
 ## Next Bounded Stage 5 Slice
 
-Map only the three semantic Character Forge book aliases:
+Map only the three remaining literal simple-gear IDs that have confirmed 2024 Foundry fixtures:
 
-- `book:prayers`
-- `book:history`
-- `book:occult-lore`
+- `parchment-sheet` -> pinned `parchment` loot target
+- `robe` -> pinned `robe` equipment target
+- `crowbar` -> pinned `crowbar` loot target
 
-All three target the pinned Foundry 2024 generic `book` loot Item.
+Pinned Foundry 6.0.x 2024 fields:
 
-Pinned Foundry 6.0.x generic Book fields:
+### Parchment
 
-- target Item type: `loot`
-- target identifier: `book`
-- price: `25 gp`
+- name: `Parchment`
+- Item type: `loot`
+- identifier: `parchment`
+- price: `1 sp`
+- weight: `0 lb`
+- type: `gear`
+- subtype: blank
+- properties: empty
+
+### Robe
+
+- name: `Robe`
+- Item type: `equipment`
+- identifier: `robe`
+- price: `1 gp`
+- weight: `4 lb`
+- `type.value = "clothing"`
+- `type.baseItem = ""`
+- equipped: false
+- armor value/magical bonus/dex: null
+- proficient: null
+- properties: empty
+- activities: empty
+
+### Crowbar
+
+- name: `Crowbar`
+- Item type: `loot`
+- identifier: `crowbar`
+- price: `2 gp`
 - weight: `5 lb`
 - type: `gear`
 - subtype: blank
 - properties: empty
 
-Preserve Character Forge's existing semantic display labels rather than collapsing all three exported Items to the display name `Book`:
+Preserve native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance. Keep descriptions empty. Do not implement the Crowbar leverage Advantage rule.
 
-- `book:prayers` -> `Prayer Book`
-- `book:history` -> `History Book`
-- `book:occult-lore` -> `Occult Lore Book`
+Do not pull `spellbook` or `travelers-clothes` into this slice. In the pinned D&D5e 6.0.x source tree, those exact fixtures currently resolve only to 2014-rule Items, so they need an explicit cross-rules-version adapter decision before mapping.
 
-This is an adapter-level display-name preservation policy, not a new canonical item model. All three still use Foundry identifier `book`, while the original complete Character Forge source ID remains authoritative in provenance and deterministic embedded-ID generation.
-
-Keep descriptions empty. Do not copy or reproduce the pinned generic Book's +5 Intelligence-check rules text or invent automation from it.
+Keep `healers-kit` separate. It has a 2024 consumable fixture with ten uses and a Stabilize activity; that activity/uses behavior remains intentionally outside this simple static-gear slice.
 
 Do not combine this with:
 
-- `spellbook`;
-- healer's-kit activity semantics;
-- simple gear fixture review;
+- `spellbook` or `travelers-clothes`;
+- healer's-kit activity/uses semantics;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;

@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.13.0`
+Character Forge adapter: `0.14.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.13.0` currently maps:
+Adapter `0.14.0` currently maps:
 
 ### Weapons
 
@@ -174,21 +174,30 @@ Implemented:
 
 The adapter preserves `1 sp` price, zero weight, tool type `game`, base item `dice`, Wisdom ability, null proficiency, empty properties/bonus, native quantity, deterministic compound-source-ID-based embedded IDs, and source provenance. Descriptions and activities remain empty; the pinned Catch Cheating and Play to Win checks are intentionally not replayed.
 
-### Book Semantic Aliases Requiring Explicit Translation
+### Book Semantic Aliases
 
-- `book:prayers`
-- `book:history`
-- `book:occult-lore`
+Implemented:
 
-All three target Foundry's pinned generic 2024 `book` loot Item. Character Forge source semantics should remain visible through export names `Prayer Book`, `History Book`, and `Occult Lore Book` while the target identifier remains `book`.
+- `book:prayers` -> Foundry identifier `book`, display name `Prayer Book`
+- `book:history` -> Foundry identifier `book`, display name `History Book`
+- `book:occult-lore` -> Foundry identifier `book`, display name `Occult Lore Book`
 
-### Simple Gear Still Requiring Exact Target Fixture Review
+All three preserve the pinned generic 2024 Book physical/static fields while retaining Character Forge source semantics through distinct display names, deterministic source-ID-based embedded IDs, and full source provenance. Descriptions remain empty and the generic Book's +5 Intelligence-check rules text is not copied or automated.
 
-- `parchment-sheet`
-- `robe`
-- `crowbar`
-- `travelers-clothes`
-- `spellbook`
+### Literal Simple Gear With Confirmed 2024 Targets
+
+Ready for the next bounded slice:
+
+- `parchment-sheet` -> 2024 `parchment` loot target
+- `robe` -> 2024 `robe` equipment target
+- `crowbar` -> 2024 `crowbar` loot target
+
+### Literal Gear Requiring Rules-Version Decision
+
+Deferred pending an explicit cross-rules-version adapter policy:
+
+- `travelers-clothes` -> pinned 6.0.x tree currently exposes only a 2014 equipment fixture
+- `spellbook` -> pinned 6.0.x tree currently exposes only a 2014 loot fixture
 
 ## Emitted Character Forge Equipment Space
 
@@ -232,20 +241,25 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 - pinned spellcasting-focus fixtures under `packs/_source/equipment24/adventuring-gear/spellcasting-focuses/`, including arcane `crystal`, `orb`, `staff`, druidic `sprig-of-mistletoe`, `wooden-staff`, and generic `holy-symbol-varies`
 - pinned `packs/_source/equipment24/tools/other/gaming-set/dice.yml`
 - pinned generic `packs/_source/equipment24/adventuring-gear/book.yml`
+- pinned 2024 simple gear fixtures:
+  - `packs/_source/equipment24/adventuring-gear/parchment.yml`
+  - `packs/_source/equipment24/adventuring-gear/robe.yml`
+  - `packs/_source/equipment24/adventuring-gear/crowbar.yml`
+  - `packs/_source/equipment24/adventuring-gear/healers-kit.yml`
+- pinned legacy-only fixtures currently found for remaining literal gear:
+  - `packs/_source/items/loot/spellbook.yml` with `rules: '2014'`
+  - `packs/_source/items/equipment/travelers-clothes.yml` with `rules: '2014'`
 - prior pinned armor, ammunition, container, and Fighter proof fixtures recorded in repository history.
 
 ## Recommended Next Slice
 
-Map the three Character Forge `book:*` semantic aliases to the pinned generic Foundry `book` loot target.
+Map the three literal simple-gear IDs with confirmed 2024 fixtures: `parchment-sheet`, `robe`, and `crowbar`.
 
-1. preserve the pinned Foundry physical/static fields: identifier `book`, price `25 gp`, weight `5 lb`, loot type `gear`, blank subtype, and empty properties;
-2. preserve Character Forge semantic display names:
-   - `book:prayers` -> `Prayer Book`
-   - `book:history` -> `History Book`
-   - `book:occult-lore` -> `Occult Lore Book`
-3. preserve native quantity, deterministic source-ID-based embedded IDs, and the original complete Character Forge source ID in provenance;
-4. keep descriptions empty and do not copy the pinned generic Book's rules text;
-5. do not implement or infer the generic Book's +5 Intelligence-check behavior; and
-6. keep `spellbook`, healer's-kit semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. `parchment-sheet` -> Foundry loot identifier `parchment`, name `Parchment`, `1 sp`, `0 lb`, gear type, blank subtype, empty properties;
+2. `robe` -> Foundry equipment identifier `robe`, name `Robe`, `1 gp`, `4 lb`, clothing type, blank base item, unequipped, null armor/proficiency fields, empty properties/activities;
+3. `crowbar` -> Foundry loot identifier `crowbar`, name `Crowbar`, `2 gp`, `5 lb`, gear type, blank subtype, empty properties;
+4. preserve native quantity, deterministic source-ID-based embedded IDs, and exact Character Forge source provenance;
+5. keep descriptions empty and do not implement Crowbar's leverage Advantage rule; and
+6. keep `spellbook`, `travelers-clothes`, healer's-kit uses/activity semantics, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-This policy preserves source semantics at the display/provenance layer while deliberately converging on Foundry's generic `book` identifier.
+Do not map `spellbook` or `travelers-clothes` from the currently visible 2014 fixtures until the adapter has an explicit cross-rules-version policy.
