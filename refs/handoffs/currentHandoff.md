@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `049db0e7e72bc81c9ee9be4415e3300f67e8829c`
-- Actions: `35524422860`
-- Job: `106113998519`
+- SHA: `c5800941dc4d42c5d3b051a8835971f9972a9f4a`
+- Actions: `35529546838`
+- Job: `106127595405`
 - `npm run verify`: green
 - 68 test files
-- 337 tests passed
+- 338 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3645 characters
-- Build: `Character Forge build 0.0.1 049db0e7`
-- Foundry adapter: `0.15.0`
+- Agent context: 3644 characters
+- Build: `Character Forge build 0.0.1 c5800941`
+- Foundry adapter: `0.16.0`
 
 Promoted branches remain unchanged:
 
@@ -141,8 +141,7 @@ The slice proves:
 - `longbow` retains static `ammunition.type = "arrow"` without an Item relationship;
 - `longsword` retains the accepted bounded versatile marker shape without pulling alternate-damage or attack automation forward;
 - native quantities and deterministic Character Forge source-ID-based embedded IDs remain stable;
-- descriptions and activities remain empty and equipped state remains uninferred; and
-- compound tool IDs remain explicit deferred equipment rather than becoming fallback loot.
+- descriptions and activities remain empty and equipped state remains uninferred.
 
 ### Direct tool breadth - complete
 
@@ -158,8 +157,7 @@ The slice proves:
 - exact target identifier, price, weight, tool type/base item, and ability fields are preserved;
 - native quantities and deterministic Character Forge source-ID-based embedded IDs remain stable;
 - descriptions and activities remain empty;
-- proficiency, container relationships, and semantic aliases remain uninferred; and
-- `artisan-tools:smiths-tools` remains explicitly deferred.
+- proficiency, container relationships, and semantic aliases remain uninferred.
 
 ### Artisan tool prefix breadth - complete
 
@@ -172,8 +170,7 @@ The slice proves:
 - exact pinned name, price, weight, `type.value = "art"`, base item, and ability are preserved;
 - native quantities remain stable;
 - descriptions and activities remain empty;
-- proficiency, equipped state, and container relationships remain uninferred; and
-- `musical-instrument:lute` remains explicit deferred equipment.
+- proficiency, equipped state, and container relationships remain uninferred.
 
 ### Musical-instrument prefix breadth - complete
 
@@ -187,8 +184,7 @@ The slice proves:
 - the pinned `pan-flute` target exception `baseItem = "panflute"` is preserved;
 - native quantities remain stable;
 - descriptions and activities remain empty;
-- proficiency, equipped state, and container relationships remain uninferred; and
-- `arcane-focus:orb` remains explicit deferred equipment.
+- proficiency, equipped state, and container relationships remain uninferred.
 
 ### Compound spellcasting-focus breadth - complete
 
@@ -207,8 +203,7 @@ The slice proves:
 - crystal/orb/mistletoe preserve pinned `equipment` + `trinket` static fields;
 - both staff targets preserve quarterstaff base item, 1d6 bludgeoning, `foc` + `ver`, Topple mastery, and the bounded versatile marker;
 - descriptions and activities remain empty;
-- equipped/proficiency/spellcasting/container relationships remain uninferred; and
-- `holy-symbol` remains explicit deferred equipment.
+- equipped/proficiency/spellcasting/container relationships remain uninferred.
 
 ### Generic holy-symbol breadth - complete
 
@@ -220,8 +215,7 @@ The slice proves:
 - pinned name, identifier, zero price/weight, gear type, blank subtype, and empty properties are preserved;
 - native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance remain stable;
 - description remains empty;
-- no amulet, emblem, reliquary, worn/held/shield relationship, or spellcasting behavior is invented; and
-- `gaming-set:dice` remains explicit deferred equipment.
+- no amulet, emblem, reliquary, worn/held/shield relationship, or spellcasting behavior is invented.
 
 ### Gaming-set dice breadth - complete
 
@@ -234,8 +228,7 @@ The slice proves:
 - native quantity remains stable;
 - proficiency remains null and properties/bonus remain empty;
 - descriptions and activities remain empty;
-- the pinned Foundry Catch Cheating and Play to Win check activities are intentionally not replayed; and
-- `book:history` remains explicit deferred equipment.
+- the pinned Foundry Catch Cheating and Play to Win check activities are intentionally not replayed.
 
 ### Semantic book aliases - complete
 
@@ -273,6 +266,21 @@ The slice proves:
 - descriptions remain empty and Crowbar's leverage Advantage rule is not copied or automated; and
 - `spellbook` remains explicit deferred equipment.
 
+### Healer's Kit consumable state - complete
+
+Checkpoint `c5800941dc4d42c5d3b051a8835971f9972a9f4a` maps `healers-kit` to its pinned 2024 Foundry consumable target while deliberately leaving the Stabilize activity deferred.
+
+The slice proves:
+
+- name, identifier, `5 gp` price, `3 lb` weight, and unequipped state are preserved;
+- durable ten-use state is preserved exactly: max `"10"`, auto-destroy true, spent 0, empty recovery;
+- pinned non-damaging consumable fields are preserved: null damage number/denomination, empty damage types, custom disabled, scaling number 1, replace false, trinket type, blank subtype, null magical bonus, and empty properties;
+- native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance remain stable;
+- descriptions remain empty;
+- `activities = {}` remains explicit;
+- no Stabilize, Medicine, Unconscious-targeting, or item-use activity semantics are copied; and
+- `spellbook` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -289,45 +297,71 @@ Key result:
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
 - the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, generic `holy-symbol`, `gaming-set:dice`, and all three `book:*` aliases now have pinned mappings;
 - all currently identified semantic-alias equipment groups are now covered;
-- the confirmed 2024 literal simple-gear group is now covered; and
-- remaining equipment work is `healers-kit` plus the unresolved cross-rules-version policy for `spellbook` and `travelers-clothes`.
+- the confirmed 2024 literal simple-gear group and Healer's Kit consumable state are now covered; and
+- the only remaining emitted literal equipment IDs are `travelers-clothes` and `spellbook`.
 
 ## Next Bounded Stage 5 Slice
 
-Map only `healers-kit` to its pinned 2024 Foundry consumable target while preserving its durable ten-use state and continuing to defer the Stabilize activity.
+Map the final two emitted literal equipment IDs:
 
-Pinned Foundry 6.0.x 2024 fields:
+- `travelers-clothes`
+- `spellbook`
 
-- name: `Healer's Kit`
-- Item type: `consumable`
-- identifier: `healers-kit`
-- price: `5 gp`
-- weight: `3 lb`
+### Traveler's Clothes
+
+A direct 2024 Foundry target exists:
+
+`packs/_source/equipment24/adventuring-gear/clothes-travelers.yml`
+
+Pinned fields:
+
+- name: `Clothes, Traveler's`
+- Item type: `equipment`
+- identifier: `clothes-travelers`
+- price: `2 gp`
+- weight: `4 lb`
 - equipped: false
-- `uses.max = "10"`
-- `uses.autoDestroy = true`
-- `uses.spent = 0`
-- `uses.recovery = []`
-- damage base number/denomination: null
-- damage types: empty
-- damage custom enabled: false
-- damage scaling number: 1
-- replace: false
-- `type.value = "trinket"`
+- cover: null
+- crewed: false
+- empty uses
+- armor value/magical bonus/dex: null
+- hp value/max/dt: null, conditions blank
+- `type.value = "clothing"`
+- `type.baseItem = ""`
+- properties: empty
+- speed value: null, conditions blank
+- strength: null
+- proficient: null
+- activities: empty
+
+Earlier audit language saying only a 2014 Traveler's Clothes fixture existed was incorrect. The 2024 target above is authoritative for this adapter slice.
+
+### Spellbook
+
+No separate `equipment24` Spellbook fixture exists, but Foundry's own 2024 Wizard class explicitly references the legacy Item:
+
+`Compendium.dnd5e.items.Item.LBajgahniRJbAgDr`
+
+This is a target-package cross-pack reuse, not an inferred Character Forge compatibility rule. Treat that exact legacy Spellbook Item as the accepted Foundry target shape for the 2024 Wizard path.
+
+Pinned static fields from `packs/_source/items/loot/spellbook.yml`:
+
+- name: `Spellbook`
+- Item type: `loot`
+- identifier: `spellbook`
+- price: `50 gp`
+- weight: `3 lb`
+- type value: blank
 - subtype: blank
-- magical bonus: null
 - properties: empty
 
-The pinned fixture also contains a `Stabilize` utility activity that consumes one item use. Do **not** export that activity in this slice. Preserve the durable ten-use consumable state, but keep `activities = {}` so activity semantics remain a separate deliberate adapter increment.
+Preserve Character Forge export provenance and native quantity. Keep descriptions empty; do not copy the legacy Spellbook's 100-page prose. Do not treat the legacy fixture's `source.rules = "2014"` as Character Forge canonical rules state.
 
-Preserve native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance. Keep descriptions empty.
-
-Continue to defer `spellbook` and `travelers-clothes`. The pinned D&D5e 6.0.x tree currently exposes only 2014-rule fixtures for those exact items, so they still require an explicit cross-rules-version adapter decision.
+This bounded exception establishes a narrow adapter policy: when pinned 2024 Foundry content explicitly references a legacy Item UUID as its own equipment target, that exact Item may be used as the target shape for the 2024 adapter path. Do not generalize legacy-item reuse without equivalent target-package evidence.
 
 Do not combine this with:
 
 - the Healer's Kit Stabilize activity;
-- `spellbook` or `travelers-clothes`;
 - general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
