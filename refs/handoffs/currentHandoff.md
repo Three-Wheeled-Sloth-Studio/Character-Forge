@@ -10,7 +10,7 @@ tags:
 ---
 # Current Handoff
 
-Date: 2026-09-12
+Date: 2026-09-20
 Branch: `dev`
 Current stage: **Stage 5 - Foundry Export / Import Validation (active)**
 
@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `1208bcd3ee134c5587d660bb7bd22a97bd05282d`
-- Actions: `34726095617`
-- Job: `103640344926`
+- SHA: `faefe3790f515abe530cb9c20863818cdacf8660`
+- Actions: `35510202339`
+- Job: `106076655841`
 - `npm run verify`: green
 - 68 test files
-- 329 tests passed
+- 330 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3817 characters
-- Build: `Character Forge build 0.0.1 1208bcd3`
-- Foundry adapter: `0.7.0`
+- Agent context: 3951 characters
+- Build: `Character Forge build 0.0.1 faefe379`
+- Foundry adapter: `0.8.0`
 
 Promoted branches remain unchanged:
 
@@ -142,7 +142,24 @@ The slice proves:
 - `longsword` retains the accepted bounded versatile marker shape without pulling alternate-damage or attack automation forward;
 - native quantities and deterministic Character Forge source-ID-based embedded IDs remain stable;
 - descriptions and activities remain empty and equipped state remains uninferred; and
-- `thieves-tools` remains explicit deferred equipment rather than becoming fallback loot.
+- compound tool IDs remain explicit deferred equipment rather than becoming fallback loot.
+
+### Direct tool breadth - complete
+
+Checkpoint `faefe3790f515abe530cb9c20863818cdacf8660` adds exact pinned mappings for:
+
+- `calligraphers-supplies`
+- `thieves-tools`
+- `herbalism-kit`
+
+The slice proves:
+
+- all three literal Character Forge IDs map directly to Foundry `tool` Items;
+- exact target identifier, price, weight, tool type/base item, and ability fields are preserved;
+- native quantities and deterministic Character Forge source-ID-based embedded IDs remain stable;
+- descriptions and activities remain empty;
+- proficiency, container relationships, and semantic aliases remain uninferred; and
+- `artisan-tools:smiths-tools` remains explicitly deferred.
 
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
@@ -158,26 +175,27 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- direct tool concepts remain a small coherent literal-ID gap; and
+- the three direct literal tool concepts now have pinned mappings; and
 - focus, book, gaming-set, dynamic artisan-tool, and musical-instrument compound IDs still require deliberate decomposition/translation.
 
 ## Next Bounded Stage 5 Slice
 
-Validate and map only the three direct tool concepts:
+Translate only the 17 dynamic artisan-tool IDs under the existing `artisan-tools:<tool-id>` Character Forge semantic prefix.
 
-1. inspect the exact pinned Foundry D&D5e 6.0 schema/fixtures for `calligraphers-supplies`, `thieves-tools`, and `herbalism-kit`;
-2. confirm whether each Character Forge literal ID maps directly or requires an explicit identifier translation;
-3. preserve native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance;
-4. keep descriptions and activities empty unless the pinned tool data model requires a static non-activity field;
+1. inspect the exact pinned Foundry D&D5e 6.0 artisan-tool fixtures for every emitted suffix listed in the equipment audit;
+2. use an explicit whitelist translation from Character Forge compound source IDs to Foundry target identifiers rather than a generic prefix-strip fallback;
+3. preserve exact target price, weight, tool type/base item, ability, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance;
+4. keep descriptions and activities empty;
 5. do not infer proficiency, equipped state, or container relationships; and
-6. keep dynamic `artisan-tools:*`, `musical-instrument:*`, focus aliases, and all other non-tool gaps explicit and deferred.
+6. keep `musical-instrument:*`, focus aliases, gaming/book aliases, and other non-artisan gaps explicit and deferred.
 
-Why this category next: these three literal IDs already have an identified Foundry tool-family target in the equipment audit, so they provide a bounded semantic proof before tackling compound prefixed IDs and broader translation rules.
+Why this category next: the direct-tool slice proved the pinned Foundry `tool` Item model, and the audit identifies one coherent 17-value Character Forge artisan prefix whose suffixes correspond to the pinned Foundry artisan fixture family. The translation still needs an explicit whitelist because Character Forge compound IDs are semantic IDs.
 
 Do not combine this with:
 
-- dynamic artisan-tool or musical-instrument translation;
+- dynamic musical-instrument translation;
 - focus aliases;
+- gaming-set or book aliases;
 - healer's-kit activity semantics;
 - feature/activity Items;
 - spell Items;

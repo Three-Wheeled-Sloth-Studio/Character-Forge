@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.7.0`
+Character Forge adapter: `0.8.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.7.0` currently maps:
+Adapter `0.8.0` currently maps:
 
 ### Weapons
 
@@ -95,13 +95,13 @@ Container mapping uses the live D&D5e 6.0 model shape. Pack contents are not inf
 
 ### Direct Tool Concepts
 
-Pinned Foundry evidence establishes tool-family targets, but these remain deferred pending the next explicit tool translation slice:
+Implemented:
 
-- `calligraphers-supplies`
-- `thieves-tools`
-- `herbalism-kit`
+- `calligraphers-supplies` -> Foundry `tool`, type `art`, base item `calligrapher`, ability `dex`
+- `thieves-tools` -> Foundry `tool`, blank type value, base item `thief`, ability `dex`
+- `herbalism-kit` -> Foundry `tool`, blank type value, base item `herb`, ability `int`
 
-These are the preferred next bounded category because they are literal Character Forge IDs and can prove the tool Item model before dynamic prefix decomposition is introduced.
+All three preserve exact pinned identifier, price, weight, native quantity, deterministic embedded IDs, and Character Forge source provenance. Descriptions and activities remain empty, and proficiency/container relationships are not inferred.
 
 ### Dynamic Tool and Instrument IDs
 
@@ -140,7 +140,7 @@ Character Forge can emit 17 artisan-tool variants and 10 musical-instrument vari
 - `shawm`
 - `viol`
 
-The Character Forge prefix carries semantic context and is not assumed to be part of the Foundry identifier. These require explicit translation and remain outside the direct-tool slice.
+The Character Forge prefix carries semantic context and is not part of the Foundry identifier. These require explicit whitelist translation. The 17 `artisan-tools:*` variants are the next bounded category; musical instruments remain deferred.
 
 ### Compound Focus IDs
 
@@ -189,6 +189,10 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 - `module/data/item/equipment.mjs`
 - `module/data/item/consumable.mjs`
 - `module/data/item/container.mjs`
+- `module/data/item/tool.mjs`
+- `packs/_source/equipment24/tools/artisan/calligraphers-supplies.yml`
+- `packs/_source/equipment24/tools/other/thieves-tools.yml`
+- `packs/_source/equipment24/tools/other/herbalism-kit.yml`
 - `packs/_source/equipment24/weapons/simple-melee/dagger.yml`
 - `packs/_source/equipment24/weapons/simple-melee/quarterstaff.yml`
 - `packs/_source/equipment24/weapons/simple-melee/spear.yml`
@@ -205,13 +209,14 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 
 ## Recommended Next Slice
 
-Validate and map only the three direct tool concepts:
+Translate only the 17 emitted `artisan-tools:<tool-id>` variants.
 
-1. inspect the exact pinned Foundry D&D5e 6.0 schema/fixtures for `calligraphers-supplies`, `thieves-tools`, and `herbalism-kit`;
-2. confirm exact target identifiers and the static tool Item fields needed for lossless adapter output;
-3. retain deterministic IDs, native quantity, and explicit Character Forge source provenance;
-4. keep descriptions and activities empty unless a pinned static tool-model field requires otherwise;
-5. do not infer proficiency, equipped state, container relationships, or dynamic semantic aliases; and
-6. keep `artisan-tools:*`, `musical-instrument:*`, focus aliases, healer's-kit activity semantics, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. inspect every corresponding pinned Foundry D&D5e 6.0 artisan fixture before registering it;
+2. map compound Character Forge source IDs through an explicit whitelist to the Foundry suffix identifier rather than applying a generic prefix-strip rule;
+3. preserve exact static tool fields from the pinned fixture, including price, weight, tool type/base item, and ability;
+4. preserve native quantity, deterministic embedded IDs, and the original compound Character Forge source ID in provenance flags;
+5. keep descriptions and activities empty and do not infer proficiency, equipped state, or container relationships;
+6. prove all 17 mappings deterministically; and
+7. keep `musical-instrument:*`, focus aliases, gaming/book aliases, healer's-kit activity semantics, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-This slice is intentionally narrower than dynamic tool/instrument translation. It first proves the direct literal-ID tool family with minimal semantic ambiguity.
+This is the next bounded semantic category because the direct-tool slice has established the target `tool` Item shape and the audit already enumerates the complete artisan prefix domain.

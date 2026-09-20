@@ -6,7 +6,7 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- tools
+- artisan-tools
 ---
 # Next Development Prompt
 
@@ -16,14 +16,14 @@ Continue implementation in:
 
 Work directly on `dev`. Do not promote `qa` or `main` unless explicitly requested.
 
-Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portrait/token browser QA is intentionally deferred to the owner's primary workstation and pinned in Issue #16; it does not block Stage 5 development.
+Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portrait/token browser QA remains deferred to the owner's primary workstation and pinned in Issue #16; it does not block Stage 5 development.
 
 ## Bounded Re-entry
 
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry direct tool mapping"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry artisan tool prefix translation"
 ```
 
 Then read only:
@@ -33,22 +33,23 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 5. `packages/foundry-adapter/src/target.ts`
-6. exact pinned Foundry D&D5e 6.0 tool schema/fixtures needed for the three IDs below
+6. the Character Forge source that defines the emitted `artisan-tools:*` suffix set, if needed to confirm the audit
+7. exact pinned Foundry D&D5e 6.0 artisan-tool fixtures for the 17 suffixes listed in the audit
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `1208bcd3ee134c5587d660bb7bd22a97bd05282d`
-- Actions: `34726095617`
-- Job: `103640344926`
-- 68 test files / 329 tests / 0 failures
+- SHA: `faefe3790f515abe530cb9c20863818cdacf8660`
+- Actions: `35510202339`
+- Job: `106076655841`
+- 68 test files / 330 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 3817 characters
-- build: `Character Forge build 0.0.1 1208bcd3`
-- Foundry adapter: `0.7.0`
+- agent context 3951 characters
+- build: `Character Forge build 0.0.1 faefe379`
+- Foundry adapter: `0.8.0`
 
 Promoted branches remain unchanged:
 
@@ -62,53 +63,51 @@ Pin this slice to:
 - Foundry VTT `14.367`
 - D&D5e `6.0.0`
 
-Foundry remains an adapter target. Character Forge native D&D state remains authoritative.
+Character Forge native D&D state remains authoritative. Foundry remains an adapter target.
 
 ## Current Equipment Coverage
 
-All currently emitted Character Forge weapon IDs now have exact pinned mappings, including the completed martial breadth:
+All currently emitted weapons, ammunition, mundane containers, armor/shields, and the three direct literal tool concepts now have pinned mappings.
 
-- `scimitar`
-- `shortsword`
-- `longbow`
-- `greataxe`
-- `longsword`
-
-Ammunition, currently emitted mundane containers, and currently emitted armor/shield IDs are also covered. Unsupported non-weapon IDs remain explicit rather than becoming generic loot.
-
-## Immediate Work - Direct Tool Concepts Only
-
-Map only these currently emitted literal Character Forge IDs after inspecting their exact pinned Foundry D&D5e 6.0 tool definitions/schema:
+Direct tool checkpoint `faefe3790f515abe530cb9c20863818cdacf8660` maps:
 
 - `calligraphers-supplies`
 - `thieves-tools`
 - `herbalism-kit`
 
-This category is deliberately chosen before dynamic artisan-tool/instrument translation because the three IDs are direct literal concepts with an already identified Foundry tool-family target. Use the slice to prove the static tool Item shape before adding compound semantic decomposition.
+It preserves exact pinned static tool fields while leaving descriptions and activities empty. Compound `artisan-tools:*` IDs remain explicit unsupported mappings.
+
+## Immediate Work - Dynamic Artisan Tools Only
+
+Translate the 17 emitted Character Forge IDs in the form:
+
+`artisan-tools:<tool-id>`
+
+The complete allowed suffix set is recorded in the equipment audit. Do not broaden beyond that enumerated set.
 
 ### Rules
 
-- Confirm each exact Foundry target identifier rather than assuming Character Forge string equality.
-- Preserve exact static tool Item fields supported by the pinned schema/fixture.
-- Preserve native quantity exactly and keep deterministic embedded IDs source-ID based.
-- Preserve Character Forge source provenance.
+- Inspect each exact pinned Foundry D&D5e 6.0 artisan-tool fixture before registering it.
+- Use an explicit whitelist from the complete Character Forge compound source ID to the Foundry target identifier. Do not implement a generic prefix-strip fallback.
+- Preserve the original compound Character Forge source ID in provenance flags and deterministic embedded-ID generation.
+- Preserve native quantity exactly.
+- Preserve exact pinned price, weight, `type.value`, `type.baseItem`, ability, and other required static tool fields.
 - Keep descriptions empty; do not copy compendium prose.
-- Keep Foundry activities empty unless the tool schema demonstrates a required static non-activity field that must be represented separately.
+- Keep activities empty; do not replay tool checks or crafting behavior.
 - Do not infer proficiency, equipped state, or container relationships.
-- Do not translate dynamic `artisan-tools:*` or `musical-instrument:*` IDs in this slice.
-- Unsupported remaining equipment IDs stay explicit; no generic loot fallback.
+- Unsupported IDs remain explicit; no generic loot or tool fallback.
 
 ### Coverage
 
 Add focused deterministic tests proving:
 
-- all three direct tool IDs map to their exact target identifiers and Item/tool categories;
-- exact pinned price, weight, tool subtype/category, and other static fields are preserved where defined;
-- native quantities and deterministic embedded IDs remain stable;
-- Character Forge source provenance remains intact;
-- descriptions and activities stay empty;
-- no proficiency, equipped state, container relationship, or semantic alias is invented; and
-- a representative compound gap such as `artisan-tools:smiths-tools` remains explicitly deferred.
+- all 17 enumerated `artisan-tools:*` IDs map to their exact pinned Foundry target identifiers;
+- the original compound Character Forge IDs drive deterministic embedded IDs and remain in source provenance;
+- exact pinned static tool fields are preserved for every mapping;
+- native quantities are preserved;
+- descriptions and activities remain empty;
+- no proficiency or relationship state is invented; and
+- a representative `musical-instrument:*` ID remains explicitly deferred.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -116,7 +115,6 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
-- dynamic `artisan-tools:*` translation;
 - dynamic `musical-instrument:*` translation;
 - focus aliases;
 - gaming-set or book aliases;
@@ -124,9 +122,9 @@ Do not combine this slice with:
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
-- a user-facing Foundry Download action;
+- user-facing Foundry Download UX;
 - real Foundry runtime import acceptance; or
-- bidirectional Foundry sync.
+- bidirectional Foundry synchronization.
 
 ## Guardrails
 
