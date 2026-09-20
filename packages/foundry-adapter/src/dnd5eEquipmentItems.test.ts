@@ -5,6 +5,7 @@ import {
   buildFoundryDnd5eEquipmentItems,
   FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS,
   FOUNDRY_DND5E_ARMOR_SHIELD_IDS,
+  FOUNDRY_DND5E_DIRECT_TOOL_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
   FOUNDRY_DND5E_MARTIAL_WEAPON_IDS,
   FOUNDRY_DND5E_SIMPLE_WEAPON_IDS,
@@ -206,7 +207,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "thieves-tools", quantity: 1 },
+        { itemId: "artisan-tools:smiths-tools", quantity: 1 },
       ],
     };
 
@@ -216,7 +217,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "thieves-tools",
+        itemId: "artisan-tools:smiths-tools",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -330,13 +331,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the pinned martial-weapon slice while leaving tool translation deferred", () => {
+  it("maps the pinned martial-weapon slice while keeping compound tool translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "thieves-tools", quantity: 1 },
+        { itemId: "artisan-tools:smiths-tools", quantity: 1 },
       ],
     };
 
@@ -346,7 +347,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "thieves-tools",
+        itemId: "artisan-tools:smiths-tools",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -444,6 +445,95 @@ describe("Foundry D&D5e equipment mapping", () => {
         },
       });
       expect((item?.system as { ammunition?: { item?: unknown } } | undefined)?.ammunition?.item).toBeUndefined();
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("maps direct tool concepts while keeping compound tool translation deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "artisan-tools:smiths-tools", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-direct-tools", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-direct-tools", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "artisan-tools:smiths-tools",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const byIdentifier = new Map(first.items.map((item) => [
+      (item.system as { identifier: string }).identifier,
+      item,
+    ]));
+
+    expect(byIdentifier.get("calligraphers-supplies")).toMatchObject({
+      name: "Calligrapher's Supplies",
+      type: "tool",
+      system: {
+        identifier: "calligraphers-supplies",
+        price: { value: 10, denomination: "gp" },
+        weight: { value: 5, units: "lb" },
+        type: { value: "art", baseItem: "calligrapher" },
+        ability: "dex",
+      },
+    });
+    expect(byIdentifier.get("thieves-tools")).toMatchObject({
+      name: "Thieves' Tools",
+      type: "tool",
+      system: {
+        identifier: "thieves-tools",
+        price: { value: 25, denomination: "gp" },
+        weight: { value: 1, units: "lb" },
+        type: { value: "", baseItem: "thief" },
+        ability: "dex",
+      },
+    });
+    expect(byIdentifier.get("herbalism-kit")).toMatchObject({
+      name: "Herbalism Kit",
+      type: "tool",
+      system: {
+        identifier: "herbalism-kit",
+        price: { value: 5, denomination: "gp" },
+        weight: { value: 8, units: "lb" },
+        type: { value: "", baseItem: "herb" },
+        ability: "int",
+      },
+    });
+
+    for (const itemId of FOUNDRY_DND5E_DIRECT_TOOL_IDS) {
+      const item = byIdentifier.get(itemId);
+      expect(item).toMatchObject({
+        _id: stableFoundryDocumentId(`character-direct-tools:equipment:${itemId}`),
+        type: "tool",
+        system: {
+          identifier: itemId,
+          quantity: 2,
+          equipped: false,
+          container: null,
+          description: { value: "", chat: "" },
+          proficient: null,
+          properties: [],
+          bonus: "",
+          activities: {},
+        },
+        flags: {
+          "character-forge": {
+            role: "equipment",
+            sourceId: itemId,
+            sourceQuantity: 2,
+          },
+        },
+      });
       expect(JSON.stringify(item)).not.toContain("@UUID");
     }
   });

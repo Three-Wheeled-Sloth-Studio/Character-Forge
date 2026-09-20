@@ -49,6 +49,12 @@ export const FOUNDRY_DND5E_MARTIAL_WEAPON_IDS = [
   "longsword",
 ] as const;
 
+export const FOUNDRY_DND5E_DIRECT_TOOL_IDS = [
+  "calligraphers-supplies",
+  "thieves-tools",
+  "herbalism-kit",
+] as const;
+
 export interface FoundryDnd5eUnsupportedEquipment {
   itemId: string;
   quantity: number;
@@ -62,7 +68,7 @@ export interface FoundryDnd5eEquipmentBuildResult {
 
 interface EquipmentDefinition {
   name: string;
-  type: "equipment" | "weapon" | "container" | "consumable";
+  type: "equipment" | "weapon" | "container" | "consumable" | "tool";
   maximumQuantity?: number;
   buildSystem(quantity: number): JsonObject;
 }
@@ -352,6 +358,36 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
     mastery: "sap",
     versatileMarker: true,
   }),
+  "calligraphers-supplies": toolDefinition({
+    name: "Calligrapher's Supplies",
+    identifier: "calligraphers-supplies",
+    priceValue: 10,
+    priceDenomination: "gp",
+    weight: 5,
+    toolType: "art",
+    baseItem: "calligrapher",
+    ability: "dex",
+  }),
+  "thieves-tools": toolDefinition({
+    name: "Thieves' Tools",
+    identifier: "thieves-tools",
+    priceValue: 25,
+    priceDenomination: "gp",
+    weight: 1,
+    toolType: "",
+    baseItem: "thief",
+    ability: "dex",
+  }),
+  "herbalism-kit": toolDefinition({
+    name: "Herbalism Kit",
+    identifier: "herbalism-kit",
+    priceValue: 5,
+    priceDenomination: "gp",
+    weight: 8,
+    toolType: "",
+    baseItem: "herb",
+    ability: "int",
+  }),
   arrow: {
     name: "Arrows",
     type: "consumable",
@@ -545,6 +581,44 @@ function containerDefinition(
         currency: { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 },
         properties: [],
         capacity,
+      };
+    },
+  };
+}
+
+interface ToolDefinitionInput {
+  name: string;
+  identifier: string;
+  priceValue: number;
+  priceDenomination: string;
+  weight: number;
+  toolType: string;
+  baseItem: string;
+  ability: string;
+}
+
+function toolDefinition(input: ToolDefinitionInput): EquipmentDefinition {
+  return {
+    name: input.name,
+    type: "tool",
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem(
+          input.identifier,
+          quantity,
+          input.priceValue,
+          input.priceDenomination,
+          input.weight,
+          false,
+        ),
+        uses: emptyUses(),
+        type: { value: input.toolType, baseItem: input.baseItem },
+        ability: input.ability,
+        chatFlavor: "",
+        proficient: null,
+        properties: [],
+        bonus: "",
+        activities: {},
       };
     },
   };
