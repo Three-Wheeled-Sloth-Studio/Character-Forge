@@ -904,6 +904,42 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       };
     },
   },
+  "travelers-clothes": {
+    name: "Clothes, Traveler's",
+    type: "equipment",
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem("clothes-travelers", quantity, 2, "gp", 4, false),
+        cover: null,
+        crewed: false,
+        uses: emptyUses(),
+        armor: { value: null, magicalBonus: null, dex: null },
+        hp: { value: null, max: null, dt: null, conditions: "" },
+        type: { value: "clothing", baseItem: "" },
+        properties: [],
+        speed: { value: null, conditions: "" },
+        strength: null,
+        proficient: null,
+        activities: {},
+      };
+    },
+  },
+  spellbook: {
+    name: "Spellbook",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "spellbook",
+        quantity,
+        priceValue: 50,
+        priceDenomination: "gp",
+        weight: 3,
+        lootType: "",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
   arrow: {
     name: "Arrows",
     type: "consumable",

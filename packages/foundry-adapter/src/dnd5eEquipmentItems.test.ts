@@ -210,7 +210,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -220,7 +220,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -340,7 +340,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -350,7 +350,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -452,13 +452,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps direct tool concepts while keeping spellbook translation deferred", () => {
+  it("maps direct tool concepts while keeping unsupported proof item explicit", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -468,7 +468,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -541,13 +541,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit artisan-tool whitelist while keeping spellbook translation deferred", () => {
+  it("maps the explicit artisan-tool whitelist while keeping unsupported proof item explicit", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_ARTISAN_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -557,7 +557,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_ARTISAN_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -741,13 +741,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit musical-instrument whitelist while keeping spellbook translation deferred", () => {
+  it("maps the explicit musical-instrument whitelist while keeping unsupported proof item explicit", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -757,7 +757,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -881,7 +881,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_FOCUS_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -891,7 +891,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_FOCUS_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1031,7 +1031,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         { itemId: "holy-symbol", quantity: 2 },
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -1041,7 +1041,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(1);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1080,13 +1080,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(serialized).not.toContain("reliquary");
   });
 
-  it("maps the compound gaming-set dice concept while keeping spellbook translation deferred", () => {
+  it("maps the compound gaming-set dice concept while keeping unsupported proof item explicit", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         { itemId: "gaming-set:dice", quantity: 2 },
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -1096,7 +1096,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(1);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1147,7 +1147,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...sourceIds.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -1157,7 +1157,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(sourceIds.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1211,14 +1211,14 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps confirmed 2024 simple gear while keeping legacy-only spellbook deferred", () => {
+  it("maps confirmed 2024 simple gear while keeping unsupported proof item explicit", () => {
     const original = createFirstSliceNativePayload();
     const sourceIds = ["parchment-sheet", "robe", "crowbar"] as const;
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...sourceIds.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -1228,7 +1228,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(sourceIds.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1338,7 +1338,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         { itemId: "healers-kit", quantity: 2 },
-        { itemId: "spellbook", quantity: 1 },
+        { itemId: "unmapped-proof-item", quantity: 1 },
       ],
     };
 
@@ -1348,7 +1348,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(1);
     expect(first.unsupported).toEqual([
       {
-        itemId: "spellbook",
+        itemId: "unmapped-proof-item",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1403,6 +1403,103 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(serialized).not.toContain("Medicine");
     expect(serialized).not.toContain("Unconscious");
     expect(serialized).not.toContain("itemUses");
+  });
+
+  it("maps the final literal equipment IDs with pinned 2024 target evidence", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        { itemId: "travelers-clothes", quantity: 2 },
+        { itemId: "spellbook", quantity: 3 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-final-literal-equipment", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-final-literal-equipment", payload);
+    expect(first).toEqual(second);
+    expect(first.items).toHaveLength(2);
+    expect(first.unsupported).toEqual([]);
+
+    const bySourceId = new Map(first.items.map((item) => [
+      (item.flags as { "character-forge": { sourceId: string } })["character-forge"].sourceId,
+      item,
+    ]));
+
+    expect(bySourceId.get("travelers-clothes")).toMatchObject({
+      _id: stableFoundryDocumentId("character-final-literal-equipment:equipment:travelers-clothes"),
+      name: "Clothes, Traveler's",
+      type: "equipment",
+      system: {
+        description: { value: "", chat: "" },
+        source: {
+          custom: "Character Forge export",
+          rules: "2024",
+          revision: 1,
+        },
+        identifier: "clothes-travelers",
+        container: null,
+        quantity: 2,
+        weight: { value: 4, units: "lb" },
+        price: { value: 2, denomination: "gp" },
+        equipped: false,
+        cover: null,
+        crewed: false,
+        uses: { max: "", spent: 0, recovery: [] },
+        armor: { value: null, magicalBonus: null, dex: null },
+        hp: { value: null, max: null, dt: null, conditions: "" },
+        type: { value: "clothing", baseItem: "" },
+        properties: [],
+        speed: { value: null, conditions: "" },
+        strength: null,
+        proficient: null,
+        activities: {},
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "travelers-clothes",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    expect(bySourceId.get("spellbook")).toMatchObject({
+      _id: stableFoundryDocumentId("character-final-literal-equipment:equipment:spellbook"),
+      name: "Spellbook",
+      type: "loot",
+      system: {
+        description: { value: "", chat: "" },
+        source: {
+          custom: "Character Forge export",
+          rules: "2024",
+          revision: 1,
+        },
+        identifier: "spellbook",
+        identified: true,
+        unidentified: { description: "" },
+        container: null,
+        quantity: 3,
+        weight: { value: 3, units: "lb" },
+        price: { value: 50, denomination: "gp" },
+        rarity: "",
+        type: { value: "", subtype: "" },
+        properties: [],
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "spellbook",
+          sourceQuantity: 3,
+        },
+      },
+    });
+
+    const serialized = JSON.stringify(first.items);
+    expect(serialized).not.toContain("@UUID");
+    expect(serialized).not.toContain("resilient garments");
+    expect(serialized).not.toContain("100 blank vellum pages");
+    expect(serialized).not.toContain('"rules":"2014"');
   });
 
   it("reports multi-container stacks explicitly because Foundry containers cannot stack", () => {
