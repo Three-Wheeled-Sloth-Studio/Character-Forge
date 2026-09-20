@@ -5,6 +5,7 @@ import {
   buildFoundryDnd5eEquipmentItems,
   FOUNDRY_DND5E_AMMUNITION_CONTAINER_IDS,
   FOUNDRY_DND5E_ARMOR_SHIELD_IDS,
+  FOUNDRY_DND5E_ARTISAN_TOOL_IDS,
   FOUNDRY_DND5E_DIRECT_TOOL_IDS,
   FOUNDRY_DND5E_EQUIPMENT_PROOF_IDS,
   FOUNDRY_DND5E_MARTIAL_WEAPON_IDS,
@@ -207,7 +208,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "artisan-tools:smiths-tools", quantity: 1 },
+        { itemId: "musical-instrument:lute", quantity: 1 },
       ],
     };
 
@@ -217,7 +218,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "artisan-tools:smiths-tools",
+        itemId: "musical-instrument:lute",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -337,7 +338,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "artisan-tools:smiths-tools", quantity: 1 },
+        { itemId: "musical-instrument:lute", quantity: 1 },
       ],
     };
 
@@ -347,7 +348,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "artisan-tools:smiths-tools",
+        itemId: "musical-instrument:lute",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -449,13 +450,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps direct tool concepts while keeping compound tool translation deferred", () => {
+  it("maps direct tool concepts while keeping musical instrument translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "artisan-tools:smiths-tools", quantity: 1 },
+        { itemId: "musical-instrument:lute", quantity: 1 },
       ],
     };
 
@@ -465,7 +466,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "artisan-tools:smiths-tools",
+        itemId: "musical-instrument:lute",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -530,6 +531,206 @@ describe("Foundry D&D5e equipment mapping", () => {
           "character-forge": {
             role: "equipment",
             sourceId: itemId,
+            sourceQuantity: 2,
+          },
+        },
+      });
+      expect(JSON.stringify(item)).not.toContain("@UUID");
+    }
+  });
+
+  it("maps the explicit artisan-tool whitelist while keeping musical instruments deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...FOUNDRY_DND5E_ARTISAN_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "musical-instrument:lute", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-artisan-tools", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-artisan-tools", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(FOUNDRY_DND5E_ARTISAN_TOOL_IDS.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "musical-instrument:lute",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const expected = {
+      "artisan-tools:alchemists-supplies": {
+        name: "Alchemist's Supplies",
+        identifier: "alchemists-supplies",
+        price: 50,
+        weight: 8,
+        baseItem: "alchemist",
+        ability: "int",
+      },
+      "artisan-tools:brewers-supplies": {
+        name: "Brewer's Supplies",
+        identifier: "brewers-supplies",
+        price: 20,
+        weight: 9,
+        baseItem: "brewer",
+        ability: "int",
+      },
+      "artisan-tools:calligraphers-supplies": {
+        name: "Calligrapher's Supplies",
+        identifier: "calligraphers-supplies",
+        price: 10,
+        weight: 5,
+        baseItem: "calligrapher",
+        ability: "dex",
+      },
+      "artisan-tools:carpenters-tools": {
+        name: "Carpenter's Tools",
+        identifier: "carpenters-tools",
+        price: 8,
+        weight: 6,
+        baseItem: "carpenter",
+        ability: "str",
+      },
+      "artisan-tools:cartographers-tools": {
+        name: "Cartographer's Tools",
+        identifier: "cartographers-tools",
+        price: 15,
+        weight: 6,
+        baseItem: "cartographer",
+        ability: "wis",
+      },
+      "artisan-tools:cobblers-tools": {
+        name: "Cobbler's Tools",
+        identifier: "cobblers-tools",
+        price: 5,
+        weight: 5,
+        baseItem: "cobbler",
+        ability: "dex",
+      },
+      "artisan-tools:cooks-utensils": {
+        name: "Cook's Utensils",
+        identifier: "cooks-utensils",
+        price: 1,
+        weight: 8,
+        baseItem: "cook",
+        ability: "wis",
+      },
+      "artisan-tools:glassblowers-tools": {
+        name: "Glassblower's Tools",
+        identifier: "glassblowers-tools",
+        price: 30,
+        weight: 5,
+        baseItem: "glassblower",
+        ability: "int",
+      },
+      "artisan-tools:jewelers-tools": {
+        name: "Jeweler's Tools",
+        identifier: "jewelers-tools",
+        price: 25,
+        weight: 2,
+        baseItem: "jeweler",
+        ability: "int",
+      },
+      "artisan-tools:leatherworkers-tools": {
+        name: "Leatherworker's Tools",
+        identifier: "leatherworkers-tools",
+        price: 5,
+        weight: 5,
+        baseItem: "leatherworker",
+        ability: "dex",
+      },
+      "artisan-tools:masons-tools": {
+        name: "Mason's Tools",
+        identifier: "masons-tools",
+        price: 10,
+        weight: 8,
+        baseItem: "mason",
+        ability: "str",
+      },
+      "artisan-tools:painters-supplies": {
+        name: "Painter's Supplies",
+        identifier: "painters-supplies",
+        price: 10,
+        weight: 5,
+        baseItem: "painter",
+        ability: "wis",
+      },
+      "artisan-tools:potters-tools": {
+        name: "Potter's Tools",
+        identifier: "potters-tools",
+        price: 10,
+        weight: 3,
+        baseItem: "potter",
+        ability: "int",
+      },
+      "artisan-tools:smiths-tools": {
+        name: "Smith's Tools",
+        identifier: "smiths-tools",
+        price: 20,
+        weight: 8,
+        baseItem: "smith",
+        ability: "str",
+      },
+      "artisan-tools:tinkers-tools": {
+        name: "Tinker's Tools",
+        identifier: "tinkers-tools",
+        price: 50,
+        weight: 10,
+        baseItem: "tinker",
+        ability: "dex",
+      },
+      "artisan-tools:weavers-tools": {
+        name: "Weaver's Tools",
+        identifier: "weavers-tools",
+        price: 1,
+        weight: 5,
+        baseItem: "weaver",
+        ability: "dex",
+      },
+      "artisan-tools:woodcarvers-tools": {
+        name: "Woodcarver's Tools",
+        identifier: "woodcarvers-tools",
+        price: 1,
+        weight: 5,
+        baseItem: "woodcarver",
+        ability: "dex",
+      },
+    } as const;
+
+    const bySourceId = new Map(first.items.map((item) => [
+      (item.flags as { "character-forge": { sourceId: string } })["character-forge"].sourceId,
+      item,
+    ]));
+
+    for (const sourceId of FOUNDRY_DND5E_ARTISAN_TOOL_IDS) {
+      const pinned = expected[sourceId];
+      const item = bySourceId.get(sourceId);
+      expect(item).toMatchObject({
+        _id: stableFoundryDocumentId(`character-artisan-tools:equipment:${sourceId}`),
+        name: pinned.name,
+        type: "tool",
+        system: {
+          identifier: pinned.identifier,
+          quantity: 2,
+          equipped: false,
+          container: null,
+          description: { value: "", chat: "" },
+          price: { value: pinned.price, denomination: "gp" },
+          weight: { value: pinned.weight, units: "lb" },
+          type: { value: "art", baseItem: pinned.baseItem },
+          ability: pinned.ability,
+          proficient: null,
+          properties: [],
+          bonus: "",
+          activities: {},
+        },
+        flags: {
+          "character-forge": {
+            role: "equipment",
+            sourceId,
             sourceQuantity: 2,
           },
         },
