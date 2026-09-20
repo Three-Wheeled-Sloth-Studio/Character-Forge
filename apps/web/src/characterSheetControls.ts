@@ -1,10 +1,14 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
+import {
+  exportCharacterToFoundryDnd5eActor,
+  serializeFoundryDnd5eActorDocument,
+} from "../../../packages/foundry-adapter/src/dnd5eActor.js";
 
 export function characterDocumentJson(character: CharacterDocument): string {
   return JSON.stringify(character, null, 2);
 }
 
-export function characterDocumentDownloadName(character: CharacterDocument): string {
+export function characterDownloadSlug(character: CharacterDocument): string {
   const slug = character.displayName
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -12,10 +16,46 @@ export function characterDocumentDownloadName(character: CharacterDocument): str
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
-  return `${slug || "character"}.json`;
+  return slug || "character";
 }
 
-export function characterDocumentControlsHtml(includePrint = false, includeMedia = false): string {
+export function characterDocumentDownloadName(character: CharacterDocument): string {
+  return `${characterDownloadSlug(character)}.json`;
+}
+
+export function foundryDnd5eImportDownloadName(character: CharacterDocument): string {
+  return `${characterDownloadSlug(character)}-foundry-dnd5e.json`;
+}
+
+export interface FoundryDnd5eImportArtifact {
+  filename: string;
+  mimeType: "application/json;charset=utf-8";
+  json: string;
+}
+
+export function foundryDnd5eImportArtifact(character: CharacterDocument): FoundryDnd5eImportArtifact {
+  const exported = exportCharacterToFoundryDnd5eActor(character);
+  return {
+    filename: foundryDnd5eImportDownloadName(character),
+    mimeType: "application/json;charset=utf-8",
+    json: serializeFoundryDnd5eActorDocument(exported),
+  };
+}
+
+export function canDownloadFoundryDnd5eImport(character: CharacterDocument): boolean {
+  try {
+    exportCharacterToFoundryDnd5eActor(character);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function characterDocumentControlsHtml(
+  includePrint = false,
+  includeMedia = false,
+  includeFoundryDnd5e = false,
+): string {
   return `<div class="sheet-toolbar no-print" aria-label="Character sheet and export controls">
     ${includeMedia ? sheetActionButton("attach-portrait", "Attach character portrait", portraitIcon()) : ""}
     ${includeMedia ? sheetActionButton("attach-token", "Attach VTT token image", tokenIcon()) : ""}
@@ -23,8 +63,21 @@ export function characterDocumentControlsHtml(includePrint = false, includeMedia
     ${includePrint ? sheetActionButton("print", "Print character sheet or save as PDF", printIcon()) : ""}
     ${sheetActionButton("copy-json", "Copy full CharacterDocument JSON", copyIcon())}
     ${sheetActionButton("download-json", "Download full CharacterDocument JSON", downloadIcon())}
+    ${includeFoundryDnd5e ? sheetActionButton("download-foundry-dnd5e", "Download Foundry D&D5e import JSON", downloadIcon()) : ""}
     <span class="sheet-action-status" data-sheet-action-status role="status" aria-live="polite"></span>
   </div>`;
+}
+
+export function characterDocumentControlsHtmlForCharacter(
+  character: CharacterDocument,
+  includePrint = false,
+  includeMedia = false,
+): string {
+  return characterDocumentControlsHtml(
+    includePrint,
+    includeMedia,
+    canDownloadFoundryDnd5eImport(character),
+  );
 }
 
 export function bindCharacterDocumentControls(
@@ -38,6 +91,7 @@ export function bindCharacterDocumentControls(
   const printButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='print']");
   const copyButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='copy-json']");
   const downloadButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='download-json']");
+  const foundryDownloadButton = root.querySelector<HTMLButtonElement>("[data-sheet-action='download-foundry-dnd5e']");
 
   portraitButton?.addEventListener("click", () => attachSheetImage(root, "portrait", "Portrait", status));
   tokenButton?.addEventListener("click", () => attachSheetImage(root, "token", "VTT token", status));
@@ -59,6 +113,7 @@ export function bindCharacterDocumentControls(
       .catch(() => setStatus(status, "Could not copy Character JSON."));
   });
   downloadButton?.addEventListener("click", () => downloadCharacterDocumentJson(character));
+  foundryDownloadButton?.addEventListener("click", () => downloadFoundryDnd5eImportJson(character, status));
 }
 
 export function printableCharacterSheetDocument(sheetHtml: string, baseHref = document.baseURI): string {
@@ -185,6 +240,31 @@ function downloadCharacterDocumentJson(character: CharacterDocument): void {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+function downloadFoundryDnd5eImportJson(
+  character: CharacterDocument,
+  status: HTMLElement | null,
+): void {
+  try {
+    const artifact = foundryDnd5eImportArtifact(character);
+    const blob = new Blob([artifact.json], { type: artifact.mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = artifact.filename;
+    link.hidden = true;
+    document.body.append(link);
+    try {
+      link.click();
+      setStatus(status, "Foundry D&D5e import JSON downloaded.");
+    } finally {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+  } catch {
+    setStatus(status, "Could not export Foundry D&D5e import JSON.");
+  }
 }
 
 function setStatus(target: HTMLElement | null, message: string): void {
