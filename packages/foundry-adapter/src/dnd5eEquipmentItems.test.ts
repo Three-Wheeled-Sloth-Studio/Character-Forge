@@ -1332,6 +1332,79 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
+  it("maps Healer's Kit consumable uses while deferring its Stabilize activity", () => {
+    const original = createFirstSliceNativePayload();
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        { itemId: "healers-kit", quantity: 2 },
+        { itemId: "spellbook", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-healers-kit", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-healers-kit", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(1);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "spellbook",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    expect(first.items[0]).toMatchObject({
+      _id: stableFoundryDocumentId("character-healers-kit:equipment:healers-kit"),
+      name: "Healer's Kit",
+      type: "consumable",
+      system: {
+        description: { value: "", chat: "" },
+        identifier: "healers-kit",
+        identified: true,
+        container: null,
+        quantity: 2,
+        weight: { value: 3, units: "lb" },
+        price: { value: 5, denomination: "gp" },
+        equipped: false,
+        uses: {
+          max: "10",
+          autoDestroy: true,
+          spent: 0,
+          recovery: [],
+        },
+        damage: {
+          base: {
+            number: null,
+            denomination: null,
+            types: [],
+            custom: { enabled: false },
+            scaling: { number: 1 },
+          },
+          replace: false,
+        },
+        type: { value: "trinket", subtype: "" },
+        magicalBonus: null,
+        properties: [],
+        activities: {},
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "healers-kit",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    const serialized = JSON.stringify(first.items[0]);
+    expect(serialized).not.toContain("@UUID");
+    expect(serialized).not.toContain("Stabilize");
+    expect(serialized).not.toContain("Medicine");
+    expect(serialized).not.toContain("Unconscious");
+    expect(serialized).not.toContain("itemUses");
+  });
+
   it("reports multi-container stacks explicitly because Foundry containers cannot stack", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {

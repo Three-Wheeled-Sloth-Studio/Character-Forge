@@ -875,6 +875,35 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       });
     },
   },
+  "healers-kit": {
+    name: "Healer's Kit",
+    type: "consumable",
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem("healers-kit", quantity, 5, "gp", 3, false),
+        uses: {
+          max: "10",
+          autoDestroy: true,
+          spent: 0,
+          recovery: [],
+        },
+        damage: {
+          base: {
+            number: null,
+            denomination: null,
+            types: [],
+            custom: { enabled: false },
+            scaling: { number: 1 },
+          },
+          replace: false,
+        },
+        type: { value: "trinket", subtype: "" },
+        magicalBonus: null,
+        properties: [],
+        activities: {},
+      };
+    },
+  },
   arrow: {
     name: "Arrows",
     type: "consumable",
