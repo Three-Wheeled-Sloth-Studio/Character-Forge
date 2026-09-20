@@ -26,22 +26,22 @@ The authoritative stage order remains:
 
 `refs/planning/owner-approved-priority-sequence-2026-09-11.md`
 
-## Exact Green Stage 5 Equipment Completion Checkpoint
+## Exact Green Stage 5 Download Artifact Checkpoint
 
 Accepted `dev` implementation head:
 
-- SHA: `bc1e12d6a1434ef8d7003f922140a808896740f9`
-- Actions: `35532475018`
-- Job: `106135408145`
+- SHA: `2e642d67d1033e0a917077c246b38bb36e5d80a7`
+- Actions: `35533225275`
+- Job: `106137552956`
 - `npm run verify`: green
-- 68 test files
-- 339 tests passed
+- 69 test files
+- 342 tests passed
 - 0 failures
-- 251 tracked paths
+- 252 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3574 characters
-- Build: `Character Forge build 0.0.1 bc1e12d6`
+- Agent context: 3797 characters
+- Build: `Character Forge build 0.0.1 2e642d67`
 - Foundry adapter: `0.17.0`
 
 Promoted branches remain unchanged:
@@ -300,6 +300,23 @@ All 48 literal equipment IDs plus all 27 dynamic prefixed tool/instrument IDs cu
 
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
+### Downloadable Foundry Actor import artifact - complete
+
+Checkpoint `2e642d67d1033e0a917077c246b38bb36e5d80a7` adds the first user-downloadable Foundry D&D5e Actor import artifact without changing adapter document shape or adapter version.
+
+The slice proves:
+
+- valid primary D&D 5E 2024 sheets expose `Download Foundry D&D5e import JSON`;
+- BRP and unsupported primary systems do not expose the Foundry action;
+- the browser action calls the existing deterministic Actor exporter and raw-document serializer;
+- the downloaded MIME type is `application/json;charset=utf-8`;
+- the filename reuses the existing CharacterDocument slug behavior and ends in `-foundry-dnd5e.json`;
+- the downloaded JSON parses exactly to the adapter `document`;
+- `mappingNotes`, wrapper `schemaVersion`, and `character-forge/foundry-dnd5e-actor-export/0.1` remain outside the import artifact;
+- existing CharacterDocument Copy JSON and Download JSON actions remain available;
+- browser export failures are caught and reported through concise toolbar status instead of escaping through the UI; and
+- Foundry adapter version remains `0.17.0` because the exported Actor document shape did not change.
+
 ## Level 1 Equipment Audit
 
 The durable source/target inventory is:
@@ -320,47 +337,36 @@ Key result:
 
 ## Next Bounded Stage 5 Slice
 
-Produce the first user-downloadable Foundry D&D5e Actor import artifact.
+Real Foundry runtime import validation is now the next major Stage 5 blocker.
 
-The adapter already provides:
+The owner-approved license trigger has therefore been reached: reevaluate purchasing/using Foundry now that a mature downloadable Actor artifact exists and runtime import is the next validation step.
 
-- `exportCharacterToFoundryDnd5eActor(character)`
-- `serializeFoundryDnd5eActorDocument(exported)`
+The next acceptance pass should use an actual pinned runtime:
 
-The serializer intentionally returns only the raw Foundry Actor document JSON, not Character Forge adapter wrapper metadata or mapping notes. Preserve that boundary.
+- Foundry VTT `14.367`;
+- D&D5e `6.0.0`.
 
-Implement D&D-only download wiring in the character-sheet toolbar:
+Import a representative generated D&D 5E 2024 artifact and record concrete runtime evidence for:
 
-- add a clearly labeled `Download Foundry D&D5e import JSON` action;
-- show it only for a valid D&D 5E 2024 character, never for BRP;
-- reuse the existing deterministic Foundry Actor exporter and serializer;
-- download a stable filename such as `<character-slug>-foundry-dnd5e.json`;
-- keep the existing full CharacterDocument Copy JSON and Download JSON actions unchanged;
-- use the existing Blob/Object URL browser-download pattern;
-- keep status/error handling local to the toolbar rather than throwing through the UI.
+- whether Foundry accepts the raw Actor JSON without manual structural repair;
+- Actor identity, abilities, saves, HP, flat AC, movement, senses, skills, languages, currency, and spell-slot state;
+- embedded Class, Background, Race, weapon, armor, shield, ammunition, container, tool, instrument, focus, consumable, and simple-gear Items already covered by the Stage 5 adapter;
+- deterministic embedded IDs and source provenance;
+- any runtime normalization, migration, rejection, warning, or schema mutation performed by Foundry/D&D5e; and
+- exact defects that require adapter changes before broader feature/activity or spell mapping.
 
-Add deterministic coverage proving:
+Do not claim runtime acceptance until this real import test occurs.
 
-- repeated Foundry artifact generation is byte-identical for the same character;
-- the downloaded JSON parses to the adapter's raw `document`;
-- wrapper fields such as `mappingNotes` and the export schema identifier are absent from the import JSON;
-- the D&D toolbar exposes the Foundry download action;
-- the BRP toolbar does not;
-- filename generation is stable and sanitized.
-
-This is Stage 5 step 5 from the owner-approved sequence. Do not add new equipment, feature/activity, or spell mappings merely to make the artifact richer.
-
-After this artifact exists and exact-SHA CI is green, real Foundry runtime import validation becomes the next major blocker and the documented Foundry-license purchase trigger should be reevaluated.
-
-Do not combine this with:
+Do not combine the runtime acceptance pass with:
 
 - Healer's Kit Stabilize activity automation;
 - general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
-- real Foundry runtime import acceptance;
 - one-click Foundry push/update; or
-- bidirectional Foundry sync.
+- bidirectional Foundry synchronization.
+
+If the real runtime exposes an adapter defect, make the smallest evidence-backed correction, bump adapter version only if the exported Actor/Item document shape changes, and repeat exact-SHA validation.
 
 ## Deferred QA Return Point
 
