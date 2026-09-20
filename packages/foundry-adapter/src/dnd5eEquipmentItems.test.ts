@@ -1211,6 +1211,127 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
+  it("maps confirmed 2024 simple gear while keeping legacy-only spellbook deferred", () => {
+    const original = createFirstSliceNativePayload();
+    const sourceIds = ["parchment-sheet", "robe", "crowbar"] as const;
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...sourceIds.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "spellbook", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-simple-gear", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-simple-gear", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(sourceIds.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "spellbook",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const bySourceId = new Map(first.items.map((item) => [
+      (item.flags as { "character-forge": { sourceId: string } })["character-forge"].sourceId,
+      item,
+    ]));
+
+    expect(bySourceId.get("parchment-sheet")).toMatchObject({
+      _id: stableFoundryDocumentId("character-simple-gear:equipment:parchment-sheet"),
+      name: "Parchment",
+      type: "loot",
+      system: {
+        description: { value: "", chat: "" },
+        identifier: "parchment",
+        identified: true,
+        unidentified: { description: "" },
+        container: null,
+        quantity: 2,
+        weight: { value: 0, units: "lb" },
+        price: { value: 1, denomination: "sp" },
+        rarity: "",
+        type: { value: "gear", subtype: "" },
+        properties: [],
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "parchment-sheet",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    expect(bySourceId.get("robe")).toMatchObject({
+      _id: stableFoundryDocumentId("character-simple-gear:equipment:robe"),
+      name: "Robe",
+      type: "equipment",
+      system: {
+        description: { value: "", chat: "" },
+        identifier: "robe",
+        container: null,
+        quantity: 2,
+        weight: { value: 4, units: "lb" },
+        price: { value: 1, denomination: "gp" },
+        equipped: false,
+        cover: null,
+        crewed: false,
+        armor: { value: null, magicalBonus: null, dex: null },
+        hp: { value: null, max: null, dt: null, conditions: "" },
+        type: { value: "clothing", baseItem: "" },
+        properties: [],
+        speed: { value: null, conditions: "" },
+        strength: null,
+        proficient: null,
+        activities: {},
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "robe",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    expect(bySourceId.get("crowbar")).toMatchObject({
+      _id: stableFoundryDocumentId("character-simple-gear:equipment:crowbar"),
+      name: "Crowbar",
+      type: "loot",
+      system: {
+        description: { value: "", chat: "" },
+        identifier: "crowbar",
+        identified: true,
+        unidentified: { description: "" },
+        container: null,
+        quantity: 2,
+        weight: { value: 5, units: "lb" },
+        price: { value: 2, denomination: "gp" },
+        rarity: "",
+        type: { value: "gear", subtype: "" },
+        properties: [],
+      },
+      flags: {
+        "character-forge": {
+          role: "equipment",
+          sourceId: "crowbar",
+          sourceQuantity: 2,
+        },
+      },
+    });
+
+    for (const sourceId of sourceIds) {
+      const serialized = JSON.stringify(bySourceId.get(sourceId));
+      expect(serialized).not.toContain("@UUID");
+      expect(serialized).not.toContain("Advantage");
+      expect(serialized).not.toContain("250 handwritten words");
+      expect(serialized).not.toContain("vocational");
+    }
+  });
+
   it("reports multi-container stacks explicitly because Foundry containers cannot stack", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {

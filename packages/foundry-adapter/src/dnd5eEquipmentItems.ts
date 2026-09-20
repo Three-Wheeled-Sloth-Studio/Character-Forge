@@ -823,6 +823,58 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
       });
     },
   },
+  "parchment-sheet": {
+    name: "Parchment",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "parchment",
+        quantity,
+        priceValue: 1,
+        priceDenomination: "sp",
+        weight: 0,
+        lootType: "gear",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
+  robe: {
+    name: "Robe",
+    type: "equipment",
+    buildSystem(quantity) {
+      return {
+        ...physicalSystem("robe", quantity, 1, "gp", 4, false),
+        cover: null,
+        crewed: false,
+        uses: emptyUses(),
+        armor: { value: null, magicalBonus: null, dex: null },
+        hp: { value: null, max: null, dt: null, conditions: "" },
+        type: { value: "clothing", baseItem: "" },
+        properties: [],
+        speed: { value: null, conditions: "" },
+        strength: null,
+        proficient: null,
+        activities: {},
+      };
+    },
+  },
+  crowbar: {
+    name: "Crowbar",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "crowbar",
+        quantity,
+        priceValue: 2,
+        priceDenomination: "gp",
+        weight: 5,
+        lootType: "gear",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
   arrow: {
     name: "Arrows",
     type: "consumable",
