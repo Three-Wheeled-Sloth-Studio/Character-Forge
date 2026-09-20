@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.8.0`
+Character Forge adapter: `0.9.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.8.0` currently maps:
+Adapter `0.9.0` currently maps:
 
 ### Weapons
 
@@ -140,7 +140,11 @@ Character Forge can emit 17 artisan-tool variants and 10 musical-instrument vari
 - `shawm`
 - `viol`
 
-The Character Forge prefix carries semantic context and is not part of the Foundry identifier. These require explicit whitelist translation. The 17 `artisan-tools:*` variants are the next bounded category; musical instruments remain deferred.
+The Character Forge prefix carries semantic context and is not part of the Foundry identifier.
+
+All 17 `artisan-tools:*` variants are implemented through an explicit whitelist. Their compound Character Forge source IDs remain intact for deterministic IDs and provenance while Foundry receives the exact pinned target identifier and static tool fields.
+
+The 10 `musical-instrument:*` variants remain deferred and are the next bounded category.
 
 ### Compound Focus IDs
 
@@ -205,18 +209,19 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 - `packs/_source/equipment24/weapons/martial-ranged/longbow.yml`
 - `packs/_source/equipment24/weapons/martial-melee/greataxe.yml`
 - `packs/_source/equipment24/weapons/martial-melee/longsword.yml`
+- all 17 `packs/_source/equipment24/tools/artisan/*.yml` fixtures corresponding to the emitted artisan suffix set
+- the pinned `packs/_source/equipment24/tools/other/musical-instrument/` directory, which contains all 10 emitted musical-instrument suffixes
 - prior pinned armor, ammunition, container, and Fighter proof fixtures recorded in repository history.
 
 ## Recommended Next Slice
 
-Translate only the 17 emitted `artisan-tools:<tool-id>` variants.
+Translate only the 10 emitted `musical-instrument:<instrument-id>` variants.
 
-1. inspect every corresponding pinned Foundry D&D5e 6.0 artisan fixture before registering it;
-2. map compound Character Forge source IDs through an explicit whitelist to the Foundry suffix identifier rather than applying a generic prefix-strip rule;
-3. preserve exact static tool fields from the pinned fixture, including price, weight, tool type/base item, and ability;
-4. preserve native quantity, deterministic embedded IDs, and the original compound Character Forge source ID in provenance flags;
-5. keep descriptions and activities empty and do not infer proficiency, equipped state, or container relationships;
-6. prove all 17 mappings deterministically; and
-7. keep `musical-instrument:*`, focus aliases, gaming/book aliases, healer's-kit activity semantics, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. inspect all 10 corresponding pinned Foundry D&D5e 6.0 musical-instrument fixtures;
+2. map compound Character Forge source IDs through an explicit whitelist to the exact Foundry target identifiers;
+3. preserve pinned static tool fields, native quantity, deterministic embedded IDs, and the original compound Character Forge source ID in provenance flags;
+4. keep descriptions and activities empty and do not infer proficiency, equipped state, or container relationships;
+5. prove all 10 mappings deterministically; and
+6. keep focus aliases, gaming/book aliases, healer's-kit activity semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-This is the next bounded semantic category because the direct-tool slice has established the target `tool` Item shape and the audit already enumerates the complete artisan prefix domain.
+This category follows the same semantic-prefix boundary now proven by the artisan-tool slice and has an exact 10-fixture target family in the pinned Foundry 6.0.x source tree.

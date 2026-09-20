@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `faefe3790f515abe530cb9c20863818cdacf8660`
-- Actions: `35510202339`
-- Job: `106076655841`
+- SHA: `cdd26447dccab3bd72374f1c66ece6a8cbc1f7ef`
+- Actions: `35510998019`
+- Job: `106078772242`
 - `npm run verify`: green
 - 68 test files
-- 330 tests passed
+- 331 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3951 characters
-- Build: `Character Forge build 0.0.1 faefe379`
-- Foundry adapter: `0.8.0`
+- Agent context: 4047 characters
+- Build: `Character Forge build 0.0.1 cdd26447`
+- Foundry adapter: `0.9.0`
 
 Promoted branches remain unchanged:
 
@@ -161,6 +161,20 @@ The slice proves:
 - proficiency, container relationships, and semantic aliases remain uninferred; and
 - `artisan-tools:smiths-tools` remains explicitly deferred.
 
+### Artisan tool prefix breadth - complete
+
+Checkpoint `cdd26447dccab3bd72374f1c66ece6a8cbc1f7ef` maps all 17 emitted `artisan-tools:<tool-id>` variants through an explicit whitelist.
+
+The slice proves:
+
+- the Character Forge compound source ID remains authoritative for deterministic embedded IDs and provenance;
+- each target uses the exact pinned Foundry artisan-tool identifier rather than a generic prefix-strip fallback;
+- exact pinned name, price, weight, `type.value = "art"`, base item, and ability are preserved;
+- native quantities remain stable;
+- descriptions and activities remain empty;
+- proficiency, equipped state, and container relationships remain uninferred; and
+- `musical-instrument:lute` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -175,25 +189,24 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- the three direct literal tool concepts now have pinned mappings; and
-- focus, book, gaming-set, dynamic artisan-tool, and musical-instrument compound IDs still require deliberate decomposition/translation.
+- the three direct literal tool concepts and all 17 emitted artisan-tool compound IDs now have pinned mappings; and
+- focus, book, gaming-set, and musical-instrument compound IDs still require deliberate decomposition/translation.
 
 ## Next Bounded Stage 5 Slice
 
-Translate only the 17 dynamic artisan-tool IDs under the existing `artisan-tools:<tool-id>` Character Forge semantic prefix.
+Translate only the 10 dynamic musical-instrument IDs under the existing `musical-instrument:<instrument-id>` Character Forge semantic prefix.
 
-1. inspect the exact pinned Foundry D&D5e 6.0 artisan-tool fixtures for every emitted suffix listed in the equipment audit;
+1. inspect the exact pinned Foundry D&D5e 6.0 musical-instrument fixtures for all 10 emitted suffixes listed in the equipment audit;
 2. use an explicit whitelist translation from Character Forge compound source IDs to Foundry target identifiers rather than a generic prefix-strip fallback;
-3. preserve exact target price, weight, tool type/base item, ability, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance;
+3. preserve exact pinned static tool fields, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance;
 4. keep descriptions and activities empty;
 5. do not infer proficiency, equipped state, or container relationships; and
-6. keep `musical-instrument:*`, focus aliases, gaming/book aliases, and other non-artisan gaps explicit and deferred.
+6. keep focus aliases, gaming/book aliases, and other non-instrument gaps explicit and deferred.
 
-Why this category next: the direct-tool slice proved the pinned Foundry `tool` Item model, and the audit identifies one coherent 17-value Character Forge artisan prefix whose suffixes correspond to the pinned Foundry artisan fixture family. The translation still needs an explicit whitelist because Character Forge compound IDs are semantic IDs.
+The pinned 6.0.x musical-instrument fixture directory contains all 10 currently emitted suffixes, making this the next coherent semantic category after artisan tools.
 
 Do not combine this with:
 
-- dynamic musical-instrument translation;
 - focus aliases;
 - gaming-set or book aliases;
 - healer's-kit activity semantics;

@@ -6,7 +6,7 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- artisan-tools
+- musical-instruments
 ---
 # Next Development Prompt
 
@@ -23,7 +23,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry artisan tool prefix translation"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry musical instrument prefix translation"
 ```
 
 Then read only:
@@ -33,23 +33,23 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 5. `packages/foundry-adapter/src/target.ts`
-6. the Character Forge source that defines the emitted `artisan-tools:*` suffix set, if needed to confirm the audit
-7. exact pinned Foundry D&D5e 6.0 artisan-tool fixtures for the 17 suffixes listed in the audit
+6. the Character Forge source defining the 10 emitted `musical-instrument:*` suffixes, if needed to reconfirm the audit
+7. exact pinned Foundry D&D5e 6.0 musical-instrument fixtures for those 10 suffixes
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `faefe3790f515abe530cb9c20863818cdacf8660`
-- Actions: `35510202339`
-- Job: `106076655841`
-- 68 test files / 330 tests / 0 failures
+- SHA: `cdd26447dccab3bd72374f1c66ece6a8cbc1f7ef`
+- Actions: `35510998019`
+- Job: `106078772242`
+- 68 test files / 331 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 3951 characters
-- build: `Character Forge build 0.0.1 faefe379`
-- Foundry adapter: `0.8.0`
+- agent context 4047 characters
+- build: `Character Forge build 0.0.1 cdd26447`
+- Foundry adapter: `0.9.0`
 
 Promoted branches remain unchanged:
 
@@ -58,8 +58,6 @@ Promoted branches remain unchanged:
 
 ## Current Foundry Target
 
-Pin this slice to:
-
 - Foundry VTT `14.367`
 - D&D5e `6.0.0`
 
@@ -67,47 +65,48 @@ Character Forge native D&D state remains authoritative. Foundry remains an adapt
 
 ## Current Equipment Coverage
 
-All currently emitted weapons, ammunition, mundane containers, armor/shields, and the three direct literal tool concepts now have pinned mappings.
+All currently emitted weapons, ammunition, mundane containers, armor/shields, three direct literal tools, and all 17 `artisan-tools:*` variants now have pinned mappings.
 
-Direct tool checkpoint `faefe3790f515abe530cb9c20863818cdacf8660` maps:
+The artisan checkpoint preserves the original compound Character Forge source ID for deterministic IDs and provenance while mapping through an explicit whitelist to exact Foundry target identifiers.
 
-- `calligraphers-supplies`
-- `thieves-tools`
-- `herbalism-kit`
+## Immediate Work - Musical Instruments Only
 
-It preserves exact pinned static tool fields while leaving descriptions and activities empty. Compound `artisan-tools:*` IDs remain explicit unsupported mappings.
+Translate exactly these 10 emitted Character Forge IDs:
 
-## Immediate Work - Dynamic Artisan Tools Only
-
-Translate the 17 emitted Character Forge IDs in the form:
-
-`artisan-tools:<tool-id>`
-
-The complete allowed suffix set is recorded in the equipment audit. Do not broaden beyond that enumerated set.
+- `musical-instrument:bagpipes`
+- `musical-instrument:drum`
+- `musical-instrument:dulcimer`
+- `musical-instrument:flute`
+- `musical-instrument:horn`
+- `musical-instrument:lute`
+- `musical-instrument:lyre`
+- `musical-instrument:pan-flute`
+- `musical-instrument:shawm`
+- `musical-instrument:viol`
 
 ### Rules
 
-- Inspect each exact pinned Foundry D&D5e 6.0 artisan-tool fixture before registering it.
+- Inspect each exact pinned Foundry D&D5e 6.0 musical-instrument fixture before registering it.
 - Use an explicit whitelist from the complete Character Forge compound source ID to the Foundry target identifier. Do not implement a generic prefix-strip fallback.
 - Preserve the original compound Character Forge source ID in provenance flags and deterministic embedded-ID generation.
 - Preserve native quantity exactly.
 - Preserve exact pinned price, weight, `type.value`, `type.baseItem`, ability, and other required static tool fields.
 - Keep descriptions empty; do not copy compendium prose.
-- Keep activities empty; do not replay tool checks or crafting behavior.
+- Keep activities empty; do not replay performance or check behavior.
 - Do not infer proficiency, equipped state, or container relationships.
-- Unsupported IDs remain explicit; no generic loot or tool fallback.
+- Unsupported IDs remain explicit; no generic fallback.
 
 ### Coverage
 
 Add focused deterministic tests proving:
 
-- all 17 enumerated `artisan-tools:*` IDs map to their exact pinned Foundry target identifiers;
-- the original compound Character Forge IDs drive deterministic embedded IDs and remain in source provenance;
+- all 10 enumerated `musical-instrument:*` IDs map to their exact pinned Foundry target identifiers;
+- original compound Character Forge IDs drive deterministic embedded IDs and remain in source provenance;
 - exact pinned static tool fields are preserved for every mapping;
 - native quantities are preserved;
 - descriptions and activities remain empty;
 - no proficiency or relationship state is invented; and
-- a representative `musical-instrument:*` ID remains explicitly deferred.
+- a representative focus alias remains explicitly deferred.
 
 Then run exact-SHA GitHub Actions `Verify`.
 
@@ -115,10 +114,10 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
-- dynamic `musical-instrument:*` translation;
 - focus aliases;
 - gaming-set or book aliases;
 - healer's-kit activity semantics;
+- simple gear fixture review;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
