@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.9.0`
+Character Forge adapter: `0.10.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.9.0` currently maps:
+Adapter `0.10.0` currently maps:
 
 ### Weapons
 
@@ -142,19 +142,21 @@ Character Forge can emit 17 artisan-tool variants and 10 musical-instrument vari
 
 The Character Forge prefix carries semantic context and is not part of the Foundry identifier.
 
-All 17 `artisan-tools:*` variants are implemented through an explicit whitelist. Their compound Character Forge source IDs remain intact for deterministic IDs and provenance while Foundry receives the exact pinned target identifier and static tool fields.
+All 17 `artisan-tools:*` variants and all 10 `musical-instrument:*` variants are implemented through explicit whitelists. Their compound Character Forge source IDs remain intact for deterministic IDs and provenance while Foundry receives exact pinned target identifiers and static tool fields.
 
-The 10 `musical-instrument:*` variants remain deferred and are the next bounded category.
+Musical instruments preserve the pinned `type.value = "music"`, `ability = "cha"`, and the `pan-flute` base-item exception `panflute`.
 
 ### Compound Focus IDs
 
-These require decomposition/translation and must not be passed through as Foundry identifiers:
+These require explicit decomposition/translation and must not be passed through as Foundry identifiers:
 
-- `druidic-focus:quarterstaff`
-- `druidic-focus:sprig-of-mistletoe`
-- `arcane-focus:crystal`
-- `arcane-focus:orb`
-- `arcane-focus:quarterstaff`
+- `druidic-focus:quarterstaff` -> pinned weapon target `wooden-staff`
+- `druidic-focus:sprig-of-mistletoe` -> pinned equipment target `sprig-of-mistletoe`
+- `arcane-focus:crystal` -> pinned equipment target `crystal`
+- `arcane-focus:orb` -> pinned equipment target `orb`
+- `arcane-focus:quarterstaff` -> pinned weapon target `staff`
+
+The two Character Forge `*:quarterstaff` aliases deliberately resolve to different Foundry target identifiers and must remain whitelist entries rather than a shared generic transform.
 
 ### Other Semantic Aliases Requiring Explicit Translation
 
@@ -210,18 +212,21 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 - `packs/_source/equipment24/weapons/martial-melee/greataxe.yml`
 - `packs/_source/equipment24/weapons/martial-melee/longsword.yml`
 - all 17 `packs/_source/equipment24/tools/artisan/*.yml` fixtures corresponding to the emitted artisan suffix set
-- the pinned `packs/_source/equipment24/tools/other/musical-instrument/` directory, which contains all 10 emitted musical-instrument suffixes
+- all 10 `packs/_source/equipment24/tools/other/musical-instrument/*.yml` fixtures corresponding to the emitted instrument suffix set
+- pinned spellcasting-focus fixtures under `packs/_source/equipment24/adventuring-gear/spellcasting-focuses/`, including arcane `crystal`, `orb`, `staff`, and druidic `sprig-of-mistletoe`, `wooden-staff`
 - prior pinned armor, ammunition, container, and Fighter proof fixtures recorded in repository history.
 
 ## Recommended Next Slice
 
-Translate only the 10 emitted `musical-instrument:<instrument-id>` variants.
+Translate only the five emitted compound focus IDs.
 
-1. inspect all 10 corresponding pinned Foundry D&D5e 6.0 musical-instrument fixtures;
-2. map compound Character Forge source IDs through an explicit whitelist to the exact Foundry target identifiers;
-3. preserve pinned static tool fields, native quantity, deterministic embedded IDs, and the original compound Character Forge source ID in provenance flags;
-4. keep descriptions and activities empty and do not infer proficiency, equipped state, or container relationships;
-5. prove all 10 mappings deterministically; and
-6. keep focus aliases, gaming/book aliases, healer's-kit activity semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. map `arcane-focus:crystal` to pinned equipment target `crystal`;
+2. map `arcane-focus:orb` to pinned equipment target `orb`;
+3. map `arcane-focus:quarterstaff` to pinned weapon target `staff`;
+4. map `druidic-focus:sprig-of-mistletoe` to pinned equipment target `sprig-of-mistletoe`;
+5. map `druidic-focus:quarterstaff` to pinned weapon target `wooden-staff`;
+6. use an explicit whitelist and preserve the original compound Character Forge source IDs for deterministic IDs and provenance;
+7. preserve exact pinned static equipment/weapon fields while keeping descriptions and activities empty; and
+8. keep `holy-symbol`, gaming/book aliases, healer's-kit activity semantics, simple gear, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-This category follows the same semantic-prefix boundary now proven by the artisan-tool slice and has an exact 10-fixture target family in the pinned Foundry 6.0.x source tree.
+This is the next bounded semantic category because the pinned target family is known and it exercises deliberate cross-type aliasing: three equipment targets and two weapon targets.

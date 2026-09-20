@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `cdd26447dccab3bd72374f1c66ece6a8cbc1f7ef`
-- Actions: `35510998019`
-- Job: `106078772242`
+- SHA: `ec48798b5c05ccb08803e4a19a4af8ed24b8db3f`
+- Actions: `35511196960`
+- Job: `106079291713`
 - `npm run verify`: green
 - 68 test files
-- 331 tests passed
+- 332 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 4047 characters
-- Build: `Character Forge build 0.0.1 cdd26447`
-- Foundry adapter: `0.9.0`
+- Agent context: 4048 characters
+- Build: `Character Forge build 0.0.1 ec48798b`
+- Foundry adapter: `0.10.0`
 
 Promoted branches remain unchanged:
 
@@ -175,6 +175,21 @@ The slice proves:
 - proficiency, equipped state, and container relationships remain uninferred; and
 - `musical-instrument:lute` remains explicit deferred equipment.
 
+### Musical-instrument prefix breadth - complete
+
+Checkpoint `ec48798b5c05ccb08803e4a19a4af8ed24b8db3f` maps all 10 emitted `musical-instrument:<instrument-id>` variants through an explicit whitelist.
+
+The slice proves:
+
+- the Character Forge compound source ID remains authoritative for deterministic embedded IDs and provenance;
+- each target uses the exact pinned Foundry musical-instrument identifier rather than a generic prefix-strip fallback;
+- exact pinned name, price, weight, `type.value = "music"`, base item, and `ability = "cha"` are preserved;
+- the pinned `pan-flute` target exception `baseItem = "panflute"` is preserved;
+- native quantities remain stable;
+- descriptions and activities remain empty;
+- proficiency, equipped state, and container relationships remain uninferred; and
+- `arcane-focus:orb` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -189,27 +204,39 @@ Key result:
 - Character Forge compound IDs are semantic IDs, not assumed Foundry identifiers;
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
-- the three direct literal tool concepts and all 17 emitted artisan-tool compound IDs now have pinned mappings; and
-- focus, book, gaming-set, and musical-instrument compound IDs still require deliberate decomposition/translation.
+- the three direct literal tool concepts, all 17 artisan-tool compound IDs, and all 10 musical-instrument compound IDs now have pinned mappings; and
+- focus, book, and gaming-set aliases still require deliberate decomposition/translation.
 
 ## Next Bounded Stage 5 Slice
 
-Translate only the 10 dynamic musical-instrument IDs under the existing `musical-instrument:<instrument-id>` Character Forge semantic prefix.
+Translate only the five emitted compound focus IDs:
 
-1. inspect the exact pinned Foundry D&D5e 6.0 musical-instrument fixtures for all 10 emitted suffixes listed in the equipment audit;
-2. use an explicit whitelist translation from Character Forge compound source IDs to Foundry target identifiers rather than a generic prefix-strip fallback;
-3. preserve exact pinned static tool fields, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance;
-4. keep descriptions and activities empty;
-5. do not infer proficiency, equipped state, or container relationships; and
-6. keep focus aliases, gaming/book aliases, and other non-instrument gaps explicit and deferred.
+- `arcane-focus:crystal`
+- `arcane-focus:orb`
+- `arcane-focus:quarterstaff`
+- `druidic-focus:sprig-of-mistletoe`
+- `druidic-focus:quarterstaff`
 
-The pinned 6.0.x musical-instrument fixture directory contains all 10 currently emitted suffixes, making this the next coherent semantic category after artisan tools.
+Pinned Foundry 6.0.x evidence shows this is a mixed target family:
+
+- arcane crystal -> equipment target `crystal`;
+- arcane orb -> equipment target `orb`;
+- arcane quarterstaff semantic alias -> weapon target `staff`;
+- druidic sprig -> equipment target `sprig-of-mistletoe`; and
+- druidic quarterstaff semantic alias -> weapon target `wooden-staff`.
+
+Use an explicit whitelist. Do not pass Character Forge compound IDs through as Foundry identifiers, and do not assume the two `*:quarterstaff` aliases share one target.
+
+Preserve pinned static equipment/weapon fields, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance. Keep descriptions and activities empty. Do not infer equipped state, attack automation, proficiency, spellcasting relationships, or container relationships.
+
+Keep `holy-symbol`, gaming/book aliases, healer's-kit activity semantics, and simple-gear review separate.
 
 Do not combine this with:
 
-- focus aliases;
+- `holy-symbol` translation;
 - gaming-set or book aliases;
 - healer's-kit activity semantics;
+- simple gear fixture review;
 - feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
