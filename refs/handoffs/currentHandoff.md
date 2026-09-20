@@ -30,19 +30,19 @@ The authoritative stage order remains:
 
 Accepted `dev` implementation head:
 
-- SHA: `0c06ec6aaf21f0719f54929890cf4f67f68093c9`
-- Actions: `35514407369`
-- Job: `106087797352`
+- SHA: `049db0e7e72bc81c9ee9be4415e3300f67e8829c`
+- Actions: `35524422860`
+- Job: `106113998519`
 - `npm run verify`: green
 - 68 test files
-- 336 tests passed
+- 337 tests passed
 - 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF: 33 concepts / 10 indexes
-- Agent context: 3582 characters
-- Build: `Character Forge build 0.0.1 0c06ec6a`
-- Foundry adapter: `0.14.0`
+- Agent context: 3645 characters
+- Build: `Character Forge build 0.0.1 049db0e7`
+- Foundry adapter: `0.15.0`
 
 Promoted branches remain unchanged:
 
@@ -255,6 +255,24 @@ The slice proves:
 - the generic Foundry Book's +5 Intelligence-check rules text is not copied or automated; and
 - `spellbook` remains explicit deferred equipment.
 
+### Confirmed 2024 simple gear - complete
+
+Checkpoint `049db0e7e72bc81c9ee9be4415e3300f67e8829c` maps the remaining literal simple-gear IDs with confirmed 2024 Foundry fixtures:
+
+- `parchment-sheet` -> loot `parchment`
+- `robe` -> equipment `robe`
+- `crowbar` -> loot `crowbar`
+
+The slice proves:
+
+- exact pinned 2024 target identifiers and Item types are preserved;
+- Parchment preserves `1 sp`, `0 lb`, gear type, blank subtype, and empty properties;
+- Robe preserves `1 gp`, `4 lb`, clothing type, blank base item, unequipped state, null armor/proficiency fields, empty properties, and empty activities;
+- Crowbar preserves `2 gp`, `5 lb`, gear type, blank subtype, and empty properties;
+- native quantities, deterministic Character Forge source-ID-based embedded IDs, and source provenance remain stable;
+- descriptions remain empty and Crowbar's leverage Advantage rule is not copied or automated; and
+- `spellbook` remains explicit deferred equipment.
+
 The equipment adapter still aggregates ordinary repeated stacks before export, retains Character Forge source ID/quantity flags, and emits explicit unsupported-equipment records instead of fabricating fallback Items.
 
 ## Level 1 Equipment Audit
@@ -270,67 +288,47 @@ Key result:
 - all currently emitted weapon IDs now have pinned mappings;
 - ammunition, all currently emitted mundane containers, and all currently emitted armor/shield IDs also have pinned mappings;
 - the three direct literal tool concepts, all 17 artisan-tool compound IDs, all 10 musical-instrument compound IDs, all five compound focus IDs, generic `holy-symbol`, `gaming-set:dice`, and all three `book:*` aliases now have pinned mappings;
-- all currently identified semantic-alias equipment groups are now covered; and
-- remaining equipment work is literal simple gear plus the intentionally deferred healer's-kit activity/uses semantics.
+- all currently identified semantic-alias equipment groups are now covered;
+- the confirmed 2024 literal simple-gear group is now covered; and
+- remaining equipment work is `healers-kit` plus the unresolved cross-rules-version policy for `spellbook` and `travelers-clothes`.
 
 ## Next Bounded Stage 5 Slice
 
-Map only the three remaining literal simple-gear IDs that have confirmed 2024 Foundry fixtures:
-
-- `parchment-sheet` -> pinned `parchment` loot target
-- `robe` -> pinned `robe` equipment target
-- `crowbar` -> pinned `crowbar` loot target
+Map only `healers-kit` to its pinned 2024 Foundry consumable target while preserving its durable ten-use state and continuing to defer the Stabilize activity.
 
 Pinned Foundry 6.0.x 2024 fields:
 
-### Parchment
-
-- name: `Parchment`
-- Item type: `loot`
-- identifier: `parchment`
-- price: `1 sp`
-- weight: `0 lb`
-- type: `gear`
-- subtype: blank
-- properties: empty
-
-### Robe
-
-- name: `Robe`
-- Item type: `equipment`
-- identifier: `robe`
-- price: `1 gp`
-- weight: `4 lb`
-- `type.value = "clothing"`
-- `type.baseItem = ""`
+- name: `Healer's Kit`
+- Item type: `consumable`
+- identifier: `healers-kit`
+- price: `5 gp`
+- weight: `3 lb`
 - equipped: false
-- armor value/magical bonus/dex: null
-- proficient: null
-- properties: empty
-- activities: empty
-
-### Crowbar
-
-- name: `Crowbar`
-- Item type: `loot`
-- identifier: `crowbar`
-- price: `2 gp`
-- weight: `5 lb`
-- type: `gear`
+- `uses.max = "10"`
+- `uses.autoDestroy = true`
+- `uses.spent = 0`
+- `uses.recovery = []`
+- damage base number/denomination: null
+- damage types: empty
+- damage custom enabled: false
+- damage scaling number: 1
+- replace: false
+- `type.value = "trinket"`
 - subtype: blank
+- magical bonus: null
 - properties: empty
 
-Preserve native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance. Keep descriptions empty. Do not implement the Crowbar leverage Advantage rule.
+The pinned fixture also contains a `Stabilize` utility activity that consumes one item use. Do **not** export that activity in this slice. Preserve the durable ten-use consumable state, but keep `activities = {}` so activity semantics remain a separate deliberate adapter increment.
 
-Do not pull `spellbook` or `travelers-clothes` into this slice. In the pinned D&D5e 6.0.x source tree, those exact fixtures currently resolve only to 2014-rule Items, so they need an explicit cross-rules-version adapter decision before mapping.
+Preserve native quantity, deterministic Character Forge source-ID-based embedded IDs, and source provenance. Keep descriptions empty.
 
-Keep `healers-kit` separate. It has a 2024 consumable fixture with ten uses and a Stabilize activity; that activity/uses behavior remains intentionally outside this simple static-gear slice.
+Continue to defer `spellbook` and `travelers-clothes`. The pinned D&D5e 6.0.x tree currently exposes only 2014-rule fixtures for those exact items, so they still require an explicit cross-rules-version adapter decision.
 
 Do not combine this with:
 
+- the Healer's Kit Stabilize activity;
 - `spellbook` or `travelers-clothes`;
-- healer's-kit activity/uses semantics;
-- feature/activity Items;
+- general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
 - a user-facing Foundry Download button;

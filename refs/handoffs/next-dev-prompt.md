@@ -6,7 +6,8 @@ tags:
 - handoffs
 - foundry
 - stage-5
-- simple-gear
+- healers-kit
+- consumable
 ---
 # Next Development Prompt
 
@@ -23,7 +24,7 @@ Stage 5 - Foundry Export / Import Validation is active. Stage 4 integrated portr
 First run:
 
 ```bash
-python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry 2024 simple gear parchment robe crowbar"
+python refs/tools/generate_agent_context.py --focus "Stage 5 Foundry 2024 healers kit consumable uses"
 ```
 
 Then read only:
@@ -33,25 +34,24 @@ Then read only:
 3. `packages/foundry-adapter/src/dnd5eEquipmentItems.ts`
 4. `packages/foundry-adapter/src/dnd5eEquipmentItems.test.ts`
 5. `packages/foundry-adapter/src/target.ts`
-6. exact pinned Foundry D&D5e 6.0 fixtures:
-   - `packs/_source/equipment24/adventuring-gear/parchment.yml`
-   - `packs/_source/equipment24/adventuring-gear/robe.yml`
-   - `packs/_source/equipment24/adventuring-gear/crowbar.yml`
+6. exact pinned Foundry D&D5e 6.0:
+   - `packs/_source/equipment24/adventuring-gear/healers-kit.yml`
+   - `module/data/item/consumable.mjs`
 
 Do not reread repository history or reopen Stage 4 implementation.
 
 ## Exact Green Implementation Checkpoint
 
-- SHA: `0c06ec6aaf21f0719f54929890cf4f67f68093c9`
-- Actions: `35514407369`
-- Job: `106087797352`
-- 68 test files / 336 tests / 0 failures
+- SHA: `049db0e7e72bc81c9ee9be4415e3300f67e8829c`
+- Actions: `35524422860`
+- Job: `106113998519`
+- 68 test files / 337 tests / 0 failures
 - 251 tracked paths
 - 14 required project-memory files
 - OKF 33 concepts / 10 indexes
-- agent context 3582 characters
-- build: `Character Forge build 0.0.1 0c06ec6a`
-- Foundry adapter: `0.14.0`
+- agent context 3645 characters
+- build: `Character Forge build 0.0.1 049db0e7`
+- Foundry adapter: `0.15.0`
 
 Promoted branches remain unchanged:
 
@@ -65,73 +65,61 @@ Promoted branches remain unchanged:
 
 Character Forge native D&D state remains authoritative. Foundry remains an adapter target.
 
-## Immediate Work - Confirmed 2024 Simple Gear Only
+## Immediate Work - Healer's Kit Consumable State Only
 
 Translate exactly:
 
-- `parchment-sheet` -> `parchment`
-- `robe` -> `robe`
-- `crowbar` -> `crowbar`
+`healers-kit` -> `healers-kit`
 
-### Pinned Parchment Target
+Pinned target:
 
-- name: `Parchment`
-- Item type: `loot`
-- identifier: `parchment`
-- price: `1 sp`
-- weight: `0 lb`
-- `type.value = "gear"`
-- subtype: blank
-- properties: empty
-
-### Pinned Robe Target
-
-- name: `Robe`
-- Item type: `equipment`
-- identifier: `robe`
-- price: `1 gp`
-- weight: `4 lb`
-- `type.value = "clothing"`
-- `type.baseItem = ""`
+- name: `Healer's Kit`
+- Item type: `consumable`
+- identifier: `healers-kit`
+- price: `5 gp`
+- weight: `3 lb`
 - equipped: false
-- armor value/magicalBonus/dex: null
-- strength: null
-- proficient: null
-- properties: empty
-- activities: empty
-
-### Pinned Crowbar Target
-
-- name: `Crowbar`
-- Item type: `loot`
-- identifier: `crowbar`
-- price: `2 gp`
-- weight: `5 lb`
-- `type.value = "gear"`
+- uses:
+  - max: `"10"`
+  - autoDestroy: true
+  - spent: 0
+  - recovery: []
+- damage:
+  - base number: null
+  - base denomination: null
+  - types: []
+  - custom enabled: false
+  - scaling number: 1
+  - replace: false
+- `type.value = "trinket"`
 - subtype: blank
+- magical bonus: null
 - properties: empty
+
+The pinned fixture contains a `Stabilize` utility activity that consumes one item use. Do not export that activity in this slice.
 
 ### Rules
 
-- Use explicit Character Forge source-ID mappings.
-- Preserve original source IDs in provenance and deterministic embedded-ID generation.
-- Preserve native quantities exactly.
-- Keep descriptions empty.
-- Do not copy Parchment/Robe/Crowbar compendium prose.
-- Do not implement Crowbar's leverage Advantage rule.
-- Do not infer equipped state beyond the pinned Robe `false`.
+- Preserve the durable ten-use state.
+- Emit `activities = {}`.
+- Preserve native quantity exactly.
+- Preserve original source ID in provenance and deterministic embedded-ID generation.
+- Keep description empty.
+- Do not copy compendium prose.
+- Do not fabricate Medicine checks, Unconscious targeting, stabilization effects, or activity automation.
 - Unsupported IDs remain explicit; no generic fallback.
 
 ### Coverage
 
 Add focused deterministic tests proving:
 
-- exact target identifiers and Item types for all three IDs;
-- exact pinned static price, weight, type/base-item or subtype, properties, and Robe armor/proficiency/activity fields;
-- native quantities and deterministic source-ID-based embedded IDs;
+- exact target identifier and `consumable` Item type;
+- exact price, weight, type/subtype, uses, damage, magical bonus, properties, and unequipped state;
+- native quantity and deterministic source-ID-based embedded ID;
 - exact Character Forge source provenance;
-- empty descriptions;
-- no copied Crowbar Advantage rule; and
+- description empty;
+- activities empty;
+- no Stabilize/Medicine/Unconscious activity semantics copied; and
 - `spellbook` remains explicitly deferred.
 
 Then run exact-SHA GitHub Actions `Verify`.
@@ -140,10 +128,10 @@ Then run exact-SHA GitHub Actions `Verify`.
 
 Do not combine this slice with:
 
+- the Healer's Kit Stabilize activity;
 - `spellbook`;
 - `travelers-clothes`;
-- healer's-kit uses/activity semantics;
-- feature/activity Items;
+- general feature/activity Items;
 - spell Items;
 - Parchment portrait/token packaging;
 - user-facing Foundry Download UX;

@@ -12,7 +12,7 @@ tags:
 
 Date: 2026-09-12
 Target: Foundry VTT `14.367` + D&D5e `6.0.0`
-Character Forge adapter: `0.14.0`
+Character Forge adapter: `0.15.0`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ This is an adapter audit, not a new canonical equipment model. Character Forge n
 
 ## Implemented Coverage
 
-Adapter `0.14.0` currently maps:
+Adapter `0.15.0` currently maps:
 
 ### Weapons
 
@@ -76,7 +76,7 @@ Implemented:
 
 Deferred:
 
-- `healers-kit` - Foundry target is `consumable`, but its activity remains outside the equipment-data proof.
+- `healers-kit` - pinned 2024 target is a `consumable` with ten durable uses plus a separate Stabilize activity. The next bounded slice should preserve the ten-use state while keeping the activity deferred.
 
 ### Containers and Packs
 
@@ -186,11 +186,13 @@ All three preserve the pinned generic 2024 Book physical/static fields while ret
 
 ### Literal Simple Gear With Confirmed 2024 Targets
 
-Ready for the next bounded slice:
+Implemented:
 
 - `parchment-sheet` -> 2024 `parchment` loot target
 - `robe` -> 2024 `robe` equipment target
 - `crowbar` -> 2024 `crowbar` loot target
+
+All three preserve exact pinned static target fields, native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance. Descriptions remain empty; the Crowbar Advantage rule and other compendium prose are not copied or automated.
 
 ### Literal Gear Requiring Rules-Version Decision
 
@@ -253,13 +255,14 @@ Pinned Foundry D&D5e 6.0 schema/examples now include:
 
 ## Recommended Next Slice
 
-Map the three literal simple-gear IDs with confirmed 2024 fixtures: `parchment-sheet`, `robe`, and `crowbar`.
+Map only `healers-kit` to the pinned 2024 Foundry consumable target.
 
-1. `parchment-sheet` -> Foundry loot identifier `parchment`, name `Parchment`, `1 sp`, `0 lb`, gear type, blank subtype, empty properties;
-2. `robe` -> Foundry equipment identifier `robe`, name `Robe`, `1 gp`, `4 lb`, clothing type, blank base item, unequipped, null armor/proficiency fields, empty properties/activities;
-3. `crowbar` -> Foundry loot identifier `crowbar`, name `Crowbar`, `2 gp`, `5 lb`, gear type, blank subtype, empty properties;
-4. preserve native quantity, deterministic source-ID-based embedded IDs, and exact Character Forge source provenance;
-5. keep descriptions empty and do not implement Crowbar's leverage Advantage rule; and
-6. keep `spellbook`, `travelers-clothes`, healer's-kit uses/activity semantics, feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
+1. preserve name `Healer's Kit`, identifier `healers-kit`, `5 gp`, `3 lb`, and unequipped state;
+2. preserve ten-use consumable state exactly: max `"10"`, auto-destroy true, spent 0, empty recovery;
+3. preserve pinned empty/non-damaging consumable fields: null base number/denomination, empty damage types, custom disabled, scaling number 1, replace false, trinket type, blank subtype, null magical bonus, empty properties;
+4. preserve native quantity, deterministic source-ID-based embedded IDs, and Character Forge source provenance;
+5. keep description empty;
+6. deliberately emit `activities = {}` and do not replay the pinned Stabilize utility activity yet; and
+7. keep `spellbook`, `travelers-clothes`, general feature/activity Items, spell Items, media packaging, Download UX, and runtime acceptance deferred.
 
-Do not map `spellbook` or `travelers-clothes` from the currently visible 2014 fixtures until the adapter has an explicit cross-rules-version policy.
+The pinned D&D5e 6.0.x tree still exposes only 2014-rule fixtures for `spellbook` and `travelers-clothes`; do not map them until the cross-rules-version adapter policy is explicit.
