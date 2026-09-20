@@ -210,7 +210,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -220,7 +220,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_SIMPLE_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -340,7 +340,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -350,7 +350,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MARTIAL_WEAPON_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -452,13 +452,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps direct tool concepts while keeping book alias translation deferred", () => {
+  it("maps direct tool concepts while keeping spellbook translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_DIRECT_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -468,7 +468,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_DIRECT_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -541,13 +541,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit artisan-tool whitelist while keeping book alias translation deferred", () => {
+  it("maps the explicit artisan-tool whitelist while keeping spellbook translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_ARTISAN_TOOL_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -557,7 +557,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_ARTISAN_TOOL_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -741,13 +741,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     }
   });
 
-  it("maps the explicit musical-instrument whitelist while keeping book alias translation deferred", () => {
+  it("maps the explicit musical-instrument whitelist while keeping spellbook translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -757,7 +757,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_MUSICAL_INSTRUMENT_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -881,7 +881,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         ...FOUNDRY_DND5E_FOCUS_IDS.map((itemId) => ({ itemId, quantity: 2 })),
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -891,7 +891,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(FOUNDRY_DND5E_FOCUS_IDS.length);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1031,7 +1031,7 @@ describe("Foundry D&D5e equipment mapping", () => {
       ...original,
       equipment: [
         { itemId: "holy-symbol", quantity: 2 },
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -1041,7 +1041,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(1);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1080,13 +1080,13 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(serialized).not.toContain("reliquary");
   });
 
-  it("maps the compound gaming-set dice concept while keeping book aliases deferred", () => {
+  it("maps the compound gaming-set dice concept while keeping spellbook translation deferred", () => {
     const original = createFirstSliceNativePayload();
     const payload: Dnd5eNativeCharacter = {
       ...original,
       equipment: [
         { itemId: "gaming-set:dice", quantity: 2 },
-        { itemId: "book:history", quantity: 1 },
+        { itemId: "spellbook", quantity: 1 },
       ],
     };
 
@@ -1096,7 +1096,7 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(first.items).toHaveLength(1);
     expect(first.unsupported).toEqual([
       {
-        itemId: "book:history",
+        itemId: "spellbook",
         quantity: 1,
         reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
       },
@@ -1134,6 +1134,81 @@ describe("Foundry D&D5e equipment mapping", () => {
     expect(serialized).not.toContain("@UUID");
     expect(serialized).not.toContain("Catch Cheating");
     expect(serialized).not.toContain("Play to Win");
+  });
+
+  it("maps semantic book aliases to the generic pinned Foundry book target", () => {
+    const original = createFirstSliceNativePayload();
+    const sourceIds = [
+      "book:prayers",
+      "book:history",
+      "book:occult-lore",
+    ] as const;
+    const payload: Dnd5eNativeCharacter = {
+      ...original,
+      equipment: [
+        ...sourceIds.map((itemId) => ({ itemId, quantity: 2 })),
+        { itemId: "spellbook", quantity: 1 },
+      ],
+    };
+
+    const first = buildFoundryDnd5eEquipmentItems("character-semantic-books", payload);
+    const second = buildFoundryDnd5eEquipmentItems("character-semantic-books", payload);
+    expect(first.items).toEqual(second.items);
+    expect(first.items).toHaveLength(sourceIds.length);
+    expect(first.unsupported).toEqual([
+      {
+        itemId: "spellbook",
+        quantity: 1,
+        reason: "No pinned Foundry D&D5e 6.0 equipment mapping is registered for this Character Forge item ID.",
+      },
+    ]);
+
+    const expectedNames = {
+      "book:prayers": "Prayer Book",
+      "book:history": "History Book",
+      "book:occult-lore": "Occult Lore Book",
+    } as const;
+    const bySourceId = new Map(first.items.map((item) => [
+      (item.flags as { "character-forge": { sourceId: string } })["character-forge"].sourceId,
+      item,
+    ]));
+
+    for (const sourceId of sourceIds) {
+      const item = bySourceId.get(sourceId);
+      expect(item).toMatchObject({
+        _id: stableFoundryDocumentId(`character-semantic-books:equipment:${sourceId}`),
+        name: expectedNames[sourceId],
+        type: "loot",
+        system: {
+          description: { value: "", chat: "" },
+          identifier: "book",
+          identified: true,
+          unidentified: { description: "" },
+          container: null,
+          quantity: 2,
+          weight: { value: 5, units: "lb" },
+          price: { value: 25, denomination: "gp" },
+          rarity: "",
+          type: { value: "gear", subtype: "" },
+          properties: [],
+        },
+        flags: {
+          "character-forge": {
+            role: "equipment",
+            sourceId,
+            sourceQuantity: 2,
+          },
+        },
+      });
+
+      const serialized = JSON.stringify(item);
+      expect(serialized).not.toContain("@UUID");
+      expect(serialized).not.toContain("+5");
+      expect(serialized).not.toContain("Arcana");
+      expect(serialized).not.toContain("Intelligence");
+      expect(serialized).not.toContain("Nature");
+      expect(serialized).not.toContain("Religion");
+    }
   });
 
   it("reports multi-container stacks explicitly because Foundry containers cannot stack", () => {

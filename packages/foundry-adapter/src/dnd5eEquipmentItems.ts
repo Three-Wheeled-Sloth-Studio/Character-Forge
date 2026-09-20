@@ -775,6 +775,54 @@ const EQUIPMENT_DEFINITIONS: Record<string, EquipmentDefinition> = {
     baseItem: "dice",
     ability: "wis",
   }),
+  "book:prayers": {
+    name: "Prayer Book",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "book",
+        quantity,
+        priceValue: 25,
+        priceDenomination: "gp",
+        weight: 5,
+        lootType: "gear",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
+  "book:history": {
+    name: "History Book",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "book",
+        quantity,
+        priceValue: 25,
+        priceDenomination: "gp",
+        weight: 5,
+        lootType: "gear",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
+  "book:occult-lore": {
+    name: "Occult Lore Book",
+    type: "loot",
+    buildSystem(quantity) {
+      return lootSystem({
+        identifier: "book",
+        quantity,
+        priceValue: 25,
+        priceDenomination: "gp",
+        weight: 5,
+        lootType: "gear",
+        subtype: "",
+        properties: [],
+      });
+    },
+  },
   arrow: {
     name: "Arrows",
     type: "consumable",
