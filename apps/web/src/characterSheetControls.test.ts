@@ -59,7 +59,7 @@ describe("character sheet Foundry download controls", () => {
 
     const dndControls = characterDocumentControlsHtmlForCharacter(dndCharacter);
     expect(dndControls).toContain('data-sheet-action="download-foundry-dnd5e"');
-    expect(dndControls).toContain("Download Foundry D&amp;D5e import JSON");
+    expect(dndControls).toContain("Download Foundry D&D5e import JSON");
     expect(dndControls).toContain('data-sheet-action="download-json"');
 
     const brpControls = characterDocumentControlsHtmlForCharacter(brpCharacter);
