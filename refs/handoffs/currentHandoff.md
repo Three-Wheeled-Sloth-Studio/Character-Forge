@@ -16,6 +16,11 @@ Current stage: **Stage 5 - Foundry Export / Import Validation (active)**
 
 ## Current State
 
+Dependency maintenance (2026-09-30): pinned Vitest to 4.1.11 to address
+GHSA-82fw-gwwq-j7x9 and refreshed its lockfile dependencies. `npm audit`
+reports zero vulnerabilities; `npm run verify` passed all 342 tests and the
+web build. This maintenance does not change Stage 5 acceptance or promotion.
+
 Stages 0 through 3 are complete.
 
 Stage 4 durable portrait/token implementation is complete, but integrated owner/browser QA is intentionally deferred until the owner is back at a primary workstation. Character Forge Issue #16 is the durable QA return point. That deferred QA is **not** a Stage 5 development blocker.
