@@ -356,3 +356,17 @@ Bridge-RPG implication: some capabilities benefit from orthogonal identity dimen
 Confidence: high for BRP-native modeling; medium as a cross-system design principle.
 
 Follow-up: do not promote a shared Character Forge language schema from BRP alone. Use the first BRP UI and a third system to see whether subject-versus-role identity recurs before standardizing it.
+
+
+### 2026-11-21 - Rule acceptance and durable acceptance are distinct
+
+Observation: a lawful Fate choice must not update the displayed native character until
+Parchment commits its native revision and lifecycle in one transaction. Missing acknowledgment
+is uncertain, not a safe automatic retry. Previous native states and generation provenance
+remain necessary even when the player sees only an original-Stunt text field.
+
+Translator implication: the decision ledger supplements source-native revisions; it cannot
+replace them. Original RPG implication: low-friction narrative input can coexist with
+inspectable causal history and optimistic conflict handling. Confidence: high for this
+vertical slice. Follow-up: preserve this boundary when adding another adapter-owned choice,
+without inventing a universal advancement formula.

@@ -31,7 +31,16 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/system-fate
-    notes: Bounded Fate native-state and freeform creator probe plus a deferred Stunt selection consumer and atomic-store contract; no mounted UI or real Parchment persistence adapter, and no inferred D&D/BRP semantic equivalence.
+    notes: Bounded Fate creator/sheet, deferred Stunt consumer and hosted atomic-store bridge; no inferred D&D/BRP semantic equivalence.
+  hosted-lifecycle:
+    guidance:
+      - refs/architecture/hosted-deferred-stunt-persistence-v1.md
+    source_roots:
+      - apps/web/src/lifecycleHostStore.ts
+      - apps/web/src/fateLifecyclePanel.ts
+      - apps/web/src/fatePresentation.ts
+      - packages/system-fate/src/stuntChoiceAction.ts
+    notes: Host acknowledgment gates display changes; Parchment owns durable atomic storage. Owner acceptance remains pending.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md

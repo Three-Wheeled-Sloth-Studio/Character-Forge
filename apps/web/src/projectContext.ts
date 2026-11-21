@@ -10,6 +10,8 @@ export interface CharacterForgeProjectContext {
 }
 
 const PROJECT_RULES_TO_CREATOR_SYSTEM: Record<string, CreatorSystemId> = {
+  'fate': 'fate-condensed',
+  'fate-condensed': 'fate-condensed',
   "dnd-5e-2024": "dnd5e-2024",
   "basic-roleplaying": "brp-uge",
 };

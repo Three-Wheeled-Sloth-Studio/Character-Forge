@@ -10,6 +10,26 @@ tags:
 ---
 # Current Handoff
 
+## 2026-11-21 - Hosted deferred Stunt persistence candidate
+
+- Implemented optional lifecycle storage beside the complete CharacterDocument,
+  atomic IndexedDB character/revision updates, stale-save rejection and preserved
+  archive/sync-conflict protections in Parchment.
+- Character Forge now has a bounded Fate creator/sheet, deferred Stunt interaction,
+  durable host acknowledgment, and read-only GM history. Fate owns validation;
+  no native state is reconstructed or discarded.
+- The v1 message contract validates source/origin and project/asset/character identity.
+  Save errors retain the editor; success updates the sheet without navigation.
+- Contract, file boundary, limitations and exact manual checklist:
+  `refs/architecture/hosted-deferred-stunt-persistence-v1.md`.
+- Local full gates pass: Character Forge 74 files / 367 tests; Parchment 63 files /
+  219 tests. Real Chromium iframe creation/defer/select/reload and stale-tab rejection
+  pass. Exact committed SHAs and CI evidence are recorded in the validation record.
+  Owner/manual acceptance remains pending. No qa/main promotion is authorized.
+- Next: owner smoke acceptance and bounded fixes. Foundry remains unchanged/paused.
+
+Earlier dated checkpoints below are historical context, not the active next slice.
+
 ## 2026-11-21 - Active Architecture Track (Foundry Paused)
 
 **Fate deferred-Stunt consumer follow-up:**

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCharacterLifecycle, parseCharacterDocument, type CharacterLifecycle } from "../../character-model/src/index.js";
-import { createFateProbeCharacter, deferFateStuntChoice, fateCondensedProbeAdapter, selectDeferredFateStunt, type FateCharacterSnapshot, type FateCharacterStore, type FateProbeCreationInput } from "./index.js";
+import { createFateProbeCharacter, deferFateStuntChoice, fateCondensedProbeAdapter, selectDeferredFateStunt, type FateCharacterSnapshot, type FateCharacterStore, type FateProbeCreationInput, saveFateStuntChoice } from "./index.js";
 
 const at = "2026-11-21T16:00:00.000Z";
 const choiceId = "starter-stunt-2";
@@ -89,5 +89,28 @@ describe("Fate deferred-Stunt native revision transaction", () => {
     expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
     expect(db.current().document.nativeStates).toHaveLength(2);
     expect(db.current().lifecycle.events.filter((event) => event.type === "native-revision-linked")).toHaveLength(1);
+  });
+});
+
+
+describe('player Stunt action', () => {
+  it('opens and selects in one durable write, retaining all native states', async () => {
+    const db = store();
+    let writes = 0;
+    const original = db.compareAndSwap.bind(db);
+    db.compareAndSwap = (...args) => { writes++; return original(...args); };
+    const saved = await saveFateStuntChoice(db, 'character-1', { id: 'rescue', text: 'I improvise a rescue with broken machines' });
+    expect(writes).toBe(1);
+    expect(saved.lifecycle.events.map(e => e.type)).toEqual(['choice-opened', 'choice-deferred', 'choice-assessed', 'choice-selected', 'native-revision-linked']);
+    expect(saved.document.nativeStates).toHaveLength(2);
+  });
+  it('leaves a deferred choice unchanged and rejects blank original text without writing an opening', async () => {
+    const db = store();
+    const before = db.current();
+    await expect(saveFateStuntChoice(db, 'character-1', { id: 'empty', text: ' ' })).rejects.toThrow('description');
+    expect(db.current()).toEqual(before);
+    const deferred = await saveFateStuntChoice(db, 'character-1');
+    expect(await saveFateStuntChoice(db, 'character-1')).toEqual(deferred);
+    expect(db.current()).toEqual(deferred);
   });
 });

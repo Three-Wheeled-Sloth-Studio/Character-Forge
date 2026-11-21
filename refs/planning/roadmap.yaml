@@ -18,6 +18,15 @@ principles:
   - Native system state remains canonical; Universal Grammar is a derived semantic/translation layer with explicit translation loss.
 
 roadmap:
+  - id: hosted-deferred-stunt
+    horizon: now
+    status: in_progress
+    goal: Complete owner acceptance of the atomic hosted Fate Stunt persistence slice.
+    completed:
+      - Bounded Fate creator, native sheet, deferred choice action and GM inspection.
+      - Versioned host store protocol with durable acknowledgment and optimistic locking.
+      - Parchment existing asset storage integration and automated browser reload proof.
+
   - id: foundation-0-repository-baseline
     horizon: completed
     status: completed

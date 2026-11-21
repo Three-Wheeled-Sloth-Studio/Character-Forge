@@ -8,8 +8,9 @@ import {
   type DndCreationMode,
 } from "./dndCreatorPanel.js";
 import { mountWorkspaceSplitter } from "./workspaceSplitter.js";
+import { mountFateCreator } from './fatePresentation.js';
 
-export type CreatorSystemId = "dnd5e-2024" | "brp-uge";
+export type CreatorSystemId = "dnd5e-2024" | "brp-uge" | "fate-condensed";
 
 export interface CreatorWorkspaceOptions {
   initialSystem?: CreatorSystemId;
@@ -29,6 +30,7 @@ export function defaultCreatorSystem(): CreatorSystemId {
 export function creatorSystemForCharacter(character: CharacterDocument): CreatorSystemId | null {
   const nativeState = character.nativeStates.find((entry) => entry.id === character.primaryNativeStateId);
   if (!nativeState) return null;
+  if (nativeState.systemId === 'fate' && nativeState.editionId === 'condensed') return 'fate-condensed';
   if (nativeState.systemId === "dnd5e" && nativeState.editionId === "2024") return "dnd5e-2024";
   if (nativeState.systemId === "brp" && nativeState.editionId === "uge-2023") return "brp-uge";
   return null;
@@ -43,6 +45,7 @@ export function creatorRandomizeAllAvailable(
   system: CreatorSystemId,
   dndMode: DndCreationMode = defaultDndCreationMode(),
 ): boolean {
+  if (system === 'fate-condensed') return false;
   return system === "brp-uge" || dndCreationModeSupportsRandomizeAll(dndMode);
 }
 
@@ -95,7 +98,7 @@ export function mountCreatorWorkspace(
   let brpController: BrpCreatorPanelController | null = null;
   let dndMode = defaultDndCreationMode();
 
-  const currentSystem = (): CreatorSystemId => systemSelect.value === "brp-uge" ? "brp-uge" : "dnd5e-2024";
+  const currentSystem = (): CreatorSystemId => systemSelect.value as CreatorSystemId;
 
   const refreshRandomizationUi = (): void => {
     const available = creatorRandomizeAllAvailable(currentSystem(), dndMode);
@@ -109,6 +112,11 @@ export function mountCreatorWorkspace(
   const renderSystem = (): void => {
     systemHost.innerHTML = "";
     brpController = null;
+    if (currentSystem() === 'fate-condensed') {
+      mountFateCreator(systemHost, onCharacter);
+      refreshRandomizationUi();
+      return;
+    }
     if (currentSystem() === "brp-uge") {
       brpController = mountBrpCreatorPanel(systemHost, onCharacter);
       refreshRandomizationUi();
@@ -150,12 +158,13 @@ export function mountCreatorWorkspace(
 }
 
 function normalizeAllowedSystems(systems: CreatorSystemId[] | undefined): CreatorSystemId[] {
-  const all: CreatorSystemId[] = ["dnd5e-2024", "brp-uge"];
+  const all: CreatorSystemId[] = ["dnd5e-2024", "brp-uge", "fate-condensed"];
   const filtered = systems?.filter((system, index) => all.includes(system) && systems.indexOf(system) === index) ?? [];
   return filtered.length ? filtered : all;
 }
 
 function creatorSystemLabel(system: CreatorSystemId): string {
+  if (system === 'fate-condensed') return 'Fate Condensed';
   return system === "brp-uge" ? "BRP UGE" : "D&D 5E 2024";
 }
 

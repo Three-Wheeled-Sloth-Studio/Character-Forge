@@ -9,4 +9,5 @@ Generated OKF discovery index. Do not edit manually.
 * [Character Architecture](character-architecture.md) - Agent Academy OKF knowledge concept.
 * [Deferred Choice and Advancement Lifecycle v0.1](deferred-choice-lifecycle-v0.1.md) - Agent Academy OKF knowledge concept.
 * [D&D 5E Spell-State Boundary Watch](dnd5e-spell-state-watch.md) - Agent Academy OKF knowledge concept.
+* [Hosted Deferred Stunt Persistence v1](hosted-deferred-stunt-persistence-v1.md) - Agent Academy OKF knowledge concept.
 * [Translation and Bridge RPG Evidence Ledger](translation-bridge-rpg-notes.md) - Agent Academy OKF knowledge concept.

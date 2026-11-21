@@ -9,6 +9,7 @@ import {
 } from "./characterSheetControls.js";
 import { SHEET_TOOLBAR_STYLES } from "./sheetToolbarStyles.js";
 import type { CharacterMediaRole } from "./characterForgeHostBridge.js";
+import { fateSheetHtml } from './fatePresentation.js';
 
 export interface CharacterResultMediaPresentation {
   portraitSrc?: string;
@@ -71,6 +72,11 @@ function renderCharacter(
   }
   if (nativeState.systemId === brpUge105Adapter.systemId && nativeState.editionId === brpUge105Adapter.editionId) {
     renderBrpCharacter(resultElement, character, nativeState, options, media);
+    return;
+  }
+  if (nativeState.systemId === 'fate' && nativeState.editionId === 'condensed') {
+    resultElement.classList.remove('empty-result');
+    resultElement.innerHTML = fateSheetHtml(character);
     return;
   }
   renderCharacterFailure(resultElement, character, `This Character Forge build cannot open ${nativeState.systemId} ${nativeState.editionId}.`);

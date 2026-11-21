@@ -134,3 +134,20 @@ code { overflow-wrap: anywhere; }
   .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .result-details div { grid-template-columns: 1fr; gap: 2px; }
 }
+
+.character-review { min-width: 0; min-height: 0; overflow: auto; }
+.character-review .result-panel { overflow: visible; }
+.fate-choice-panel { background: #fffcf6; border: 1px solid #cbbca8; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+.fate-choice-editor summary { color: #945009; }
+.fate-choice-panel textarea { width: 100%; box-sizing: border-box; }
+.fate-choice-panel button { padding: 6px 12px; margin: 6px 6px 0 0; }
+.fate-choice-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; }
+.fate-feedback { margin: 6px 0; }
+.fate-feedback.success { color: #236b38; }
+.fate-feedback.error { color: #ae2525; }
+.fate-feedback.warning { color: #945009; }
+.fate-creator label { display: grid; gap: 4px; margin-bottom: 8px; }
+.fate-creator { gap: 6px; }
+.fate-choice-panel textarea { padding: 10px; border: 1px solid #b9aa96; border-radius: 9px; background: #fffdf9; color: #221d19; }
+.creator-randomize-all[hidden] { display: none; }
+@media (max-width: 900px) { .character-review { overflow: visible; } }

@@ -10,7 +10,10 @@ tags:
 # Deferred Choice and Advancement Lifecycle v0.1
 
 Date: 2026-11-21
-Status: bounded headless contract plus Fate-owned selection consumer and atomic-store interface; no Parchment UI/storage adapter yet
+Status: bounded lifecycle plus Fate-owned consumer and hosted Parchment atomic storage/UI candidate; owner acceptance pending.
+
+Current integration: `refs/architecture/hosted-deferred-stunt-persistence-v1.md`.
+The headless checkpoint below describes the starting boundary before host integration.
 
 ## 2026-11-21 Fate deferred-Stunt consumer
 

@@ -1,6 +1,9 @@
 version: 1
 updated: 2026-09-08
 commands:
+  hosted_lifecycle:
+    command: Run node tools/character-lifecycle-browser-smoke.mjs in the sibling Parchment Worlds repository against both local dev servers.
+    purpose: Validate real iframe save, reopen and stale-tab rejection; see refs/architecture/hosted-deferred-stunt-persistence-v1.md for setup and owner checklist.
   paths:
     command: npm run validate:paths
     purpose: Inspect tracked paths from git ls-files, self-test the guard, and fail on full-path case-fold collisions.

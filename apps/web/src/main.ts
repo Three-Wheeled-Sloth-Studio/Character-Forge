@@ -1,4 +1,5 @@
 import type { CharacterDocument } from "../../../packages/character-model/src/index.js";
+import { mountFateLifecyclePanel } from './fateLifecyclePanel.js';
 import { characterForgeBuildTitle, currentCharacterForgeBuildInfo, visibleCharacterForgeBuildLabel } from "./buildInfo.js";
 import {
   buildCharacterMediaRequestMessage,
@@ -38,7 +39,7 @@ app.innerHTML = `
     </header>
     <div class="forge-workspace">
       <aside id="creator-root" class="creator-column" aria-label="Character generation controls"></aside>
-      <section id="result" class="result-panel empty-result" aria-live="polite"><div class="empty-state"><p class="eyebrow">Character details</p><h2>Build a character</h2></div></section>
+      <div class="character-review"><section id="result" class="result-panel empty-result" aria-live="polite"><div class="empty-state"><p class="eyebrow">Character details</p><h2>Build a character</h2></div></section></div>
     </div>
   </section>`;
 
@@ -54,6 +55,9 @@ const resultRenderer = createCharacterResultRenderer(resultElement, {
   ...(projectName ? { campaignName: projectName } : {}),
   ...(hostedMediaActions ? { onMediaSlotRequest: requestMediaFromHost } : {}),
 });
+const lifecycleRoot = document.createElement('section');
+resultElement.insertAdjacentElement('beforebegin', lifecycleRoot);
+const lifecyclePanel = mountFateLifecyclePanel(lifecycleRoot, hostOrigin, projectId, () => currentCharacterId, (snapshot) => resultRenderer.render(snapshot.document));
 const projectSystems = creatorSystemsForProjectContext(projectContext);
 const lockedProjectSystem = projectContextLocksCreatorSystem(projectContext);
 const creatorController = mountCreatorWorkspace(creatorRoot, publishCharacter, {
@@ -67,6 +71,7 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
 
   const opened = parseCharacterOpenMessage(event.data);
   if (opened && (!projectId || opened.payload.projectId === projectId)) {
+    if (currentCharacterId !== opened.payload.character.characterId) lifecyclePanel.clear();
     currentCharacterId = opened.payload.character.characterId;
     clearMediaObjectUrls();
     try { creatorController.openCharacter(opened.payload.character); }
@@ -83,6 +88,7 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
 window.addEventListener("beforeunload", clearMediaObjectUrls);
 
 function publishCharacter(character: CharacterDocument): void {
+  lifecyclePanel.clear();
   if (currentCharacterId !== character.characterId) clearMediaObjectUrls();
   currentCharacterId = character.characterId;
   resultRenderer.render(character);
@@ -90,6 +96,7 @@ function publishCharacter(character: CharacterDocument): void {
 }
 
 function clearRenderedCharacter(): void {
+  lifecyclePanel.clear();
   currentCharacterId = "";
   clearMediaObjectUrls();
   resultRenderer.clear();
