@@ -8,6 +8,14 @@ areas:
     source_roots:
       - packages/character-model
     notes: Shared CharacterDocument and adapter-boundary work. Keep native system state authoritative. BRP profile provenance, player-core state, D&D/BRP dedicated-sheet projections, presentation media slots, and creator interactions fit without making Foundry or sheet representation canonical; Universal Grammar remains later and evidence-driven.
+  semantic-projection:
+    guidance:
+      - refs/planning/system-catalog-evidence-2026-11-21.md
+      - refs/planning/universal-grammar-v0.1.md
+      - refs/product/original-rpg-principles-2026-11-21.md
+    source_roots:
+      - packages/semantic-model
+    notes: Provisional read-only D&D/BRP identity and characteristic observations. No numeric equivalence, canonical state mutation or Foundry projection.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md

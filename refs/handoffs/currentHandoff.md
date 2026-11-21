@@ -10,6 +10,30 @@ tags:
 ---
 # Current Handoff
 
+## 2026-11-21 - Active Architecture Track (Foundry Paused)
+
+Owner reports that live Foundry validation is temporarily blocked, expected
+to resume within roughly a week. Preserve the Stage 5 exporter and pinned
+target without using it as a dependency or treating it as accepted runtime QA.
+
+Current active work: system catalog, cross-system evidence matrix, and an
+initial executable Universal Grammar projection from D&D/BRP, followed by a
+bounded Fate architecture stress test before freezing the vocabulary.
+
+New source and decisions:
+
+- `refs/planning/system-catalog-evidence-2026-11-21.md`
+- `refs/product/original-rpg-principles-2026-11-21.md`
+- `packages/semantic-model/src/projection.ts` and its tests
+
+This provisional projection is read-only and deliberately narrow. Native state
+remains canonical; characteristics are contextual source-scale observations,
+not cross-system numeric translations. Next: verify full native fixture coverage,
+perform the Fate probe and extend only evidence-backed concepts. Do not expand
+the original RPG into concrete mechanics without playtest evidence.
+
+The older Stage 5 checkpoint below remains historical and unchanged.
+
 Date: 2026-09-20
 Branch: `dev`
 Current stage: **Stage 5 - Foundry Export / Import Validation (active)**

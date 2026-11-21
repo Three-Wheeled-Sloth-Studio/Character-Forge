@@ -10,7 +10,12 @@ tags:
 # Universal Grammar v0.1
 
 Date: 2026-09-09
-Status: planned after Fate third-system probe
+Status: provisional executable v0.1 slice underway; freeze remains gated on Fate evidence
+
+The owner-approved Stage 6/7 sequence now governs: build a narrow D&D/BRP
+provisional semantic layer, challenge it with Fate, and only then freeze the
+grammar. See `system-catalog-evidence-2026-11-21.md` for the first matrix and
+implemented boundary.
 
 Parent direction: `refs/planning/brp-to-universal-grammar-path.md`
 

@@ -13,6 +13,23 @@ When implementation reveals a reusable semantic concept, translation mismatch, s
 
 ## Current hypotheses, not shared requirements
 
+### 2026-11-21 - Intent-first, classless original RPG direction
+
+Owner decision: players describe intended actions, GM resolution must be rapid
+and confidence-building, and classless growth with optional archetype templates
+and deferred choices is a core product requirement.
+
+Translator implication: retain class/profession native semantics without
+forcing them onto the original RPG. A recorded choice/eligibility event is not
+the same as an acquired capability or a calculated advancement result.
+
+Bridge-RPG implication: design a player intent -> situation -> resolution ->
+consequence -> progression workflow with progressively disclosed GM detail.
+Avoid per-action bookkeeping by default. Exact mechanics remain unselected.
+
+Confidence: high for product direction, low for specific resolution algorithms.
+Contract: `refs/product/original-rpg-principles-2026-11-21.md`.
+
 ### Resolution curve
 
 Observation: The future original RPG is explicitly non-d20; current direction favors a bell-shaped family such as 2d10 or 2d12.
