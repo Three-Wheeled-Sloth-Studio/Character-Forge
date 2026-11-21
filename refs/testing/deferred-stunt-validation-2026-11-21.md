@@ -54,4 +54,13 @@ expanding advancement consumers. Fate remains the bounded original-text probe.
 
 ## Committed checkpoints
 
-Implementation SHA and GitHub validation evidence are appended after commit.
+- Character Forge implementation: `63d0b010efc486b1e34820c999d6103e0b44e96e`.
+  GitHub Verify passed: https://github.com/Three-Wheeled-Sloth-Studio/Character-Forge/actions/runs/44964079520
+- Parchment Worlds implementation: `4e863c1a674813cdb86557a1eb855749f4dde48d`.
+  GitHub Validate Parchment Worlds passed: https://github.com/Three-Wheeled-Sloth-Studio/Parchment-Worlds/actions/runs/44964083022
+- Both implementation commits were pushed directly to dev. Automated Chromium smoke
+  was repeated on these clean implementation checkpoints and passed.
+- The subsequent closeout checkpoint records these SHAs and adds full read-only
+  native payload/provenance inspection beneath the GM revision summary. It does not
+  alter storage or rules behavior. Use the final dev HEAD for owner acceptance;
+  its GitHub run must pass independently before any future promotion.

@@ -26,6 +26,9 @@ tags:
   219 tests. Real Chromium iframe creation/defer/select/reload and stale-tab rejection
   pass. Exact committed SHAs and CI evidence are recorded in the validation record.
   Owner/manual acceptance remains pending. No qa/main promotion is authorized.
+- Implementation commits: Character Forge `63d0b010efc486b1e34820c999d6103e0b44e96e`
+  (Verify run `44964079520`, success), Parchment `4e863c1a674813cdb86557a1eb855749f4dde48d`
+  (Validate run `44964083022`, success). See `refs/testing/deferred-stunt-validation-2026-11-21.md`.
 - Next: owner smoke acceptance and bounded fixes. Foundry remains unchanged/paused.
 
 Earlier dated checkpoints below are historical context, not the active next slice.

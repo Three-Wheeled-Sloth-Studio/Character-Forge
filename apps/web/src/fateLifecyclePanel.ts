@@ -37,6 +37,11 @@ export function mountFateLifecyclePanel(root: HTMLElement, hostOrigin: string | 
     const summary = document.createElement('summary'); summary.textContent = 'Event provenance';
     const ledger = document.createElement('pre'); ledger.textContent = JSON.stringify(snapshot.lifecycle, null, 2);
     raw.append(summary, ledger); history.append(raw);
+    const revisions = document.createElement('details');
+    const revisionSummary = document.createElement('summary'); revisionSummary.textContent = 'Native revisions';
+    const revisionData = document.createElement('pre');
+    revisionData.textContent = JSON.stringify({ primaryNativeStateId: snapshot.document.primaryNativeStateId, nativeStates: snapshot.document.nativeStates, generation: snapshot.document.generation }, null, 2);
+    revisions.append(revisionSummary, revisionData); history.append(revisions);
     root.querySelector('form')?.addEventListener('submit', (event) => { event.preventDefault(); void save(false); });
     root.querySelector('[data-defer]')?.addEventListener('click', () => { void save(true); });
   };
