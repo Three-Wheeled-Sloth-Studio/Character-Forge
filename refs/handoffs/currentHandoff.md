@@ -12,6 +12,15 @@ tags:
 
 ## 2026-11-21 - Active Architecture Track (Foundry Paused)
 
+**Fate probe follow-up:** `packages/system-fate` adds a bounded headless
+creation/validation path for freeform Aspects, Stunts, skill pyramid, stress,
+consequence slots and Fate points with native round-trip tests. See
+`refs/planning/fate-third-system-probe.md` for findings and the still-required
+official downloadable SRD audit. No general Fate web UI was added.
+Next architecture slice: review cross-system omissions and design deferred
+choice/advancement lifecycle from real Fate/BRP/D&D evidence. Do not mistake
+this probe for a production-complete Fate rules catalog.
+
 Owner reports that live Foundry validation is temporarily blocked, expected
 to resume within roughly a week. Preserve the Stage 5 exporter and pinned
 target without using it as a dependency or treating it as accepted runtime QA.

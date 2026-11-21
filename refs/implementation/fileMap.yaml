@@ -16,6 +16,14 @@ areas:
     source_roots:
       - packages/semantic-model
     notes: Provisional read-only D&D/BRP identity and characteristic observations. No numeric equivalence, canonical state mutation or Foundry projection.
+  fate-third-system:
+    guidance:
+      - refs/planning/fate-third-system-probe.md
+      - refs/planning/system-catalog-evidence-2026-11-21.md
+      - refs/planning/universal-grammar-v0.1.md
+    source_roots:
+      - packages/system-fate
+    notes: Bounded Fate native-state and freeform creator probe. Headless contract only, independent validation, no mounted UI and no inferred D&D/BRP semantic equivalence.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md

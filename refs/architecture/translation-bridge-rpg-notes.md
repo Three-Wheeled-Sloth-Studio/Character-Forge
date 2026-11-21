@@ -13,6 +13,27 @@ When implementation reveals a reusable semantic concept, translation mismatch, s
 
 ## Current hypotheses, not shared requirements
 
+### 2026-11-21 - Fate freeform mechanics challenge shared attribute assumptions
+
+Observation: the bounded Fate Condensed probe retains freeform high concept,
+trouble, relationship and additional Aspects as mechanically meaningful state;
+freeform Stunts, one-point Stress, Consequences and fate-point Refresh are
+separate native grammars. Open text is not merely cosmetic.
+
+Translator implication: `identity.display-name` remains a valid exact bridge,
+but numeric D&D/BRP characteristics do not have an honest Fate counterpart.
+Do not flatten Fate Aspects into generic `traits` or convert Stress into HP.
+Declare omission instead. Generic creator inputs need a validated open narrative
+choice primitive, which need not become a universal rules concept.
+
+Original RPG implication: open narrative statements can be mechanically
+authoritative; deferred slots and meaningful consequences may inform organic
+character development, but exact Fate mechanics are not a default design.
+
+Confidence: high on native semantic incompatibility; source and commercial
+content boundary remains provisional pending official downloadable SRD audit.
+Follow-up: `refs/planning/fate-third-system-probe.md`.
+
 ### 2026-11-21 - Intent-first, classless original RPG direction
 
 Owner decision: players describe intended actions, GM resolution must be rapid

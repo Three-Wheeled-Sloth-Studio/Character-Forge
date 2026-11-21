@@ -11,7 +11,44 @@ tags:
 # Fate Condensed Third-System Probe
 
 Date: 2026-09-09
-Status: planned after BRP Investigative Horror
+Status: bounded native-state architecture probe implemented 2026-11-21; owner/browser UI and full source-package audit deferred
+
+## 2026-11-21 implementation and findings
+
+`packages/system-fate` provides a source-owned creation input contract, independent
+adapter validation, native-state JSON round-trip, five mechanically authoritative
+freeform Aspects, a 10-skill pyramid, freeform Stunts (one required in this probe),
+refresh/fate points, one-point physical/mental stress tracks and consequence
+slots. Tests exercise mutable stress and consequence state, invalid pyramid and
+missing aspect rejection, and explicit preservation of narrative choices.
+
+This is a headless creation contract, not yet a mounted Parchment Worlds UI or
+a production-complete Fate creator. No Fate-specific rules are added to shared
+CharacterDocument. Universal Grammar currently emits only document identity
+for Fate and explicitly declares missing characteristic projection.
+
+Findings:
+
+1. Freeform Aspects are authoritative mechanical/narrative state, not merely
+   character biography. A universal `trait` string would hide invoke/compel
+   semantics and is therefore not justified yet.
+2. Fate Stunts are not reliably equivalent to a D&D feat, BRP power or skill.
+   Their conditional effects and rules exceptions remain opaque native text.
+3. Stress tracks, consequence slots and fate-point refresh have incompatible
+   lifecycles with D&D HP and BRP harm. Do not add generic HP/resource mapping.
+4. Narrative creation requires open free-text inputs and explicit validation;
+   the existing shared `GenerationRecord` already preserves the submitted text.
+5. A deferred stunt slot is source-native evidence for delayed choices.
+   Implementing a cross-system eligibility/event grammar requires a second
+   consumer and explicit lifecycle tests.
+
+Licensing/provenance: Official Fate licensing materials identify a CC-BY 3.0
+route and require attribution. This probe records a date-stamped rules snapshot
+`probe-2026-11-21`, not an invented SRD edition. Before broadening rules/content
+or releasing an end-user Fate system, verify the official downloadable CC-BY
+SRD artifact, package attribution and the complete starter options against it.
+Source: https://fate-srd.com/official-licensing-fate and
+https://fate-srd.com/official-licensing-fate/cc .
 
 Parent direction: `refs/planning/brp-to-universal-grammar-path.md`
 
