@@ -13,6 +13,24 @@ When implementation reveals a reusable semantic concept, translation mismatch, s
 
 ## Current hypotheses, not shared requirements
 
+### 2026-11-21 - Choice eligibility and progression are separate events
+
+Observation: Fate deferred Stunts, BRP use-driven skill development and D&D
+level-based choices need different availability and advancement rules, but
+all can retain a history of opportunities, assessments and decisions.
+
+Translator implication: `CharacterLifecycle` records chronology and native
+state revision provenance, without pretending an experience, available option
+and acquired mechanical effect are equivalent. Cross-system conversion does
+not consume the ledger as a replacement for native state.
+
+Original RPG implication: organic development can track meaningful experiences
+and deferred choices while leaving advancement pace and eligibility with the
+GM and rules engine. The first contract does not mandate per-use tracking.
+
+Confidence: high on event distinction, low on persistence/GM UX until a real
+adapter consumer is integrated. See `deferred-choice-lifecycle-v0.1.md`.
+
 ### 2026-11-21 - Fate freeform mechanics challenge shared attribute assumptions
 
 Observation: the bounded Fate Condensed probe retains freeform high concept,

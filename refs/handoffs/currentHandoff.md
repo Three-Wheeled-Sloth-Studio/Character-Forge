@@ -12,6 +12,16 @@ tags:
 
 ## 2026-11-21 - Active Architecture Track (Foundry Paused)
 
+**Deferred-choice lifecycle follow-up:** added
+`packages/character-model/src/characterLifecycle.ts` and tests. The immutable,
+append-only ledger records experiences, opened/deferred choices, source-owned
+eligibility assessments, player selections and linked native revisions.
+It does not apply rules or mutate canonical native state. Contract and next
+host-transaction work: `refs/architecture/deferred-choice-lifecycle-v0.1.md`.
+Next: implement one Fate-specific deferred-Stunt eligibility/persistence
+consumer, with real native-state validation and atomic save semantics. Foundry
+validation remains paused.
+
 **Fate probe follow-up:** `packages/system-fate` adds a bounded headless
 creation/validation path for freeform Aspects, Stunts, skill pyramid, stress,
 consequence slots and Fate points with native round-trip tests. See
