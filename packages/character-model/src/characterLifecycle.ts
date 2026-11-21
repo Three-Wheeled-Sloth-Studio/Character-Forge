@@ -15,6 +15,8 @@ export interface ChoiceOpenedEvent extends LifecycleBaseEvent {
   prompt: string;
   optionIds: string[];
   canDefer: boolean;
+  /** System-owned open narrative choice; option identities are validated by the adapter. */
+  allowsFreeformOptions?: boolean;
 }
 
 export interface ChoiceAssessedEvent extends LifecycleBaseEvent {
@@ -115,7 +117,7 @@ export function appendLifecycleEvent(lifecycle: CharacterLifecycle, event: Chara
   if (event.type === "experience-recorded") {
     if (!event.sourceNativeStateId.trim() || !event.description.trim()) throw new Error("Experience requires native-state context and a description.");
   } else if (event.type === "choice-opened") {
-    if (!event.choiceId.trim() || !event.sourceId.trim() || !event.prompt.trim() || event.optionIds.length === 0 || event.optionIds.some((id) => !id.trim()) || new Set(event.optionIds).size !== event.optionIds.length || getChoiceSummary(lifecycle, event.choiceId)) {
+    if (!event.choiceId.trim() || !event.sourceId.trim() || !event.prompt.trim() || (event.optionIds.length === 0 && !event.allowsFreeformOptions) || event.optionIds.some((id) => !id.trim()) || new Set(event.optionIds).size !== event.optionIds.length || getChoiceSummary(lifecycle, event.choiceId)) {
       throw new Error("Choice must open once with distinct possible options.");
     }
   } else if (event.type === "native-revision-linked") {
@@ -132,7 +134,7 @@ export function appendLifecycleEvent(lifecycle: CharacterLifecycle, event: Chara
     if (event.type === "choice-deferred") {
       if (!opening.canDefer) throw new Error("This choice cannot be deferred.");
     } else if (event.type === "choice-assessed") {
-      if (!event.sourceNativeStateId.trim() || !event.rulesSourceId.trim() || !event.reason.trim() || event.eligibleOptionIds.some((id) => !opening.optionIds.includes(id)) || new Set(event.eligibleOptionIds).size !== event.eligibleOptionIds.length) {
+      if (!event.sourceNativeStateId.trim() || !event.rulesSourceId.trim() || !event.reason.trim() || event.eligibleOptionIds.some((id) => !id.trim() || (!opening.allowsFreeformOptions && !opening.optionIds.includes(id))) || new Set(event.eligibleOptionIds).size !== event.eligibleOptionIds.length) {
         throw new Error("Assessment must provide a source and a subset of offered options.");
       }
     } else {

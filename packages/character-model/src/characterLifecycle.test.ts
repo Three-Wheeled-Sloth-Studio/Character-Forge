@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendLifecycleEvent, createCharacterLifecycle, getChoiceSummary, type CharacterLifecycleEvent } from "./characterLifecycle.js";
+import { appendLifecycleEvent, createCharacterLifecycle, getChoiceSummary, type CharacterLifecycleEvent, type ChoiceOpenedEvent } from "./characterLifecycle.js";
 
 const at = "2026-11-21T14:00:00.000Z";
 const opened: CharacterLifecycleEvent = { eventId: "e1", choiceId: "specialization", type: "choice-opened", occurredAt: at, sourceId: "fate:free-stunt-slot", prompt: "Choose a stunt when ready", optionIds: ["shipwise", "sharp-eye"], canDefer: true };
@@ -58,4 +58,14 @@ describe("character lifecycle: deferred choice and progression causality", () =>
     expect(state.events[0]).toMatchObject({ category: "discovery", sourceNativeStateId: "native-before" });
     expect(getChoiceSummary(state, "specialization")).toBeNull();
   });
+
+  it("supports a system-validated freeform choice made after deferral", () => {
+    const opened = appendLifecycleEvent(createCharacterLifecycle("character-1"), { ...openedEvent(), allowsFreeformOptions: true, optionIds: [] });
+    const assessed = appendLifecycleEvent(opened, { ...assessment, eligibleOptionIds: ["new-original-stunt"] });
+    expect(getChoiceSummary(assessed, "specialization")?.eligibleOptionIds).toEqual(["new-original-stunt"]);
+    const selected = appendLifecycleEvent(assessed, { ...selection, optionId: "new-original-stunt" });
+    expect(getChoiceSummary(selected, "specialization")?.selectedOptionId).toBe("new-original-stunt");
+  });
 });
+
+function openedEvent(): ChoiceOpenedEvent { return opened as ChoiceOpenedEvent; }

@@ -12,6 +12,16 @@ tags:
 
 ## 2026-11-21 - Active Architecture Track (Foundry Paused)
 
+**Fate deferred-Stunt consumer follow-up:**
+`packages/system-fate/src/deferredStunt.ts` now handles deferring and later
+selecting a newly authored Stunt, Fate-owned eligibility/native revision
+validation, and an atomic optimistic-lock store interface for character and
+lifecycle. Tests exercise save failure, reopen and concurrent selections.
+This remains a headless contract: no production Parchment persistence adapter
+or browser UI is wired. See `refs/architecture/deferred-choice-lifecycle-v0.1.md`.
+Next: implement real Parchment atomic save integration and a minimal player/GM
+choice surface before calling the feature player-usable.
+
 **Deferred-choice lifecycle follow-up:** added
 `packages/character-model/src/characterLifecycle.ts` and tests. The immutable,
 append-only ledger records experiences, opened/deferred choices, source-owned

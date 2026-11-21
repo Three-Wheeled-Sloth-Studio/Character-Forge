@@ -31,7 +31,7 @@ areas:
       - refs/planning/universal-grammar-v0.1.md
     source_roots:
       - packages/system-fate
-    notes: Bounded Fate native-state and freeform creator probe. Headless contract only, independent validation, no mounted UI and no inferred D&D/BRP semantic equivalence.
+    notes: Bounded Fate native-state and freeform creator probe plus a deferred Stunt selection consumer and atomic-store contract; no mounted UI or real Parchment persistence adapter, and no inferred D&D/BRP semantic equivalence.
   character-sheet:
     guidance:
       - refs/architecture/adaptive-character-sheet-framework.md

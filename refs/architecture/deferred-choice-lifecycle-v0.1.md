@@ -10,7 +10,35 @@ tags:
 # Deferred Choice and Advancement Lifecycle v0.1
 
 Date: 2026-11-21
-Status: bounded headless contract implemented; no UI or automatic native rules effects
+Status: bounded headless contract plus Fate-owned selection consumer and atomic-store interface; no Parchment UI/storage adapter yet
+
+## 2026-11-21 Fate deferred-Stunt consumer
+
+`packages/system-fate/src/deferredStunt.ts` now consumes the lifecycle contract:
+
+- Opens a freeform Stunt choice and records the player's deferral in one save.
+- On later selection, Fate validates the original character, remaining Stunt
+  slots, distinct Stunt identity, resulting Fate native state, and current
+  lifecycle status.
+- Records the eligibility assessment, explicit selection, and resulting native
+  revision as one proposed change; retains the previous native state in
+  `CharacterDocument.nativeStates` for provenance.
+- Persists `CharacterDocument` and `CharacterLifecycle` together through a
+  version-checked `FateCharacterStore.compareAndSwap` contract.
+- Tests prove in-memory save, JSON round-trip/reopen, rejection of illegal
+  choices, rollback when the store rejects a save, and concurrent choice
+  conflict detection.
+
+**Integration boundary:** the store is an interface, and tests use a faithful
+in-memory implementation. Parchment Worlds must still implement a durable
+atomic compare-and-swap operation over both records. Do not advertise live
+character persistence or an operational UI until that adapter is wired and
+browser-tested. This design does not create a new canonical document.
+
+Freeform options are now explicitly supported by `ChoiceOpenedEvent` through
+`allowsFreeformOptions`; their IDs are only eligible when a system adapter
+assesses them. This permits a player to invent a Stunt *after* deferring,
+without requiring a speculative enumerated Stunt catalog at creation time.
 
 ## Why a separate ledger
 
