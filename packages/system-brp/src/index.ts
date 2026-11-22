@@ -21,4 +21,5 @@ export * from "./rulesSource.js";
 export * from "./scholarAcademicSuggestion.js";
 export * from "./sheetProjection.js";
 export * from "./skills.js";
+export * from "./skillAdvancement.js";
 export * from "./superpowers.js";

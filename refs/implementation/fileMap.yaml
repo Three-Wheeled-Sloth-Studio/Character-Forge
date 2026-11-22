@@ -131,6 +131,8 @@ areas:
       - refs/architecture/translation-bridge-rpg-notes.md
     source_roots:
       - packages/system-brp
+      - packages/system-brp/src/skillAdvancement.ts
+      - packages/system-brp/src/skillAdvancement.test.ts
       - packages/system-brp/src/campaignProfile.ts
       - packages/system-brp/src/sheetProjection.ts
       - apps/web/src/brpCreatorRandomization.ts

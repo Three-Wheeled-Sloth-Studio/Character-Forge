@@ -13,6 +13,26 @@ When implementation reveals a reusable semantic concept, translation mismatch, s
 
 ## Current hypotheses, not shared requirements
 
+### 2026-11-21 - BRP skill growth differs from a deferred ability choice
+
+Observation: BRP ORC experience improvement records GM-authorized meaningful
+use, one check per skill per adventure, a percentile comparison and a possible
+zero-gain result. Existing professional/personal allocations remain causal
+starting state even when advancement later exceeds creation caps.
+
+Translator implication: a lifecycle experience with linked native revision is
+not a selected choice. The universal layer must preserve native progression
+history without equating BRP skill percentage to D&D proficiency or Fate stunts.
+
+Original RPG implication: narrative-use tracking can be event-driven and
+GM-approved, with minimal player bookkeeping, but the specific BRP rolls should
+not become universal mechanics. Consider batching check opportunities at
+milestones or downtime.
+
+Confidence: high on source mechanics and tested native transition; hosted
+workflow and player/GM UX are not yet accepted.
+See `brp-skill-experience-advancement-v0.1.md`.
+
 ### 2026-11-21 - Choice eligibility and progression are separate events
 
 Observation: Fate deferred Stunts, BRP use-driven skill development and D&D

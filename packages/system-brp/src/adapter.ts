@@ -803,6 +803,7 @@ function validateSkills(
   }
 
   const seen = new Set<string>();
+  const seenExperienceEvents = new Set<string>();
   let professionalSpent = 0;
   let personalSpent = 0;
 
@@ -850,14 +851,48 @@ function validateSkills(
     }
 
     const professionalRating = definition.baseChance + professional;
-    const finalRating = professionalRating + personal;
-    if (startingSkillCap !== null && (professionalRating > startingSkillCap || finalRating > startingSkillCap)) {
+    const startingRating = professionalRating + personal;
+    if (startingSkillCap !== null && (professionalRating > startingSkillCap || startingRating > startingSkillCap)) {
       error(
         issues,
         "brp.skills.cap",
         `BRP skill ${definition.label} exceeds the ${powerLevelLabel} starting cap of ${startingSkillCap}%.`,
         path,
       );
+    }
+    let finalRating = startingRating;
+    if (skill.experienceChecks !== undefined) {
+      if (!Array.isArray(skill.experienceChecks)) {
+        error(issues, "brp.skills.experience-shape", "BRP experience checks must be an array.", `${path}.experienceChecks`);
+      } else {
+        const adventures = new Set<string>();
+        for (const [checkIndex, entry] of skill.experienceChecks.entries()) {
+          const checkPath = `${path}.experienceChecks.${checkIndex}`;
+          if (!isObject(entry) || typeof entry.eventId !== "string" || !entry.eventId.trim() || typeof entry.adventureId !== "string" || !entry.adventureId.trim() || seenExperienceEvents.has(entry.eventId) || adventures.has(entry.adventureId)) {
+            error(issues, "brp.skills.experience-identity", "Experience checks require unique event and adventure identities.", checkPath);
+            continue;
+          }
+          seenExperienceEvents.add(entry.eventId);
+          adventures.add(entry.adventureId);
+          if (!isInteger(entry.percentileRoll) || entry.percentileRoll < 1 || entry.percentileRoll > 100 || entry.ratingBefore !== finalRating) {
+            error(issues, "brp.skills.experience-roll", "Experience roll or retained prior skill rating is invalid.", checkPath);
+            continue;
+          }
+          const effectiveRoll = entry.percentileRoll + Math.ceil(characteristics.INT / 2);
+          const succeeds = finalRating >= 100 ? effectiveRoll >= 100 : effectiveRoll > finalRating;
+          if (!succeeds && (entry.improvementMethod !== "none" || entry.increase !== 0)) {
+            error(issues, "brp.skills.experience-failure", "An unsuccessful experience roll cannot improve a skill.", checkPath);
+            continue;
+          }
+          if (succeeds && ((entry.improvementMethod === "fixed-3" && entry.increase !== 3)
+            || (entry.improvementMethod === "roll-1d6" && (!isInteger(entry.increase) || entry.increase < 1 || entry.increase > 6))
+            || (entry.improvementMethod !== "fixed-3" && entry.improvementMethod !== "roll-1d6"))) {
+            error(issues, "brp.skills.experience-increase", "Successful experience must use a recorded 1D6 gain or fixed +3.", checkPath);
+            continue;
+          }
+          if (succeeds) finalRating += entry.increase as number;
+        }
+      }
     }
     if (skill.finalRating !== finalRating) {
       error(issues, "brp.skills.final", `BRP skill ${definition.label} final rating does not match its retained causal layers.`, `${path}.finalRating`);

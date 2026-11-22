@@ -125,6 +125,17 @@ export interface BrpSkillState extends JsonObject {
   baseChance: number;
   contributions: BrpSkillContributions;
   finalRating: number;
+  /** Post-creation experience attempts; absent on legacy generated characters. */
+  experienceChecks?: BrpSkillExperienceCheck[];
+}
+
+export interface BrpSkillExperienceCheck extends JsonObject {
+  eventId: string;
+  adventureId: string;
+  ratingBefore: number;
+  percentileRoll: number;
+  improvementMethod: "none" | "fixed-3" | "roll-1d6";
+  increase: number;
 }
 
 export interface BrpSkillBudget extends JsonObject {

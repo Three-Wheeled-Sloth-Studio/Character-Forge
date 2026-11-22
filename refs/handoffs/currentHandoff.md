@@ -35,6 +35,17 @@ Earlier dated checkpoints below are historical context, not the active next slic
 
 ## 2026-11-21 - Active Architecture Track (Foundry Paused)
 
+**BRP skill experience advancement:** `packages/system-brp/src/skillAdvancement.ts`
+adds a source-owned headless earned-skill improvement transition, a retained
+native revision and a linked lifecycle event. Optional per-skill experience
+checks preserve original construction allocations and allow earned improvement
+above initial caps. The validator independently verifies rolls, outcome,
+causality and one check per skill/adventure. Official BRP ORC sections audited.
+Contract: `refs/architecture/brp-skill-experience-advancement-v0.1.md`.
+Next: integrate with Parchment's atomic paired save and a narrow GM-assisted
+skill-check UI; run hosted/browser QA. Fate owner manual QA remains pending and
+Foundry validation remains paused. No qa/main promotion.
+
 **Fate deferred-Stunt consumer follow-up:**
 `packages/system-fate/src/deferredStunt.ts` now handles deferring and later
 selecting a newly authored Stunt, Fate-owned eligibility/native revision

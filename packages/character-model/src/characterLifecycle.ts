@@ -57,7 +57,17 @@ export interface ExperienceRecordedEvent {
   description: string;
 }
 
-export type CharacterLifecycleEvent = ChoiceOpenedEvent | ChoiceAssessedEvent | ChoiceDeferredEvent | ChoiceSelectedEvent | NativeRevisionLinkedEvent | ExperienceRecordedEvent;
+export interface ExperienceRevisionLinkedEvent {
+  eventId: string;
+  type: "experience-revision-linked";
+  occurredAt: string;
+  experienceEventId: string;
+  sourceNativeStateId: string;
+  resultingNativeStateId: string;
+  systemAdapterId: string;
+}
+
+export type CharacterLifecycleEvent = ChoiceOpenedEvent | ChoiceAssessedEvent | ChoiceDeferredEvent | ChoiceSelectedEvent | NativeRevisionLinkedEvent | ExperienceRecordedEvent | ExperienceRevisionLinkedEvent;
 
 export interface CharacterLifecycle {
   schemaVersion: "character-lifecycle/0.1";
@@ -85,7 +95,7 @@ export function getChoiceSummary(lifecycle: CharacterLifecycle, choiceId: string
   let appliedNativeStateId: string | undefined;
   const selections = new Map<string, string>();
   for (const event of lifecycle.events) {
-    if (event.type === "experience-recorded") continue;
+    if (event.type === "experience-recorded" || event.type === "experience-revision-linked") continue;
     if (event.type === "native-revision-linked") {
       if (selections.get(event.selectionEventId) === choiceId) appliedNativeStateId = event.resultingNativeStateId;
       continue;
@@ -114,7 +124,12 @@ export function appendLifecycleEvent(lifecycle: CharacterLifecycle, event: Chara
   if (lifecycle.events.some((existing) => existing.eventId === event.eventId)) throw new Error("Duplicate lifecycle event ID.");
   const last = lifecycle.events.at(-1);
   if (last && Date.parse(event.occurredAt) < Date.parse(last.occurredAt)) throw new Error("Lifecycle event time cannot move backward.");
-  if (event.type === "experience-recorded") {
+  if (event.type === "experience-revision-linked") {
+    const experience = lifecycle.events.find((prior) => prior.eventId === event.experienceEventId);
+    if (experience?.type !== "experience-recorded" || experience.sourceNativeStateId !== event.sourceNativeStateId) throw new Error("Experience revision must reference a matching recorded experience.");
+    if (lifecycle.events.some((prior) => prior.type === "experience-revision-linked" && prior.experienceEventId === event.experienceEventId)) throw new Error("Experience already linked to a native revision.");
+    if (!event.resultingNativeStateId.trim() || !event.systemAdapterId.trim() || event.resultingNativeStateId === event.sourceNativeStateId) throw new Error("Experience revision requires a new native state and an adapter.");
+  } else if (event.type === "experience-recorded") {
     if (!event.sourceNativeStateId.trim() || !event.description.trim()) throw new Error("Experience requires native-state context and a description.");
   } else if (event.type === "choice-opened") {
     if (!event.choiceId.trim() || !event.sourceId.trim() || !event.prompt.trim() || (event.optionIds.length === 0 && !event.allowsFreeformOptions) || event.optionIds.some((id) => !id.trim()) || new Set(event.optionIds).size !== event.optionIds.length || getChoiceSummary(lifecycle, event.choiceId)) {
