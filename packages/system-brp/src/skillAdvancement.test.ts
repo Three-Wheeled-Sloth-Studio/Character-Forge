@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createCharacterLifecycle, parseCharacterDocument } from "../../character-model/src/index.js";
-import { applyBrpSkillExperience, brpUge105Adapter, buildBrpFirstSliceCharacter, type BrpFirstSliceInput, type BrpNativeCharacter } from "./index.js";
+import { createCharacterLifecycle, parseCharacterDocument, type CharacterLifecycleSnapshot, type CharacterLifecycleStore } from "../../character-model/src/index.js";
+import { advanceBrpHostedSkill, applyBrpSkillExperience, brpUge105Adapter, buildBrpFirstSliceCharacter, type BrpFirstSliceInput, type BrpNativeCharacter } from "./index.js";
 
 const at = "2026-11-21T19:00:00.000Z";
 function character() {
@@ -96,5 +96,45 @@ describe("BRP skill experience and native-state progression", () => {
     const skill = (document.nativeStates.at(-1)!.payload as BrpNativeCharacter).skills.find((entry) => entry.skillId === "research")!;
     expect(skill.finalRating).toBe(111);
     expect(brpUge105Adapter.validateNativeState(document.nativeStates.at(-1)!).valid).toBe(true);
+  });
+
+  it("requires trusted GM authorization and atomically persists character plus lifecycle", async () => {
+    let saved: CharacterLifecycleSnapshot = { revision: "1", document: character(), lifecycle: createCharacterLifecycle("brp-character-1") };
+    const store: CharacterLifecycleStore = {
+      async load() { return structuredClone(saved); },
+      async compareAndSwap(_, expectedRevision, next) {
+        if (expectedRevision !== saved.revision) throw new Error("Stale character revision");
+        saved = structuredClone({ ...next, revision: String(Number(saved.revision) + 1) });
+        return structuredClone(saved);
+      },
+    };
+    await expect(advanceBrpHostedSkill(store, "brp-character-1", input(99), async () => false)).rejects.toThrow(/GM authorization/i);
+    expect(saved.revision).toBe("1");
+    const outcome = await advanceBrpHostedSkill(store, "brp-character-1", input(99), async () => true);
+    expect(outcome).toMatchObject({ succeeded: true, increase: 3 });
+    expect(saved.revision).toBe("2");
+    expect(saved.document.nativeStates).toHaveLength(2);
+    expect(saved.lifecycle.events).toHaveLength(2);
+    expect(JSON.parse(JSON.stringify(saved))).toEqual(saved);
+  });
+
+  it("rejects concurrent hosted improvements and preserves one successful paired save", async () => {
+    let saved: CharacterLifecycleSnapshot = { revision: "1", document: character(), lifecycle: createCharacterLifecycle("brp-character-1") };
+    const store: CharacterLifecycleStore = {
+      async load() { return structuredClone(saved); },
+      async compareAndSwap(_, expectedRevision, next) {
+        if (expectedRevision !== saved.revision) throw new Error("Stale character revision");
+        saved = structuredClone({ ...next, revision: "2" });
+        return structuredClone(saved);
+      },
+    };
+    const responses = await Promise.allSettled([
+      advanceBrpHostedSkill(store, "brp-character-1", input(99), async () => true),
+      advanceBrpHostedSkill(store, "brp-character-1", input(100, "second", "adventure-2"), async () => true),
+    ]);
+    expect(responses.filter((response) => response.status === "fulfilled")).toHaveLength(1);
+    expect(responses.filter((response) => response.status === "rejected")).toHaveLength(1);
+    expect(saved.document.nativeStates).toHaveLength(2);
+    expect(saved.lifecycle.events.filter((event) => event.type === "experience-revision-linked")).toHaveLength(1);
   });
 });

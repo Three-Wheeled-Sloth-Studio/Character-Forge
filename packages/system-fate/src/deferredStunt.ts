@@ -1,22 +1,15 @@
 import {
   appendLifecycleEvent, getChoiceSummary, type CharacterDocument,
-  type CharacterLifecycle, type NativeSystemState,
+  type CharacterLifecycle, type NativeSystemState, type CharacterLifecycleSnapshot, type CharacterLifecycleStore,
 } from "../../character-model/src/index.js";
 import { fateCondensedProbeAdapter } from "./adapter.js";
 import type { FateNativeCharacter, FateStunt } from "./nativeCharacter.js";
 import { FATE_CONDENSED_PROBE_SOURCE } from "./rulesSource.js";
 
-export interface FateCharacterSnapshot {
-  revision: string;
-  document: CharacterDocument;
-  lifecycle: CharacterLifecycle;
-}
+export type FateCharacterSnapshot = CharacterLifecycleSnapshot;
 
 /** Implementations must atomically replace both values with optimistic locking. */
-export interface FateCharacterStore {
-  load(characterId: string): Promise<FateCharacterSnapshot | null>;
-  compareAndSwap(characterId: string, expectedRevision: string, next: Omit<FateCharacterSnapshot, "revision">): Promise<FateCharacterSnapshot>;
-}
+export type FateCharacterStore = CharacterLifecycleStore;
 
 export interface FateEventIds { opened: string; deferred: string; assessed: string; selected: string; linked: string }
 

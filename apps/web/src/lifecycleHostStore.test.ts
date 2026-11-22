@@ -46,4 +46,15 @@ describe('host-owned lifecycle store', () => {
     expect(() => parseLifecycle({ schemaVersion: 'future', characterId: 'c', events: [] }, 'c')).toThrow('Unsupported');
     expect(() => parseLifecycle({ schemaVersion: 'character-lifecycle/0.1', characterId: 'c', events: [{ type: 'future-event' }] }, 'c')).toThrow('Unsupported');
   });
+  it('reopens BRP experience with a source-linked native revision', () => {
+    const history = {
+      schemaVersion: 'character-lifecycle/0.1', characterId: 'c', events: [
+        { type: 'experience-recorded', eventId: 'xp', occurredAt: '2026-11-21T14:00:00Z', sourceNativeStateId: 'n', category: 'practice', description: 'GM-approved meaningful use' },
+        { type: 'experience-revision-linked', eventId: 'rev', occurredAt: '2026-11-21T14:00:00Z', experienceEventId: 'xp', sourceNativeStateId: 'n', resultingNativeStateId: 'n2', systemAdapterId: 'brp-uge' },
+      ],
+    };
+    expect(parseLifecycle(history, 'c').events).toEqual(history.events);
+    const store = new LifecycleHostStore(() => {});
+    expect(store.open({ ...context, lifecycle: history }).lifecycle.events).toHaveLength(2);
+  });
 });

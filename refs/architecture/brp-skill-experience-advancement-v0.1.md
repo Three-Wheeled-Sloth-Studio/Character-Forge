@@ -57,6 +57,20 @@ these distinctions without copying BRP's roll mechanics.
 
 ## Outstanding integration
 
+An initial `advanceBrpHostedSkill` service now consumes the shared
+`CharacterLifecycleStore` interface (extracted from the Fate-specific
+transaction signature). It requires an asynchronous trusted GM authorization
+callback, loads the current paired snapshot, calculates the BRP-native candidate
+and saves both records through the host's revision-checked compare-and-swap.
+Tests cover unauthorized rejection, durable in-memory save, JSON round trip,
+and concurrent stale-save conflict. The existing Character Forge hosted
+message cache/parser now accepts `experience-revision-linked` history entries.
+
+This is still a **host contract and test consumer**, not a wired Parchment
+authorization implementation. Real Parchment project-role enforcement,
+embedded GM controls, and full browser QA are pending. The player/GM interface
+direction is recorded in `refs/product/player-gm-surface-boundary.md`.
+
 The transition is headless and returns a candidate new CharacterDocument and
 CharacterLifecycle. It does **not** independently persist either record. The
 host must reuse the version-checked, atomic paired-save boundary already proven

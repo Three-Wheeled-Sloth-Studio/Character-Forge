@@ -11,7 +11,7 @@ export function parseLifecycle(value: unknown, characterId: string): CharacterLi
   if (!candidate || candidate.schemaVersion !== "character-lifecycle/0.1" || candidate.characterId !== characterId || !Array.isArray(candidate.events)) throw new Error("Unsupported character history. Reopen with a compatible build.");
   let lifecycle = createCharacterLifecycle(characterId);
   for (const event of candidate.events) {
-    if (!["choice-opened", "choice-deferred", "choice-assessed", "choice-selected", "experience-recorded", "native-revision-linked"].includes(event.type)) throw new Error("Unsupported history event.");
+    if (!["choice-opened", "choice-deferred", "choice-assessed", "choice-selected", "experience-recorded", "native-revision-linked", "experience-revision-linked"].includes(event.type)) throw new Error("Unsupported history event.");
     lifecycle = appendLifecycleEvent(lifecycle, event as CharacterLifecycleEvent);
   }
   return lifecycle;

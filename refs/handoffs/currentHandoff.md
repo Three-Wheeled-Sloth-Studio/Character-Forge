@@ -35,6 +35,21 @@ Earlier dated checkpoints below are historical context, not the active next slic
 
 ## 2026-11-21 - Active Architecture Track (Foundry Paused)
 
+## 2026-11-22 - Player/GM Boundary and BRP Host Contract
+
+Owner direction: the future product needs separate player and GM experiences,
+but a full UI split is not yet required. Preserve shared canonical character
+state, player-intent-first interaction, and quick GM resolution with progressive
+mechanical detail. Hidden controls do not establish GM authorization.
+Product contract: `refs/product/player-gm-surface-boundary.md`.
+
+The Fate paired-save store interface is now available as a generic
+`CharacterLifecycleStore`. `advanceBrpHostedSkill` consumes it with explicit
+host GM-authorization callback, current-state validation and atomic optimistic
+save. Hosted lifecycle parser recognizes the new BRP experience-revision event.
+Pending: trusted Parchment project/campaign GM role enforcement and UI,
+hosted BRP browser QA, Fate owner/manual acceptance, and Foundry validation.
+
 **BRP skill experience advancement:** `packages/system-brp/src/skillAdvancement.ts`
 adds a source-owned headless earned-skill improvement transition, a retained
 native revision and a linked lifecycle event. Optional per-skill experience
