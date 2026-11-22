@@ -16,6 +16,7 @@ areas:
       - packages/character-model/src/characterLifecycle.ts
       - packages/character-model/src/characterLifecycle.test.ts
       - packages/character-model/src/characterLifecycleStore.ts
+      - packages/character-model/src/lifecyclePresentation.ts
     notes: Headless append-only decision/experience ledger; adapter-owned eligibility and native-state mutations stay outside the shared helper.
   semantic-projection:
     guidance:

@@ -10,6 +10,18 @@ tags:
 ---
 # Current Handoff
 
+## 2026-11-22 - Lifecycle Player/GM Read Models
+
+Added read-only role-oriented lifecycle projections in
+`packages/character-model/src/lifecyclePresentation.ts` with tests. Player
+projection shows deferred/open/selected choices, usable option identifiers,
+and an explicit applied/not-applied distinction for choices and experiences.
+GM projection provides latest source-owned eligibility rationale and native
+revision provenance. Both consume the same append-only lifecycle; neither
+authorizes access or mutations. Contract: `refs/product/player-gm-surface-boundary.md`.
+Next: host-enforced access to GM information, integration with real Parchment
+roles and UI, browser QA. Foundry and Fate owner acceptance remain parked.
+
 ## 2026-11-21 - Hosted deferred Stunt persistence candidate
 
 - Implemented optional lifecycle storage beside the complete CharacterDocument,

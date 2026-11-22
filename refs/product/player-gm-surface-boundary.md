@@ -53,6 +53,19 @@ For our original classless RPG, preserve intent-first player interaction and
 fast, progressively disclosed GM resolution. A dedicated GM workbench is a
 future product slice, not a prerequisite for native-state or lifecycle work.
 
+## Read-model proof (2026-11-22)
+
+`packages/character-model/src/lifecyclePresentation.ts` provides separate,
+read-only `projectPlayerLifecycle` and `projectGmLifecycle` projections from
+one shared ledger. The player projection carries prompts, current choice
+status, eligible identifiers and whether an advancement revision is linked;
+the GM projection carries assessment reasons, rules sources and native revision
+provenance. A selected choice without a linked revision is not yet presented
+as applied. Recorded experience without a linked revision is not presented as
+earned advancement. These are headless display contracts, **not role-filtered
+API responses or security controls**. A host must enforce permissions before
+serving GM detail and before accepting GM-owned mutations.
+
 ## Future acceptance criteria
 
 1. Independent player and GM entry points or contextual surfaces can share a

@@ -13,6 +13,23 @@ When implementation reveals a reusable semantic concept, translation mismatch, s
 
 ## Current hypotheses, not shared requirements
 
+### 2026-11-22 - Distinct player and GM read models share progression evidence
+
+Observation: the same tested Fate choice and BRP experience ledger supports
+plain-language player progress and GM-facing eligibility/provenance without
+duplicating native state. A selection or experience alone does not prove its
+mechanical change was saved.
+
+Translator implication: preserve revision linkage distinctly from choice and
+experience; surface-specific read models should not introduce semantic rules
+or imply an authorization boundary.
+
+Original RPG implication: player-facing progression can stay lightweight while
+GM-facing rationale is available on demand. Campaign roles must guard the GM
+view at the trusted host boundary.
+
+Confidence: high for headless read models; browser/host role handling untested.
+
 ### 2026-11-21 - BRP skill growth differs from a deferred ability choice
 
 Observation: BRP ORC experience improvement records GM-authorized meaningful
