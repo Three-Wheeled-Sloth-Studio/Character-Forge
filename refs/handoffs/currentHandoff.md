@@ -10,6 +10,19 @@ tags:
 ---
 # Current Handoff
 
+## 2026-11-22 - Authorized Lifecycle Read Contract
+
+Added `loadAuthorizedPlayerLifecycle` and `loadAuthorizedGmLifecycle` in
+`packages/character-model/src/authorizedLifecycleView.ts`. Both authorize
+before loading the paired snapshot, verify character identity, and return
+role-appropriate read models without exposing raw history/native documents.
+This is a host-facing seam only. Parchment must implement trusted project-role
+authorization and route its existing GM inspector through that gate. Never
+trust an iframe-supplied role boolean. Automated authorization denial and
+identity tests added. Parchment private checkout is unavailable in this
+workspace; local coding agent should continue from the sibling checkout in PW.
+Foundry and Fate owner validation remain paused.
+
 ## 2026-11-22 - Lifecycle Player/GM Read Models
 
 Added read-only role-oriented lifecycle projections in

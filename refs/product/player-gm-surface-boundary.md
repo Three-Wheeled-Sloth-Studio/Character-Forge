@@ -66,6 +66,15 @@ earned advancement. These are headless display contracts, **not role-filtered
 API responses or security controls**. A host must enforce permissions before
 serving GM detail and before accepting GM-owned mutations.
 
+`packages/character-model/src/authorizedLifecycleView.ts` adds a host-facing
+read boundary with separate asynchronous player and GM authorization callbacks.
+Authorization runs before loading history; an unauthorized GM caller receives
+neither the GM projection nor the raw ledger. Identity is checked after loading.
+This is a composable contract, not an authentication or campaign-role policy:
+Parchment must supply the callbacks from trusted session/project access, never
+from a client-provided role flag. The existing Fate iframe GM inspector remains
+unrestricted and must not be described as securely GM-only until host wiring.
+
 ## Future acceptance criteria
 
 1. Independent player and GM entry points or contextual surfaces can share a
